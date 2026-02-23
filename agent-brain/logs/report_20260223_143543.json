@@ -1,0 +1,295 @@
+{
+  "generated_at": "2026-02-23T14:35:43.854238+00:00",
+  "system_health": {
+    "health_score": 86,
+    "total_outputs": 22,
+    "total_accepted": 14,
+    "total_rejected": 8,
+    "acceptance_rate": 0.636,
+    "avg_score": 5.7,
+    "domain_count": 6,
+    "domains_with_strategy": 4,
+    "domains_with_kb": 1,
+    "domains_in_trial": 3,
+    "domains_with_pending": 0,
+    "principle_count": 9,
+    "budget_remaining": 3.2854,
+    "budget_spent_today": 1.7146,
+    "api_calls_today": 144
+  },
+  "budget": {
+    "daily_limit": 5.0,
+    "spent_today": 1.7146,
+    "remaining_today": 3.2854,
+    "within_budget": true,
+    "all_time": {
+      "total_usd": 1.7146,
+      "calls": 144,
+      "days": 1,
+      "by_date": {
+        "2026-02-23": 1.7146
+      }
+    }
+  },
+  "domains": {
+    "ai": {
+      "stats": {
+        "count": 1,
+        "avg_score": 7.4,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "strategy": {
+        "active_version": "v001",
+        "status": "trial",
+        "pending_count": 0,
+        "performance": {
+          "count": 0,
+          "avg_score": 0,
+          "scores": [],
+          "accepted": 0,
+          "rejected": 0
+        }
+      },
+      "knowledge_base": {
+        "exists": false,
+        "claims": 0,
+        "gaps": 0
+      },
+      "recent_outputs": [
+        {
+          "timestamp": "2026-02-23T10:07:12.448088+00:00",
+          "question": "What are the most important developments in open-source AI models in early 2026?",
+          "score": 7.4,
+          "accepted": true,
+          "strategy_version": "default"
+        }
+      ]
+    },
+    "crypto": {
+      "stats": {
+        "count": 14,
+        "avg_score": 5.564285714285715,
+        "accepted": 9,
+        "rejected": 5
+      },
+      "strategy": {
+        "active_version": "v003",
+        "status": "active",
+        "pending_count": 0,
+        "performance": {
+          "count": 0,
+          "avg_score": 0,
+          "scores": [],
+          "accepted": 0,
+          "rejected": 0
+        }
+      },
+      "knowledge_base": {
+        "exists": true,
+        "claims": 18,
+        "gaps": 6
+      },
+      "recent_outputs": [
+        {
+          "timestamp": "2026-02-23T13:08:57.401858+00:00",
+          "question": "What is the verified current status as of February 23, 2026 of the CLARITY Act and GENIUS Act accord",
+          "score": 7.4,
+          "accepted": true,
+          "strategy_version": "v003"
+        },
+        {
+          "timestamp": "2026-02-23T12:29:48.688795+00:00",
+          "question": "What specific enforcement actions has the SEC taken under Chair Paul Atkins between January 1 and Fe",
+          "score": 8.0,
+          "accepted": true,
+          "strategy_version": "v003"
+        },
+        {
+          "timestamp": "2026-02-23T11:42:07.364976+00:00",
+          "question": "What are the verified institutional inflows and outflows for spot Bitcoin ETFs (IBIT, FBIT, BTC) in ",
+          "score": 7.3,
+          "accepted": true,
+          "strategy_version": "v003"
+        },
+        {
+          "timestamp": "2026-02-23T11:05:17.721080+00:00",
+          "question": "What is the current state of Bitcoin layer 2 solutions?",
+          "score": 6.2,
+          "accepted": true,
+          "strategy_version": "v003"
+        },
+        {
+          "timestamp": "2026-02-23T10:43:46.380957+00:00",
+          "question": "What are the most promising Web3 gaming tokens and why?",
+          "score": 7.1,
+          "accepted": true,
+          "strategy_version": "v001"
+        }
+      ]
+    },
+    "cybersecurity": {
+      "stats": {
+        "count": 4,
+        "avg_score": 4.425,
+        "accepted": 1,
+        "rejected": 3
+      },
+      "strategy": {
+        "active_version": "v002",
+        "status": "trial",
+        "pending_count": 0,
+        "performance": {
+          "count": 0,
+          "avg_score": 0,
+          "scores": [],
+          "accepted": 0,
+          "rejected": 0
+        }
+      },
+      "knowledge_base": {
+        "exists": false,
+        "claims": 0,
+        "gaps": 0
+      },
+      "recent_outputs": [
+        {
+          "timestamp": "2026-02-23T13:05:32.841035+00:00",
+          "question": "What are the most significant cybersecurity threats and vulnerabilities actively exploited in early ",
+          "score": 7.7,
+          "accepted": true,
+          "strategy_version": "v002"
+        },
+        {
+          "timestamp": "2026-02-23T12:58:21.250785+00:00",
+          "question": "What are the most significant zero-day vulnerabilities discovered in 2025-2026?",
+          "score": 4.8,
+          "accepted": false,
+          "strategy_version": "v001"
+        },
+        {
+          "timestamp": "2026-02-23T12:52:28.711991+00:00",
+          "question": "What are the most significant zero-day vulnerabilities discovered in 2025-2026?",
+          "score": 3.7,
+          "accepted": false,
+          "strategy_version": "v001"
+        },
+        {
+          "timestamp": "2026-02-23T12:44:48.567411+00:00",
+          "question": "What are the most significant zero-day vulnerabilities and state-sponsored cyber operations discover",
+          "score": 1.5,
+          "accepted": false,
+          "strategy_version": "v001"
+        }
+      ]
+    },
+    "general": {
+      "stats": {
+        "count": 0,
+        "avg_score": 0,
+        "accepted": 0,
+        "rejected": 0
+      },
+      "strategy": {
+        "active_version": "default",
+        "status": "active",
+        "pending_count": 0,
+        "performance": {
+          "count": 0,
+          "avg_score": 0,
+          "scores": [],
+          "accepted": 0,
+          "rejected": 0
+        }
+      },
+      "knowledge_base": {
+        "exists": false,
+        "claims": 0,
+        "gaps": 0
+      },
+      "recent_outputs": []
+    },
+    "geopolitics": {
+      "stats": {
+        "count": 2,
+        "avg_score": 7.550000000000001,
+        "accepted": 2,
+        "rejected": 0
+      },
+      "strategy": {
+        "active_version": "v001",
+        "status": "trial",
+        "pending_count": 0,
+        "performance": {
+          "count": 0,
+          "avg_score": 0,
+          "scores": [],
+          "accepted": 0,
+          "rejected": 0
+        }
+      },
+      "knowledge_base": {
+        "exists": false,
+        "claims": 0,
+        "gaps": 0
+      },
+      "recent_outputs": [
+        {
+          "timestamp": "2026-02-23T13:12:58.751535+00:00",
+          "question": "What are the specific structural economic incentives and military strategic doctrines driving Russia",
+          "score": 7.4,
+          "accepted": true,
+          "strategy_version": "v001"
+        },
+        {
+          "timestamp": "2026-02-23T13:05:56.947009+00:00",
+          "question": "What are the most significant geopolitical developments and international relations shifts in early ",
+          "score": 7.7,
+          "accepted": true,
+          "strategy_version": "v001"
+        }
+      ]
+    },
+    "physics": {
+      "stats": {
+        "count": 1,
+        "avg_score": 7.2,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "strategy": {
+        "active_version": "default",
+        "status": "active",
+        "pending_count": 0,
+        "performance": {
+          "count": 0,
+          "avg_score": 0,
+          "scores": [],
+          "accepted": 0,
+          "rejected": 0
+        }
+      },
+      "knowledge_base": {
+        "exists": false,
+        "claims": 0,
+        "gaps": 0
+      },
+      "recent_outputs": [
+        {
+          "timestamp": "2026-02-23T11:17:17.447076+00:00",
+          "question": "What is dark matter?",
+          "score": 7.2,
+          "accepted": true,
+          "strategy_version": "default"
+        }
+      ]
+    }
+  },
+  "principles": {
+    "count": 9,
+    "version": 2,
+    "source_domains": [
+      "crypto"
+    ]
+  }
+}

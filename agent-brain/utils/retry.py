@@ -36,8 +36,11 @@ RETRYABLE_PATTERNS = [
     "rate_limit",
     "rate limit",
     "too many requests",
+    "500",
     "503",
     "service unavailable",
+    "internal server error",
+    "api_error",
 ]
 
 
