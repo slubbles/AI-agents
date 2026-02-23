@@ -1,1 +1,5 @@
 {"timestamp": "2026-02-23T05:05:01.834525+00:00", "question": "What are the latest Bitcoin ETF developments?", "attempts": 3, "score": 5.4, "verdict": "reject", "strategy_version": "default"}
+{"timestamp": "2026-02-23T09:58:24.681450+00:00", "question": "What are the latest developments in Bitcoin ETFs and institutional crypto adoption in early 2026?", "attempts": 3, "score": 2.0, "verdict": "reject", "strategy_version": "default"}
+{"timestamp": "2026-02-23T09:59:38.253862+00:00", "question": "What are the latest developments in Bitcoin ETFs and institutional crypto adoption in early 2026?", "attempts": 1, "score": 7.1, "verdict": "accept", "strategy_version": "default"}
+{"timestamp": "2026-02-23T10:02:23.779211+00:00", "question": "What is the current regulatory landscape for cryptocurrency in the US as of February 2026?", "attempts": 1, "score": 6.2, "verdict": "accept", "strategy_version": "default"}
+{"timestamp": "2026-02-23T10:04:39.477931+00:00", "question": "What are the most significant DeFi protocol developments and risks in early 2026?", "attempts": 1, "score": 7.7, "verdict": "accept", "strategy_version": "v001"}

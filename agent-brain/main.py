@@ -17,8 +17,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from agents.researcher import research
 from agents.critic import critique
+from agents.meta_analyst import analyze_and_evolve, MIN_OUTPUTS_FOR_ANALYSIS, EVOLVE_EVERY_N
 from config import QUALITY_THRESHOLD, MAX_RETRIES, DEFAULT_DOMAIN, LOG_DIR
-from memory_store import save_output, get_stats
+from memory_store import save_output, load_outputs, get_stats
 from strategy_store import get_strategy
 
 
@@ -122,6 +123,21 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     print(f"\n[STATS] Domain '{domain}': {stats['count']} outputs, avg score {stats['avg_score']:.1f}, "
           f"{stats['accepted']} accepted / {stats['rejected']} rejected")
 
+    # Step 6: Meta-analysis — evolve strategy if enough data
+    all_outputs = load_outputs(domain, min_score=0)
+    output_count = len(all_outputs)
+    if output_count >= MIN_OUTPUTS_FOR_ANALYSIS and output_count % EVOLVE_EVERY_N == 0:
+        print(f"\n[META-ANALYST] Evolution trigger ({output_count} outputs, every {EVOLVE_EVERY_N}). Running strategy evolution...")
+        evolution = analyze_and_evolve(domain)
+        if evolution:
+            print(f"[META-ANALYST] Strategy evolved to {evolution['new_version']}")
+    elif output_count < MIN_OUTPUTS_FOR_ANALYSIS:
+        remaining = MIN_OUTPUTS_FOR_ANALYSIS - output_count
+        print(f"\n[META-ANALYST] Need {remaining} more output(s) before strategy evolution")
+    else:
+        next_evolve = EVOLVE_EVERY_N - (output_count % EVOLVE_EVERY_N)
+        print(f"\n[META-ANALYST] Next evolution in {next_evolve} output(s)")
+
     # Print summary
     print(f"\n{'='*60}")
     print(f"  SUMMARY")
@@ -161,14 +177,29 @@ def log_run(domain: str, question: str, attempts: int, research: dict, critique:
 
 def main():
     parser = argparse.ArgumentParser(description="Agent Brain — Research Loop")
-    parser.add_argument("question", help="The research question to investigate")
+    parser.add_argument("question", nargs="?", help="The research question to investigate")
     parser.add_argument("--domain", default=DEFAULT_DOMAIN, help=f"Domain context (default: {DEFAULT_DOMAIN})")
+    parser.add_argument("--evolve", action="store_true", help="Run meta-analyst strategy evolution only (no research)")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("ERROR: Set ANTHROPIC_API_KEY environment variable first.")
         print("  export ANTHROPIC_API_KEY=sk-ant-...")
         sys.exit(1)
+
+    if args.evolve:
+        # Manual strategy evolution trigger
+        print(f"\n{'='*60}")
+        print(f"  META-ANALYST — Strategy Evolution")
+        print(f"  Domain: {args.domain}")
+        print(f"{'='*60}\n")
+        result = analyze_and_evolve(args.domain)
+        if not result:
+            sys.exit(1)
+        return
+
+    if not args.question:
+        parser.error("question is required unless --evolve is used")
 
     run_loop(question=args.question, domain=args.domain)
 
