@@ -834,3 +834,433 @@ class TestRetry:
         assert is_retryable(Exception("api_error"))
         assert not is_retryable(ValueError("bad input"))
         assert not is_retryable(TypeError("wrong type"))
+
+
+# ============================================================
+# Analytics Tests
+# ============================================================
+
+class TestAnalytics:
+    """Tests for analytics engine — no API calls."""
+
+    def _create_outputs(self, mem_dir, domain, outputs_data):
+        """Helper to create test output files."""
+        domain_dir = os.path.join(mem_dir, domain)
+        os.makedirs(domain_dir, exist_ok=True)
+        for i, data in enumerate(outputs_data):
+            filename = f"20260223_{100000+i}_0000_score{data.get('overall_score', 5):.0f}.json"
+            filepath = os.path.join(domain_dir, filename)
+            with open(filepath, "w") as f:
+                json.dump(data, f)
+
+    def test_score_trajectory(self, tmp_memory):
+        """Score trajectory should detect improving trend."""
+        from analytics import score_trajectory
+        
+        outputs = []
+        for i, score in enumerate([3, 4, 5, 6, 7, 8]):
+            outputs.append({
+                "timestamp": f"2026-02-23T{10+i}:00:00+00:00",
+                "domain": "test",
+                "question": f"Question {i}",
+                "overall_score": score,
+                "accepted": score >= 6,
+                "strategy_version": "v001",
+                "research": {"summary": "test", "findings": [], "key_insights": []},
+                "critique": {"overall_score": score, "verdict": "accept" if score >= 6 else "reject"},
+            })
+        self._create_outputs(tmp_memory, "test", outputs)
+        
+        with patch("analytics.MEMORY_DIR", tmp_memory):
+            result = score_trajectory("test")
+        
+        assert result["total_outputs"] == 6
+        assert result["trend"] == "improving"
+        assert result["improvement"] > 0
+        assert result["best_score"] == 8
+        assert result["worst_score"] == 3
+
+    def test_score_distribution(self, tmp_memory):
+        """Score distribution should produce a histogram."""
+        from analytics import score_distribution
+        
+        outputs = []
+        for score in [3, 5, 7, 7, 8]:
+            outputs.append({
+                "timestamp": "2026-02-23T10:00:00+00:00",
+                "domain": "test",
+                "question": "Q",
+                "overall_score": score,
+                "accepted": score >= 6,
+                "research": {},
+                "critique": {"overall_score": score},
+            })
+        self._create_outputs(tmp_memory, "test", outputs)
+        
+        with patch("analytics.MEMORY_DIR", tmp_memory):
+            result = score_distribution("test")
+        
+        assert result["total"] == 5
+        assert result["above_threshold"] == 3
+        assert result["below_threshold"] == 2
+        assert result["acceptance_rate"] == 60.0
+
+    def test_strategy_comparison(self, tmp_memory, tmp_strategy):
+        """Strategy comparison should include data for strategies used in outputs."""
+        from analytics import strategy_comparison
+        
+        # Create outputs with 'default' strategy (matches what list_versions returns)
+        outputs = []
+        for score in [5, 6, 7, 8]:
+            outputs.append({
+                "timestamp": "2026-02-23T10:00:00+00:00",
+                "domain": "test",
+                "question": "Q",
+                "overall_score": score,
+                "accepted": score >= 6,
+                "strategy_version": "default",
+                "research": {},
+                "critique": {"overall_score": score, "verdict": "accept" if score >= 6 else "reject"},
+            })
+        self._create_outputs(tmp_memory, "test", outputs)
+        
+        with patch("analytics.MEMORY_DIR", tmp_memory), \
+             patch("memory_store.MEMORY_DIR", tmp_memory), \
+             patch("strategy_store.STRATEGY_DIR", tmp_strategy):
+            result = strategy_comparison("test")
+        
+        assert len(result) >= 1
+        assert result[0]["version"] == "default"
+        assert result[0]["outputs"] == 4
+
+    def test_search_memory(self, tmp_memory):
+        """Memory search should find relevant outputs."""
+        from analytics import search_memory
+        
+        outputs = [
+            {
+                "timestamp": "2026-02-23T10:00:00+00:00",
+                "domain": "crypto",
+                "question": "What are Bitcoin ETF developments?",
+                "overall_score": 7,
+                "accepted": True,
+                "strategy_version": "v001",
+                "research": {
+                    "summary": "Bitcoin ETFs have grown significantly",
+                    "findings": [{"claim": "BlackRock holds $50B", "confidence": "high"}],
+                    "key_insights": ["Institutional adoption increasing"],
+                },
+                "critique": {"overall_score": 7, "verdict": "accept"},
+            },
+            {
+                "timestamp": "2026-02-23T11:00:00+00:00",
+                "domain": "crypto",
+                "question": "What are stablecoin regulations?",
+                "overall_score": 6,
+                "accepted": True,
+                "strategy_version": "v001",
+                "research": {
+                    "summary": "Stablecoin rules being implemented",
+                    "findings": [],
+                    "key_insights": [],
+                },
+                "critique": {"overall_score": 6, "verdict": "accept"},
+            },
+        ]
+        self._create_outputs(tmp_memory, "crypto", outputs)
+        
+        with patch("analytics.MEMORY_DIR", tmp_memory):
+            results = search_memory("Bitcoin ETF")
+        
+        assert len(results) >= 1
+        assert results[0]["question"] == "What are Bitcoin ETF developments?"
+        assert results[0]["relevance"] > results[-1]["relevance"] if len(results) > 1 else True
+
+    def test_critic_analysis(self, tmp_memory):
+        """Critic analysis should extract dimension averages."""
+        from analytics import critic_analysis
+        
+        outputs = [
+            {
+                "timestamp": "2026-02-23T10:00:00+00:00",
+                "domain": "test",
+                "question": "Q",
+                "overall_score": 7,
+                "accepted": True,
+                "research": {},
+                "critique": {
+                    "overall_score": 7,
+                    "accuracy": {"score": 8},
+                    "depth": {"score": 6},
+                    "completeness": {"score": 7},
+                    "specificity": {"score": 9},
+                    "intellectual_honesty": {"score": 7},
+                    "strengths": ["Good data"],
+                    "weaknesses": ["Shallow analysis"],
+                },
+            },
+        ]
+        self._create_outputs(tmp_memory, "test", outputs)
+        
+        with patch("analytics.MEMORY_DIR", tmp_memory):
+            result = critic_analysis("test")
+        
+        assert result["total_critiques"] == 1
+        assert "accuracy" in result["dimension_avgs"]
+        assert result["strongest_dimension"] == "specificity"
+        assert result["weakest_dimension"] == "depth"
+
+    def test_research_patterns(self, tmp_memory):
+        """Research patterns should compute averages."""
+        from analytics import research_patterns
+        
+        outputs = [
+            {
+                "timestamp": "2026-02-23T10:00:00+00:00",
+                "domain": "test",
+                "question": "Q1",
+                "overall_score": 7,
+                "accepted": True,
+                "attempt": 2,
+                "research": {
+                    "findings": [{"claim": "A"}, {"claim": "B"}, {"claim": "C"}],
+                    "key_insights": ["X", "Y"],
+                    "searches_used": 3,
+                },
+                "critique": {},
+            },
+            {
+                "timestamp": "2026-02-23T11:00:00+00:00",
+                "domain": "test",
+                "question": "Q2",
+                "overall_score": 8,
+                "accepted": True,
+                "attempt": 1,
+                "research": {
+                    "findings": [{"claim": "D"}],
+                    "key_insights": ["Z"],
+                    "searches_used": 2,
+                },
+                "critique": {},
+            },
+        ]
+        self._create_outputs(tmp_memory, "test", outputs)
+        
+        with patch("analytics.MEMORY_DIR", tmp_memory):
+            result = research_patterns("test")
+        
+        assert result["total_outputs"] == 2
+        assert result["avg_attempts"] == 1.5
+        assert result["retry_rate"] == 50.0
+        assert result["avg_findings_per_output"] == 2.0
+        assert result["avg_insights_per_output"] == 1.5
+
+    def test_domain_comparison(self, tmp_memory, tmp_strategy):
+        """Domain comparison should rank domains by avg score."""
+        from analytics import domain_comparison
+        
+        # Create two domains with different scores
+        for domain, score in [("alpha", 8), ("beta", 5)]:
+            outputs = [{
+                "timestamp": "2026-02-23T10:00:00+00:00",
+                "domain": domain,
+                "question": "Q",
+                "overall_score": score,
+                "accepted": score >= 6,
+                "strategy_version": "default",
+                "research": {},
+                "critique": {"overall_score": score},
+            }]
+            self._create_outputs(tmp_memory, domain, outputs)
+        
+        with patch("analytics.MEMORY_DIR", tmp_memory), \
+             patch("memory_store.MEMORY_DIR", tmp_memory), \
+             patch("agents.orchestrator.MEMORY_DIR", tmp_memory), \
+             patch("strategy_store.STRATEGY_DIR", tmp_strategy):
+            result = domain_comparison()
+        
+        assert len(result) == 2
+        assert result[0]["domain"] == "alpha"
+        assert result[0]["avg_score"] > result[1]["avg_score"]
+
+    def test_knowledge_velocity(self, tmp_memory):
+        """Knowledge velocity should assess accumulation speed."""
+        from analytics import knowledge_velocity
+        
+        outputs = []
+        for i in range(5):
+            outputs.append({
+                "timestamp": f"2026-02-23T{10+i}:00:00+00:00",
+                "domain": "test",
+                "question": f"Q{i}",
+                "overall_score": 7,
+                "accepted": True,
+                "strategy_version": "v001",
+                "research": {
+                    "findings": [{"claim": f"F{i}"}, {"claim": f"G{i}"}],
+                    "key_insights": [],
+                    "knowledge_gaps": [f"Gap {i}"],
+                },
+                "critique": {"overall_score": 7},
+            })
+        self._create_outputs(tmp_memory, "test", outputs)
+        
+        with patch("analytics.MEMORY_DIR", tmp_memory):
+            result = knowledge_velocity("test")
+        
+        assert result["total_accepted"] == 5
+        assert result["total_findings"] == 10
+        assert result["knowledge_gaps_identified"] == 5
+
+    def test_full_report(self, tmp_memory, tmp_strategy, tmp_logs):
+        """Full report should generate without errors."""
+        from analytics import full_report
+        
+        outputs = [{
+            "timestamp": "2026-02-23T10:00:00+00:00",
+            "domain": "test",
+            "question": "Q",
+            "overall_score": 7,
+            "accepted": True,
+            "strategy_version": "default",
+            "research": {"summary": "S", "findings": [], "key_insights": []},
+            "critique": {"overall_score": 7, "verdict": "accept"},
+        }]
+        self._create_outputs(tmp_memory, "test", outputs)
+        
+        with patch("analytics.MEMORY_DIR", tmp_memory), \
+             patch("memory_store.MEMORY_DIR", tmp_memory), \
+             patch("agents.orchestrator.MEMORY_DIR", tmp_memory), \
+             patch("strategy_store.STRATEGY_DIR", tmp_strategy), \
+             patch("cost_tracker.LOG_DIR", tmp_logs), \
+             patch("cost_tracker.COST_LOG", os.path.join(tmp_logs, "costs.jsonl")):
+            report = full_report()
+        
+        assert "system_health" in report
+        assert "cost_efficiency" in report
+        assert "domain_comparison" in report
+        assert "domains" in report
+        assert "test" in report["domains"]
+
+
+# ============================================================
+# Domain Seeder Tests
+# ============================================================
+
+class TestDomainSeeder:
+    """Tests for domain seeder — no API calls."""
+
+    def test_get_seed_question_curated(self):
+        """Should return curated seed for known domains."""
+        from domain_seeder import get_seed_question, has_curated_seeds
+        q = get_seed_question("crypto")
+        assert len(q) > 10
+        assert has_curated_seeds("crypto")
+
+    def test_get_seed_question_generic(self):
+        """Should return generic seed for unknown domains."""
+        from domain_seeder import get_seed_question, has_curated_seeds
+        q = get_seed_question("underwater_basket_weaving")
+        assert "underwater_basket_weaving" in q
+        assert not has_curated_seeds("underwater_basket_weaving")
+
+    def test_get_seed_questions_count(self):
+        """Should return requested number of questions."""
+        from domain_seeder import get_seed_questions
+        questions = get_seed_questions("ai", count=3)
+        assert len(questions) == 3
+        assert len(set(questions)) == 3
+
+    def test_list_available_domains(self):
+        """Should list all domains with curated seeds."""
+        from domain_seeder import list_available_domains
+        domains = list_available_domains()
+        assert "crypto" in domains
+        assert "ai" in domains
+        assert "cybersecurity" in domains
+        assert len(domains) >= 5
+
+
+# ============================================================
+# Validator Tests
+# ============================================================
+
+class TestValidator:
+    """Tests for data validator — no API calls."""
+
+    def test_validate_memory_valid(self, tmp_memory):
+        """Valid memory files should pass validation."""
+        from validator import validate_memory
+        
+        domain_dir = os.path.join(tmp_memory, "test")
+        os.makedirs(domain_dir)
+        record = {
+            "timestamp": "2026-02-23T10:00:00+00:00",
+            "domain": "test",
+            "question": "Test question?",
+            "overall_score": 7,
+            "accepted": True,
+            "research": {"summary": "test"},
+            "critique": {"overall_score": 7},
+        }
+        with open(os.path.join(domain_dir, "output.json"), "w") as f:
+            json.dump(record, f)
+        
+        with patch("validator.MEMORY_DIR", tmp_memory):
+            result = validate_memory("test")
+        
+        assert result["valid"] == 1
+        assert result["invalid"] == 0
+
+    def test_validate_memory_invalid(self, tmp_memory):
+        """Missing required fields should be flagged."""
+        from validator import validate_memory
+        
+        domain_dir = os.path.join(tmp_memory, "test")
+        os.makedirs(domain_dir)
+        record = {"timestamp": "2026-02-23T10:00:00+00:00", "domain": "test"}
+        with open(os.path.join(domain_dir, "bad.json"), "w") as f:
+            json.dump(record, f)
+        
+        with patch("validator.MEMORY_DIR", tmp_memory):
+            result = validate_memory("test")
+        
+        assert result["invalid"] == 1
+        assert len(result["issues"]) > 0
+
+    def test_validate_cost_log(self, tmp_logs):
+        """Valid cost log should pass validation."""
+        from validator import validate_cost_log
+        
+        cost_log = os.path.join(tmp_logs, "costs.jsonl")
+        entry = {
+            "timestamp": "2026-02-23T10:00:00+00:00",
+            "date": "2026-02-23",
+            "model": "claude-haiku-4-5-20251001",
+            "agent_role": "researcher",
+            "domain": "test",
+            "estimated_cost_usd": 0.005,
+        }
+        with open(cost_log, "w") as f:
+            f.write(json.dumps(entry) + "\n")
+        
+        with patch("validator.LOG_DIR", tmp_logs):
+            result = validate_cost_log()
+        
+        assert result["entries"] == 1
+        assert result["invalid_lines"] == 0
+        assert result["total_cost"] == 0.005
+
+    def test_validate_all(self, tmp_memory, tmp_strategy, tmp_logs):
+        """Full validation should return comprehensive report."""
+        from validator import validate_all
+        
+        with patch("validator.MEMORY_DIR", tmp_memory), \
+             patch("validator.STRATEGY_DIR", tmp_strategy), \
+             patch("validator.LOG_DIR", tmp_logs):
+            result = validate_all()
+        
+        assert "status" in result
+        assert "memory" in result
+        assert "strategies" in result
+        assert "costs" in result

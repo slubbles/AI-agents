@@ -65,6 +65,9 @@ from agents.orchestrator import (
     get_system_health, discover_domains,
 )
 from utils.retry import retry_api_call, is_retryable
+from analytics import display_analytics, search_memory, display_search_results, full_report
+from validator import display_validation
+from domain_seeder import get_seed_question, get_seed_questions, has_curated_seeds, list_available_domains
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
@@ -318,6 +321,10 @@ def main():
     parser.add_argument("--target-domains", default="", help="Comma-separated domains for --orchestrate (default: all)")
     parser.add_argument("--export", action="store_true", help="Export full system report as JSON")
     parser.add_argument("--export-md", action="store_true", help="Export full system report as Markdown")
+    parser.add_argument("--analytics", action="store_true", help="Deep performance analytics (domain or system-wide)")
+    parser.add_argument("--search", metavar="QUERY", help="Search across all memory for matching outputs")
+    parser.add_argument("--validate", action="store_true", help="Validate data integrity across memory, strategies, costs")
+    parser.add_argument("--seed", action="store_true", help="Show seed questions for a domain (or list available domains)")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -377,6 +384,20 @@ def main():
         return
     if args.export or getattr(args, 'export_md', False):
         _run_export(markdown=getattr(args, 'export_md', False))
+        return
+    if args.analytics:
+        domain_arg = args.domain if args.domain != DEFAULT_DOMAIN else None
+        display_analytics(domain_arg)
+        return
+    if args.search:
+        results = search_memory(args.search)
+        display_search_results(args.search, results)
+        return
+    if args.validate:
+        display_validation()
+        return
+    if args.seed:
+        _show_seeds(args.domain)
         return
 
     if args.evolve:
@@ -818,13 +839,12 @@ def _run_auto(domain: str, rounds: int = 1):
         question = get_next_question(domain)
 
         if not question:
-            # First time in domain — no data to diagnose
+            # First time in domain — use seed questions
             stats = get_stats(domain)
             if stats["count"] == 0:
-                print(f"[QUESTION-GEN] Domain '{domain}' has no outputs yet.")
-                print(f"  Cannot self-direct without seed data. Run a manual question first:")
-                print(f"    python main.py --domain {domain} \"Your question here\"")
-                break
+                question = get_seed_question(domain)
+                curated = "curated" if has_curated_seeds(domain) else "generic"
+                print(f"[SEED] Domain '{domain}' has no outputs — using {curated} seed question")
             else:
                 print(f"[QUESTION-GEN] Failed to generate question. Stopping.")
                 break
@@ -952,22 +972,32 @@ def _run_orchestrate(target_domains: list[str] | None, total_rounds: int):
 
             # Generate question (with retry for transient API errors)
             question = None
-            try:
-                question = retry_api_call(
-                    lambda: get_next_question(domain),
-                    max_attempts=5, base_delay=30, verbose=True,
-                )
-            except Exception as e:
-                if is_retryable(e):
-                    print(f"  ✗ API still overloaded after retries. Skipping {domain}.")
+            domain_stats = get_stats(domain)
+            
+            if domain_stats["count"] == 0:
+                # Use seed questions for empty domains (no API call needed!)
+                seed_questions = get_seed_questions(domain, count=rounds)
+                seed_idx = round_num - 1
+                if seed_idx < len(seed_questions):
+                    question = seed_questions[seed_idx]
+                    curated = "curated" if has_curated_seeds(domain) else "generic"
+                    print(f"  [SEED] Using {curated} seed question ({seed_idx+1}/{len(seed_questions)})")
                 else:
-                    print(f"  ✗ Question generation error: {e}")
+                    question = get_seed_question(domain)
+                    print(f"  [SEED] Reusing seed question (all seeds exhausted)")
+            else:
+                try:
+                    question = retry_api_call(
+                        lambda: get_next_question(domain),
+                        max_attempts=5, base_delay=30, verbose=True,
+                    )
+                except Exception as e:
+                    if is_retryable(e):
+                        print(f"  ✗ API still overloaded after retries. Skipping {domain}.")
+                    else:
+                        print(f"  ✗ Question generation error: {e}")
             if not question:
-                s = get_stats(domain)
-                if s["count"] == 0:
-                    print(f"  ✗ Domain '{domain}' has no outputs. Needs a manual seed question.")
-                else:
-                    print(f"  ✗ Failed to generate question for {domain}. Stopping.")
+                print(f"  ✗ Failed to generate question for {domain}. Stopping.")
                 break
 
             print(f"  [Q] {question[:80]}")
@@ -1067,6 +1097,48 @@ def _run_orchestrate(target_domains: list[str] | None, total_rounds: int):
     print(f"\n  Budget: ${daily['total_usd']:.4f} spent today ({daily['calls']} API calls)")
     print(f"  System health: {health['health_score']}/100")
     print(f"{'='*60}\n")
+
+
+def _show_seeds(domain: str):
+    """Show seed questions for a domain or list all available seed domains."""
+    if domain == DEFAULT_DOMAIN:
+        # Show all available seed domains
+        print(f"\n{'='*60}")
+        print(f"  DOMAIN SEEDS — Available Domains")
+        print(f"{'='*60}")
+        
+        available = list_available_domains()
+        print(f"\n  Curated seed questions available for {len(available)} domains:\n")
+        for d in available:
+            stats = get_stats(d)
+            status = "✓ has data" if stats["count"] > 0 else "○ empty"
+            questions = get_seed_questions(d, count=5)
+            print(f"  {d:<16} {status}")
+            print(f"    → {questions[0][:70]}...")
+        
+        print(f"\n  Any domain can also use generic seed questions.")
+        print(f"  Usage: python main.py --seed --domain <domain>")
+        print()
+    else:
+        # Show seeds for specific domain
+        questions = get_seed_questions(domain, count=5)
+        curated = has_curated_seeds(domain)
+        stats = get_stats(domain)
+        
+        print(f"\n{'='*60}")
+        print(f"  DOMAIN SEEDS — {domain}")
+        print(f"{'='*60}")
+        print(f"\n  Type: {'Curated' if curated else 'Generic'}")
+        print(f"  Current outputs: {stats['count']}")
+        
+        print(f"\n  Seed Questions:")
+        for i, q in enumerate(questions, 1):
+            print(f"    {i}. {q}")
+        
+        if stats["count"] == 0:
+            print(f"\n  → Orchestrator will auto-use these for bootstrapping.")
+            print(f"  → Or run manually: python main.py --domain {domain} \"{questions[0]}\"")
+        print()
 
 
 def _run_export(markdown: bool = False):
