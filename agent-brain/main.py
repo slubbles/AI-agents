@@ -23,6 +23,7 @@ Control commands:
     python main.py --kb                           Show synthesized knowledge base
     python main.py --prune                        Archive rejected/low-score outputs
     python main.py --prune-dry                    Preview what --prune would archive
+    python main.py --dashboard                    Full system dashboard (all domains at a glance)
 """
 
 import argparse
@@ -304,6 +305,7 @@ def main():
     parser.add_argument("--kb", action="store_true", help="Show the synthesized knowledge base for a domain")
     parser.add_argument("--prune", action="store_true", help="Run memory hygiene: archive rejected/low outputs")
     parser.add_argument("--prune-dry", action="store_true", help="Show what --prune would archive without doing it")
+    parser.add_argument("--dashboard", action="store_true", help="Show full system dashboard (all domains, strategies, budget)")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -353,6 +355,9 @@ def main():
         return
     if args.prune or getattr(args, 'prune_dry', False):
         _run_prune(args.domain, dry_run=getattr(args, 'prune_dry', False))
+        return
+    if args.dashboard:
+        _show_dashboard()
         return
 
     if args.evolve:
@@ -894,6 +899,180 @@ def _run_prune(domain: str, dry_run: bool = False):
         print(f"  Archived files in: memory/{domain}/_archive/")
         print(f"  Note: archived outputs can be restored if needed")
     print()
+
+
+def _show_dashboard():
+    """
+    Full system dashboard — all domains, strategies, budget, health at a glance.
+    No API calls — pure local data.
+    """
+    from memory_store import load_knowledge_base
+
+    print(f"\n{'='*60}")
+    print(f"  AGENT BRAIN — DASHBOARD")
+    print(f"  {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
+    print(f"{'='*60}")
+
+    # ── Budget ──
+    budget = check_budget()
+    daily = get_daily_spend()
+    alltime = get_all_time_spend()
+    budget_icon = "✓" if budget["within_budget"] else "✗ EXCEEDED"
+    budget_pct = min(100, (budget["spent"] / budget["limit"]) * 100) if budget["limit"] > 0 else 0
+    bar_len = 20
+    filled = int(bar_len * budget_pct / 100)
+    bar = "█" * filled + "░" * (bar_len - filled)
+
+    print(f"\n  ── Budget ──")
+    print(f"  Today: ${budget['spent']:.4f} / ${budget['limit']:.2f}  [{bar}] {budget_pct:.0f}%  {budget_icon}")
+    print(f"  API calls: {daily['calls']}  |  All-time: ${alltime['total_usd']:.4f} over {alltime['days']} day(s)")
+
+    # ── Discover domains ──
+    memory_dir = os.path.join(os.path.dirname(__file__), "memory")
+    domains = []
+    if os.path.exists(memory_dir):
+        for d in sorted(os.listdir(memory_dir)):
+            if os.path.isdir(os.path.join(memory_dir, d)) and not d.startswith("_"):
+                domains.append(d)
+
+    if not domains:
+        print(f"\n  No domains found.")
+        print(f"{'='*60}\n")
+        return
+
+    # ── Domain Overview Table ──
+    print(f"\n  ── Domains ──")
+    print(f"  {'Domain':<16} {'Outputs':>7} {'Avg':>5} {'Accept':>7} {'Rate':>6} {'Strategy':<12} {'Status':<8} {'KB':>4}")
+    print(f"  {'─'*72}")
+
+    total_outputs = 0
+    total_accepted = 0
+    total_rejected = 0
+    all_scores = []
+    domain_data = []
+
+    for d in domains:
+        stats = get_stats(d)
+        archive = get_archive_stats(d)
+        active_v = get_active_version("researcher", d)
+        strat_status = get_strategy_status("researcher", d)
+        pending = list_pending("researcher", d)
+        kb = load_knowledge_base(d)
+
+        count = stats["count"]
+        avg = stats["avg_score"]
+        accepted = stats["accepted"]
+        rejected = stats["rejected"]
+        rate = f"{(accepted / count * 100):.0f}%" if count > 0 else "—"
+        kb_mark = "✓" if kb else "—"
+        strat_label = active_v if active_v != "default" else "—"
+
+        # Status decorators
+        status_label = strat_status
+        if pending:
+            status_label += f"+{len(pending)}P"
+
+        print(f"  {d:<16} {count:>7} {avg:>5.1f} {accepted:>4}/{rejected:<3} {rate:>5} {strat_label:<12} {status_label:<8} {kb_mark:>4}")
+
+        total_outputs += count
+        total_accepted += accepted
+        total_rejected += rejected
+        if count > 0:
+            all_scores.extend([avg] * count)
+
+        domain_data.append({
+            "domain": d, "stats": stats, "archive": archive,
+            "strategy": active_v, "status": strat_status, "pending": pending,
+            "has_kb": kb is not None,
+        })
+
+    # Totals row
+    overall_avg = sum(all_scores) / len(all_scores) if all_scores else 0
+    overall_rate = f"{(total_accepted / total_outputs * 100):.0f}%" if total_outputs > 0 else "—"
+    print(f"  {'─'*72}")
+    print(f"  {'TOTAL':<16} {total_outputs:>7} {overall_avg:>5.1f} {total_accepted:>4}/{total_rejected:<3} {overall_rate:>5}")
+
+    # ── Alerts & Recommendations ──
+    alerts = []
+    recommendations = []
+
+    for dd in domain_data:
+        d = dd["domain"]
+        s = dd["stats"]
+        # Low acceptance rate
+        if s["count"] >= 3 and s["accepted"] / s["count"] < 0.5:
+            alerts.append(f"⚠ {d}: acceptance rate {s['accepted']}/{s['count']} ({s['accepted']/s['count']*100:.0f}%) — strategy may need work")
+        # Pending approvals
+        if dd["pending"]:
+            versions = ", ".join(p.get("version", "?") for p in dd["pending"])
+            alerts.append(f"⏳ {d}: {len(dd['pending'])} pending strategy(ies): {versions}")
+        # Trial in progress
+        if dd["status"] == "trial":
+            alerts.append(f"🔬 {d}: strategy {dd['strategy']} in trial")
+        # Domain ready for cross-domain transfer
+        if s["count"] == 0:
+            recommendations.append(f"Seed '{d}' with a manual question or --transfer {d}")
+        elif s["count"] < 5 and dd["strategy"] == "default":
+            recommendations.append(f"'{d}' needs {5 - s['count']} more outputs for cross-domain transfer")
+        # Knowledge base missing for mature domains
+        if s["count"] >= 3 and s["accepted"] >= 3 and not dd["has_kb"]:
+            recommendations.append(f"Run --synthesize --domain {d} (3+ accepted outputs, no KB)")
+
+    if alerts:
+        print(f"\n  ── Alerts ──")
+        for a in alerts:
+            print(f"  {a}")
+
+    if recommendations:
+        print(f"\n  ── Recommendations ──")
+        for r in recommendations:
+            print(f"  → {r}")
+
+    # ── Cross-Domain Principles ──
+    principles = load_principles()
+    if principles:
+        p_count = len(principles.get("principles", []))
+        p_version = principles.get("version", "?")
+        p_sources = ", ".join(principles.get("source_domains", []))
+        print(f"\n  ── Cross-Domain Principles ──")
+        print(f"  {p_count} principles (v{p_version}) from: {p_sources}")
+
+    # ── Recent Activity ──
+    print(f"\n  ── Recent Activity ──")
+    recent_entries = []
+    log_dir = os.path.join(os.path.dirname(__file__), "logs")
+    if os.path.exists(log_dir):
+        for logfile in os.listdir(log_dir):
+            if logfile.endswith(".jsonl") and logfile != "costs.jsonl":
+                domain_name = logfile.replace(".jsonl", "")
+                filepath = os.path.join(log_dir, logfile)
+                with open(filepath) as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            entry = json.loads(line)
+                            entry["_domain"] = domain_name
+                            recent_entries.append(entry)
+                        except json.JSONDecodeError:
+                            pass
+
+    if recent_entries:
+        recent_entries.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
+        print(f"  {'Time':<20} {'Domain':<14} {'Score':>5} {'Verdict':<8} {'Question'}")
+        print(f"  {'─'*72}")
+        for entry in recent_entries[:10]:
+            ts = entry.get("timestamp", "?")[:16].replace("T", " ")
+            domain_name = entry.get("_domain", "?")
+            score = entry.get("score", 0)
+            verdict = entry.get("verdict", "?")
+            q = entry.get("question", "?")[:30]
+            print(f"  {ts:<20} {domain_name:<14} {score:>5.1f} {verdict:<8} {q}")
+    else:
+        print(f"  No activity logged yet.")
+
+    print(f"\n{'='*60}\n")
 
 
 if __name__ == "__main__":
