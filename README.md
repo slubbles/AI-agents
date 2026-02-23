@@ -30,7 +30,7 @@ The system learns through 5 layers:
 ```
 agent-brain/
 ├── config.py              — central configuration (models, thresholds, budget)
-├── main.py                — loop runner + CLI (19 commands)
+├── main.py                — loop runner + CLI (22 commands)
 ├── memory_store.py         — scored outputs, relevance retrieval, pruning
 ├── strategy_store.py       — versioned strategies with trial/active/rollback
 ├── cost_tracker.py         — API cost tracking + daily budget enforcement
@@ -40,11 +40,14 @@ agent-brain/
 │   ├── meta_analyst.py    — pattern extraction → strategy rewriting (Claude Sonnet)
 │   ├── synthesizer.py     — knowledge base integration + claim tracking
 │   ├── cross_domain.py    — principle extraction + domain seeding
+│   ├── orchestrator.py    — multi-domain coordination + priority routing (no API)
 │   └── question_generator.py — self-directed learning: gap diagnosis → question generation
 ├── tools/
 │   └── web_search.py      — DuckDuckGo search (free, no API key)
+├── utils/
+│   └── retry.py           — exponential backoff retry for transient API errors
 ├── tests/
-│   └── test_core.py       — 42 unit tests (config, memory, strategy, cost, pruning)
+│   └── test_core.py       — 58 unit tests (config, memory, strategy, orchestrator, retry)
 ├── memory/                — scored outputs (JSON, per domain)
 ├── strategies/            — strategy versions (JSON, per domain) + principles
 └── logs/                  — run logs (JSONL) + cost logs
@@ -110,6 +113,15 @@ python main.py --audit                                 # Full audit trail
 python main.py --dashboard                             # Full system dashboard
 ```
 
+### Orchestration (Multi-Domain)
+```bash
+python main.py --orchestrate                           # Auto-allocate rounds across all domains
+python main.py --orchestrate --rounds 10               # 10 rounds split by priority
+python main.py --orchestrate --target-domains crypto,ai  # Only orchestrate specific domains
+```
+
+The orchestrator analyzes all domains, scores their priority (scarcity, acceptance rate, strategy maturity, evolution triggers), allocates rounds proportionally, then auto-triggers synthesis/evolution/principle extraction after runs.
+
 ## Scoring Rubric
 
 The Critic scores every research output on 5 dimensions (weighted):
@@ -129,14 +141,15 @@ The Critic scores every research output on 5 dimensions (weighted):
 - **Human approval gate**: new strategies saved as "pending" — must be approved before trial
 - **Trial period**: strategies run for 3 outputs before confirming or rolling back
 - **Safety rollback**: auto-rolls back if trial strategy scores >20% below previous best
-- **Budget enforcement**: daily spend limit ($2/day default), hard-stops when exceeded
+- **Budget enforcement**: daily spend limit ($5/day default), hard-stops when exceeded
 - **Full observability**: every output scored, every strategy versioned, every run logged
 
 ## Stack
 
-- **Python 3.12+** — ~3,800 lines across 13 modules
+- **Python 3.12+** — ~5,800 lines across 17 modules
 - **Claude API** (Anthropic) — Haiku for cheap research, Sonnet for quality-critical scoring
 - **DuckDuckGo Search** — free web search, no API key needed
+- **Automatic retry** — exponential backoff for API overload (529/429/503)
 - **Local JSON storage** — memory, strategies, logs all in versioned JSON files
 
 ## Design Principles
@@ -154,7 +167,7 @@ pip install pytest
 python -m pytest tests/ -v
 ```
 
-42 unit tests covering config validation, memory save/load/retrieve/prune, cost tracking, strategy versioning/approval/rollback, and CLI integration.
+58 unit tests covering config validation, memory save/load/retrieve/prune, cost tracking, strategy versioning/approval/rollback, orchestrator priority/allocation, retry logic, and CLI integration.
 
 ## Current Performance
 

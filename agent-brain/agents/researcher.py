@@ -17,6 +17,7 @@ from config import ANTHROPIC_API_KEY, MODELS, MAX_TOOL_ROUNDS, MAX_SEARCHES
 from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 from cost_tracker import log_cost
 from memory_store import retrieve_relevant, load_knowledge_base
+from utils.retry import create_message
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -216,7 +217,8 @@ If prior knowledge conflicts with new search results, flag the contradiction.
 
     # Agentic tool-use loop
     for _ in range(MAX_TOOL_ROUNDS):
-        response = client.messages.create(
+        response = create_message(
+            client,
             model=MODELS["researcher"],
             max_tokens=4096,
             system=system_prompt,
