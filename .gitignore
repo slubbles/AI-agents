@@ -1,0 +1,5 @@
+.env
+agent-brain/.env
+__pycache__/
+*.pyc
+openclaw/
