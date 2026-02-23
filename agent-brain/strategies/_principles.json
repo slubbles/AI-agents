@@ -1,95 +1,104 @@
 {
-  "version": 1,
-  "extracted_at": "2026-02-23T11:16:12.951234+00:00",
+  "version": 2,
+  "extracted_at": "2026-02-23T13:15:29.156876+00:00",
   "source_domains": [
     "crypto"
   ],
   "source_count": 1,
   "principles": [
     {
-      "principle": "Limit searches to 3-8 targeted queries maximum to avoid system parsing failures",
+      "principle": "Limit searches to 3-8 targeted queries maximum to prevent system parsing failures",
       "category": "search_strategy",
-      "evidence": "High-scoring crypto outputs (6.2-7.7) used 3-15 searches optimally, while strategy explicitly warns against higher counts causing system failures",
+      "evidence": "Strategy explicitly limited to 3-8 searches and achieved 7.225 avg score with 4/4 acceptance rate, while earlier versions likely had parsing issues with higher search counts",
       "source_domains": [
         "crypto"
       ],
       "confidence": "medium"
     },
     {
-      "principle": "Cross-verify all numerical data and factual claims through at least 2 different source types",
+      "principle": "Establish clear source hierarchy prioritizing authoritative sources over industry publications",
       "category": "source_quality",
-      "evidence": "Top crypto outputs (7.7 scores) praised for 'strong source diversity and cross-referencing' and 'multiple independent sources cited for key claims'",
+      "evidence": "Strategy used hierarchy: government sites \u2192 financial media \u2192 industry reports \u2192 crypto publications. High-scoring outputs (7.1-8.0) consistently used this approach",
       "source_domains": [
         "crypto"
       ],
       "confidence": "medium"
     },
     {
-      "principle": "Prioritize authoritative primary sources over industry publications for factual verification",
+      "principle": "Cross-verify all numerical data and factual claims through at least 2 independent source types",
       "category": "source_quality",
-      "evidence": "High-scoring crypto research praised government sources (.gov, SEC filings) first, while weaknesses noted 'heavy reliance on crypto industry publications rather than authoritative government sources'",
+      "evidence": "High-scoring outputs (7.3, 8.0) praised for 'multiple independent sources cited' and 'cross-verification', while weaknesses noted 'over-reliance on single source types'",
       "source_domains": [
         "crypto"
       ],
       "confidence": "medium"
     },
     {
-      "principle": "Include specific confidence levels with clear reasoning for each claim",
+      "principle": "Include specific confidence levels with reasoning for each major claim",
       "category": "honesty_calibration",
-      "evidence": "All high-scoring crypto outputs (6.2-7.7) consistently praised for 'appropriate confidence scoring with clear reasoning' and 'strong confidence scoring system with detailed reasoning'",
+      "evidence": "All high-scoring outputs (6.2-8.0) consistently praised for 'transparent confidence levels and reasoning' and 'intellectual honesty with confidence ratings'",
       "source_domains": [
         "crypto"
       ],
       "confidence": "high"
     },
     {
-      "principle": "Explicitly acknowledge knowledge gaps and research limitations",
+      "principle": "Explicitly identify and acknowledge knowledge gaps rather than speculating",
       "category": "honesty_calibration",
-      "evidence": "High-scoring outputs praised for 'honest acknowledgment of knowledge gaps and limitations' and 'transparent identification of knowledge gaps'",
+      "evidence": "High-scoring outputs consistently praised for 'honest acknowledgment of knowledge gaps' and 'clear acknowledgment of limitations', while this was required in JSON format",
       "source_domains": [
         "crypto"
       ],
       "confidence": "high"
     },
     {
-      "principle": "Provide specific quantitative data with exact dates, amounts, and metrics rather than vague descriptions",
+      "principle": "Distinguish verified facts from projections and speculation clearly",
+      "category": "honesty_calibration",
+      "evidence": "8.0 score praised for 'distinguishes established facts from speculation' and 7.4 score for 'clearly distinguishes established facts from projections'",
+      "source_domains": [
+        "crypto"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Include specific dates, numbers, and quantitative details rather than vague statements",
       "category": "output_structure",
-      "evidence": "Top-scoring outputs (7.7) praised for 'exceptional specificity with exact dates, dollar amounts' and 'excellent specificity with concrete numbers, percentages, and dates'",
+      "evidence": "High scores (7.1, 8.0) praised for 'excellent specificity with concrete numbers, percentages, and dates' and 'specific dollar amounts', while weaknesses noted lack of specifics",
       "source_domains": [
         "crypto"
       ],
       "confidence": "medium"
     },
     {
-      "principle": "Verify temporal claims by cross-checking dates against multiple independent sources",
+      "principle": "Verify temporal claims against current date awareness to catch anachronisms",
       "category": "temporal_awareness",
-      "evidence": "Strategy emphasizes 'VERIFY ALL 2026 DATES' and high-scoring output praised for 'proper handling of future event uncertainty'",
+      "evidence": "Strategy explicitly required 'VERIFY ALL 2026 DATES' and 'flag temporal inconsistencies', with high-scoring outputs avoiding temporal errors",
       "source_domains": [
         "crypto"
       ],
       "confidence": "medium"
     },
     {
-      "principle": "Include mechanistic analysis explaining WHY events occurred, not just WHAT happened",
+      "principle": "Provide mechanistic analysis explaining WHY events occurred, not just WHAT happened",
       "category": "depth_vs_breadth",
-      "evidence": "Strategy requires mechanistic analysis, and weaknesses noted 'limited depth on mechanisms' and 'missing analysis of practical implications and mechanisms'",
+      "evidence": "Strategy required 'mechanistic analysis', but weaknesses consistently noted 'limited depth in explaining underlying mechanisms' and 'lacks technical depth'",
       "source_domains": [
         "crypto"
       ],
-      "confidence": "medium"
+      "confidence": "low"
     }
   ],
   "domain_specific_insights": [
     {
       "domain": "crypto",
-      "insight": "Prioritize government sites (.gov, SEC filings) over crypto publications for regulatory topics",
-      "not_transferable_because": "This specific source hierarchy is tailored to crypto's regulatory environment and wouldn't apply to domains like medical research or historical analysis"
+      "insight": "Prioritize government sources (.gov, SEC) over crypto publications for regulatory topics",
+      "not_transferable_because": "Specific to crypto's heavy regulatory environment - other domains may have different authoritative source hierarchies"
     },
     {
       "domain": "crypto",
-      "insight": "Always check CoinMarketCap, Federal Register, and crypto-specific data aggregators",
-      "not_transferable_because": "These are domain-specific data sources that have no equivalent in other research domains"
+      "insight": "Always verify 2026 crypto events against multiple sources due to speculation",
+      "not_transferable_because": "Crypto domain has unusual amounts of speculation and forward-looking claims compared to established fields"
     }
   ],
-  "meta_observations": "Single domain analysis limits confidence in general principles. The crypto research strategy shows strong emphasis on source verification, confidence calibration, and temporal accuracy - patterns that likely apply broadly but need validation across other domains. The structured JSON output format and specific search limits appear to be system constraints rather than research best practices."
+  "meta_observations": "Single domain data shows strong evidence for intellectual honesty principles (confidence levels, knowledge gaps) and source verification, but limited evidence for cross-domain applicability. The successful strategy emphasized quality controls and transparency over comprehensive coverage, suggesting general principles around research integrity and bounded scope may be universally valuable."
 }

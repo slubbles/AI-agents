@@ -141,3 +141,4 @@
 {"timestamp": "2026-02-23T13:12:06.490723+00:00", "date": "2026-02-23", "model": "claude-haiku-4-5-20251001", "agent_role": "researcher", "domain": "research", "input_tokens": 10709, "output_tokens": 167, "estimated_cost_usd": 0.011544}
 {"timestamp": "2026-02-23T13:12:49.894598+00:00", "date": "2026-02-23", "model": "claude-haiku-4-5-20251001", "agent_role": "researcher", "domain": "research", "input_tokens": 12591, "output_tokens": 3660, "estimated_cost_usd": 0.030891}
 {"timestamp": "2026-02-23T13:12:58.751130+00:00", "date": "2026-02-23", "model": "claude-sonnet-4-20250514", "agent_role": "critic", "domain": "critique", "input_tokens": 4099, "output_tokens": 364, "estimated_cost_usd": 0.017757}
+{"timestamp": "2026-02-23T13:15:29.156552+00:00", "date": "2026-02-23", "model": "claude-sonnet-4-20250514", "agent_role": "cross_domain", "domain": "_transfer", "input_tokens": 2463, "output_tokens": 1116, "estimated_cost_usd": 0.024129}
