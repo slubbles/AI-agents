@@ -1,0 +1,107 @@
+{
+  "timestamp": "2026-02-23T15:14:48.861470+00:00",
+  "domain": "crypto",
+  "question": "What are the explicit reserve composition requirements, eligible asset classes, and enforcement mechanisms specified in the OCC's January 2026 stablecoin charter guidance and the Treasury's December 2025 GENIUS Act rulemaking notices\u2014including specific penalties for non-compliance?",
+  "attempt": 2,
+  "strategy_version": "v003",
+  "research": {
+    "question": "What are the explicit reserve composition requirements, eligible asset classes, and enforcement mechanisms specified in the OCC's January 2026 stablecoin charter guidance and the Treasury's December 2025 GENIUS Act rulemaking notices\u2014including specific penalties for non-compliance?",
+    "findings": [
+      {
+        "claim": "GENIUS Act requires 100% reserve backing (1:1 ratio) with high-quality liquid assets",
+        "confidence": "high",
+        "reasoning": "Multiple authoritative sources (White House Fact Sheet July 18 2025, Richmond Federal Reserve Nov 18 2025, Fidelity, Paul Hastings) consistently confirm 1:1 reserve requirement. This is statutory language, not guidance.",
+        "source": "https://www.whitehouse.gov/fact-sheets/2025/07/fact-sheet-president-donald-j-trump-signs-genius-act-into-law/"
+      },
+      {
+        "claim": "Eligible reserve assets include: US dollars in cash, US Treasury securities maturing in 93 days or less, insured deposits, eligible repurchase agreements, and government money market funds investing solely in these assets",
+        "confidence": "high",
+        "reasoning": "Confirmed across multiple sources (Georgetown Law, Paul Hastings, Dechert, Fidelity, Richmond Fed). The 93-day maturity limit and specific asset classes are consistent across sources citing the statute.",
+        "source": "https://www.law.georgetown.edu/international-law-journal/blog/geniusact/"
+      },
+      {
+        "claim": "GENIUS Act grants regulators authority to impose daily fines or criminal penalties for noncompliance",
+        "confidence": "medium",
+        "reasoning": "Source (ainvest.com) references enforcement authority to impose 'daily fines or criminal penalties' but does not specify penalty amounts, thresholds, or detailed enforcement mechanisms. The statute itself contains enforcement authority but specific penalty structures not detailed in search results.",
+        "source": "https://www.ainvest.com/news/enacts-landmark-stablecoin-law-mandating-1-1-reserve-backing-bolster-dollar-supremacy-2507/"
+      },
+      {
+        "claim": "GENIUS Act requires monthly public disclosures of reserve composition",
+        "confidence": "high",
+        "reasoning": "White House Fact Sheet (July 18, 2025) and Richmond Federal Reserve (Nov 18, 2025) both confirm monthly disclosure requirement. This is explicit statutory requirement.",
+        "source": "https://www.whitehouse.gov/fact-sheets/2025/07/fact-sheet-president-donald-j-trump-signs-genius-act-into-law/"
+      },
+      {
+        "claim": "OCC issued conditional trust charters for stablecoin issuers as of December 2025",
+        "confidence": "medium",
+        "reasoning": "Modern Treasury (Dec 15, 2025) reports OCC conditional trust charters, describing them as 'post-GENIUS Act milestone.' However, search results do not provide January 2026-specific charter guidance document or detailed reserve composition rules within those charters.",
+        "source": "https://www.moderntreasury.com/journal/occ-approves-trust-charters-for-stablecoin-firms-what-it-means-for-regulated-digital-payments"
+      },
+      {
+        "claim": "Treasury issued ANPRM (Advance Notice of Proposed Rulemaking) in September 2025, not December 2025; no December 2025 Treasury rulemaking notice was published",
+        "confidence": "high",
+        "reasoning": "Federal Register and Treasury press releases confirm ANPRM was issued September 18-19, 2025, with comment period extended by 15 days (October 1, 2025). As of February 2026, Treasury remains in comment/proposal phase, not final rulemaking.",
+        "source": "https://home.treasury.gov/news/press-releases/sb0254"
+      },
+      {
+        "claim": "Treasury's GENIUS Act rulemaking timeline requires approximately 20 separate rulemakings with July 18, 2026 deadline for core implementation",
+        "confidence": "high",
+        "reasoning": "Multiple sources (National Law Review, Mayer Brown Oct 2025) confirm Treasury must complete nearly 20 rulemakings. July 18, 2026 deadline confirmed in prior research and Federal Register notices.",
+        "source": "https://natlawreview.com/article/treasury-continues-implementation-genius-act"
+      },
+      {
+        "claim": "OCC Interpretive Letter 1183 (March 2025) permits crypto custody and stablecoin activities for national banks, but predates specific January 2026 charter guidance",
+        "confidence": "high",
+        "reasoning": "OCC.gov official announcement confirms March 7, 2025 date. This establishes baseline authority but is not January 2026 specific guidance requested in original question.",
+        "source": "https://www.occ.gov/news-issuances/news-releases/2025/nr-occ-2025-16.html"
+      }
+    ],
+    "key_insights": [
+      "GENIUS Act statutory requirements on reserve composition are already law (signed July 18, 2025)\u2014eligible assets are explicitly defined as cash, short-term Treasuries (\u226493 days), insured deposits, repos, and MMFs investing in these assets. These are not subject to Treasury rulemaking discretion.",
+      "Treasury rulemaking is still in ANPRM phase (comment period closed ~October 2025); no December 2025 proposed rule or guidance was published. Final NPRM expected before July 18, 2026 deadline.",
+      "OCC has issued conditional charters (December 2025) for specific issuers but the original query conflates statutory reserve requirements with OCC-specific charter conditions\u2014the searchable January 2026 'charter guidance' may not exist as a comprehensive published document.",
+      "Enforcement mechanisms are broadly authorized by statute (daily fines, criminal penalties) but specific penalty amounts, violation thresholds, and detailed enforcement procedures remain to be defined in Treasury/OCC rulemaking."
+    ],
+    "knowledge_gaps": [
+      "Specific text of OCC January 2026 stablecoin charter guidance\u2014search results reference conditional charters but do not provide the actual guidance document or its reserve composition specifications beyond statutory requirements",
+      "Precise penalty amounts and enforcement thresholds\u2014GENIUS Act authorizes daily fines and criminal penalties but specific dollar amounts, violation definitions, and enforcement procedures not found in available sources",
+      "Treasury's proposed rules on reserve composition (NPRM text)\u2014Treasury is still in ANPRM phase; proposed rule has not been published as of February 23, 2026",
+      "Details on any differences between statutory reserve requirements (100% GENIUS Act language) and OCC charter implementation requirements\u2014whether OCC imposed additional or modified requirements in conditional charters",
+      "FDIC stablecoin capital requirements in parallel rulemaking\u2014references exist (Jan 27, 2026 article) but specific FDIC proposed rules on capital treatment not found in search results"
+    ],
+    "searches_made": 6,
+    "findings_count": 8,
+    "summary": "The GENIUS Act's core reserve requirements are statutory law (100% backing with cash, short-term Treasuries \u226493 days, insured deposits, repos, MMFs): no December 2025 Treasury guidance document on reserves exists because rulemaking remains in ANPRM phase with final rules due by July 18, 2026. The OCC issued conditional trust charters in December 2025, but specific January 2026 charter guidance incorporating reserve composition details was not located in search results. Enforcement mechanisms (daily fines, criminal penalties) are authorized by statute but specific penalty structures and thresholds remain undefined pending Treasury rulemaking.",
+    "_searches_made": 7,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 6,
+      "completeness": 5,
+      "specificity": 7,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 6.8,
+    "strengths": [
+      "Excellent intellectual honesty - clearly distinguishes between what exists vs. what was requested in the query",
+      "High accuracy in factual claims with proper source attribution",
+      "Good specificity with dates, percentages, and concrete requirements",
+      "Transparent about knowledge gaps and limitations",
+      "Correctly identifies that December 2025 Treasury guidance doesn't exist"
+    ],
+    "weaknesses": [
+      "Limited depth on enforcement mechanisms beyond statutory authorization",
+      "Incomplete coverage of OCC charter conditions beyond basic existence",
+      "Surface-level treatment of regulatory implementation differences",
+      "Does not explore potential conflicts between different regulatory approaches",
+      "Missing analysis of practical implications of the regulatory framework"
+    ],
+    "actionable_feedback": "To improve this research: 1) Conduct deeper analysis of the OCC conditional charter terms and conditions, even if January 2026 guidance is unavailable; 2) Research historical precedents for similar enforcement mechanisms to estimate likely penalty structures; 3) Analyze potential gaps between statutory requirements and practical implementation challenges; 4) Investigate coordination mechanisms between Treasury, OCC, and FDIC rulemakings; 5) Include more analysis of market impact and compliance costs where data is available",
+    "verdict": "accept"
+  },
+  "overall_score": 6.8,
+  "accepted": true,
+  "verdict": "accept"
+}

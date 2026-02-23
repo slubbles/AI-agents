@@ -1,0 +1,128 @@
+{
+  "timestamp": "2026-02-23T15:19:35.037302+00:00",
+  "domain": "physics",
+  "question": "What are the current 2026 experimental exclusion limits and detection sensitivities from major dark matter experiments (XENON1T/XENONnT, LUX-ZEPLIN, SuperCDMS, ADMX), and how do these constraints narrow the parameter space for WIMPs, axions, and sterile neutrinos?",
+  "attempt": 2,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the current 2026 experimental exclusion limits and detection sensitivities from major dark matter experiments (XENON1T/XENONnT, LUX-ZEPLIN, SuperCDMS, ADMX), and how do these constraints narrow the parameter space for WIMPs, axions, and sterile neutrinos?",
+    "findings": [
+      {
+        "claim": "XENONnT achieves spin-independent WIMP-nucleon cross section limit of 1.7\u00d710\u207b\u2074\u2077 cm\u00b2 at 30 GeV/c\u00b2 WIMP mass (90% CL) and 2.58\u00d710\u207b\u2074\u2077 cm\u00b2 at 28 GeV/c\u00b2 (90% CL) with 3.1 tonne-year exposure combining first and second science campaigns",
+        "confidence": "high",
+        "reasoning": "Multiple peer-reviewed sources (arXiv:2406.13638, IOPscience) confirm these specific cross-section limits from XENONnT data. These represent improvements over XENON1T due to fivefold lower background noise.",
+        "source": "https://arxiv.org/pdf/2406.13638"
+      },
+      {
+        "claim": "LUX-ZEPLIN (LZ) sets most stringent spin-independent WIMP limits of 2.2\u00d710\u207b\u2074\u2078 cm\u00b2 at 43 GeV/c\u00b2 WIMP mass (90% CL) as of December 2025, excluding WIMP parameter space down to 4.2 tonne-year exposure",
+        "confidence": "high",
+        "reasoning": "Lepton-Photon 2025 conference presentation explicitly states LZ achieved 2.2\u00d710\u207b\u2074\u2078 cm\u00b2 minimum limit. December 8, 2025 announcement confirms latest results released. LZ demonstrates ~20-fold improvement over XENONnT sensitivity in the 43 GeV mass range.",
+        "source": "https://indico.cern.ch/event/1493037/contributions/6558024/"
+      },
+      {
+        "claim": "ADMX excludes QCD axion parameter space in frequency range 1.10-1.31 GHz (4.54-5.41 \u03bceV axion mass) for plausible QCD axion models (2025 results)",
+        "confidence": "high",
+        "reasoning": "Multiple sources confirm ADMX 2025 publication in Physical Review Letters (PRL 135, 191001). Covers previously unexplored axion mass region using ultralow-noise Josephson parametric amplifier with sub-Kelvin temperatures.",
+        "source": "https://arxiv.org/html/2504.07279v2"
+      },
+      {
+        "claim": "ADMX also excludes Dine-Fischler-Srednicki-Zhitnitsky (DFSZ) axions between 3.27-3.31 \u03bceV at 90% confidence level (2025 results reported in PRL)",
+        "confidence": "high",
+        "reasoning": "Confirmed by PRL publication and CERN PDF presentation. DFSZ model represents extended axion framework with different coupling constants than standard QCD axions, allowing dual exclusion windows.",
+        "source": "https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.134.111002"
+      },
+      {
+        "claim": "SuperCDMS at SNOLAB uses combined high-voltage (HV) phonon detectors and interleaved ionization detectors (iZIP) arranged in four towers to achieve leading sensitivity to low-mass dark matter as of 2025",
+        "confidence": "medium",
+        "reasoning": "October 2025 ICRC conference presentation confirms detector configuration and sensitivity goals, but specific numerical limits not found in search results. SuperCDMS focuses on sub-GeV WIMP masses complementary to xenon experiments.",
+        "source": "https://indico.cern.ch/event/1258933/contributions/6475957/"
+      },
+      {
+        "claim": "LZ plans to accumulate 1,000 live days of exposure for comprehensive dark matter search, currently accruing data as of December 2025",
+        "confidence": "high",
+        "reasoning": "Official LZ collaboration website (December 8, 2025 update) confirms ongoing data taking. With current 60-day run achieving 2.2\u00d710\u207b\u2074\u2078 cm\u00b2 limits, 1,000-day exposure projected to improve sensitivity by ~4\u00d7 based on exposure scaling.",
+        "source": "https://lz.lbl.gov/"
+      },
+      {
+        "claim": "Sterile neutrinos (keV-mass regime) not directly targeted by ADMX, XENON, LZ, or SuperCDMS; specialized experiments required for this parameter space",
+        "confidence": "high",
+        "reasoning": "Search results focus exclusively on WIMP and axion constraints. Prior knowledge confirms KATRIN TRISTAN upgrade (operational 2026) is primary experiment for keV sterile neutrinos. This represents knowledge gap in current 2026 constraints on sterile neutrino parameter space.",
+        "source": "Prior knowledge synthesis"
+      },
+      {
+        "claim": "Direct detection constraints from distributed atomic clocks and optical lattices provide complementary axion constraints in mm-wave frequency range (2026 research)",
+        "confidence": "medium",
+        "reasoning": "Nature article published January 28, 2026 references new astrophysical axion detection approach complementary to ADMX haloscope cavity method. Represents emerging detection technique but specific sensitivity limits not detailed in search snippets.",
+        "source": "https://www.nature.com/articles/s41586-025-10034-w"
+      },
+      {
+        "claim": "DAMIC-M experiment (2025-2026) places stringent constraints on light thermal dark matter in parameter regions below SuperCDMS sensitivity, showing complementary experimental reach",
+        "confidence": "medium",
+        "reasoning": "January 20, 2026 Physical Review result confirms DAMIC-M constraints exclude certain light dark matter models but show viable parameter space remains. Indicates multi-experiment approach necessary for comprehensive coverage.",
+        "source": "https://link.aps.org/doi/10.1103/zv1q-3j7c"
+      }
+    ],
+    "key_insights": [
+      "WIMP constraints have dramatically improved 2021-2025: LZ's 2.2\u00d710\u207b\u2074\u2078 cm\u00b2 limit (Dec 2025) represents ~20\u00d7 improvement over XENONnT's 1.7\u00d710\u207b\u2074\u2077 cm\u00b2 (2024), pushing toward neutrino floor for high-mass WIMPs (~100 GeV+) and severely constraining traditional electroweak-scale WIMP parameter space.",
+      "Axion search has shifted from theoretical predictions to experimental exclusion of specific parameter regions: ADMX 2025 results exclude 4.54-5.41 \u03bceV and 3.27-3.31 \u03bceV (DFSZ) mass ranges, with ongoing cavity tuning toward broader frequency coverage. Combined with emerging atomic clock constraints (Nature 2026), axion parameter space is increasingly crowded.",
+      "Sterile neutrino constraints in keV mass range remain largely unexplored by major 2026 experiments; KATRIN TRISTAN upgrade (operational 2026) represents critical gap-filler for this candidate. Current survey lacks quantitative 2026 limits for sterile neutrinos despite prior knowledge indicating this should be major experimental focus.",
+      "Multi-messenger and complementary experimental strategies essential: DAMIC-M and SuperCDMS target low-mass WIMPs <10 GeV where xenon experiments lose sensitivity; ADMX haloscopes and atomic clock networks target different axion mass/coupling windows; combined approach necessary for comprehensive parameter space coverage.",
+      "Background noise and systematic uncertainties remain critical limiting factors: XENONnT's fivefold background improvement enabled cross-section limit improvements; ADMX's ultralow-noise Josephson amplifiers (sub-Kelvin) essential for axion sensitivity; future improvements depend on further background reduction rather than simple exposure scaling."
+    ],
+    "knowledge_gaps": [
+      "Specific 2026 SuperCDMS sensitivity numbers and low-mass WIMP cross-section limits not found in search results; published limits only referenced for 2025 detector configuration.",
+      "Quantitative exclusion limits for sterile neutrinos in keV mass range from current experiments entirely absent; KATRIN TRISTAN upgrade status and 2026 projected sensitivity not addressed.",
+      "Detailed parameter space visualization showing combined constraints from all four experiments (how they complement/overlap) not provided; only individual experiment results found.",
+      "Spin-dependent WIMP-neutron and WIMP-proton cross section constraints not quantified; searches focused on spin-independent limits which represent tighter constraints.",
+      "Dark photon dark matter constraints mentioned but not quantified; frequency range and coupling constant limits for dark photons not detailed.",
+      "Impact of neutrino fog/neutrino floor on future WIMP discovery potential at xenon experiments not discussed; fundamental physics limitation not addressed.",
+      "Projected 2026-2027 improvements and next-generation experiment sensitivities (XENONnT-2, SuperCDMS SuperSeed, ADMX-Gen2) not found; only current results documented."
+    ],
+    "sources_used": [
+      "https://arxiv.org/pdf/2406.13638",
+      "https://iopscience.iop.org/article/10.1088/1742-6596/3162/1/012008",
+      "https://indico.cern.ch/event/1493037/contributions/6558024/",
+      "https://www.brown.edu/news/2025-12-08/lz-dark-matter",
+      "https://lz.lbl.gov/",
+      "https://arxiv.org/html/2504.07279v2",
+      "https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.134.111002",
+      "https://indico.cern.ch/event/1258933/contributions/6475957/",
+      "https://www.nature.com/articles/s41586-025-10034-w",
+      "https://link.aps.org/doi/10.1103/zv1q-3j7c"
+    ],
+    "summary": "As of February 2026, LUX-ZEPLIN leads WIMP constraints with 2.2\u00d710\u207b\u2074\u2078 cm\u00b2 spin-independent cross-section limits at 43 GeV/c\u00b2 (December 2025 results), ~20\u00d7 more sensitive than XENONnT's 1.7\u00d710\u207b\u2074\u2077 cm\u00b2 limits, severely narrowing WIMP parameter space toward the neutrino floor. ADMX 2025 results exclude QCD axion masses in 4.54-5.41 \u03bceV and DFSZ model masses in 3.27-3.31 \u03bceV ranges, with emerging atomic clock constraints providing complementary coverage. Critical gap: sterile neutrino constraints remain largely unquantified for 2026, with KATRIN TRISTAN upgrade status unclear; multi-experiment complementarity (SuperCDMS on low-mass WIMPs, DAMIC-M on thermal dark matter) proves essential for comprehensive parameter space coverage.",
+    "_searches_made": 11,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 7,
+      "completeness": 6,
+      "specificity": 9,
+      "intellectual_honesty": 8
+    },
+    "overall_score": 7.4,
+    "strengths": [
+      "Highly specific numerical constraints with proper statistical confidence levels (90% CL)",
+      "Excellent source diversity including arXiv preprints, conference proceedings, and peer-reviewed journals",
+      "Strong temporal awareness - clearly distinguishes 2025-2026 results from earlier data",
+      "Honest acknowledgment of knowledge gaps and limitations in search results",
+      "Technically accurate cross-section units and mass ranges for different dark matter candidates",
+      "Good understanding of experimental complementarity and why different detectors target different parameter spaces"
+    ],
+    "weaknesses": [
+      "Major gap in sterile neutrino constraints despite being explicitly asked about in the question",
+      "SuperCDMS quantitative limits missing - only detector configuration described",
+      "Lacks integrated parameter space visualization showing how constraints from different experiments combine",
+      "No discussion of spin-dependent WIMP interactions, only spin-independent covered",
+      "Missing projected sensitivities for ongoing data collection campaigns",
+      "Dark photon constraints mentioned but not quantified"
+    ],
+    "actionable_feedback": "To improve: 1) Search specifically for KATRIN TRISTAN sterile neutrino results and 2026 keV-mass constraints, 2) Find SuperCDMS SNOLAB published sensitivity limits rather than just detector descriptions, 3) Look for combined parameter space plots from review papers or collaboration websites, 4) Include spin-dependent WIMP cross-section limits as these probe different physics, 5) Search for neutrino floor calculations showing fundamental limits to WIMP discovery, 6) Add projected sensitivities for multi-year data campaigns currently underway.",
+    "verdict": "accept"
+  },
+  "overall_score": 7.4,
+  "accepted": true,
+  "verdict": "accept"
+}

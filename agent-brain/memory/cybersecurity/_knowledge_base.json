@@ -1,0 +1,455 @@
+{
+  "domain_summary": "The cybersecurity domain in early 2026 is characterized by an accelerated threat landscape where zero-day exploits are increasingly weaponized within 5 days of discovery, compared to 32 days historically. Critical vulnerabilities like CVE-2026-2441 (Chrome) and CVE-2026-22769 (Dell RecoverPoint) are being actively exploited by nation-state actors, prompting emergency patches from major vendors and binding directives from CISA. However, vulnerability research is constrained by opaque embargo systems where CVE publication timelines and vendor-specific disclosure durations remain largely proprietary, creating information asymmetries between defenders and threat actors. While CVE volumes continue growing (21,500+ in H1 2025), the fundamental challenge is not discovery but the 5-45 day gaps between active exploitation and public disclosure of technical details.",
+  "topics": [
+    {
+      "name": "Active Threats and Zero-Day Exploitation",
+      "subtopics": [
+        "zero-day vulnerabilities",
+        "active exploitation",
+        "threat actors",
+        "vulnerability timelines"
+      ]
+    },
+    {
+      "name": "Vendor Patching and Emergency Response",
+      "subtopics": [
+        "patch tuesday",
+        "emergency patches",
+        "vendor disclosure policies",
+        "government directives"
+      ]
+    },
+    {
+      "name": "CVE Publication and Disclosure Processes",
+      "subtopics": [
+        "embargo periods",
+        "coordinated vulnerability disclosure",
+        "CVE numbering authority",
+        "publication timelines"
+      ]
+    },
+    {
+      "name": "Vulnerability Research Methodology",
+      "subtopics": [
+        "research constraints",
+        "data availability",
+        "responsible disclosure",
+        "information asymmetry"
+      ]
+    },
+    {
+      "name": "Quantitative Vulnerability Trends",
+      "subtopics": [
+        "CVE volume trends",
+        "severity distributions",
+        "publication patterns",
+        "timeline analysis"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_001",
+      "claim": "CVE-2026-2441 (Chrome CSS use-after-free zero-day) is actively exploited in the wild and was patched in Chrome 145",
+      "topic": "Active Threats and Zero-Day Exploitation",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_confirmed": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://nvd.nist.gov/vuln/detail/cve-2026-2441"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_002",
+      "claim": "CVE-2026-22769 (Dell RecoverPoint for Virtual Machines hardcoded credentials vulnerability, CVSS 10.0) is actively exploited by Chinese threat actor UNC6201 since mid-2024",
+      "topic": "Active Threats and Zero-Day Exploitation",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_confirmed": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://cloud.google.com/blog/topics/threat-intelligence/unc6201-exploiting-dell-recoverpoint-zero-day"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_003",
+      "claim": "Microsoft February 2026 Patch Tuesday (Feb 10, 2026) addressed 58 vulnerabilities including 6 actively exploited zero-days and 3 publicly disclosed zero-days",
+      "topic": "Vendor Patching and Emergency Response",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_confirmed": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.bleepingcomputer.com/news/microsoft/microsoft-february-2026-patch-tuesday-fixes-6-zero-days-58-flaws/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_004",
+      "claim": "Apple released emergency security updates (Feb 12, 2026) for iOS, macOS, Safari, and other platforms fixing an actively exploited zero-day vulnerability in targeted attacks",
+      "topic": "Vendor Patching and Emergency Response",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_confirmed": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.malwarebytes.com/blog/news/2026/02/apple-patches-zero-day-flaw-that-could-let-attackers-take-control-of-devices"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_005",
+      "claim": "BeyondTrust vulnerability was under active attack; CISA added it to KEV catalog on February 16, 2026 and issued binding operational directive for federal agencies to patch by end of day",
+      "topic": "Vendor Patching and Emergency Response",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_confirmed": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.cybernewscentre.com/17th-february-2026-cyber-update-beyondtrust-flaw-under-active-attack-cisa-issues-urgent-patch-order/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_006",
+      "claim": "CISA issued binding operational directive (February 2026) requiring federal agencies to identify and upgrade end-of-support edge devices within 12-18 months due to substantial security risk",
+      "topic": "Vendor Patching and Emergency Response",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_confirmed": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://federalnewsnetwork.com/cybersecurity/2026/02/cisa-tells-agencies-to-identify-upgrade-unsupported-edge-devices/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_007",
+      "claim": "Zero-day exploitation velocity increased significantly: 28.96% of known exploited vulnerabilities (KEVs) in 2025 were exploited before disclosure or on disclosure day; average time-to-exploit collapsed to 5 days from 32 days",
+      "topic": "Active Threats and Zero-Day Exploitation",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_confirmed": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.infosecurity-magazine.com/news/zeroday-exploits-vulncheck/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_008",
+      "claim": "Zero-day exploits surged 46% year-over-year in 2025, with 32.1% weaponized on day zero",
+      "topic": "Active Threats and Zero-Day Exploitation",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_confirmed": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://axis-intelligence.com/zero-day-vulnerabilities-2026-protection/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_009",
+      "claim": "CVE publication is governed by coordinated vulnerability disclosure timelines with 24-hour publication expectation post-disclosure, but embargoes can delay public CVE record availability",
+      "topic": "CVE Publication and Disclosure Processes",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_confirmed": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.cve.org/resourcessupport/allresources/cnarules"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_010",
+      "claim": "CISA enforces a 45-day mandatory disclosure window when vendors are unresponsive, but patches may not be available at disclosure time",
+      "topic": "CVE Publication and Disclosure Processes",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_confirmed": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.cisa.gov/resources-tools/programs/coordinated-vulnerability-disclosure-program"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_011",
+      "claim": "Responsible disclosure protocols require researchers to withhold technical details during embargo periods, creating asymmetric information between threat actors and researchers",
+      "topic": "Vulnerability Research Methodology",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_confirmed": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_012",
+      "claim": "Apple and Microsoft follow responsible disclosure protocols that do not disclose specific CVE numbers for patched zero-days until embargo lift, limiting real-time research attribution",
+      "topic": "Vulnerability Research Methodology",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_confirmed": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://sec.cloudapps.cisco.com/security/center/resources/vendor_vulnerability_policy.html"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_013",
+      "claim": "Real-time zero-day research in February 2026 shows 90%+ of actively exploited vulnerabilities are disclosed without available patches at announcement, creating data availability gap",
+      "topic": "Vulnerability Research Methodology",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_confirmed": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.csoonline.com/article/4130446/february-2026-patch-tuesday-six-new-and-actively-exploited-microsoft-vulnerabilities-addressed.html"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_014",
+      "claim": "CVE number specificity is constrained by embargo status\u2014aggregate threat counts may be disclosed before individual CVE identifiers are released",
+      "topic": "CVE Publication and Disclosure Processes",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_confirmed": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.cve.org/resourcessupport/allresources/cnarules"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_015",
+      "claim": "CVE publication shows strong day-of-week patterns driven by vendor patch cycles, with Tuesday accounting for 11,754 CVEs in 2025 ('Patch Tuesday' industry standard), weekdays averaging 8,918 CVEs vs. weekends averaging 1,796 CVEs",
+      "topic": "Quantitative Vulnerability Trends",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_confirmed": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://jerrygamblin.com/2026/01/01/2025-cve-data-review/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_016",
+      "claim": "Over 21,500 CVEs were disclosed in H1 2025, representing a record surge in vulnerability volume, with 38% rated High or Critical severity",
+      "topic": "Quantitative Vulnerability Trends",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_confirmed": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://deepstrike.io/blog/vulnerability-statistics-2025"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_017",
+      "claim": "CVE volume increased 16% in H1 2025 compared to H1 2024",
+      "topic": "Quantitative Vulnerability Trends",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_confirmed": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.recordedfuture.com/research/h1-2025-malware-and-vulnerability-trends"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_018",
+      "claim": "Coordinated Vulnerability Disclosure (CVD) programs per CISA guidelines do not publicly specify average embargo durations by vendor or quantitative embargo length metrics",
+      "topic": "CVE Publication and Disclosure Processes",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_confirmed": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.cisa.gov/resources-tools/programs/coordinated-vulnerability-disclosure-program"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_019",
+      "claim": "Vendor-specific embargo duration data (Microsoft, Apple, etc.) is not systematically published in official CVE databases or CISA guidance",
+      "topic": "CVE Publication and Disclosure Processes",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_confirmed": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://nvd.nist.gov/vuln-metrics/cvss"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_020",
+      "claim": "CVSS severity score correlation with disclosure/embargo timeline length is not quantified in current public research (2020-2025 period)",
+      "topic": "Quantitative Vulnerability Trends",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_confirmed": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.first.org/cvss/specification-document"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_021",
+      "claim": "Vulnerability disclosure policy adoption remains stalled without acceleration trend in 2025, particularly concerning for IoT sector",
+      "topic": "CVE Publication and Disclosure Processes",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_confirmed": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://iotsecurityfoundation.org/wp-content/uploads/2026/01/The-State-of-Vulnerability-Disclosure-Usage-in-Global-Consumer-IoT-in-2025V8.pdf"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_022",
+      "claim": "Vendor CNAs (Mozilla, Apple, Microsoft) do not disclose vulnerability data via CVE until remediation is complete or public exploit exists, indicating variable embargo periods independent of severity",
+      "topic": "CVE Publication and Disclosure Processes",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_confirmed": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://news.ycombinator.com/item?id=43700607"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    }
+  ],
+  "contradictions": [],
+  "knowledge_gaps": [
+    {
+      "gap": "Specific CVE numbers for the 6 actively exploited Microsoft zero-days (February 2026) remain embargoed or unpublished",
+      "priority": "high",
+      "related_topic": "Active Threats and Zero-Day Exploitation"
+    },
+    {
+      "gap": "Specific CVE number for the Apple zero-day patched February 12, 2026 not disclosed in search results",
+      "priority": "high",
+      "related_topic": "Active Threats and Zero-Day Exploitation"
+    },
+    {
+      "gap": "Average embargo duration by vendor (Microsoft, Apple, Google, Adobe, etc.) for 2020-2025 period\u2014no quantitative data available in official databases or academic research",
+      "priority": "high",
+      "related_topic": "CVE Publication and Disclosure Processes"
+    },
+    {
+      "gap": "Statistical correlation between CVSS base score and time-to-disclosure or embargo length\u2014not documented in current literature",
+      "priority": "medium",
+      "related_topic": "Quantitative Vulnerability Trends"
+    },
+    {
+      "gap": "Cross-vendor embargo coordination timing (e.g., whether Microsoft/Apple/Google align embargo lift dates) not documented in public sources",
+      "priority": "medium",
+      "related_topic": "CVE Publication and Disclosure Processes"
+    },
+    {
+      "gap": "Long-term impact metrics (financial losses, systems compromised) for active exploitation campaigns not available in early 2026 reporting",
+      "priority": "medium",
+      "related_topic": "Active Threats and Zero-Day Exploitation"
+    },
+    {
+      "gap": "Threat actor intelligence on how adversaries obtain CVE information before public embargo lift\u2014whether through vendor leaks, reverse engineering, or vulnerability broker networks",
+      "priority": "high",
+      "related_topic": "Vulnerability Research Methodology"
+    }
+  ],
+  "synthesis_stats": {
+    "total_claims": 22,
+    "active_claims": 22,
+    "superseded_claims": 0,
+    "disputed_claims": 0,
+    "contradictions_found": 0,
+    "topics_covered": 5,
+    "outputs_synthesized": 3,
+    "synthesis_date": "2026-02-23"
+  },
+  "_synthesized_at": "2026-02-23T15:45:20.627060+00:00",
+  "_domain": "cybersecurity",
+  "_outputs_count": 3
+}

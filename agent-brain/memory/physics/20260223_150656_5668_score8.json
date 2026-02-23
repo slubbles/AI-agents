@@ -1,0 +1,114 @@
+{
+  "timestamp": "2026-02-23T15:06:56.566825+00:00",
+  "domain": "physics",
+  "question": "What are the leading theoretical candidates for dark matter particles (WIMPs, axions, and sterile neutrinos), and what are their predicted mass ranges, interaction mechanisms, and key distinguishing properties?",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the leading theoretical candidates for dark matter particles (WIMPs, axions, and sterile neutrinos), and what are their predicted mass ranges, interaction mechanisms, and key distinguishing properties?",
+    "findings": [
+      {
+        "claim": "WIMPs (Weakly Interacting Massive Particles) have predicted mass ranges from 1 GeV/c\u00b2 to 10\u2075 GeV/c\u00b2 with typical focus on 100 GeV/c\u00b2 to TeV scale",
+        "confidence": "high",
+        "reasoning": "Multiple peer-reviewed sources (arXiv, SLAC, PDG 2025) consistently cite these mass ranges. The 100 GeV/c\u00b2 mass scale emerges naturally from electroweak symmetry breaking and produces the correct thermal relic abundance.",
+        "source": "https://arxiv.org/pdf/1707.06277; https://slac.stanford.edu/econf/C1307292/docs/CosmicFrontier/WIMPDirect-24.pdf; https://pdg.lbl.gov/2025/listings/rpp2025-list-wimps-dark-matter-searches.pdf"
+      },
+      {
+        "claim": "WIMPs interact via the weak nuclear force with interaction cross sections ranging from 10\u207b\u2074\u00b9 to 10\u207b\u2075\u00b9 cm\u00b2, and require self-annihilation cross sections of approximately 3\u00d710\u207b\u00b2\u2076 cm\u00b3/s to achieve correct dark matter abundance",
+        "confidence": "high",
+        "reasoning": "Well-established theoretical prediction linked to thermal relic abundance calculation. Cited consistently across direct detection literature and Wikipedia sources on WIMPs.",
+        "source": "https://en.wikipedia.org/wiki/Weakly_interacting_massive_particle; https://iopscience.iop.org/article/10.1088/1361-6471/ab2ea5"
+      },
+      {
+        "claim": "Axions are predicted to have very low masses in the microeV range (much smaller than other candidates) and couple to photons and gluons through the Peccei-Quinn mechanism, which solves the strong CP problem in QCD",
+        "confidence": "high",
+        "reasoning": "The Peccei-Quinn mechanism is well-established theory from 1977 and axions emerging from this mechanism are extensively documented. Recent 2025-2026 sources confirm axions as increasingly favored candidates.",
+        "source": "https://en.wikipedia.org/wiki/Peccei%E2%80%93Quinn_theory; https://en.wikipedia.org/wiki/Axion; https://medium.com/@MarxismLeninism/-b1973f00de36"
+      },
+      {
+        "claim": "Sterile neutrinos are predicted to have keV/c\u00b2 mass range (1-100 keV) and interact extremely weakly through gravity only, making them distinct from active neutrinos",
+        "confidence": "high",
+        "reasoning": "Multiple current sources (2025-2026) confirm keV mass range. KATRIN experiment upgrade (TRISTAN, operational 2026) specifically targets keV-mass sterile neutrinos for dark matter detection.",
+        "source": "https://www.mpi-hd.mpg.de/mpi/en/public-relations/news/news-item/katrin-tightens-the-net-around-the-elusive-sterile-neutrino; https://scitechdaily.com/physicists-tighten-the-net-around-the-elusive-sterile-neutrino/; https://www.cmu.edu/physics/news-events/2025/0411_katrin-sets-neutrino-record.html"
+      },
+      {
+        "claim": "As of 2025-2026, axions are increasingly cited as the leading dark matter candidate, with some physicists calling it 'the most likely dark matter candidate today,' due to lack of confirmed WIMP detection signals",
+        "confidence": "high",
+        "reasoning": "Direct detection experiments (XENONnT, PandaX-4T) have reached the neutrino floor limit without WIMP confirmation. Multiple 2025-2026 sources reflect this shift in the field.",
+        "source": "https://medium.com/@MarxismLeninism/-b1973f00de36; https://arxiv.org/pdf/2510.17473"
+      },
+      {
+        "claim": "Direct detection of WIMPs has entered the 'neutrino-floor era' as of 2025, where solar neutrino backgrounds limit further sensitivity improvements with current technology",
+        "confidence": "high",
+        "reasoning": "Reported at ICRC 2025 conference by multiple experiments (XENONnT, PandaX-4T). This represents a major development in the field.",
+        "source": "https://arxiv.org/pdf/2510.17473"
+      },
+      {
+        "claim": "A comprehensive review comparing all three candidates (WIMPs, axions, sterile neutrinos) has been published, providing detailed evaluation of their properties and detection methods",
+        "confidence": "medium",
+        "reasoning": "PDF source confirms existence of comprehensive review but full content not fully accessible in search results. Title and abstract verified but specific numerical details cannot be fully confirmed from snippet.",
+        "source": "https://www.researchgate.net/publication/376829880_Dissecting_dark_matter_candidates_A_comprehensive_evaluation_of_axions_sterile_neutrinos_and_WIMPs/fulltext/658b07250bb2c7472b130f45/Dissecting-dark-matter-candidates-A_comprehensive_evaluation_of_axions_sterile_neutrinos_and_WIMPs.pdf"
+      }
+    ],
+    "key_insights": [
+      "WIMPs represent the traditional favorite candidate due to the 'WIMP miracle' (natural abundance from weak-scale physics), but lack direct detection success despite decades of increasingly sensitive experiments has shifted scientific consensus toward alternative candidates.",
+      "Axions solve two physics problems simultaneously: the strong CP problem (via Peccei-Quinn mechanism) AND provide dark matter, making them theoretically compelling. Their extremely small mass (microeV) makes them fundamentally different from WIMPs and sterile neutrinos.",
+      "Sterile neutrinos occupy a middle ground: keV-mass particles with gravitational-only interactions. The KATRIN experiment's planned TRISTAN upgrade (operational 2026) will provide unprecedented sensitivity for detecting them in their predicted mass range.",
+      "The three candidates represent fundamentally different approaches to dark matter: WIMPs rely on electroweak interactions, axions on strong CP symmetry, and sterile neutrinos on gravitational coupling\u2014each solving different physics problems beyond dark matter.",
+      "The field is experiencing a transition from WIMP-dominant paradigm to multi-candidate exploration, with direct detection reaching physical limits (neutrino floor) for WIMPs, driving investment in axion and sterile neutrino searches."
+    ],
+    "knowledge_gaps": [
+      "Specific coupling constants and detailed interaction mechanisms for axion-photon and axion-gluon couplings not fully quantified in search results",
+      "Current 2026 experimental constraints and exclusion limits on each candidate's parameter space not comprehensively detailed",
+      "Theoretical predictions for indirect detection signatures (e.g., gamma rays, cosmic rays) from each candidate type not fully covered",
+      "Comparison of current limits from major experiments (XENON, LUX, ADMX, etc.) and their implications for each candidate as of early 2026"
+    ],
+    "sources_used": [
+      "https://en.wikipedia.org/wiki/Weakly_interacting_massive_particle",
+      "https://arxiv.org/pdf/1707.06277",
+      "https://slac.stanford.edu/econf/C1307292/docs/CosmicFrontier/WIMPDirect-24.pdf",
+      "https://pdg.lbl.gov/2025/listings/rpp2025-list-wimps-dark-matter-searches.pdf",
+      "https://iopscience.iop.org/article/10.1088/1361-6471/ab2ea5",
+      "https://en.wikipedia.org/wiki/Peccei%E2%80%93Quinn_theory",
+      "https://en.wikipedia.org/wiki/Axion",
+      "https://www.mpi-hd.mpg.de/mpi/en/public-relations/news/news-item/katrin-tightens-the-net-around-the-elusive-sterile-neutrino",
+      "https://scitechdaily.com/physicists-tighten-the-net-around-the-elusive-sterile-neutrino/",
+      "https://www.cmu.edu/physics/news-events/2025/0411_katrin-sets-neutrino-record.html",
+      "https://arxiv.org/pdf/2510.17473",
+      "https://medium.com/@MarxismLeninism/-b1973f00de36"
+    ],
+    "summary": "WIMPs (1 GeV/c\u00b2 - 10\u2075 GeV/c\u00b2, electroweak interactions), axions (microeV mass, Peccei-Quinn coupling to photons/gluons), and sterile neutrinos (keV/c\u00b2 mass, gravitational-only interactions) represent the three leading dark matter candidates. As of 2025-2026, WIMPs have hit the neutrino-floor detection limit without confirmation, shifting consensus toward axions as the leading candidate. Each candidate addresses distinct physics problems beyond dark matter: WIMPs stem from electroweak symmetry, axions solve the strong CP problem, and sterile neutrinos link to neutrino mass generation.",
+    "_searches_made": 5,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 7,
+      "completeness": 7,
+      "specificity": 8,
+      "intellectual_honesty": 8
+    },
+    "overall_score": 7.6,
+    "strengths": [
+      "Excellent specificity with concrete mass ranges, cross sections, and numerical values for all three dark matter candidates",
+      "Strong accuracy with appropriate citations from reputable sources (arXiv, PDG, institutional publications)",
+      "Good intellectual honesty in flagging confidence levels and acknowledging knowledge gaps",
+      "Up-to-date information reflecting the current state of the field as of 2025-2026",
+      "Clear distinction between the three candidate types and their different physical motivations",
+      "Proper acknowledgment of the field's shift away from WIMP-dominance toward multi-candidate exploration"
+    ],
+    "weaknesses": [
+      "Medium confidence assigned to comprehensive review claim without full verification undermines some conclusions",
+      "Limited depth on theoretical mechanisms - mentions Peccei-Quinn but doesn't explain the CP violation problem clearly",
+      "Incomplete coverage of detection methods and experimental techniques for each candidate type",
+      "Missing discussion of composite dark matter candidates (sterile neutrinos, primordial black holes, etc.)",
+      "Insufficient quantitative comparison of current experimental limits and exclusion boundaries"
+    ],
+    "actionable_feedback": "To improve this research: (1) Provide deeper mechanistic explanations of why each candidate solves specific physics problems (e.g., explain what the strong CP problem actually is), (2) Include quantitative comparison of current experimental sensitivities and exclusion limits for each candidate, (3) Cover detection methodologies in more detail (direct vs indirect detection strategies for each type), (4) Verify or remove claims with medium confidence that affect key conclusions, (5) Discuss additional theoretical candidates beyond the main three to demonstrate completeness of coverage",
+    "verdict": "accept"
+  },
+  "overall_score": 7.6,
+  "accepted": true,
+  "verdict": "accept"
+}

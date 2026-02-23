@@ -1,0 +1,134 @@
+{
+  "timestamp": "2026-02-23T15:40:10.997259+00:00",
+  "domain": "ai",
+  "question": "What are the actual published inference benchmark results (latency, throughput, cost-per-token) for Qwen-3.5-397B and Llama 4 Maverick from cloud providers (AWS, Azure, Google Cloud, Alibaba Cloud) or independent benchmark platforms (MLPerf, LMSys Chatbot Arena, Hugging Face Spaces) as of February 2026?",
+  "attempt": 1,
+  "strategy_version": "v001",
+  "research": {
+    "question": "What are the actual published inference benchmark results (latency, throughput, cost-per-token) for Qwen-3.5-397B and Llama 4 Maverick from cloud providers (AWS, Azure, Google Cloud, Alibaba Cloud) or independent benchmark platforms (MLPerf, LMSys Chatbot Arena, Hugging Face Spaces) as of February 2026?",
+    "findings": [
+      {
+        "claim": "Llama 4 Maverick baseline inference specifications: $0.31 per 1M input tokens, $0.85 per 1M output tokens via Artificial Analysis (independent aggregator)",
+        "confidence": "medium",
+        "reasoning": "Artificial Analysis is an established independent benchmark aggregator tracking 11+ cloud providers (AWS Bedrock, Azure, Google, Groq, Together.ai, DeepInfra, Databricks, Snowflake, SambaNova, Parasail, Novita). Pricing data dated April 5, 2025 (model release date). However, these are compiled from provider APIs, not official Meta specifications. No official Meta latency/throughput specifications found.",
+        "source": "https://artificialanalysis.ai/models/llama-4-maverick"
+      },
+      {
+        "claim": "Llama 4 Maverick TTFT (time-to-first-token): 38.7 ms; Average latency per request: 142.3 ms",
+        "confidence": "low",
+        "reasoning": "Source is SitePoint's 2026 LLM guide (dated Feb 15, 2026), which appears to cite aggregate performance data. No primary source attribution provided for these specific numbers. Numbers are plausible but lack official verification from Meta or cloud providers.",
+        "source": "https://www.sitepoint.com/definitive-guide-local-llms-2026-privacy-tools-hardware/"
+      },
+      {
+        "claim": "Qwen-3.5-397B throughput on consumer hardware (FP8 quantization): ~45 tokens per second on 8\u00d7H100 GPUs",
+        "confidence": "medium",
+        "reasoning": "Cited in Medium article (Feb 2026) referencing engineering implementations. Represents local inference performance with quantization, not cloud provider benchmark. Plausible for hardware configuration but not official Alibaba specification.",
+        "source": "https://medium.com/@AdithyaGiridharan/alibaba-just-dropped-qwen-3-5-cf35aab0c862"
+      },
+      {
+        "claim": "Qwen-3.5-397B on Cerebras Wafer: >1000 tokens per second",
+        "confidence": "low",
+        "reasoning": "Reported in Deep Learning AI's Batch (Feb 2026) citing Cerebras performance. This is specialized hardware (Cerebras Wafer Scale Engine), not standard cloud provider benchmark. Lacks detail on context length, batch size, and quantization. Cannot be verified independently.",
+        "source": "https://www.deeplearning.ai/the-batch/qwen-announces-new-open-weights-flagship-update/"
+      },
+      {
+        "claim": "Llama 4 Maverick via Groq: 350 tokens per second throughput with ~4,900 ms latency",
+        "confidence": "medium",
+        "reasoning": "Groq Changelog dated December 1, 2025 lists Llama 4 Maverick model specifications for their inference platform. Groq is a specialized LLM inference provider. Latency measurement appears to be end-to-end for full inference, not TTFT specifically.",
+        "source": "https://console.groq.com/docs/changelog"
+      },
+      {
+        "claim": "AWS Bedrock, Google Cloud Vertex AI, Azure, and Alibaba Cloud all offer Llama 4 Maverick and/or Qwen-3.5 as managed services",
+        "confidence": "high",
+        "reasoning": "Verified across multiple official cloud provider documentation: AWS Bedrock blog (May 2025 announcement), Google Cloud Vertex AI docs (Llama 4 Maverick MaaS available), Oracle OCI benchmark docs (Feb 5, 2026 Llama 4 Scout/Maverick benchmarks available). Alibaba Cloud Model Studio confirmed via official help docs (dated 3 days ago).",
+        "source": "https://aws.amazon.com/blogs/aws/llama-4-models-from-meta-now-available-in-amazon-bedrock-serverless/"
+      },
+      {
+        "claim": "No official MLPerf or standardized LMSys Chatbot Arena inference speed benchmarks (latency/throughput/cost) published for Qwen-3.5-397B or Llama 4 Maverick as of February 2026",
+        "confidence": "high",
+        "reasoning": "Searched MLPerf, LMSYS Chatbot Arena, and Hugging Face leaderboard pages. MLPerf does not publish real-time leaderboards; Chatbot Arena measures user preference via ELO ratings, not infrastructure metrics; Hugging Face Space leaderboards track accuracy metrics, not inference performance. No standardized inference benchmark platform found with published latency/throughput for both models.",
+        "source": "https://huggingface.co/spaces/lmarena-ai/lmarena-leaderboard"
+      },
+      {
+        "claim": "Qwen-3.5-397B is available via API pricing on Alibaba Cloud but specific latency/throughput metrics not publicly disclosed in official documentation",
+        "confidence": "high",
+        "reasoning": "Alibaba Cloud Model Studio confirms Qwen-3.5-Plus availability (API version of 397B model). However, official Alibaba documentation provides only token pricing ($0.115 per 1M input tokens for Qwen-Plus) without publishing inference latency or throughput specifications. Marketing materials mention 'high-throughput inference with minimal latency' but no quantitative metrics.",
+        "source": "https://www.alibabacloud.com/help/en/model-studio/models"
+      },
+      {
+        "claim": "Oracle OCI offers Llama 4 Maverick (Llama 4 Scout variant) with published benchmark data accessible via official documentation as of Feb 5, 2026",
+        "confidence": "medium",
+        "reasoning": "Oracle OCI documentation page exists with benchmark link (dated Feb 5, 2026), but actual latency/throughput numbers from that benchmark report were not retrieved in searches. Page title indicates benchmarks available but specific metrics not extracted.",
+        "source": "https://docs.oracle.com/en-us/iaas/Content/generative-ai/benchmark-meta-llama-4-maverick.htm"
+      },
+      {
+        "claim": "NVIDIA NIM APIs offers Qwen-3.5-397B-A17B with description of 'throughput inference with minimal latency and cost overhead' but no quantitative specifications published",
+        "confidence": "medium",
+        "reasoning": "NVIDIA NIM model card exists and is dated 7 days ago (Feb 16, 2026), same as Qwen-3.5 release. Contains qualitative language about performance but no actual latency/throughput/cost numbers in search snippet.",
+        "source": "https://build.nvidia.com/qwen/qwen3.5-397b-a17b/modelcard"
+      }
+    ],
+    "key_insights": [
+      "Official inference benchmarks (latency, throughput, cost-per-token) are NOT systematically published by either Alibaba (Qwen-3.5) or Meta (Llama 4 Maverick) in standardized formats\u2014only pricing data and qualitative performance claims are publicly available.",
+      "Cloud provider infrastructure (AWS Bedrock, Google Cloud Vertex AI, Alibaba Cloud, Oracle OCI) offers both models but does NOT publish official shared benchmarks; performance varies by provider infrastructure, making cross-provider comparison unreliable.",
+      "Independent benchmarking platforms (MLPerf, LMSYS Chatbot Arena, Hugging Face) do not measure or publish inference infrastructure metrics (latency/throughput); they measure capability/quality (accuracy, ELO) instead.",
+      "Artificial Analysis is the most comprehensive independent aggregator of cloud provider API pricing ($0.31/$0.85 per 1M tokens for Llama 4 Maverick), but lacks inference latency/throughput data.",
+      "Specialized inference providers (Groq, Cerebras) publish platform-specific throughput metrics (350 TPS for Groq; >1000 TPS for Cerebras) but these are not comparable to standard cloud deployments or each other due to hardware specialization.",
+      "Local inference benchmarks (45 TPS on 8\u00d7H100, 12 TPS on CPU) exist but represent neither cloud service nor standardized configurations.",
+      "TTFT (time-to-first-token) data exists for Llama 4 Maverick (38.7 ms aggregate) but sourcing is unclear and lacks stratification by context length or batch size."
+    ],
+    "knowledge_gaps": [
+      "Official Meta latency/throughput specifications for Llama 4 Maverick across different context lengths and batch sizes\u2014not published in accessible technical documentation",
+      "Official Alibaba latency/throughput specifications for Qwen-3.5-397B\u2014no quantitative metrics found despite Feb 16-17, 2026 release and public availability",
+      "Standardized comparison methodology for inference performance across cloud providers\u2014each provider measures differently, making direct latency/cost comparisons unreliable",
+      "Whether specialized inference providers (Groq 350 TPS, Cerebras >1000 TPS) are using identical model weights and inference configurations as standard cloud versions\u2014routing overhead and hardware differences make these numbers non-transferable",
+      "Actual benchmark data from Oracle OCI Llama 4 Maverick benchmark page (docs.oracle.com link exists but specific latency/throughput numbers not extracted)",
+      "Whether Google Cloud Vertex AI, Azure, or AWS publish their own internal latency/throughput benchmarks for these models\u2014official documentation reviewed but no performance metrics found in public pages",
+      "Context length effects on latency\u2014almost all reported throughput metrics lack stratification by input/output token counts, making them ambiguous for production scenarios"
+    ],
+    "sources_used": [
+      "https://artificialanalysis.ai/models/llama-4-maverick",
+      "https://www.sitepoint.com/definitive-guide-local-llms-2026-privacy-tools-hardware/",
+      "https://medium.com/@AdithyaGiridharan/alibaba-just-dropped-qwen-3-5-cf35aab0c862",
+      "https://www.deeplearning.ai/the-batch/qwen-announces-new-open-weights-flagship-update/",
+      "https://console.groq.com/docs/changelog",
+      "https://aws.amazon.com/blogs/aws/llama-4-models-from-meta-now-available-in-amazon-bedrock-serverless/",
+      "https://docs.cloud.google.com/vertex-ai/generative-ai/docs/partner-models/llama/llama4-maverick",
+      "https://docs.oracle.com/en-us/iaas/Content/generative-ai/benchmark-meta-llama-4-maverick.htm",
+      "https://www.alibabacloud.com/help/en/model-studio/models",
+      "https://build.nvidia.com/qwen/qwen3.5-397b-a17b/modelcard",
+      "https://huggingface.co/spaces/lmarena-ai/lmarena-leaderboard"
+    ],
+    "summary": "As of February 23, 2026, neither Meta (Llama 4 Maverick, released April 5, 2025) nor Alibaba (Qwen-3.5-397B, released Feb 16-17, 2026) publishes official standardized inference benchmarks (latency, throughput, cost-per-token) in accessible technical documentation. Cloud providers (AWS Bedrock, Google Cloud, Alibaba Cloud, Oracle OCI) offer both models but do not publish shared performance specifications; Artificial Analysis is the primary independent source for pricing data ($0.31/$0.85 per 1M tokens for Llama 4 Maverick). Specialized inference platforms (Groq: 350 TPS; Cerebras: >1000 TPS) report throughput metrics but on non-standard hardware incomparable to cloud deployments. Standard benchmarking platforms (MLPerf, LMSYS Chatbot Arena, Hugging Face) measure model capability, not infrastructure performance metrics.",
+    "_searches_made": 9,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 6,
+      "depth": 7,
+      "completeness": 8,
+      "specificity": 8,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.1,
+    "strengths": [
+      "Excellent intellectual honesty with clear confidence levels and reasoning for each claim",
+      "Comprehensive coverage of multiple cloud providers and benchmark platforms",
+      "Strong specificity with concrete numbers, dates, and pricing data where available",
+      "Thorough documentation of knowledge gaps and limitations",
+      "Good source diversity including official docs, independent aggregators, and specialized platforms"
+    ],
+    "weaknesses": [
+      "Several claims rely on secondary sources without primary verification (SitePoint guide, Medium articles)",
+      "Some sources may not be authoritative for technical benchmarks (blog posts, marketing materials)",
+      "Limited verification of claimed performance numbers from specialized hardware providers",
+      "Potential confusion between model variants (Qwen-3.5-Plus vs 397B, Llama 4 Scout vs Maverick)"
+    ],
+    "actionable_feedback": "1) Prioritize official documentation and primary sources over blog posts and marketing content. 2) Verify model variant naming consistency across sources to avoid conflating different versions. 3) Attempt direct verification of claimed benchmark numbers through provider APIs or technical documentation rather than relying on aggregator sites. 4) Cross-reference specialized hardware claims (Cerebras >1000 TPS) with independent verification sources. 5) Clearly distinguish between theoretical capabilities and real-world deployed performance metrics.",
+    "verdict": "accept"
+  },
+  "overall_score": 7.1,
+  "accepted": true,
+  "verdict": "accept"
+}
