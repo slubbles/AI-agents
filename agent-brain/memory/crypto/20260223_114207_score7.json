@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-02-23T11:42:07.364976+00:00",
+  "domain": "crypto",
+  "question": "What are the verified institutional inflows and outflows for spot Bitcoin ETFs (IBIT, FBIT, BTC) in the seven-day period immediately preceding February 23, 2026, based on SEC filings, fund family official disclosures, and third-party custody data from providers like Coinbase Prime?",
+  "attempt": 3,
+  "strategy_version": "v003",
+  "research": {
+    "summary": "While publicly available data from financial media and aggregator platforms documents some Bitcoin ETF flows for February 2026, specific verified institutional inflows/outflows for the exact seven-day period (Feb 16-23, 2026) broken down by fund with primary source documentation from SEC filings or official fund family disclosures cannot be fully verified. Available data shows IBIT and FBTC received selective inflows mid-period, but detailed custody-level verification is limited.",
+    "findings": [
+      {
+        "claim": "On February 20, 2026, IBIT recorded $64.5M inflows and FBTC recorded $23.6M inflows",
+        "confidence": "Medium (65%)",
+        "reasoning": "Reported by financial media aggregator (BingX) citing daily flow tracking, but not directly cross-verified against SEC EDGAR filings or official BlackRock/Fidelity disclosures. Financial media sources present this as factual, but traceability to primary regulatory documents not confirmed.",
+        "sources": [
+          "BingX financial news, Feb 20, 2026",
+          "Yahoo Finance (syndicated reporting), Feb 22, 2026"
+        ]
+      },
+      {
+        "claim": "Bitcoin ETFs experienced net outflows of $165.8M on February 19, 2026",
+        "confidence": "Medium (60%)",
+        "reasoning": "Cited in same BingX article reporting daily flows. No SEC EDGAR link provided; appears to be aggregated flow tracking data rather than primary regulatory filings.",
+        "sources": [
+          "BingX financial news, Feb 20, 2026"
+        ]
+      },
+      {
+        "claim": "BlackRock-linked wallets transferred 2,268 BTC (~$156M value) to Coinbase Prime on February 9, 2026",
+        "confidence": "High (82%)",
+        "reasoning": "Blockchain custody event documented by on-chain analysis platform (Onchain Lens) and reported by multiple financial media outlets. This is verifiable on-chain data, though dates fall slightly outside the Feb 16-23 window requested. Coinbase Prime custody relationship confirmed by BlackRock official marketing materials.",
+        "sources": [
+          "BingX blockchain analysis report, Feb 9, 2026",
+          "MSN finance, BlackRock Coinbase Prime transfer",
+          "BlackRock official IBIT product page referencing Coinbase Prime"
+        ]
+      },
+      {
+        "claim": "Bitcoin ETFs collectively experienced approximately $4.5B in outflows year-to-date through February 22, 2026",
+        "confidence": "High (78%)",
+        "reasoning": "Reported consistently across multiple major financial media sources (Yahoo Finance, TradingNews). This macro-level aggregate data is reliable, though specific daily breakdowns by fund require secondary source verification.",
+        "sources": [
+          "Yahoo Finance, Feb 22, 2026",
+          "TradingNews, Feb 22, 2026"
+        ]
+      },
+      {
+        "claim": "Daily Bitcoin ETF flows tracking services (WalletPilot, Farside Investors, BitBO) provide real-time inflow/outflow data",
+        "confidence": "Medium (55%)",
+        "reasoning": "These aggregator platforms are widely cited but represent third-party analysis of custody/holder data, not primary SEC filings. No direct link to official fund family disclosures or SEC EDGAR documents verified in searches.",
+        "sources": [
+          "WalletPilot platform overview",
+          "Farside Investors flow tracker",
+          "BitBO ETF flow chart"
+        ]
+      },
+      {
+        "claim": "iShares Bitcoin Trust (IBIT) is custodied by Coinbase Prime",
+        "confidence": "High (85%)",
+        "reasoning": "Officially stated on BlackRock's IBIT product page: 'Coinbase Prime is...an affiliate of the iShares Bitcoin Trust ETF custodian.' This is direct from the fund family.",
+        "sources": [
+          "BlackRock IBIT official product page",
+          "Coinbase Prime institutional assets under custody figure ($245B as of June 30, 2025)"
+        ]
+      }
+    ],
+    "critical_limitations": [
+      "SEC EDGAR filings for IBIT do not appear to include daily flow disclosures - the Trust is structured as a commodity trust, not a regulated investment company, limiting SEC filing requirements",
+      "Official daily flow data is NOT published by BlackRock, Fidelity, or Grayscale in real-time through SEC channels; daily flows are reconstructed by third-party aggregators based on NAV calculations and inferred from trading volumes",
+      "Coinbase Prime does not publicly disclose daily institutional client Bitcoin holdings or flows at the individual fund level",
+      "The specific 7-day period Feb 16-23, 2026 contains minimal publicly available granular data; Feb 19-20 data is best documented, while Feb 16-18 and Feb 21-23 have limited verification",
+      "Direct custody-level data (e.g., 'Coinbase Prime holds X BTC for IBIT on [date]') is not disclosed in public sources - only aggregate transfer events are observable on-chain"
+    ],
+    "knowledge_gaps": [
+      "Specific daily inflows for Feb 16, 17, 18, 2026 for IBIT and FBTC",
+      "Daily inflows for Feb 21, 22, 23, 2026 for both funds",
+      "Fidelity's official disclosure of daily flows for FBTC (all data sourced from third-party tracking)",
+      "Official SEC documentation specifying daily flow methodologies for commodity-structured Bitcoin trusts",
+      "Institutional client breakdown by fund (how much of each daily flow came from which institutions)",
+      "Real-time Coinbase Prime custody holdings by fund on specific dates"
+    ],
+    "searches_made": 7,
+    "findings_count": 6,
+    "recommendation": "For verified institutional flow data at the precision level requested (daily 7-day period by fund family with SEC/custody source verification), you would need: (1) Direct contact with BlackRock, Fidelity, and Grayscale investor relations for official daily flow statements; (2) Bloomberg Terminal access for institution-grade flow tracking; (3) Coinbase Prime institutional reporting API access (if available to qualified institutions). Public sources cannot provide the granular, multi-sourced verification you've correctly demanded.",
+    "_searches_made": 7
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 7,
+      "depth": 7,
+      "completeness": 8,
+      "specificity": 6,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.3,
+    "strengths": [
+      "Excellent intellectual honesty - clearly distinguishes between verified facts and uncertain claims with confidence ratings",
+      "Thorough documentation of critical limitations and knowledge gaps",
+      "Good understanding of regulatory structure differences (commodity trust vs investment company)",
+      "Properly identifies the fundamental data availability constraints",
+      "Clear recommendation for how to obtain better data"
+    ],
+    "weaknesses": [
+      "Some claims rely heavily on secondary financial media sources without sufficient cross-verification",
+      "Limited exploration of alternative primary sources (e.g., fund prospectuses, annual reports)",
+      "Could provide more specific dollar amounts and percentages for context",
+      "Date range issue - some findings (Feb 9) fall outside requested period but aren't clearly flagged as such"
+    ],
+    "actionable_feedback": "1) Cross-reference financial media claims against multiple independent sources before assigning medium confidence. 2) Check fund prospectuses and annual reports for data disclosure methodologies. 3) Clearly separate in-period vs out-of-period findings in presentation. 4) Quantify the scale of data gaps (e.g., 'X% of requested period lacks verification'). 5) Research whether any funds voluntarily disclose more granular data than required by regulation.",
+    "verdict": "accept"
+  },
+  "overall_score": 7.3,
+  "verdict": "accept"
+}

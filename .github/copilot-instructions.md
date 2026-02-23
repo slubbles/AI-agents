@@ -34,7 +34,8 @@ agent-brain/
 │   ├── researcher.py      — web search tool use + structured findings (date-aware)
 │   ├── critic.py          — scores on 5 dimensions, accepts/rejects (date-aware)
 │   ├── meta_analyst.py    — analyzes scored outputs → rewrites strategies (Layer 3)
-│   └── cross_domain.py    — extracts general principles, seeds new domains (Layer 5)
+│   ├── cross_domain.py    — extracts general principles, seeds new domains (Layer 5)
+│   └── question_generator.py — diagnoses knowledge gaps, generates next questions (self-directed)
 ├── tools/
 │   └── web_search.py      — DuckDuckGo search, Claude tool_use definition
 ├── memory/                — scored outputs (per domain subdirectory)
@@ -51,8 +52,9 @@ agent-brain/
 - Layer 4 is proven working (Feb 23 2026). strategy_store.py rewritten with _meta.json tracking, trial/active status, evaluate_trial() with 3-output trial period, rollback() when score drops >1.0. Safety guard: meta-analysis skipped during active trials. MAX_SEARCHES=10 hard cap prevents search explosion. Hardened JSON parser handles model preamble.
 - Strategy evolution cooldown: meta-analyst runs every 3 outputs (not every run) to save API credits. `--evolve` flag forces it manually.
 - Control layer (Feb 23 2026): Human approval gate for strategy changes. New strategies saved as "pending" — must be approved before entering trial. Budget tracking with daily spend limit ($2/day default). Full audit trail.
-- CLI flags: `--domain`, `--evolve`, `--status`, `--rollback`, `--approve VERSION`, `--reject VERSION`, `--diff V1 V2`, `--audit`, `--budget`, `--principles`, `--principles --extract`, `--transfer DOMAIN [--hint QUESTION]`.
+- CLI flags: `--domain`, `--evolve`, `--status`, `--rollback`, `--approve VERSION`, `--reject VERSION`, `--diff V1 V2`, `--audit`, `--budget`, `--principles`, `--principles --extract`, `--transfer DOMAIN [--hint QUESTION]`, `--next`, `--auto [--rounds N]`.
 - Layer 5 is proven working (Feb 23 2026). cross_domain.py extracts general principles from proven strategies across domains → generates seed strategies for new domains. Principles stored in strategies/_principles.json with evidence + provenance. Seed strategies saved as "pending" (require approval). Auto-suggests transfer when entering a domain with no strategy.
+- Self-directed learning (Feb 23 2026). question_generator.py reads knowledge_gaps + critic weaknesses from memory → generates ranked next questions. `--next` shows candidates, `--auto` runs full self-directed cycle (diagnose → generate question → research → evaluate). `--rounds N` for multi-round auto mode. Tested: system self-generated Bitcoin ETF verification question from 50 gaps, scored 7/10.
 
 ## Agent Roles
 
@@ -62,6 +64,7 @@ agent-brain/
 | Critic | Scores output 1-10 on 5 dimensions, accepts/rejects | Claude Sonnet 4 (don't cut corners here) |
 | Quality Gate | Rejects below threshold, triggers retry with feedback | Logic in main.py |
 | Meta-Analyst | Extracts patterns from scored outputs, rewrites strategies | Claude Sonnet 4 (DONE — agents/meta_analyst.py) |
+| Question Generator | Diagnoses knowledge gaps, generates next questions | Claude Haiku 4.5 (cheap — synthesis task) |
 | Orchestrator | Routes domains, manages agent coordination, reports to user | (future) |
 | Synthesizer | Integrates findings into domain knowledge base | (future) |
 

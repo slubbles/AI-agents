@@ -16,6 +16,9 @@ Control commands:
     python main.py --evolve                     Force strategy evolution
     python main.py --principles                  Show/extract general cross-domain principles
     python main.py --transfer ai                 Seed a new domain with cross-domain principles
+    python main.py --next                        Show next self-generated questions for a domain
+    python main.py --auto                        Self-directed mode: generate question + research it
+    python main.py --auto --rounds 5             Self-directed mode: run 5 rounds
 """
 
 import argparse
@@ -43,6 +46,7 @@ from agents.cross_domain import (
     extract_principles, load_principles, generate_seed_strategy,
     get_transfer_sources,
 )
+from agents.question_generator import generate_questions, get_next_question
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
@@ -252,6 +256,9 @@ def main():
     parser.add_argument("--extract", action="store_true", help="Force re-extraction of principles (use with --principles)")
     parser.add_argument("--transfer", metavar="DOMAIN", help="Seed a domain with cross-domain principles")
     parser.add_argument("--hint", default="", help="Example question to tailor transfer strategy (use with --transfer)")
+    parser.add_argument("--next", action="store_true", help="Show next self-generated questions for a domain")
+    parser.add_argument("--auto", action="store_true", help="Self-directed mode: generate question and research it")
+    parser.add_argument("--rounds", type=int, default=1, help="Number of auto rounds to run (default: 1)")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -287,6 +294,12 @@ def main():
     if args.transfer:
         _do_transfer(args.transfer, args.hint)
         return
+    if args.next:
+        _show_next(args.domain)
+        return
+    if args.auto:
+        _run_auto(args.domain, args.rounds)
+        return
 
     if args.evolve:
         # Manual strategy evolution trigger
@@ -300,7 +313,7 @@ def main():
         return
 
     if not args.question:
-        parser.error("question is required unless a control command is used (--status, --audit, --approve, etc.)")
+        parser.error("question is required unless a control command is used (--status, --auto, --next, etc.)")
 
     run_loop(question=args.question, domain=args.domain)
 
@@ -663,6 +676,109 @@ def _do_transfer(target_domain: str, question_hint: str = ""):
     else:
         print(f"  ✗ Failed to generate seed strategy")
     print()
+
+
+def _show_next(domain: str):
+    """Show self-generated next questions for a domain."""
+    print(f"\n{'='*60}")
+    print(f"  NEXT QUESTIONS — Domain: {domain}")
+    print(f"  (Stage 1: Diagnose Needs → Stage 2: Set Goals)")
+    print(f"{'='*60}\n")
+
+    budget = check_budget()
+    if not budget["within_budget"]:
+        print(f"  ✗ Budget exceeded. Use --budget to see details.")
+        return
+
+    result = generate_questions(domain)
+    if not result:
+        print("  No questions generated. Need at least 1 output in this domain first.")
+        return
+
+    print(f"\n  To auto-research the top question:")
+    print(f"    python main.py --domain {domain} --auto")
+    print(f"\n  Or pick one manually:")
+    for i, q in enumerate(result["questions"], 1):
+        print(f"    python main.py --domain {domain} \"{q.get('question', '')}\"")
+    print()
+
+
+def _run_auto(domain: str, rounds: int = 1):
+    """
+    Self-directed learning mode.
+    
+    The system:
+    1. Diagnoses its own knowledge gaps (Stage 1)
+    2. Generates the best next question (Stage 2)
+    3. Researches it (Stages 3+4)
+    4. Evaluates the result (Stage 5)
+    5. Repeats for N rounds
+    
+    This is the full Knowles self-directed learning cycle, automated.
+    """
+    print(f"\n{'='*60}")
+    print(f"  SELF-DIRECTED LEARNING MODE")
+    print(f"  Domain: {domain}")
+    print(f"  Rounds: {rounds}")
+    print(f"{'='*60}\n")
+
+    for round_num in range(1, rounds + 1):
+        print(f"\n{'─'*50}")
+        print(f"  ROUND {round_num}/{rounds}")
+        print(f"{'─'*50}\n")
+
+        # Budget check each round
+        budget = check_budget()
+        if not budget["within_budget"]:
+            print(f"[BUDGET] ✗ BLOCKED — daily limit reached after {round_num - 1} rounds")
+            break
+
+        print(f"[BUDGET] ${budget['remaining']:.4f} remaining")
+
+        # Stage 1+2: Diagnose needs → Set goal
+        print(f"\n[STAGE 1+2] Diagnosing knowledge gaps and generating next question...")
+        question = get_next_question(domain)
+
+        if not question:
+            # First time in domain — no data to diagnose
+            stats = get_stats(domain)
+            if stats["count"] == 0:
+                print(f"[QUESTION-GEN] Domain '{domain}' has no outputs yet.")
+                print(f"  Cannot self-direct without seed data. Run a manual question first:")
+                print(f"    python main.py --domain {domain} \"Your question here\"")
+                break
+            else:
+                print(f"[QUESTION-GEN] Failed to generate question. Stopping.")
+                break
+
+        print(f"\n[QUESTION] → {question}")
+
+        # Stages 3+4+5: Research → Evaluate (handled by run_loop)
+        print(f"\n[STAGE 3-5] Researching, evaluating, storing...")
+        try:
+            result = run_loop(question=question, domain=domain)
+        except SystemExit:
+            # run_loop calls sys.exit on budget exceeded
+            print(f"[AUTO] Stopped — budget exceeded during round {round_num}")
+            break
+
+        score = result.get("critique", {}).get("overall_score", 0)
+        verdict = result.get("critique", {}).get("verdict", "unknown")
+
+        print(f"\n[ROUND {round_num} COMPLETE] Score: {score}/10 — {verdict}")
+
+        if round_num < rounds:
+            print(f"\n  Continuing to round {round_num + 1}...")
+
+    # Summary
+    stats = get_stats(domain)
+    daily = get_daily_spend()
+    print(f"\n{'='*60}")
+    print(f"  AUTO MODE COMPLETE")
+    print(f"  Rounds completed: {round_num if question else round_num - 1}/{rounds}")
+    print(f"  Domain '{domain}': {stats['count']} total outputs, avg {stats['avg_score']:.1f}")
+    print(f"  Today's spend: ${daily['total_usd']:.4f}")
+    print(f"{'='*60}\n")
 
 
 if __name__ == "__main__":
