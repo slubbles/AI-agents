@@ -590,3 +590,245 @@ class TestIntegration:
         # Dashboard should run without errors
         assert result.returncode == 0
         assert "DASHBOARD" in result.stdout
+
+
+# ============================================================
+# Orchestrator Tests
+# ============================================================
+
+class TestOrchestrator:
+    """Tests for the Orchestrator agent — all pure logic, no API calls."""
+
+    def test_score_domain_priority_empty(self, tmp_memory, tmp_strategy):
+        """Zero-output domain should get highest scarcity score."""
+        from agents.orchestrator import _score_domain_priority
+        stats = {"count": 0, "accepted": 0, "rejected": 0, "avg_score": 0, "files": []}
+        result = _score_domain_priority(
+            domain="new_domain", stats=stats,
+            strategy_version="default", strategy_status="none",
+            pending_count=0, has_kb=False
+        )
+        assert result["priority"] >= 50  # zero outputs = max scarcity
+        assert result["action"] == "seed"
+        assert not result["skip"]
+
+    def test_score_domain_priority_pending_blocks(self, tmp_memory, tmp_strategy):
+        """Domain with pending strategy should be skipped."""
+        from agents.orchestrator import _score_domain_priority
+        stats = {"count": 5, "accepted": 3, "rejected": 2, "avg_score": 6.5, "files": []}
+        result = _score_domain_priority(
+            domain="blocked", stats=stats,
+            strategy_version="v001", strategy_status="pending",
+            pending_count=1, has_kb=False
+        )
+        assert result["skip"] is True
+        assert result["action"] == "approve"
+        assert result["priority"] < 0  # penalty applied
+
+    def test_score_domain_priority_trial_bonus(self, tmp_memory, tmp_strategy):
+        """Domain with trial strategy should get bonus for needing data."""
+        from agents.orchestrator import _score_domain_priority
+        stats = {"count": 3, "accepted": 2, "rejected": 1, "avg_score": 6.0, "files": []}
+        result = _score_domain_priority(
+            domain="trial_domain", stats=stats,
+            strategy_version="v001", strategy_status="trial",
+            pending_count=0, has_kb=False
+        )
+        assert result["strategy_status"] == "trial"
+        # Trial should add priority
+        assert any("trial" in r.lower() for r in result["reasons"])
+
+    def test_score_low_acceptance_rate(self, tmp_memory, tmp_strategy):
+        """Low acceptance rate should increase priority."""
+        from agents.orchestrator import _score_domain_priority
+        stats = {"count": 5, "accepted": 1, "rejected": 4, "avg_score": 4.5, "files": []}
+        result = _score_domain_priority(
+            domain="struggling", stats=stats,
+            strategy_version="v001", strategy_status="active",
+            pending_count=0, has_kb=False
+        )
+        assert any("acceptance rate" in r.lower() for r in result["reasons"])
+
+    def test_discover_domains(self, tmp_memory):
+        """Discover should find existing domain directories."""
+        from agents.orchestrator import discover_domains
+        # tmp_memory creates MEMORY_DIR but no subdirs
+        os.makedirs(os.path.join(os.environ.get("MEMORY_DIR", tmp_memory), "crypto"), exist_ok=True)
+        os.makedirs(os.path.join(os.environ.get("MEMORY_DIR", tmp_memory), "ai"), exist_ok=True)
+        
+        # Need to patch MEMORY_DIR since discover_domains uses it
+        import agents.orchestrator as orch
+        old_dir = orch.MEMORY_DIR
+        orch.MEMORY_DIR = tmp_memory
+        try:
+            domains = discover_domains()
+            assert "crypto" in domains
+            assert "ai" in domains
+        finally:
+            orch.MEMORY_DIR = old_dir
+
+    def test_allocate_rounds_basic(self, tmp_memory, tmp_strategy):
+        """Round allocation should distribute fairly."""
+        from agents.orchestrator import allocate_rounds
+        priorities = [
+            {"domain": "high", "priority": 40, "skip": False, "action": "auto",
+             "reasons": [], "stats": {"count": 3, "accepted": 2, "rejected": 1, "avg_score": 6.0},
+             "strategy": "v001", "strategy_status": "trial"},
+            {"domain": "low", "priority": 10, "skip": False, "action": "auto",
+             "reasons": [], "stats": {"count": 10, "accepted": 8, "rejected": 2, "avg_score": 7.5},
+             "strategy": "v002", "strategy_status": "active"},
+        ]
+        alloc = allocate_rounds(priorities, total_rounds=6)
+        assert len(alloc) == 2
+        # Higher priority domain should get more rounds
+        high_rounds = next(a["rounds"] for a in alloc if a["domain"] == "high")
+        low_rounds = next(a["rounds"] for a in alloc if a["domain"] == "low")
+        assert high_rounds >= low_rounds
+        assert high_rounds + low_rounds == 6
+
+    def test_allocate_rounds_skips_blocked(self, tmp_memory, tmp_strategy):
+        """Blocked domains should not receive rounds."""
+        from agents.orchestrator import allocate_rounds
+        priorities = [
+            {"domain": "blocked", "priority": -100, "skip": True, "action": "approve",
+             "reasons": [], "stats": {"count": 5, "accepted": 3, "rejected": 2, "avg_score": 6.0},
+             "strategy": "v001", "strategy_status": "pending"},
+            {"domain": "active", "priority": 30, "skip": False, "action": "auto",
+             "reasons": [], "stats": {"count": 3, "accepted": 2, "rejected": 1, "avg_score": 6.0},
+             "strategy": "v001", "strategy_status": "trial"},
+        ]
+        alloc = allocate_rounds(priorities, total_rounds=5)
+        assert len(alloc) == 1
+        assert alloc[0]["domain"] == "active"
+        assert alloc[0]["rounds"] == 5
+
+    def test_allocate_rounds_cap(self, tmp_memory, tmp_strategy):
+        """No domain should exceed max_per_domain rounds."""
+        from agents.orchestrator import allocate_rounds
+        priorities = [
+            {"domain": "only", "priority": 100, "skip": False, "action": "auto",
+             "reasons": [], "stats": {"count": 3, "accepted": 2, "rejected": 1, "avg_score": 6.0},
+             "strategy": "v001", "strategy_status": "trial"},
+        ]
+        alloc = allocate_rounds(priorities, total_rounds=20, max_per_domain=5)
+        assert alloc[0]["rounds"] <= 5
+
+    def test_allocate_rounds_empty(self, tmp_memory, tmp_strategy):
+        """No priorities → no allocation."""
+        from agents.orchestrator import allocate_rounds
+        alloc = allocate_rounds([], total_rounds=10)
+        assert alloc == []
+
+    def test_get_post_run_actions_synthesis(self, tmp_memory, tmp_strategy):
+        """Should recommend synthesis when enough accepted outputs and no KB."""
+        from agents.orchestrator import get_post_run_actions
+        # Create enough accepted output files directly (avoid timestamp collision)
+        domain_dir = os.path.join(tmp_memory, "post_actions_test")
+        os.makedirs(domain_dir, exist_ok=True)
+        for i in range(4):
+            record = {
+                "timestamp": f"2025-02-23T10:0{i}:00+00:00",
+                "domain": "post_actions_test",
+                "question": f"question {i}",
+                "attempt": 1,
+                "strategy_version": "v001",
+                "research": {"findings": f"test {i}", "sources": []},
+                "critique": {"overall_score": 7.0, "verdict": "accept"},
+                "overall_score": 7.0,
+                "accepted": True,
+                "verdict": "accept",
+            }
+            filepath = os.path.join(domain_dir, f"20250223_10{i:02d}00_score7.json")
+            with open(filepath, "w") as f:
+                json.dump(record, f)
+        
+        actions = get_post_run_actions("post_actions_test")
+        action_types = [a["action"] for a in actions]
+        assert "synthesize" in action_types
+
+    def test_system_health(self, tmp_memory, tmp_logs, tmp_strategy):
+        """System health should return valid score between 0-100."""
+        from agents.orchestrator import get_system_health
+        health = get_system_health()
+        assert 0 <= health["health_score"] <= 100
+        assert "total_outputs" in health
+        assert "acceptance_rate" in health
+        assert "domain_count" in health
+
+
+# ============================================================
+# Retry Utility Tests
+# ============================================================
+
+class TestRetry:
+    """Tests for the retry utility."""
+
+    def test_retry_succeeds_first_try(self):
+        """Function that succeeds immediately should not retry."""
+        from utils.retry import retry_api_call
+        call_count = 0
+        def succeed():
+            nonlocal call_count
+            call_count += 1
+            return "ok"
+        result = retry_api_call(succeed, max_attempts=3, base_delay=0.01, verbose=False)
+        assert result == "ok"
+        assert call_count == 1
+
+    def test_retry_succeeds_after_transient_error(self):
+        """Function that fails then succeeds should retry."""
+        from utils.retry import retry_api_call
+
+        class OverloadedError(Exception):
+            pass
+
+        call_count = 0
+        def flaky():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 3:
+                raise OverloadedError("Error code: 529 - overloaded")
+            return "recovered"
+        
+        result = retry_api_call(flaky, max_attempts=5, base_delay=0.01, verbose=False)
+        assert result == "recovered"
+        assert call_count == 3
+
+    def test_retry_propagates_non_retryable(self):
+        """Non-retryable errors should propagate immediately."""
+        from utils.retry import retry_api_call
+        call_count = 0
+        def bad_input():
+            nonlocal call_count
+            call_count += 1
+            raise ValueError("Invalid argument")
+        
+        with pytest.raises(ValueError):
+            retry_api_call(bad_input, max_attempts=5, base_delay=0.01, verbose=False)
+        assert call_count == 1
+
+    def test_retry_exhausts_attempts(self):
+        """Should raise after max attempts for persistent transient errors."""
+        from utils.retry import retry_api_call
+
+        class OverloadedError(Exception):
+            pass
+
+        call_count = 0
+        def always_fail():
+            nonlocal call_count
+            call_count += 1
+            raise OverloadedError("529 overloaded")
+        
+        with pytest.raises(OverloadedError):
+            retry_api_call(always_fail, max_attempts=3, base_delay=0.01, verbose=False)
+        assert call_count == 3
+
+    def test_is_retryable(self):
+        """Should correctly identify retryable errors."""
+        from utils.retry import is_retryable
+        assert is_retryable(Exception("overloaded"))
+        assert is_retryable(Exception("Error code: 529"))
+        assert is_retryable(Exception("rate_limit_error"))
+        assert not is_retryable(ValueError("bad input"))
+        assert not is_retryable(TypeError("wrong type"))
