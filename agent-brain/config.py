@@ -31,5 +31,14 @@ MEMORY_DIR = os.path.join(os.path.dirname(__file__), "memory")
 STRATEGY_DIR = os.path.join(os.path.dirname(__file__), "strategies")
 LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
 
+# --- Budget ---
+# Estimated cost per 1K tokens (input/output) for tracking
+# These are approximations used for budget awareness, not billing
+COST_PER_1K = {
+    "claude-haiku-4-5-20251001": {"input": 0.001, "output": 0.005},
+    "claude-sonnet-4-20250514": {"input": 0.003, "output": 0.015},
+}
+DAILY_BUDGET_USD = 2.00  # Hard stop — refuse to run if daily spend exceeds this
+
 # --- Loop ---
 DEFAULT_DOMAIN = "general"

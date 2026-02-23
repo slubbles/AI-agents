@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import ANTHROPIC_API_KEY, MODELS
 from memory_store import load_outputs
 from strategy_store import get_strategy, save_strategy, list_versions
+from cost_tracker import log_cost
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -169,6 +170,9 @@ def analyze_and_evolve(domain: str) -> dict | None:
         messages=[{"role": "user", "content": user_message}],
     )
 
+    # Track cost
+    log_cost(MODELS["meta_analyst"], response.usage.input_tokens, response.usage.output_tokens, "meta_analyst", domain)
+
     raw_text = response.content[0].text.strip()
 
     # Strip markdown fences if present
@@ -209,17 +213,19 @@ def analyze_and_evolve(domain: str) -> dict | None:
     reasoning = result.get("reasoning", "")
     reason = f"Changes: {'; '.join(changes)}. Reasoning: {reasoning}"
 
-    # Save new strategy
+    # Save new strategy — as PENDING (requires human approval before trial)
     filepath = save_strategy(
         agent_role="researcher",
         domain=domain,
         strategy_text=new_strategy,
         version=new_version,
         reason=reason,
+        status="pending",
     )
 
-    print(f"[META-ANALYST] ✓ New strategy saved: {new_version}")
+    print(f"[META-ANALYST] ✓ New strategy saved: {new_version} (PENDING APPROVAL)")
     print(f"[META-ANALYST]   File: {filepath}")
+    print(f"[META-ANALYST]   ⚠ Run '--approve {new_version}' to deploy to trial")
 
     # Print analysis summary
     analysis = result.get("analysis", {})

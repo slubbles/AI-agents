@@ -4,6 +4,16 @@ Agent Brain — Main Loop Runner
 Usage:
     python main.py "What is the current state of autonomous AI agents?"
     python main.py --domain crypto "What are the latest Bitcoin ETF developments?"
+
+Control commands:
+    python main.py --status                     Show strategy status + performance
+    python main.py --audit                      Full audit trail of all activity
+    python main.py --approve v004               Approve a pending strategy for trial
+    python main.py --reject v004                Reject a pending strategy
+    python main.py --diff v001 v003             Compare two strategy versions
+    python main.py --rollback                   Roll back to previous strategy
+    python main.py --budget                     Show cost tracking / budget status
+    python main.py --evolve                     Force strategy evolution
 """
 
 import argparse
@@ -23,24 +33,35 @@ from memory_store import save_output, load_outputs, get_stats
 from strategy_store import (
     get_strategy, get_strategy_status, evaluate_trial,
     get_strategy_performance, get_version_history, rollback,
-    get_active_version, list_versions,
+    get_active_version, list_versions, list_pending,
+    approve_strategy, reject_strategy, get_strategy_diff,
 )
+from cost_tracker import check_budget, get_daily_spend, get_all_time_spend
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     """
     Execute the full research → critique → quality gate loop.
     
-    1. Load strategy for researcher (if exists)
-    2. Researcher produces findings
-    3. Critic scores findings
-    4. If score < threshold: retry with critique feedback (up to MAX_RETRIES)
-    5. Store final output to memory
+    1. Check budget — refuse to run if daily limit exceeded
+    2. Load strategy for researcher (if exists)
+    3. Researcher produces findings
+    4. Critic scores findings
+    5. If score < threshold: retry with critique feedback (up to MAX_RETRIES)
+    6. Store final output to memory
     """
+    # Budget check
+    budget = check_budget()
+    if not budget["within_budget"]:
+        print(f"\n[BUDGET] ✗ BLOCKED — Daily spend ${budget['spent']:.4f} exceeds limit ${budget['limit']:.2f}")
+        print(f"  Use --budget to see details. Increase DAILY_BUDGET_USD in config.py to override.")
+        sys.exit(1)
+
     print(f"\n{'='*60}")
     print(f"  AGENT BRAIN — Research Loop")
     print(f"  Domain: {domain}")
     print(f"  Question: {question}")
+    print(f"  Budget: ${budget['remaining']:.4f} remaining today")
     print(f"{'='*60}\n")
 
     # Load current strategy
@@ -144,19 +165,26 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     if current_status == "trial":
         print(f"\n[META-ANALYST] Skipping — trial strategy is still being evaluated")
     else:
-        all_outputs = load_outputs(domain, min_score=0)
-        output_count = len(all_outputs)
-        if output_count >= MIN_OUTPUTS_FOR_ANALYSIS and output_count % EVOLVE_EVERY_N == 0:
-            print(f"\n[META-ANALYST] Evolution trigger ({output_count} outputs, every {EVOLVE_EVERY_N}). Running strategy evolution...")
-            evolution = analyze_and_evolve(domain)
-            if evolution:
-                print(f"[META-ANALYST] Strategy evolved to {evolution['new_version']}")
-        elif output_count < MIN_OUTPUTS_FOR_ANALYSIS:
-            remaining = MIN_OUTPUTS_FOR_ANALYSIS - output_count
-            print(f"\n[META-ANALYST] Need {remaining} more output(s) before strategy evolution")
+        # Check for pending strategies waiting for approval
+        pending = list_pending("researcher", domain)
+        if pending:
+            versions = ", ".join(p.get("version", "?") for p in pending)
+            print(f"\n[META-ANALYST] Skipping — {len(pending)} pending strategy(ies) waiting for approval: {versions}")
+            print(f"  Run: python main.py --domain {domain} --approve <version>")
         else:
-            next_evolve = EVOLVE_EVERY_N - (output_count % EVOLVE_EVERY_N)
-            print(f"\n[META-ANALYST] Next evolution in {next_evolve} output(s)")
+            all_outputs = load_outputs(domain, min_score=0)
+            output_count = len(all_outputs)
+            if output_count >= MIN_OUTPUTS_FOR_ANALYSIS and output_count % EVOLVE_EVERY_N == 0:
+                print(f"\n[META-ANALYST] Evolution trigger ({output_count} outputs, every {EVOLVE_EVERY_N}). Running strategy evolution...")
+                evolution = analyze_and_evolve(domain)
+                if evolution:
+                    print(f"[META-ANALYST] Strategy evolved to {evolution['new_version']}")
+            elif output_count < MIN_OUTPUTS_FOR_ANALYSIS:
+                remaining = MIN_OUTPUTS_FOR_ANALYSIS - output_count
+                print(f"\n[META-ANALYST] Need {remaining} more output(s) before strategy evolution")
+            else:
+                next_evolve = EVOLVE_EVERY_N - (output_count % EVOLVE_EVERY_N)
+                print(f"\n[META-ANALYST] Next evolution in {next_evolve} output(s)")
 
     # Print summary
     print(f"\n{'='*60}")
@@ -199,9 +227,16 @@ def main():
     parser = argparse.ArgumentParser(description="Agent Brain — Research Loop")
     parser.add_argument("question", nargs="?", help="The research question to investigate")
     parser.add_argument("--domain", default=DEFAULT_DOMAIN, help=f"Domain context (default: {DEFAULT_DOMAIN})")
-    parser.add_argument("--evolve", action="store_true", help="Run meta-analyst strategy evolution only (no research)")
-    parser.add_argument("--status", action="store_true", help="Show strategy status and performance for a domain")
+
+    # Control commands
+    parser.add_argument("--status", action="store_true", help="Show strategy status and performance")
+    parser.add_argument("--audit", action="store_true", help="Full audit trail of all activity")
+    parser.add_argument("--approve", metavar="VERSION", help="Approve a pending strategy (e.g., --approve v004)")
+    parser.add_argument("--reject", metavar="VERSION", help="Reject a pending strategy")
+    parser.add_argument("--diff", nargs=2, metavar=("V1", "V2"), help="Compare two strategy versions (e.g., --diff v001 v003)")
     parser.add_argument("--rollback", action="store_true", help="Roll back to previous strategy version")
+    parser.add_argument("--budget", action="store_true", help="Show cost tracking and budget status")
+    parser.add_argument("--evolve", action="store_true", help="Run meta-analyst strategy evolution (no research)")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -209,12 +244,27 @@ def main():
         print("  export ANTHROPIC_API_KEY=sk-ant-...")
         sys.exit(1)
 
+    # Dispatch control commands
     if args.status:
         _show_status(args.domain)
         return
-
+    if args.audit:
+        _show_audit(args.domain)
+        return
+    if args.approve:
+        _do_approve(args.domain, args.approve)
+        return
+    if args.reject:
+        _do_reject(args.domain, args.reject)
+        return
+    if args.diff:
+        _show_diff(args.domain, args.diff[0], args.diff[1])
+        return
     if args.rollback:
         _do_rollback(args.domain)
+        return
+    if args.budget:
+        _show_budget()
         return
 
     if args.evolve:
@@ -229,7 +279,7 @@ def main():
         return
 
     if not args.question:
-        parser.error("question is required unless --evolve, --status, or --rollback is used")
+        parser.error("question is required unless a control command is used (--status, --audit, --approve, etc.)")
 
     run_loop(question=args.question, domain=args.domain)
 
@@ -246,25 +296,32 @@ def _show_status(domain: str):
     active = get_active_version("researcher", domain)
     status = get_strategy_status("researcher", domain)
     versions = list_versions("researcher", domain)
+    pending = list_pending("researcher", domain)
 
     print(f"  Active version: {active} ({status})")
     print(f"  Total versions: {len(versions)}")
+    if pending:
+        print(f"  ⚠ Pending approval: {', '.join(p.get('version', '?') for p in pending)}")
 
     if versions:
         print(f"\n  Version Performance:")
-        print(f"  {'Version':<10} {'Outputs':>8} {'Avg Score':>10} {'Accepted':>9} {'Rejected':>9}")
-        print(f"  {'-'*46}")
+        print(f"  {'Version':<10} {'Status':<10} {'Outputs':>8} {'Avg Score':>10} {'Accepted':>9} {'Rejected':>9}")
+        print(f"  {'-'*56}")
 
         # Also show default performance
         default_perf = get_strategy_performance(domain, "default")
         if default_perf["count"] > 0:
-            print(f"  {'default':<10} {default_perf['count']:>8} {default_perf['avg_score']:>10.1f} "
+            print(f"  {'default':<10} {'base':<10} {default_perf['count']:>8} {default_perf['avg_score']:>10.1f} "
                   f"{default_perf['accepted']:>9} {default_perf['rejected']:>9}")
 
         for v in versions:
             perf = get_strategy_performance(domain, v)
+            # Get version status from file
+            from strategy_store import _load_strategy_file
+            vdata = _load_strategy_file("researcher", domain, v)
+            vstatus = vdata.get("status", "?") if vdata else "?"
             marker = " ←" if v == active else ""
-            print(f"  {v:<10} {perf['count']:>8} {perf['avg_score']:>10.1f} "
+            print(f"  {v:<10} {vstatus:<10} {perf['count']:>8} {perf['avg_score']:>10.1f} "
                   f"{perf['accepted']:>9} {perf['rejected']:>9}{marker}")
 
     # Show version history
@@ -279,6 +336,211 @@ def _show_status(domain: str):
     stats = get_stats(domain)
     print(f"\n  Domain totals: {stats['count']} outputs, avg {stats['avg_score']:.1f}, "
           f"{stats['accepted']} accepted / {stats['rejected']} rejected")
+    print()
+
+
+def _do_approve(domain: str, version: str):
+    """Approve a pending strategy → promote to trial."""
+    from strategy_store import _load_strategy_file
+
+    # Show the strategy before approving
+    data = _load_strategy_file("researcher", domain, version)
+    if data is None:
+        print(f"\n  ✗ Strategy {version} not found in domain '{domain}'")
+        return
+    if data.get("status") != "pending":
+        print(f"\n  ✗ Strategy {version} is '{data.get('status')}', not 'pending'")
+        return
+
+    print(f"\n{'='*60}")
+    print(f"  APPROVE STRATEGY — {version}")
+    print(f"{'='*60}\n")
+    print(f"  Domain:  {domain}")
+    print(f"  Created: {data.get('created_at', '?')}")
+    print(f"  Reason:  {data.get('reason', 'N/A')}")
+    print(f"\n  Strategy preview (first 500 chars):")
+    print(f"  {'-'*40}")
+    strategy_text = data.get("strategy", "")
+    for line in strategy_text[:500].split("\n"):
+        print(f"    {line}")
+    if len(strategy_text) > 500:
+        print(f"    ... ({len(strategy_text) - 500} more chars)")
+    print(f"  {'-'*40}")
+
+    result = approve_strategy("researcher", domain, version)
+    print(f"\n  {result['reason']}")
+    print()
+
+
+def _do_reject(domain: str, version: str):
+    """Reject a pending strategy."""
+    result = reject_strategy("researcher", domain, version)
+    if result["action"] == "error":
+        print(f"\n  ✗ {result['reason']}")
+    else:
+        print(f"\n  ✓ {result['reason']}")
+    print()
+
+
+def _show_diff(domain: str, v1: str, v2: str):
+    """Show differences between two strategy versions."""
+    diff = get_strategy_diff("researcher", domain, v1, v2)
+
+    if diff.get("error"):
+        print(f"\n  ✗ {diff['error']}")
+        return
+
+    a = diff["version_a"]
+    b = diff["version_b"]
+
+    print(f"\n{'='*60}")
+    print(f"  STRATEGY DIFF — {v1} vs {v2}")
+    print(f"{'='*60}\n")
+
+    print(f"  Version A: {a['version']} (status: {a['status']}, created: {a['created_at']})")
+    print(f"  Version B: {b['version']} (status: {b['status']}, created: {b['created_at']})")
+
+    if a.get("reason"):
+        print(f"\n  A reason: {a['reason'][:200]}")
+    if b.get("reason"):
+        print(f"  B reason: {b['reason'][:200]}")
+
+    # Simple line-by-line diff
+    lines_a = a["strategy"].split("\n")
+    lines_b = b["strategy"].split("\n")
+
+    print(f"\n  --- {v1} ({len(lines_a)} lines)")
+    print(f"  +++ {v2} ({len(lines_b)} lines)")
+    print()
+
+    # Show lines unique to each version
+    set_a = set(lines_a)
+    set_b = set(lines_b)
+    removed = [l for l in lines_a if l not in set_b and l.strip()]
+    added = [l for l in lines_b if l not in set_a and l.strip()]
+
+    if removed:
+        print(f"  Removed from {v1}:")
+        for line in removed[:20]:
+            print(f"    - {line}")
+    if added:
+        print(f"\n  Added in {v2}:")
+        for line in added[:20]:
+            print(f"    + {line}")
+    if not removed and not added:
+        print(f"  (strategies are identical)")
+    print()
+
+
+def _show_audit(domain: str):
+    """Show a unified audit trail of all system activity for a domain."""
+    print(f"\n{'='*60}")
+    print(f"  AUDIT TRAIL — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    # 1. Run history from log
+    log_file = os.path.join(LOG_DIR, f"{domain}.jsonl")
+    if os.path.exists(log_file):
+        print(f"  Run History:")
+        print(f"  {'Time':<22} {'Score':>6} {'Verdict':<8} {'Strategy':<10} {'Question'}")
+        print(f"  {'-'*80}")
+        with open(log_file) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                ts = entry.get("timestamp", "?")[:19].replace("T", " ")
+                score = entry.get("score", 0)
+                verdict = entry.get("verdict", "?")
+                sv = entry.get("strategy_version", "?")
+                q = entry.get("question", "?")[:40]
+                print(f"  {ts:<22} {score:>6.1f} {verdict:<8} {sv:<10} {q}")
+    else:
+        print(f"  No run history for domain '{domain}'")
+
+    # 2. Strategy version history
+    print(f"\n  Strategy Changes:")
+    history = get_version_history("researcher", domain)
+    if history:
+        for entry in history:
+            v = entry.get("version", "?")
+            s = entry.get("status", "?")
+            t = entry.get("replaced_at", "current")
+            if isinstance(t, str) and len(t) > 19:
+                t = t[:19].replace("T", " ")
+            print(f"    {t:<22} {v:<10} → {s}")
+    else:
+        print(f"    (no strategy changes)")
+
+    # 3. Pending strategies
+    pending = list_pending("researcher", domain)
+    if pending:
+        print(f"\n  ⚠ Pending Approval:")
+        for p in pending:
+            print(f"    {p.get('version', '?')} — created {p.get('created_at', '?')[:19]}")
+            reason = p.get("reason", "")
+            if reason:
+                print(f"      Reason: {reason[:100]}")
+    else:
+        print(f"\n  No pending strategies")
+
+    # 4. Budget summary for today
+    daily = get_daily_spend()
+    print(f"\n  Today's Spend: ${daily['total_usd']:.4f} ({daily['calls']} API calls)")
+    for role, cost in daily.get("by_agent", {}).items():
+        print(f"    {role}: ${cost:.4f}")
+
+    # 5. Domain stats
+    stats = get_stats(domain)
+    print(f"\n  Domain Totals: {stats['count']} outputs, avg {stats['avg_score']:.1f}, "
+          f"{stats['accepted']} accepted / {stats['rejected']} rejected")
+    print()
+
+
+def _show_budget():
+    """Show cost tracking and budget status."""
+    from config import DAILY_BUDGET_USD
+
+    budget = check_budget()
+    daily = get_daily_spend()
+    alltime = get_all_time_spend()
+
+    print(f"\n{'='*60}")
+    print(f"  BUDGET & COST TRACKING")
+    print(f"{'='*60}\n")
+
+    status_icon = "✓" if budget["within_budget"] else "✗ EXCEEDED"
+    print(f"  Today ({daily['date']}):")
+    print(f"    Status:    {status_icon}")
+    print(f"    Spent:     ${budget['spent']:.4f}")
+    print(f"    Limit:     ${budget['limit']:.2f}")
+    print(f"    Remaining: ${budget['remaining']:.4f}")
+    print(f"    API calls: {daily['calls']}")
+
+    if daily.get("by_agent"):
+        print(f"\n    By agent:")
+        for role, cost in sorted(daily["by_agent"].items()):
+            print(f"      {role:<15} ${cost:.4f}")
+
+    if daily.get("by_model"):
+        print(f"\n    By model:")
+        for model, cost in sorted(daily["by_model"].items()):
+            short = model.split("-")[1] if "-" in model else model
+            print(f"      {short:<15} ${cost:.4f}")
+
+    if alltime["days"] > 0:
+        print(f"\n  All time:")
+        print(f"    Total:     ${alltime['total_usd']:.4f}")
+        print(f"    Days:      {alltime['days']}")
+        print(f"    Avg/day:   ${alltime['total_usd'] / alltime['days']:.4f}")
+        if alltime.get("by_date"):
+            print(f"\n    Daily breakdown:")
+            for d, cost in alltime["by_date"].items():
+                print(f"      {d}  ${cost:.4f}")
     print()
 
 

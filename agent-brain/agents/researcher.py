@@ -15,6 +15,7 @@ from anthropic import Anthropic
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import ANTHROPIC_API_KEY, MODELS
 from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
+from cost_tracker import log_cost
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -155,6 +156,9 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
             messages=messages,
             tools=tools,
         )
+
+        # Track cost
+        log_cost(MODELS["researcher"], response.usage.input_tokens, response.usage.output_tokens, "researcher", "research")
 
         if response.stop_reason == "tool_use":
             tool_results = []
