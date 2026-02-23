@@ -17,7 +17,7 @@ It is an autonomous research system that loops, scores its own output, and rewri
 2. **Evaluated Knowledge** — critic scores output 1-10 on structured rubric, score stored alongside output. (DONE — agents/critic.py)
 3. **Behavioral Adaptation** — Meta-Analyst extracts patterns from scores → rewrites agent strategy documents. Strategy = natural language instructions the agent follows. Evolves every 3 outputs. (DONE — agents/meta_analyst.py)
 4. **Strategy Evolution** — the strategy rewriting itself becomes autonomous and recursive. Version control + rollback. Safety: never deploy strategy scoring >20% below current best without human review. (DONE — strategy_store.py rewrite, trial/active status, evaluate_trial(), rollback())
-5. **Cross-Domain Transfer** — insights from Domain A abstracted into general principles → applied as strategy seeds in Domain B. The system compounds intelligence, not just data. (NEXT)
+5. **Cross-Domain Transfer** — insights from Domain A abstracted into general principles → applied as strategy seeds in Domain B. The system compounds intelligence, not just data. (DONE — agents/cross_domain.py)
 
 **Do NOT skip layers. Each layer is earned by getting the previous one working properly.**
 
@@ -33,11 +33,12 @@ agent-brain/
 ├── agents/
 │   ├── researcher.py      — web search tool use + structured findings (date-aware)
 │   ├── critic.py          — scores on 5 dimensions, accepts/rejects (date-aware)
-│   └── meta_analyst.py    — analyzes scored outputs → rewrites strategies (Layer 3)
+│   ├── meta_analyst.py    — analyzes scored outputs → rewrites strategies (Layer 3)
+│   └── cross_domain.py    — extracts general principles, seeds new domains (Layer 5)
 ├── tools/
 │   └── web_search.py      — DuckDuckGo search, Claude tool_use definition
 ├── memory/                — scored outputs (per domain subdirectory)
-├── strategies/            — strategy versions (per domain subdirectory)
+├── strategies/            — strategy versions (per domain subdirectory) + _principles.json
 └── logs/                  — run logs (JSONL per domain) + cost logs
 ```
 
@@ -50,7 +51,8 @@ agent-brain/
 - Layer 4 is proven working (Feb 23 2026). strategy_store.py rewritten with _meta.json tracking, trial/active status, evaluate_trial() with 3-output trial period, rollback() when score drops >1.0. Safety guard: meta-analysis skipped during active trials. MAX_SEARCHES=10 hard cap prevents search explosion. Hardened JSON parser handles model preamble.
 - Strategy evolution cooldown: meta-analyst runs every 3 outputs (not every run) to save API credits. `--evolve` flag forces it manually.
 - Control layer (Feb 23 2026): Human approval gate for strategy changes. New strategies saved as "pending" — must be approved before entering trial. Budget tracking with daily spend limit ($2/day default). Full audit trail.
-- CLI flags: `--domain`, `--evolve`, `--status`, `--rollback`, `--approve VERSION`, `--reject VERSION`, `--diff V1 V2`, `--audit`, `--budget`.
+- CLI flags: `--domain`, `--evolve`, `--status`, `--rollback`, `--approve VERSION`, `--reject VERSION`, `--diff V1 V2`, `--audit`, `--budget`, `--principles`, `--principles --extract`, `--transfer DOMAIN [--hint QUESTION]`.
+- Layer 5 is proven working (Feb 23 2026). cross_domain.py extracts general principles from proven strategies across domains → generates seed strategies for new domains. Principles stored in strategies/_principles.json with evidence + provenance. Seed strategies saved as "pending" (require approval). Auto-suggests transfer when entering a domain with no strategy.
 
 ## Agent Roles
 

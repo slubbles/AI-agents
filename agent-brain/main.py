@@ -14,6 +14,8 @@ Control commands:
     python main.py --rollback                   Roll back to previous strategy
     python main.py --budget                     Show cost tracking / budget status
     python main.py --evolve                     Force strategy evolution
+    python main.py --principles                  Show/extract general cross-domain principles
+    python main.py --transfer ai                 Seed a new domain with cross-domain principles
 """
 
 import argparse
@@ -37,6 +39,10 @@ from strategy_store import (
     approve_strategy, reject_strategy, get_strategy_diff,
 )
 from cost_tracker import check_budget, get_daily_spend, get_all_time_spend
+from agents.cross_domain import (
+    extract_principles, load_principles, generate_seed_strategy,
+    get_transfer_sources,
+)
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
@@ -72,6 +78,11 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
         print(f"[STRATEGY] Loaded version: {strategy_version}{status_label}")
     else:
         print(f"[STRATEGY] Using default (no custom strategy yet)")
+        # Auto-suggest cross-domain transfer if principles exist
+        principles = load_principles()
+        if principles and principles.get("principles"):
+            print(f"[CROSS-DOMAIN] 💡 General principles available from {len(principles.get('source_domains', []))} domain(s)")
+            print(f"  Seed this domain: python main.py --transfer {domain} --hint \"{question[:50]}\"")
 
     attempt = 0
     previous_critique_feedback = None
@@ -237,6 +248,10 @@ def main():
     parser.add_argument("--rollback", action="store_true", help="Roll back to previous strategy version")
     parser.add_argument("--budget", action="store_true", help="Show cost tracking and budget status")
     parser.add_argument("--evolve", action="store_true", help="Run meta-analyst strategy evolution (no research)")
+    parser.add_argument("--principles", action="store_true", help="Show/extract general cross-domain principles")
+    parser.add_argument("--extract", action="store_true", help="Force re-extraction of principles (use with --principles)")
+    parser.add_argument("--transfer", metavar="DOMAIN", help="Seed a domain with cross-domain principles")
+    parser.add_argument("--hint", default="", help="Example question to tailor transfer strategy (use with --transfer)")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -265,6 +280,12 @@ def main():
         return
     if args.budget:
         _show_budget()
+        return
+    if args.principles:
+        _show_principles(force_extract=args.extract)
+        return
+    if args.transfer:
+        _do_transfer(args.transfer, args.hint)
         return
 
     if args.evolve:
@@ -554,6 +575,93 @@ def _do_rollback(domain: str):
         print(f"  ✓ Rolled back to: {rolled_to}")
     else:
         print(f"  ✗ No previous version to roll back to")
+    print()
+
+
+def _show_principles(force_extract: bool = False):
+    """Show current general principles, optionally re-extracting them."""
+    print(f"\n{'='*60}")
+    print(f"  CROSS-DOMAIN PRINCIPLES")
+    print(f"{'='*60}\n")
+
+    if force_extract:
+        result = extract_principles(force=True)
+        if not result:
+            print("  No qualifying domains for principle extraction.")
+            return
+    else:
+        # Show existing or extract if none
+        result = load_principles()
+        if not result:
+            print("  No principles extracted yet. Attempting extraction...\n")
+            result = extract_principles()
+            if not result:
+                print("  No qualifying domains for principle extraction.")
+                return
+
+    print(f"  Version: {result.get('version', '?')}")
+    print(f"  Extracted: {result.get('extracted_at', '?')[:19]}")
+    print(f"  Source domains: {', '.join(result.get('source_domains', []))}")
+
+    principles = result.get("principles", [])
+    print(f"\n  General Principles ({len(principles)}):")
+    for i, p in enumerate(principles, 1):
+        conf = p.get('confidence', '?')
+        cat = p.get('category', '?')
+        print(f"\n    {i}. [{conf.upper()}] {p.get('principle', '?')}")
+        print(f"       Category: {cat}")
+        print(f"       Evidence: {p.get('evidence', 'N/A')}")
+        print(f"       From: {', '.join(p.get('source_domains', []))}")
+
+    dsi = result.get("domain_specific_insights", [])
+    if dsi:
+        print(f"\n  Domain-Specific Insights (not transferred):")
+        for d in dsi:
+            print(f"    [{d.get('domain', '?')}] {d.get('insight', '?')}")
+            print(f"      Why not general: {d.get('not_transferable_because', '?')}")
+
+    meta = result.get("meta_observations", "")
+    if meta:
+        print(f"\n  Meta observations: {meta}")
+
+    # Show transfer-ready domains
+    sources = get_transfer_sources()
+    print(f"\n  Transfer sources available: {len(sources)}")
+    for s in sources:
+        print(f"    {s['domain']}: {s['stats']['count']} outputs, avg {s['stats']['avg_score']:.1f}")
+
+    print(f"\n  To seed a new domain: python main.py --transfer <domain> [--hint 'example question']")
+    print()
+
+
+def _do_transfer(target_domain: str, question_hint: str = ""):
+    """Generate a seed strategy for a target domain from cross-domain principles."""
+    print(f"\n{'='*60}")
+    print(f"  CROSS-DOMAIN TRANSFER → {target_domain}")
+    print(f"{'='*60}\n")
+
+    # Check budget first
+    budget = check_budget()
+    if not budget["within_budget"]:
+        print(f"  ✗ Budget exceeded. Use --budget to see details.")
+        return
+
+    # Ensure principles exist
+    principles = load_principles()
+    if not principles:
+        print("  No principles yet. Extracting from qualifying domains...\n")
+        principles = extract_principles()
+        if not principles:
+            print("  ✗ No qualifying domains. Need ≥5 outputs with avg score ≥5.5 and an active strategy.")
+            return
+
+    result = generate_seed_strategy(target_domain, question_hint)
+    if result:
+        print(f"\n  ✓ Seed strategy {result['version']} created for '{target_domain}' (PENDING)")
+        if result.get("expected_improvement"):
+            print(f"  Expected improvement: {result['expected_improvement']}")
+    else:
+        print(f"  ✗ Failed to generate seed strategy")
     print()
 
 

@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "extracted_at": "2026-02-23T11:16:12.951234+00:00",
+  "source_domains": [
+    "crypto"
+  ],
+  "source_count": 1,
+  "principles": [
+    {
+      "principle": "Limit searches to 3-8 targeted queries maximum to avoid system parsing failures",
+      "category": "search_strategy",
+      "evidence": "High-scoring crypto outputs (6.2-7.7) used 3-15 searches optimally, while strategy explicitly warns against higher counts causing system failures",
+      "source_domains": [
+        "crypto"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Cross-verify all numerical data and factual claims through at least 2 different source types",
+      "category": "source_quality",
+      "evidence": "Top crypto outputs (7.7 scores) praised for 'strong source diversity and cross-referencing' and 'multiple independent sources cited for key claims'",
+      "source_domains": [
+        "crypto"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Prioritize authoritative primary sources over industry publications for factual verification",
+      "category": "source_quality",
+      "evidence": "High-scoring crypto research praised government sources (.gov, SEC filings) first, while weaknesses noted 'heavy reliance on crypto industry publications rather than authoritative government sources'",
+      "source_domains": [
+        "crypto"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Include specific confidence levels with clear reasoning for each claim",
+      "category": "honesty_calibration",
+      "evidence": "All high-scoring crypto outputs (6.2-7.7) consistently praised for 'appropriate confidence scoring with clear reasoning' and 'strong confidence scoring system with detailed reasoning'",
+      "source_domains": [
+        "crypto"
+      ],
+      "confidence": "high"
+    },
+    {
+      "principle": "Explicitly acknowledge knowledge gaps and research limitations",
+      "category": "honesty_calibration",
+      "evidence": "High-scoring outputs praised for 'honest acknowledgment of knowledge gaps and limitations' and 'transparent identification of knowledge gaps'",
+      "source_domains": [
+        "crypto"
+      ],
+      "confidence": "high"
+    },
+    {
+      "principle": "Provide specific quantitative data with exact dates, amounts, and metrics rather than vague descriptions",
+      "category": "output_structure",
+      "evidence": "Top-scoring outputs (7.7) praised for 'exceptional specificity with exact dates, dollar amounts' and 'excellent specificity with concrete numbers, percentages, and dates'",
+      "source_domains": [
+        "crypto"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Verify temporal claims by cross-checking dates against multiple independent sources",
+      "category": "temporal_awareness",
+      "evidence": "Strategy emphasizes 'VERIFY ALL 2026 DATES' and high-scoring output praised for 'proper handling of future event uncertainty'",
+      "source_domains": [
+        "crypto"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Include mechanistic analysis explaining WHY events occurred, not just WHAT happened",
+      "category": "depth_vs_breadth",
+      "evidence": "Strategy requires mechanistic analysis, and weaknesses noted 'limited depth on mechanisms' and 'missing analysis of practical implications and mechanisms'",
+      "source_domains": [
+        "crypto"
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "domain_specific_insights": [
+    {
+      "domain": "crypto",
+      "insight": "Prioritize government sites (.gov, SEC filings) over crypto publications for regulatory topics",
+      "not_transferable_because": "This specific source hierarchy is tailored to crypto's regulatory environment and wouldn't apply to domains like medical research or historical analysis"
+    },
+    {
+      "domain": "crypto",
+      "insight": "Always check CoinMarketCap, Federal Register, and crypto-specific data aggregators",
+      "not_transferable_because": "These are domain-specific data sources that have no equivalent in other research domains"
+    }
+  ],
+  "meta_observations": "Single domain analysis limits confidence in general principles. The crypto research strategy shows strong emphasis on source verification, confidence calibration, and temporal accuracy - patterns that likely apply broadly but need validation across other domains. The structured JSON output format and specific search limits appear to be system constraints rather than research best practices."
+}
