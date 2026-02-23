@@ -19,6 +19,8 @@ Control commands:
     python main.py --next                        Show next self-generated questions for a domain
     python main.py --auto                        Self-directed mode: generate question + research it
     python main.py --auto --rounds 5             Self-directed mode: run 5 rounds
+    python main.py --synthesize                  Force knowledge synthesis for a domain
+    python main.py --kb                           Show synthesized knowledge base
 """
 
 import argparse
@@ -47,6 +49,7 @@ from agents.cross_domain import (
     get_transfer_sources,
 )
 from agents.question_generator import generate_questions, get_next_question
+from agents.synthesizer import synthesize, show_knowledge_base, MIN_OUTPUTS_FOR_SYNTHESIS, SYNTHESIZE_EVERY_N
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
@@ -103,6 +106,7 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
             question=question,
             strategy=strategy,
             critique=previous_critique_feedback,
+            domain=domain,
         )
 
         findings_count = len(research_output.get("findings", []))
@@ -173,6 +177,15 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
         print(f"\n[SAFETY] ✓ {trial_result['reason']}")
     elif trial_result["action"] == "continue_trial":
         print(f"\n[SAFETY] ⏳ {trial_result['reason']}")
+
+    # Step 6.5: Knowledge synthesis — integrate findings into domain knowledge base
+    accepted_count = get_stats(domain).get("accepted", 0)
+    if accepted_count >= MIN_OUTPUTS_FOR_SYNTHESIS:
+        # Auto-synthesize every SYNTHESIZE_EVERY_N accepted outputs
+        kb = synthesize(domain)
+        if kb:
+            active_claims = len([c for c in kb.get("claims", []) if c.get("status") == "active"])
+            print(f"[SYNTHESIZER] Knowledge base: {active_claims} active claims")
 
     # Step 7: Meta-analysis — evolve strategy if enough data
     # SAFETY: Never evolve while a trial is still being evaluated
@@ -259,6 +272,8 @@ def main():
     parser.add_argument("--next", action="store_true", help="Show next self-generated questions for a domain")
     parser.add_argument("--auto", action="store_true", help="Self-directed mode: generate question and research it")
     parser.add_argument("--rounds", type=int, default=1, help="Number of auto rounds to run (default: 1)")
+    parser.add_argument("--synthesize", action="store_true", help="Synthesize domain outputs into knowledge base")
+    parser.add_argument("--kb", action="store_true", help="Show the synthesized knowledge base for a domain")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -299,6 +314,12 @@ def main():
         return
     if args.auto:
         _run_auto(args.domain, args.rounds)
+        return
+    if args.synthesize:
+        _run_synthesize(args.domain)
+        return
+    if args.kb:
+        _show_kb(args.domain)
         return
 
     if args.evolve:
@@ -779,6 +800,34 @@ def _run_auto(domain: str, rounds: int = 1):
     print(f"  Domain '{domain}': {stats['count']} total outputs, avg {stats['avg_score']:.1f}")
     print(f"  Today's spend: ${daily['total_usd']:.4f}")
     print(f"{'='*60}\n")
+
+
+def _run_synthesize(domain: str):
+    """Force knowledge synthesis for a domain."""
+    print(f"\n{'='*60}")
+    print(f"  KNOWLEDGE SYNTHESIS — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    budget = check_budget()
+    if not budget["within_budget"]:
+        print(f"  ✗ Budget exceeded. Use --budget to see details.")
+        return
+
+    result = synthesize(domain, force=True)
+    if not result:
+        print(f"\n  ✗ Synthesis failed or not enough data.")
+        print(f"  Need at least {MIN_OUTPUTS_FOR_SYNTHESIS} accepted outputs.")
+    print()
+
+
+def _show_kb(domain: str):
+    """Display the knowledge base for a domain."""
+    print(f"\n{'='*60}")
+    print(f"  KNOWLEDGE BASE — Domain: {domain}")
+    print(f"{'='*60}")
+
+    show_knowledge_base(domain)
+    print()
 
 
 if __name__ == "__main__":

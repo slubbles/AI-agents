@@ -28,7 +28,7 @@ from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import ANTHROPIC_API_KEY, MODELS
-from memory_store import load_outputs, get_stats
+from memory_store import load_outputs, get_stats, load_knowledge_base
 from cost_tracker import log_cost
 
 
@@ -180,6 +180,26 @@ def generate_questions(domain: str) -> dict | None:
         "critic_weaknesses": gap_data["weaknesses"],
         "critic_feedback": gap_data["actionable_feedback"][-5:],  # last 5
     }
+
+    # Include synthesized knowledge base if available (for smarter gap targeting)
+    kb = load_knowledge_base(domain)
+    if kb:
+        kb_context = {
+            "domain_summary": kb.get("domain_summary", ""),
+            "topics_covered": [t.get("name", "") for t in kb.get("topics", [])],
+            "active_claims_count": len([c for c in kb.get("claims", []) if c.get("status") == "active"]),
+            "disputed_claims": [
+                c.get("claim", "") for c in kb.get("claims", [])
+                if c.get("status") == "conflicted"
+            ],
+            "kb_knowledge_gaps": [
+                {"gap": g.get("gap", ""), "priority": g.get("priority", "")}
+                for g in kb.get("knowledge_gaps", [])
+            ],
+        }
+        payload["synthesized_knowledge"] = kb_context
+        print(f"  Knowledge base available: {kb_context['active_claims_count']} active claims, "
+              f"{len(kb_context['kb_knowledge_gaps'])} identified gaps")
 
     user_message = (
         f"Analyze the knowledge gaps for domain '{domain}' and generate "

@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import ANTHROPIC_API_KEY, MODELS
 from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 from cost_tracker import log_cost
+from memory_store import retrieve_relevant, load_knowledge_base
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -133,11 +134,56 @@ def _extract_json(text: str) -> dict | None:
     return None
 
 
-def research(question: str, strategy: str | None = None, critique: str | None = None) -> dict:
+def research(question: str, strategy: str | None = None, critique: str | None = None, domain: str = "general") -> dict:
     """
     Run the researcher agent on a question with web search tool use.
+    
+    Now memory-informed: retrieves relevant past findings + synthesized knowledge
+    before searching, so the researcher builds on existing knowledge instead of
+    starting from zero.
     """
     system_prompt = strategy or DEFAULT_STRATEGY
+
+    # --- Memory recall: inject prior knowledge ---
+    prior_knowledge_block = ""
+    
+    # 1. Check for synthesized knowledge base
+    kb = load_knowledge_base(domain)
+    if kb and kb.get("claims"):
+        active_claims = [c for c in kb["claims"] if c.get("status") == "active"]
+        if active_claims:
+            kb_summary = f"\nSYNTHESIZED KNOWLEDGE BASE ({len(active_claims)} active claims):\n"
+            for claim in active_claims[:15]:  # Top 15 claims
+                conf = claim.get("confidence", "?")
+                kb_summary += f"  - [{conf}] {claim.get('claim', '')}\n"
+            if kb.get("domain_summary"):
+                kb_summary = f"\nDOMAIN SUMMARY: {kb['domain_summary']}\n" + kb_summary
+            prior_knowledge_block += kb_summary
+    
+    # 2. Retrieve relevant past findings
+    relevant = retrieve_relevant(domain, question, max_results=3)
+    if relevant:
+        recall_block = f"\nRELEVANT PAST FINDINGS ({len(relevant)} previous outputs):\n"
+        for r in relevant:
+            recall_block += f"\n  Previous question: \"{r['question']}\" (score: {r['score']}/10)\n"
+            recall_block += f"  Summary: {r['summary']}\n"
+            if r.get("key_insights"):
+                recall_block += f"  Key insights: {'; '.join(r['key_insights'][:3])}\n"
+            if r.get("knowledge_gaps"):
+                recall_block += f"  Known gaps: {'; '.join(r['knowledge_gaps'][:3])}\n"
+        prior_knowledge_block += recall_block
+    
+    # Inject prior knowledge into the system prompt if we have any
+    if prior_knowledge_block:
+        system_prompt += f"""
+
+=== PRIOR KNOWLEDGE (from your memory) ===
+Use this to AVOID redundant searches and BUILD ON what you already know.
+Focus your searches on GAPS and NEW INFORMATION, not re-verifying known facts.
+If prior knowledge conflicts with new search results, flag the contradiction.
+{prior_knowledge_block}
+=== END PRIOR KNOWLEDGE ===
+"""
 
     user_message = f"Research question: {question}"
     if critique:
