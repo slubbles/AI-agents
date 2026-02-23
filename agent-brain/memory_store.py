@@ -2,11 +2,13 @@
 Memory Store
 Handles reading/writing scored research outputs to disk.
 Includes relevance retrieval for memory-informed research.
+Includes memory hygiene: pruning rejected outputs, archiving old data, domain caps.
 """
 
 import json
 import os
 import re
+import shutil
 from collections import Counter
 from datetime import datetime, timezone
 from config import MEMORY_DIR
@@ -223,3 +225,177 @@ def save_knowledge_base(domain: str, knowledge_base: dict) -> str:
     with open(path, "w") as f:
         json.dump(knowledge_base, f, indent=2)
     return path
+
+
+# ============================================================
+# Memory Hygiene — Pruning, Archival, Domain Caps
+# ============================================================
+
+# Maximum active outputs per domain before archival kicks in
+MAX_OUTPUTS_PER_DOMAIN = 100
+
+# Rejected outputs are archived after this many days (they still count for
+# meta-analysis but are moved out of the active memory path)
+ARCHIVE_REJECTED_AFTER_DAYS = 7
+
+# Minimum score to keep in active memory long-term
+# Outputs below this AND rejected are candidates for archival
+ARCHIVE_SCORE_THRESHOLD = 5
+
+
+def _get_archive_dir(domain: str) -> str:
+    """Return the archive directory path for a domain."""
+    return os.path.join(MEMORY_DIR, domain, "_archive")
+
+
+def _get_output_filepath(domain: str, filename: str) -> str:
+    """Return full path for an output file."""
+    return os.path.join(MEMORY_DIR, domain, filename)
+
+
+def _output_age_days(record: dict) -> int:
+    """Calculate the age of an output in days."""
+    try:
+        ts = datetime.fromisoformat(record.get("timestamp", "2000-01-01"))
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - ts).days
+    except (ValueError, TypeError):
+        return 999
+
+
+def prune_domain(domain: str, dry_run: bool = False) -> dict:
+    """
+    Run memory hygiene on a domain:
+    
+    1. Archive rejected outputs older than ARCHIVE_REJECTED_AFTER_DAYS
+    2. Archive low-score outputs when domain exceeds MAX_OUTPUTS_PER_DOMAIN
+    3. Never archive the knowledge base or other underscore-prefixed files
+    
+    Args:
+        domain: The domain to prune
+        dry_run: If True, report what would be done without doing it
+    
+    Returns:
+        Dict with statistics about what was pruned/archived
+    """
+    domain_dir = os.path.join(MEMORY_DIR, domain)
+    if not os.path.exists(domain_dir):
+        return {"archived": 0, "kept": 0, "reason": "domain not found"}
+
+    archive_dir = _get_archive_dir(domain)
+    
+    # Load all output files (skip underscore-prefixed files like _knowledge_base.json)
+    output_files = []
+    for filename in sorted(os.listdir(domain_dir)):
+        if not filename.endswith(".json") or filename.startswith("_"):
+            continue
+        filepath = os.path.join(domain_dir, filename)
+        try:
+            with open(filepath) as f:
+                record = json.load(f)
+            record["_filename"] = filename
+            record["_filepath"] = filepath
+            output_files.append(record)
+        except (json.JSONDecodeError, IOError):
+            continue
+
+    if not output_files:
+        return {"archived": 0, "kept": len(output_files), "reason": "no outputs"}
+
+    to_archive = []
+    to_keep = []
+
+    for record in output_files:
+        age = _output_age_days(record)
+        score = record.get("overall_score", 0)
+        verdict = record.get("verdict", "unknown")
+
+        # Rule 1: Archive old rejected outputs
+        if verdict == "reject" and age >= ARCHIVE_REJECTED_AFTER_DAYS:
+            to_archive.append((record, "rejected + old"))
+            continue
+
+        # Rule 2: Archive old low-score outputs (even if "accepted" at threshold)
+        if score < ARCHIVE_SCORE_THRESHOLD and age >= ARCHIVE_REJECTED_AFTER_DAYS:
+            to_archive.append((record, f"low score ({score}) + old"))
+            continue
+
+        to_keep.append(record)
+
+    # Rule 3: If still over cap, archive lowest-scored outputs (keep newest)
+    if len(to_keep) > MAX_OUTPUTS_PER_DOMAIN:
+        # Sort by score (ascending), then age (oldest first) — archive the worst+oldest
+        to_keep.sort(key=lambda r: (r.get("overall_score", 0), -_output_age_days(r)))
+        overflow = len(to_keep) - MAX_OUTPUTS_PER_DOMAIN
+        for record in to_keep[:overflow]:
+            to_archive.append((record, "domain cap exceeded"))
+        to_keep = to_keep[overflow:]
+
+    # Execute archival
+    if not dry_run and to_archive:
+        os.makedirs(archive_dir, exist_ok=True)
+
+    archived_details = []
+    for record, reason in to_archive:
+        filename = record["_filename"]
+        src = record["_filepath"]
+        dst = os.path.join(archive_dir, filename)
+
+        archived_details.append({
+            "filename": filename,
+            "score": record.get("overall_score", 0),
+            "verdict": record.get("verdict", "?"),
+            "age_days": _output_age_days(record),
+            "reason": reason,
+        })
+
+        if not dry_run:
+            shutil.move(src, dst)
+
+    return {
+        "archived": len(to_archive),
+        "kept": len(to_keep),
+        "total_before": len(output_files),
+        "details": archived_details,
+        "dry_run": dry_run,
+    }
+
+
+def restore_from_archive(domain: str, filename: str) -> bool:
+    """Restore a specific output from archive back to active memory."""
+    archive_dir = _get_archive_dir(domain)
+    src = os.path.join(archive_dir, filename)
+    dst = os.path.join(MEMORY_DIR, domain, filename)
+
+    if not os.path.exists(src):
+        return False
+
+    shutil.move(src, dst)
+    return True
+
+
+def get_archive_stats(domain: str) -> dict:
+    """Get statistics about archived outputs for a domain."""
+    archive_dir = _get_archive_dir(domain)
+    if not os.path.exists(archive_dir):
+        return {"count": 0, "files": []}
+
+    files = []
+    for filename in sorted(os.listdir(archive_dir)):
+        if not filename.endswith(".json"):
+            continue
+        filepath = os.path.join(archive_dir, filename)
+        try:
+            with open(filepath) as f:
+                record = json.load(f)
+            files.append({
+                "filename": filename,
+                "score": record.get("overall_score", 0),
+                "verdict": record.get("verdict", "?"),
+                "question": record.get("question", "?")[:60],
+            })
+        except (json.JSONDecodeError, IOError):
+            continue
+
+    return {"count": len(files), "files": files}
