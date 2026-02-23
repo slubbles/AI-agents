@@ -25,10 +25,11 @@ It is an autonomous research system that loops, scores its own output, and rewri
 
 ```
 agent-brain/
-├── config.py              — model assignments, thresholds
-├── main.py                — loop runner: research → critique → quality gate → store → evolve
+├── config.py              — model assignments, thresholds, budget config
+├── main.py                — loop runner + control commands (approve, audit, diff, budget)
 ├── memory_store.py         — scored outputs → JSON files per domain
-├── strategy_store.py       — versioned strategy documents per agent per domain
+├── strategy_store.py       — versioned strategies with pending/trial/active/rollback
+├── cost_tracker.py         — API cost tracking + daily budget enforcement
 ├── agents/
 │   ├── researcher.py      — web search tool use + structured findings (date-aware)
 │   ├── critic.py          — scores on 5 dimensions, accepts/rejects (date-aware)
@@ -37,7 +38,7 @@ agent-brain/
 │   └── web_search.py      — DuckDuckGo search, Claude tool_use definition
 ├── memory/                — scored outputs (per domain subdirectory)
 ├── strategies/            — strategy versions (per domain subdirectory)
-└── logs/                  — run logs (JSONL per domain)
+└── logs/                  — run logs (JSONL per domain) + cost logs
 ```
 
 - Stack: Python, Claude API (Anthropic), DuckDuckGo search (free)
@@ -48,7 +49,8 @@ agent-brain/
 - Layer 3 is proven working (Feb 23 2026). Meta-analyst evolves strategies. Score trajectory: 5.4 → 7.1 → 7.7.
 - Layer 4 is proven working (Feb 23 2026). strategy_store.py rewritten with _meta.json tracking, trial/active status, evaluate_trial() with 3-output trial period, rollback() when score drops >1.0. Safety guard: meta-analysis skipped during active trials. MAX_SEARCHES=10 hard cap prevents search explosion. Hardened JSON parser handles model preamble.
 - Strategy evolution cooldown: meta-analyst runs every 3 outputs (not every run) to save API credits. `--evolve` flag forces it manually.
-- CLI flags: `--domain`, `--evolve`, `--status` (show strategy performance table), `--rollback` (manual rollback).
+- Control layer (Feb 23 2026): Human approval gate for strategy changes. New strategies saved as "pending" — must be approved before entering trial. Budget tracking with daily spend limit ($2/day default). Full audit trail.
+- CLI flags: `--domain`, `--evolve`, `--status`, `--rollback`, `--approve VERSION`, `--reject VERSION`, `--diff V1 V2`, `--audit`, `--budget`.
 
 ## Agent Roles
 

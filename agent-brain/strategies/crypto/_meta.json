@@ -19,9 +19,19 @@
       "version": "v001",
       "status": "active",
       "replaced_at": "2026-02-23T10:44:08.696964+00:00"
+    },
+    {
+      "version": "v003",
+      "status": "trial",
+      "replaced_at": "2026-02-23T11:05:42.950784+00:00"
+    },
+    {
+      "version": "v003",
+      "status": "active",
+      "replaced_at": "2026-02-23T11:06:05.024507+00:00"
     }
   ],
   "researcher_active": "v003",
   "researcher_status": "trial",
-  "researcher_updated_at": "2026-02-23T10:44:08.696973+00:00"
+  "researcher_updated_at": "2026-02-23T11:06:05.024515+00:00"
 }

@@ -3,10 +3,11 @@ Strategy Store (Layer 4 — Strategy Evolution)
 
 Manages versioned strategy documents per agent per domain.
 Supports:
-- Version tracking with status (active, trial, rolled_back)
+- Version tracking with status (active, trial, pending, rolled_back)
 - Active version pointer per agent+domain
 - Performance tracking per strategy version
 - Rollback to previous version
+- Approval gate: new strategies start as 'pending' (human must approve)
 - Safety: blocks strategies that score >20% below current best
 """
 
@@ -356,3 +357,110 @@ def list_versions(agent_role: str, domain: str) -> list[str]:
         for f in os.listdir(strategy_dir)
         if f.startswith(f"{agent_role}_v") and f.endswith(".json")
     ])
+
+
+def list_pending(agent_role: str, domain: str) -> list[dict]:
+    """List all pending (unapproved) strategies for an agent+domain."""
+    strategy_dir = os.path.join(STRATEGY_DIR, domain)
+    if not os.path.exists(strategy_dir):
+        return []
+
+    pending = []
+    for fname in sorted(os.listdir(strategy_dir)):
+        if not fname.startswith(f"{agent_role}_v") or not fname.endswith(".json"):
+            continue
+        filepath = os.path.join(strategy_dir, fname)
+        with open(filepath) as f:
+            data = json.load(f)
+        if data.get("status") == "pending":
+            pending.append(data)
+    return pending
+
+
+def approve_strategy(agent_role: str, domain: str, version: str) -> dict:
+    """
+    Approve a pending strategy — promotes it to 'trial' status.
+    The system will then run it for TRIAL_PERIOD outputs before auto-confirming or rolling back.
+
+    Returns:
+        {"action": "approved"/"error", "reason": str}
+    """
+    data = _load_strategy_file(agent_role, domain, version)
+    if data is None:
+        return {"action": "error", "reason": f"Strategy {version} not found"}
+
+    if data.get("status") != "pending":
+        return {"action": "error", "reason": f"Strategy {version} is '{data.get('status')}', not 'pending'"}
+
+    # Update the strategy file status
+    data["status"] = "trial"
+    data["approved_at"] = datetime.now(timezone.utc).isoformat()
+    filepath = os.path.join(STRATEGY_DIR, domain, f"{agent_role}_{version}.json")
+    with open(filepath, "w") as f:
+        json.dump(data, f, indent=2)
+
+    # Set as active trial
+    set_active_version(agent_role, domain, version, "trial")
+
+    return {
+        "action": "approved",
+        "reason": f"Strategy {version} approved → now in trial (needs {TRIAL_PERIOD} outputs to confirm)",
+    }
+
+
+def reject_strategy(agent_role: str, domain: str, version: str) -> dict:
+    """
+    Reject a pending strategy — marks it as 'rejected', does not deploy.
+
+    Returns:
+        {"action": "rejected"/"error", "reason": str}
+    """
+    data = _load_strategy_file(agent_role, domain, version)
+    if data is None:
+        return {"action": "error", "reason": f"Strategy {version} not found"}
+
+    if data.get("status") != "pending":
+        return {"action": "error", "reason": f"Strategy {version} is '{data.get('status')}', not 'pending'"}
+
+    data["status"] = "rejected"
+    data["rejected_at"] = datetime.now(timezone.utc).isoformat()
+    filepath = os.path.join(STRATEGY_DIR, domain, f"{agent_role}_{version}.json")
+    with open(filepath, "w") as f:
+        json.dump(data, f, indent=2)
+
+    return {"action": "rejected", "reason": f"Strategy {version} rejected — will not be deployed"}
+
+
+def get_strategy_diff(agent_role: str, domain: str, version_a: str, version_b: str) -> dict:
+    """
+    Compare two strategy versions. Returns the strategy text of each for diffing.
+
+    Returns:
+        {"version_a": {version, strategy, created_at, status, reason},
+         "version_b": {version, strategy, created_at, status, reason},
+         "error": str or None}
+    """
+    data_a = _load_strategy_file(agent_role, domain, version_a)
+    data_b = _load_strategy_file(agent_role, domain, version_b)
+
+    if data_a is None and version_a != "default":
+        return {"error": f"Version {version_a} not found"}
+    if data_b is None and version_b != "default":
+        return {"error": f"Version {version_b} not found"}
+
+    def _extract(data, version):
+        if data is None:
+            return {"version": version, "strategy": "(default — built-in prompt)", "created_at": "N/A", "status": "active", "reason": "Original default strategy"}
+        return {
+            "version": data.get("version", version),
+            "strategy": data.get("strategy", ""),
+            "created_at": data.get("created_at", "?"),
+            "status": data.get("status", "?"),
+            "reason": data.get("reason", ""),
+        }
+
+    return {
+        "version_a": _extract(data_a, version_a),
+        "version_b": _extract(data_b, version_b),
+        "error": None,
+    }

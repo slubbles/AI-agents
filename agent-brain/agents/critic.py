@@ -8,6 +8,7 @@ from datetime import date
 
 from anthropic import Anthropic
 from config import ANTHROPIC_API_KEY, MODELS
+from cost_tracker import log_cost
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -71,6 +72,9 @@ def critique(research_output: dict) -> dict:
         system=CRITIC_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_message}],
     )
+
+    # Track cost
+    log_cost(MODELS["critic"], response.usage.input_tokens, response.usage.output_tokens, "critic", "critique")
 
     raw_text = response.content[0].text.strip()
 
