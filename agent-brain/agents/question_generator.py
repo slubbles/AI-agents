@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import ANTHROPIC_API_KEY, MODELS
 from memory_store import load_outputs, get_stats, load_knowledge_base
 from cost_tracker import log_cost
+from utils.retry import create_message
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -207,7 +208,8 @@ def generate_questions(domain: str) -> dict | None:
         f"DATA:\n{json.dumps(payload, indent=2)}"
     )
 
-    response = client.messages.create(
+    response = create_message(
+        client,
         model=MODELS["researcher"],  # Use Haiku — it's a synthesis task
         max_tokens=2048,
         system=GENERATOR_PROMPT,

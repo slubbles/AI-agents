@@ -8,7 +8,7 @@ Provides a decorator and a wrapper for Claude API calls that:
 - Configurable max attempts and base delay
 
 Usage:
-    from utils.retry import with_retry, retry_api_call
+    from utils.retry import with_retry, retry_api_call, create_message
 
     # As decorator
     @with_retry(max_attempts=5, base_delay=30)
@@ -17,6 +17,9 @@ Usage:
 
     # As wrapper
     result = retry_api_call(lambda: client.messages.create(...))
+
+    # As drop-in replacement for client.messages.create
+    response = create_message(client, model=..., max_tokens=..., ...)
 """
 
 import time
@@ -120,3 +123,23 @@ def with_retry(
             )
         return wrapper
     return decorator
+
+
+def create_message(client, *, max_attempts: int = 5, base_delay: float = 15.0,
+                   verbose: bool = True, **kwargs):
+    """
+    Drop-in replacement for client.messages.create() with automatic retry.
+    
+    Usage:
+        from utils.retry import create_message
+        response = create_message(client, model="...", max_tokens=4096,
+                                  system="...", messages=[...])
+    
+    All keyword arguments are forwarded to client.messages.create().
+    """
+    return retry_api_call(
+        lambda: client.messages.create(**kwargs),
+        max_attempts=max_attempts,
+        base_delay=base_delay,
+        verbose=verbose,
+    )

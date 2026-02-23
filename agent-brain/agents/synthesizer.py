@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import ANTHROPIC_API_KEY, MODELS, MIN_OUTPUTS_FOR_SYNTHESIS, MAX_OUTPUTS_TO_SYNTHESIZE, SYNTHESIZE_EVERY_N
 from memory_store import load_outputs, save_knowledge_base, load_knowledge_base, get_stats
 from cost_tracker import log_cost
+from utils.retry import create_message
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -264,7 +265,8 @@ def synthesize(domain: str, force: bool = False) -> dict | None:
     )
 
     # Call the synthesizer model (Sonnet — needs strong reasoning for contradictions)
-    response = client.messages.create(
+    response = create_message(
+        client,
         model=MODELS["meta_analyst"],  # Sonnet — same reasoning tier as meta-analyst
         max_tokens=8192,
         system=SYNTHESIS_PROMPT,

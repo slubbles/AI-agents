@@ -9,6 +9,7 @@ from datetime import date
 from anthropic import Anthropic
 from config import ANTHROPIC_API_KEY, MODELS
 from cost_tracker import log_cost
+from utils.retry import create_message
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -66,7 +67,8 @@ def critique(research_output: dict) -> dict:
     """
     user_message = f"Evaluate this research output:\n\n{json.dumps(research_output, indent=2)}"
 
-    response = client.messages.create(
+    response = create_message(
+        client,
         model=MODELS["critic"],
         max_tokens=2048,
         system=CRITIC_SYSTEM_PROMPT,

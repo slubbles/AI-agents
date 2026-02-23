@@ -24,6 +24,7 @@ from config import ANTHROPIC_API_KEY, MODELS, MIN_OUTPUTS_FOR_ANALYSIS, MAX_OUTP
 from memory_store import load_outputs
 from strategy_store import get_strategy, save_strategy, list_versions
 from cost_tracker import log_cost
+from utils.retry import create_message
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -154,7 +155,8 @@ def analyze_and_evolve(domain: str) -> dict | None:
     )
 
     # Call the meta-analyst model
-    response = client.messages.create(
+    response = create_message(
+        client,
         model=MODELS["meta_analyst"],
         max_tokens=4096,
         system=META_ANALYST_PROMPT,

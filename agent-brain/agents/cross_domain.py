@@ -29,6 +29,7 @@ from strategy_store import (
     get_strategy_performance, list_versions, save_strategy,
 )
 from cost_tracker import log_cost
+from utils.retry import create_message
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -244,7 +245,8 @@ def extract_principles(force: bool = False) -> dict | None:
 
     print(f"[CROSS-DOMAIN] Asking Claude to extract general principles...")
 
-    response = client.messages.create(
+    response = create_message(
+        client,
         model=MODELS["meta_analyst"],
         max_tokens=4096,
         system=EXTRACTION_PROMPT,
@@ -356,7 +358,8 @@ def generate_seed_strategy(target_domain: str, question_hint: str = "") -> dict 
         f"DATA:\n{json.dumps(seed_data, indent=2)}"
     )
 
-    response = client.messages.create(
+    response = create_message(
+        client,
         model=MODELS["meta_analyst"],
         max_tokens=4096,
         system=SEED_PROMPT,
