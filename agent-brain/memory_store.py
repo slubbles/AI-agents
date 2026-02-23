@@ -39,15 +39,18 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
     domain_dir = os.path.join(MEMORY_DIR, domain)
     os.makedirs(domain_dir, exist_ok=True)
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    filename = f"{timestamp}_score{critique.get('overall_score', 0):.0f}.json"
+    now = datetime.now(timezone.utc)
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+    # Add microsecond suffix to prevent filename collisions within same second
+    micro = now.strftime("%f")[:4]  # first 4 digits of microseconds
+    filename = f"{timestamp}_{micro}_score{critique.get('overall_score', 0):.0f}.json"
     filepath = os.path.join(domain_dir, filename)
 
     score = critique.get("overall_score", 0)
     accepted = score >= QUALITY_THRESHOLD
 
     record = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": now.isoformat(),
         "domain": domain,
         "question": question,
         "attempt": attempt,

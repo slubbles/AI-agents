@@ -24,6 +24,9 @@ Control commands:
     python main.py --prune                        Archive rejected/low-score outputs
     python main.py --prune-dry                    Preview what --prune would archive
     python main.py --dashboard                    Full system dashboard (all domains at a glance)
+    python main.py --orchestrate                  Smart multi-domain auto: prioritize + run across all domains
+    python main.py --orchestrate --rounds 10      Orchestrate 10 rounds across domains
+    python main.py --orchestrate --target-domains crypto,ai  Orchestrate specific domains only
 """
 
 import argparse
@@ -57,6 +60,11 @@ from agents.cross_domain import (
 )
 from agents.question_generator import generate_questions, get_next_question
 from agents.synthesizer import synthesize, show_knowledge_base
+from agents.orchestrator import (
+    prioritize_domains, allocate_rounds, get_post_run_actions,
+    get_system_health, discover_domains,
+)
+from utils.retry import retry_api_call, is_retryable
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
@@ -306,6 +314,8 @@ def main():
     parser.add_argument("--prune", action="store_true", help="Run memory hygiene: archive rejected/low outputs")
     parser.add_argument("--prune-dry", action="store_true", help="Show what --prune would archive without doing it")
     parser.add_argument("--dashboard", action="store_true", help="Show full system dashboard (all domains, strategies, budget)")
+    parser.add_argument("--orchestrate", action="store_true", help="Smart multi-domain auto mode: prioritize and run across domains")
+    parser.add_argument("--target-domains", default="", help="Comma-separated domains for --orchestrate (default: all)")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -358,6 +368,10 @@ def main():
         return
     if args.dashboard:
         _show_dashboard()
+        return
+    if args.orchestrate:
+        targets = [d.strip() for d in args.target_domains.split(",") if d.strip()] or None
+        _run_orchestrate(targets, args.rounds)
         return
 
     if args.evolve:
@@ -837,6 +851,216 @@ def _run_auto(domain: str, rounds: int = 1):
     print(f"  Rounds completed: {round_num if question else round_num - 1}/{rounds}")
     print(f"  Domain '{domain}': {stats['count']} total outputs, avg {stats['avg_score']:.1f}")
     print(f"  Today's spend: ${daily['total_usd']:.4f}")
+    print(f"{'='*60}\n")
+
+
+def _run_orchestrate(target_domains: list[str] | None, total_rounds: int):
+    """
+    Smart multi-domain orchestration.
+    
+    The Orchestrator:
+    1. Analyzes all domains → computes priority scores
+    2. Allocates rounds based on priority (budget-aware)
+    3. Runs auto mode per domain
+    4. After each domain: checks for synthesis/evolution triggers
+    5. At end: re-extracts cross-domain principles if applicable
+    """
+    print(f"\n{'='*60}")
+    print(f"  ORCHESTRATOR — Multi-Domain Coordination")
+    print(f"  {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
+    print(f"{'='*60}")
+
+    # Budget gate
+    budget = check_budget()
+    if not budget["within_budget"]:
+        print(f"\n  ✗ Budget exceeded (${budget['spent']:.2f}/${budget['limit']:.2f})")
+        return
+
+    print(f"\n  Budget: ${budget['remaining']:.2f} remaining today")
+    print(f"  Total rounds requested: {total_rounds}")
+
+    # Step 1: Prioritize domains
+    print(f"\n  ── Domain Priority Analysis ──")
+    priorities = prioritize_domains(target_domains)
+    
+    if not priorities:
+        print(f"  No domains found. Run a manual question first.")
+        return
+
+    print(f"  {'Domain':<16} {'Priority':>8} {'Outputs':>7} {'Rate':>6} {'Strategy':<10} {'Action'}")
+    print(f"  {'─'*70}")
+    for p in priorities:
+        count = p["stats"]["count"]
+        accepted = p["stats"]["accepted"]
+        rate = f"{accepted/count*100:.0f}%" if count > 0 else "—"
+        print(f"  {p['domain']:<16} {p['priority']:>8.1f} {count:>7} {rate:>6} {p['strategy']:<10} {p['action']}")
+        for reason in p["reasons"][:2]:
+            print(f"  {'':>16} ↳ {reason}")
+
+    # Step 2: Allocate rounds
+    allocation = allocate_rounds(priorities, total_rounds)
+    
+    if not allocation:
+        print(f"\n  No actionable domains. Check pending approvals.")
+        # Show what's blocked
+        for p in priorities:
+            if p["skip"]:
+                print(f"  ⚠ {p['domain']}: {'; '.join(p['reasons'])}")
+        return
+
+    print(f"\n  ── Round Allocation ──")
+    for a in allocation:
+        print(f"  {a['domain']:<16} → {a['rounds']} round(s)")
+    total_allocated = sum(a["rounds"] for a in allocation)
+    print(f"  {'TOTAL':<16} → {total_allocated} round(s)")
+
+    # Step 3: Execute rounds per domain
+    results_summary = []
+    total_completed = 0
+    
+    for i, alloc in enumerate(allocation):
+        domain = alloc["domain"]
+        rounds = alloc["rounds"]
+
+        print(f"\n{'='*60}")
+        print(f"  DOMAIN {i+1}/{len(allocation)}: {domain.upper()}")
+        print(f"  Allocated: {rounds} round(s)")
+        print(f"{'='*60}")
+
+        # Budget check before each domain
+        budget = check_budget()
+        if not budget["within_budget"]:
+            print(f"\n  ✗ Budget exceeded — stopping orchestration")
+            break
+
+        domain_scores = []
+        domain_completed = 0
+        
+        for round_num in range(1, rounds + 1):
+            # Budget check each round
+            budget = check_budget()
+            if not budget["within_budget"]:
+                print(f"\n  [BUDGET] ✗ Daily limit reached after {round_num - 1} rounds in {domain}")
+                break
+
+            print(f"\n  ── Round {round_num}/{rounds} (${budget['remaining']:.2f} remaining) ──")
+
+            # Generate question (with retry for transient API errors)
+            question = None
+            try:
+                question = retry_api_call(
+                    lambda: get_next_question(domain),
+                    max_attempts=5, base_delay=30, verbose=True,
+                )
+            except Exception as e:
+                if is_retryable(e):
+                    print(f"  ✗ API still overloaded after retries. Skipping {domain}.")
+                else:
+                    print(f"  ✗ Question generation error: {e}")
+            if not question:
+                s = get_stats(domain)
+                if s["count"] == 0:
+                    print(f"  ✗ Domain '{domain}' has no outputs. Needs a manual seed question.")
+                else:
+                    print(f"  ✗ Failed to generate question for {domain}. Stopping.")
+                break
+
+            print(f"  [Q] {question[:80]}")
+
+            # Run the loop (with retry for transient API errors)
+            result = None
+            try:
+                result = retry_api_call(
+                    lambda: run_loop(question=question, domain=domain),
+                    max_attempts=5, base_delay=30, verbose=True,
+                )
+            except SystemExit:
+                print(f"  ✗ Budget exceeded during run in {domain}")
+                break
+            except Exception as e:
+                if is_retryable(e):
+                    print(f"  ✗ API still overloaded after retries. Skipping round.")
+                else:
+                    print(f"  ✗ Run error: {e}")
+            
+            if result is None:
+                print(f"  ✗ Round failed for {domain}. Continuing...")
+                continue
+
+            score = result.get("critique", {}).get("overall_score", 0)
+            verdict = result.get("critique", {}).get("verdict", "unknown")
+            domain_scores.append(score)
+            domain_completed += 1
+            total_completed += 1
+
+            print(f"  [RESULT] {score}/10 — {verdict}")
+
+        # Post-run actions for this domain
+        post_actions = get_post_run_actions(domain)
+        for pa in post_actions:
+            if pa["action"] == "synthesize":
+                print(f"\n  [POST] Synthesizing knowledge base... ({pa['reason']})")
+                try:
+                    kb = synthesize(domain, force=True)
+                    if kb:
+                        active_claims = len([c for c in kb.get("claims", []) if c.get("status") == "active"])
+                        print(f"  [SYNTHESIZE] ✓ {active_claims} active claims")
+                except Exception as e:
+                    print(f"  [SYNTHESIZE] ✗ Failed: {e}")
+
+            elif pa["action"] == "evolve":
+                print(f"\n  [POST] Triggering strategy evolution... ({pa['reason']})")
+                try:
+                    evolution = analyze_and_evolve(domain)
+                    if evolution:
+                        print(f"  [EVOLVE] ✓ Strategy evolved to {evolution['new_version']}")
+                except Exception as e:
+                    print(f"  [EVOLVE] ✗ Failed: {e}")
+
+        # Domain summary
+        avg = sum(domain_scores) / len(domain_scores) if domain_scores else 0
+        stats = get_stats(domain)
+        results_summary.append({
+            "domain": domain,
+            "rounds_completed": domain_completed,
+            "rounds_allocated": rounds,
+            "avg_score": round(avg, 1),
+            "total_outputs": stats["count"],
+            "accepted": stats["accepted"],
+        })
+
+    # Step 4: Cross-domain principle extraction (if applicable)
+    budget = check_budget()
+    if budget["within_budget"] and total_completed >= 3:
+        from agents.cross_domain import get_transfer_sources
+        sources = get_transfer_sources()
+        if len(sources) >= 2:
+            print(f"\n  ── Cross-Domain Principles ──")
+            print(f"  {len(sources)} qualifying domains — extracting updated principles...")
+            try:
+                principles = extract_principles(force=True)
+                if principles:
+                    p_count = len(principles.get("principles", []))
+                    print(f"  ✓ Extracted {p_count} principles (v{principles.get('version', '?')})")
+            except Exception as e:
+                print(f"  ✗ Principle extraction failed: {e}")
+
+    # Final Summary
+    daily = get_daily_spend()
+    health = get_system_health()
+    
+    print(f"\n{'='*60}")
+    print(f"  ORCHESTRATION COMPLETE")
+    print(f"{'='*60}")
+    print(f"\n  Rounds completed: {total_completed}/{total_allocated}")
+    print(f"\n  Results by domain:")
+    print(f"  {'Domain':<16} {'Done':>5} {'Avg':>5} {'Total':>6} {'Accepted':>8}")
+    print(f"  {'─'*45}")
+    for r in results_summary:
+        print(f"  {r['domain']:<16} {r['rounds_completed']:>5} {r['avg_score']:>5.1f} {r['total_outputs']:>6} {r['accepted']:>8}")
+    
+    print(f"\n  Budget: ${daily['total_usd']:.4f} spent today ({daily['calls']} API calls)")
+    print(f"  System health: {health['health_score']}/100")
     print(f"{'='*60}\n")
 
 
