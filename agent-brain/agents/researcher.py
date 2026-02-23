@@ -21,7 +21,8 @@ from memory_store import retrieve_relevant, load_knowledge_base
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
-def _build_default_strategy() -> str:
+def _build_baseline() -> str:
+    """Baseline instructions that ALWAYS apply, regardless of domain strategy."""
     today = date.today().isoformat()  # e.g. "2026-02-23"
     return f"""\
 You are a research agent with web search capability.
@@ -48,7 +49,27 @@ RESPOND WITH ONLY THIS JSON STRUCTURE:
 """
 
 
-DEFAULT_STRATEGY = _build_default_strategy()
+def _build_system_prompt(domain_strategy: str | None = None) -> str:
+    """
+    Build the full system prompt. ALWAYS includes baseline (date awareness, JSON
+    format, core rules). If a domain strategy exists, it's layered ON TOP — it
+    can adjust search approach, source priorities, and analysis depth, but cannot
+    override the output format or temporal verification rules.
+    """
+    baseline = _build_baseline()
+    if not domain_strategy:
+        return baseline
+    return f"""{baseline}
+
+=== DOMAIN-SPECIFIC STRATEGY ===
+The following strategy provides domain-specific guidance for your research.
+Follow its search approach, source priorities, and analysis requirements.
+However, you MUST still output ONLY the JSON structure defined above.
+Do NOT output markdown, tables, or prose — ONLY the JSON object.
+
+{domain_strategy}
+=== END DOMAIN STRATEGY ===
+"""
 
 MAX_TOOL_ROUNDS = 5   # max rounds of tool use
 MAX_SEARCHES = 10     # hard cap on total searches per run (prevents strategy-driven explosion)
@@ -142,7 +163,7 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
     before searching, so the researcher builds on existing knowledge instead of
     starting from zero.
     """
-    system_prompt = strategy or DEFAULT_STRATEGY
+    system_prompt = _build_system_prompt(strategy)
 
     # --- Memory recall: inject prior knowledge ---
     prior_knowledge_block = ""
@@ -192,6 +213,7 @@ If prior knowledge conflicts with new search results, flag the contradiction.
     messages = [{"role": "user", "content": user_message}]
     tools = [SEARCH_TOOL_DEFINITION]
     search_count = 0
+    empty_search_count = 0  # Track searches that returned 0 results
 
     # Agentic tool-use loop
     for _ in range(MAX_TOOL_ROUNDS):
@@ -224,11 +246,29 @@ If prior knowledge conflicts with new search results, flag the contradiction.
                     print(f"  [SEARCH #{search_count}] \"{query}\"")
                     results = web_search(query, max_results=max_res)
                     print(f"  [SEARCH #{search_count}] Got {len(results)} results")
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": json.dumps(results),
-                    })
+                    
+                    if len(results) == 0:
+                        empty_search_count += 1
+                    
+                    # Smart recovery: if too many empty searches, inject guidance
+                    if empty_search_count >= 3 and search_count <= MAX_SEARCHES - 2:
+                        results_with_hint = results if results else []
+                        hint = (
+                            "\n\nNOTE: Multiple searches returned 0 results. Try BROADER, "
+                            "SIMPLER search terms. Remove specific dates, names, or jargon. "
+                            "Search for the general topic first, then narrow down."
+                        )
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": json.dumps(results_with_hint) + hint,
+                        })
+                    else:
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": json.dumps(results),
+                        })
 
             messages.append({"role": "assistant", "content": response.content})
             messages.append({"role": "user", "content": tool_results})
@@ -248,7 +288,14 @@ If prior knowledge conflicts with new search results, flag the contradiction.
     # Robust JSON extraction
     result = _extract_json(raw_text)
     if result:
+        findings = result.get("findings", [])
+        # Smart recovery: if structured output has 0 findings but we did searches,
+        # something went wrong — flag it for the retry loop
+        if not findings and search_count > 0:
+            print(f"  [RESEARCHER] ⚠ Structured output but 0 findings from {search_count} searches")
+            result["_zero_findings"] = True
         result["_searches_made"] = search_count
+        result["_empty_searches"] = empty_search_count
         return result
 
     # Fallback: wrap raw text as a finding
@@ -261,4 +308,5 @@ If prior knowledge conflicts with new search results, flag the contradiction.
         "summary": raw_text[:500],
         "_parse_error": True,
         "_searches_made": search_count,
+        "_empty_searches": empty_search_count,
     }

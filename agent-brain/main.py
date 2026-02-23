@@ -21,6 +21,8 @@ Control commands:
     python main.py --auto --rounds 5             Self-directed mode: run 5 rounds
     python main.py --synthesize                  Force knowledge synthesis for a domain
     python main.py --kb                           Show synthesized knowledge base
+    python main.py --prune                        Archive rejected/low-score outputs
+    python main.py --prune-dry                    Preview what --prune would archive
 """
 
 import argparse
@@ -36,7 +38,7 @@ from agents.researcher import research
 from agents.critic import critique
 from agents.meta_analyst import analyze_and_evolve, MIN_OUTPUTS_FOR_ANALYSIS, EVOLVE_EVERY_N
 from config import QUALITY_THRESHOLD, MAX_RETRIES, DEFAULT_DOMAIN, LOG_DIR
-from memory_store import save_output, load_outputs, get_stats
+from memory_store import save_output, load_outputs, get_stats, prune_domain, get_archive_stats
 from strategy_store import (
     get_strategy, get_strategy_status, evaluate_trial,
     get_strategy_performance, get_version_history, rollback,
@@ -114,6 +116,12 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
 
         if research_output.get("_parse_error"):
             print("[RESEARCHER] ⚠ Output wasn't structured JSON — wrapped as raw")
+        if research_output.get("_zero_findings"):
+            print("[RESEARCHER] ⚠ Structured output but 0 actual findings")
+        empty_searches = research_output.get("_empty_searches", 0)
+        if empty_searches > 0:
+            total_searches = research_output.get("_searches_made", 0)
+            print(f"[RESEARCHER] ⚠ {empty_searches}/{total_searches} searches returned 0 results")
 
         # Step 2: Critique
         print("[CRITIC] Evaluating findings...")
@@ -144,6 +152,22 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
             break
         elif attempt <= MAX_RETRIES:
             feedback = critique_output.get("actionable_feedback", "Improve quality.")
+            
+            # Smart recovery: enhance feedback when failure was search-related
+            if research_output.get("_zero_findings") or research_output.get("_parse_error"):
+                feedback += (
+                    " CRITICAL: Your previous attempt produced no usable findings. "
+                    "Use SIMPLER, BROADER search queries. Break the question into "
+                    "smaller sub-topics and search for each separately. Avoid overly "
+                    "specific or complex search queries — start broad, then narrow."
+                )
+            elif research_output.get("_empty_searches", 0) >= 3:
+                feedback += (
+                    " NOTE: Many of your searches returned 0 results. Simplify your "
+                    "search terms — remove dates, quotes, and specific jargon. Search "
+                    "for the general topic first."
+                )
+            
             print(f"\n[QUALITY GATE] ✗ REJECTED — retrying with feedback:")
             print(f"  → {feedback}")
             previous_critique_feedback = feedback
@@ -274,6 +298,8 @@ def main():
     parser.add_argument("--rounds", type=int, default=1, help="Number of auto rounds to run (default: 1)")
     parser.add_argument("--synthesize", action="store_true", help="Synthesize domain outputs into knowledge base")
     parser.add_argument("--kb", action="store_true", help="Show the synthesized knowledge base for a domain")
+    parser.add_argument("--prune", action="store_true", help="Run memory hygiene: archive rejected/low outputs")
+    parser.add_argument("--prune-dry", action="store_true", help="Show what --prune would archive without doing it")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -320,6 +346,9 @@ def main():
         return
     if args.kb:
         _show_kb(args.domain)
+        return
+    if args.prune or getattr(args, 'prune_dry', False):
+        _run_prune(args.domain, dry_run=getattr(args, 'prune_dry', False))
         return
 
     if args.evolve:
@@ -827,6 +856,39 @@ def _show_kb(domain: str):
     print(f"{'='*60}")
 
     show_knowledge_base(domain)
+    print()
+
+
+def _run_prune(domain: str, dry_run: bool = False):
+    """Run memory hygiene on a domain."""
+    action = "DRY RUN" if dry_run else "PRUNING"
+    print(f"\n{'='*60}")
+    print(f"  MEMORY HYGIENE ({action}) — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    # Show current state
+    stats = get_stats(domain)
+    print(f"  Before: {stats['count']} outputs, {stats['accepted']} accepted, {stats['rejected']} rejected")
+
+    archive_stats = get_archive_stats(domain)
+    if archive_stats["count"] > 0:
+        print(f"  Already archived: {archive_stats['count']} outputs")
+
+    result = prune_domain(domain, dry_run=dry_run)
+
+    if result["archived"] == 0:
+        print(f"\n  ✓ Memory is clean — nothing to archive")
+    else:
+        verb = "Would archive" if dry_run else "Archived"
+        print(f"\n  {verb} {result['archived']} output(s):")
+        for detail in result.get("details", []):
+            print(f"    → {detail['filename']} (score {detail['score']}, "
+                  f"{detail['verdict']}, {detail['age_days']}d old) — {detail['reason']}")
+
+    print(f"\n  After: {result['kept']} active outputs")
+    if not dry_run and result["archived"] > 0:
+        print(f"  Archived files in: memory/{domain}/_archive/")
+        print(f"  Note: archived outputs can be restored if needed")
     print()
 
 

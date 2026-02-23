@@ -1,0 +1,12 @@
+{
+  "researcher_history": [
+    {
+      "version": "default",
+      "status": "active",
+      "replaced_at": "2026-02-23T12:40:04.243030+00:00"
+    }
+  ],
+  "researcher_active": "v001",
+  "researcher_status": "trial",
+  "researcher_updated_at": "2026-02-23T12:40:10.666393+00:00"
+}
