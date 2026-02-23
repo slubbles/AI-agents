@@ -20,7 +20,11 @@ from agents.critic import critique
 from agents.meta_analyst import analyze_and_evolve, MIN_OUTPUTS_FOR_ANALYSIS, EVOLVE_EVERY_N
 from config import QUALITY_THRESHOLD, MAX_RETRIES, DEFAULT_DOMAIN, LOG_DIR
 from memory_store import save_output, load_outputs, get_stats
-from strategy_store import get_strategy
+from strategy_store import (
+    get_strategy, get_strategy_status, evaluate_trial,
+    get_strategy_performance, get_version_history, rollback,
+    get_active_version, list_versions,
+)
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
@@ -42,7 +46,9 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     # Load current strategy
     strategy, strategy_version = get_strategy("researcher", domain)
     if strategy:
-        print(f"[STRATEGY] Loaded version: {strategy_version}")
+        status = get_strategy_status("researcher", domain)
+        status_label = " (TRIAL)" if status == "trial" else ""
+        print(f"[STRATEGY] Loaded version: {strategy_version}{status_label}")
     else:
         print(f"[STRATEGY] Using default (no custom strategy yet)")
 
@@ -123,20 +129,34 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     print(f"\n[STATS] Domain '{domain}': {stats['count']} outputs, avg score {stats['avg_score']:.1f}, "
           f"{stats['accepted']} accepted / {stats['rejected']} rejected")
 
-    # Step 6: Meta-analysis — evolve strategy if enough data
-    all_outputs = load_outputs(domain, min_score=0)
-    output_count = len(all_outputs)
-    if output_count >= MIN_OUTPUTS_FOR_ANALYSIS and output_count % EVOLVE_EVERY_N == 0:
-        print(f"\n[META-ANALYST] Evolution trigger ({output_count} outputs, every {EVOLVE_EVERY_N}). Running strategy evolution...")
-        evolution = analyze_and_evolve(domain)
-        if evolution:
-            print(f"[META-ANALYST] Strategy evolved to {evolution['new_version']}")
-    elif output_count < MIN_OUTPUTS_FOR_ANALYSIS:
-        remaining = MIN_OUTPUTS_FOR_ANALYSIS - output_count
-        print(f"\n[META-ANALYST] Need {remaining} more output(s) before strategy evolution")
+    # Step 6: Evaluate trial strategy (if one is active)
+    trial_result = evaluate_trial("researcher", domain)
+    if trial_result["action"] == "rollback":
+        print(f"\n[SAFETY] ⚠ {trial_result['reason']}")
+    elif trial_result["action"] == "confirm":
+        print(f"\n[SAFETY] ✓ {trial_result['reason']}")
+    elif trial_result["action"] == "continue_trial":
+        print(f"\n[SAFETY] ⏳ {trial_result['reason']}")
+
+    # Step 7: Meta-analysis — evolve strategy if enough data
+    # SAFETY: Never evolve while a trial is still being evaluated
+    current_status = get_strategy_status("researcher", domain)
+    if current_status == "trial":
+        print(f"\n[META-ANALYST] Skipping — trial strategy is still being evaluated")
     else:
-        next_evolve = EVOLVE_EVERY_N - (output_count % EVOLVE_EVERY_N)
-        print(f"\n[META-ANALYST] Next evolution in {next_evolve} output(s)")
+        all_outputs = load_outputs(domain, min_score=0)
+        output_count = len(all_outputs)
+        if output_count >= MIN_OUTPUTS_FOR_ANALYSIS and output_count % EVOLVE_EVERY_N == 0:
+            print(f"\n[META-ANALYST] Evolution trigger ({output_count} outputs, every {EVOLVE_EVERY_N}). Running strategy evolution...")
+            evolution = analyze_and_evolve(domain)
+            if evolution:
+                print(f"[META-ANALYST] Strategy evolved to {evolution['new_version']}")
+        elif output_count < MIN_OUTPUTS_FOR_ANALYSIS:
+            remaining = MIN_OUTPUTS_FOR_ANALYSIS - output_count
+            print(f"\n[META-ANALYST] Need {remaining} more output(s) before strategy evolution")
+        else:
+            next_evolve = EVOLVE_EVERY_N - (output_count % EVOLVE_EVERY_N)
+            print(f"\n[META-ANALYST] Next evolution in {next_evolve} output(s)")
 
     # Print summary
     print(f"\n{'='*60}")
@@ -180,12 +200,22 @@ def main():
     parser.add_argument("question", nargs="?", help="The research question to investigate")
     parser.add_argument("--domain", default=DEFAULT_DOMAIN, help=f"Domain context (default: {DEFAULT_DOMAIN})")
     parser.add_argument("--evolve", action="store_true", help="Run meta-analyst strategy evolution only (no research)")
+    parser.add_argument("--status", action="store_true", help="Show strategy status and performance for a domain")
+    parser.add_argument("--rollback", action="store_true", help="Roll back to previous strategy version")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("ERROR: Set ANTHROPIC_API_KEY environment variable first.")
         print("  export ANTHROPIC_API_KEY=sk-ant-...")
         sys.exit(1)
+
+    if args.status:
+        _show_status(args.domain)
+        return
+
+    if args.rollback:
+        _do_rollback(args.domain)
+        return
 
     if args.evolve:
         # Manual strategy evolution trigger
@@ -199,9 +229,70 @@ def main():
         return
 
     if not args.question:
-        parser.error("question is required unless --evolve is used")
+        parser.error("question is required unless --evolve, --status, or --rollback is used")
 
     run_loop(question=args.question, domain=args.domain)
+
+
+def _show_status(domain: str):
+    """Display strategy status and version performance for a domain."""
+    print(f"\n{'='*60}")
+    print(f"  STRATEGY STATUS — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    # Trigger migration if needed (pre-Layer 4 strategies)
+    get_strategy("researcher", domain)
+
+    active = get_active_version("researcher", domain)
+    status = get_strategy_status("researcher", domain)
+    versions = list_versions("researcher", domain)
+
+    print(f"  Active version: {active} ({status})")
+    print(f"  Total versions: {len(versions)}")
+
+    if versions:
+        print(f"\n  Version Performance:")
+        print(f"  {'Version':<10} {'Outputs':>8} {'Avg Score':>10} {'Accepted':>9} {'Rejected':>9}")
+        print(f"  {'-'*46}")
+
+        # Also show default performance
+        default_perf = get_strategy_performance(domain, "default")
+        if default_perf["count"] > 0:
+            print(f"  {'default':<10} {default_perf['count']:>8} {default_perf['avg_score']:>10.1f} "
+                  f"{default_perf['accepted']:>9} {default_perf['rejected']:>9}")
+
+        for v in versions:
+            perf = get_strategy_performance(domain, v)
+            marker = " ←" if v == active else ""
+            print(f"  {v:<10} {perf['count']:>8} {perf['avg_score']:>10.1f} "
+                  f"{perf['accepted']:>9} {perf['rejected']:>9}{marker}")
+
+    # Show version history
+    history = get_version_history("researcher", domain)
+    if len(history) > 1:
+        print(f"\n  Version History:")
+        for entry in history:
+            print(f"    {entry.get('version', '?')} — {entry.get('status', '?')}"
+                  f" ({entry.get('replaced_at', 'current')})")
+
+    # Domain stats
+    stats = get_stats(domain)
+    print(f"\n  Domain totals: {stats['count']} outputs, avg {stats['avg_score']:.1f}, "
+          f"{stats['accepted']} accepted / {stats['rejected']} rejected")
+    print()
+
+
+def _do_rollback(domain: str):
+    """Manually roll back to previous strategy version."""
+    current = get_active_version("researcher", domain)
+    print(f"\n  Current strategy: {current}")
+
+    rolled_to = rollback("researcher", domain)
+    if rolled_to:
+        print(f"  ✓ Rolled back to: {rolled_to}")
+    else:
+        print(f"  ✗ No previous version to roll back to")
+    print()
 
 
 if __name__ == "__main__":

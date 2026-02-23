@@ -3,3 +3,6 @@
 {"timestamp": "2026-02-23T09:59:38.253862+00:00", "question": "What are the latest developments in Bitcoin ETFs and institutional crypto adoption in early 2026?", "attempts": 1, "score": 7.1, "verdict": "accept", "strategy_version": "default"}
 {"timestamp": "2026-02-23T10:02:23.779211+00:00", "question": "What is the current regulatory landscape for cryptocurrency in the US as of February 2026?", "attempts": 1, "score": 6.2, "verdict": "accept", "strategy_version": "default"}
 {"timestamp": "2026-02-23T10:04:39.477931+00:00", "question": "What are the most significant DeFi protocol developments and risks in early 2026?", "attempts": 1, "score": 7.7, "verdict": "accept", "strategy_version": "v001"}
+{"timestamp": "2026-02-23T10:22:06.632389+00:00", "question": "What are the major stablecoin developments and regulatory actions in early 2026?", "attempts": 3, "score": 2.6, "verdict": "reject", "strategy_version": "v002"}
+{"timestamp": "2026-02-23T10:29:16.419003+00:00", "question": "What are the major stablecoin developments and regulatory actions in early 2026?", "attempts": 1, "score": 7.7, "verdict": "accept", "strategy_version": "v001"}
+{"timestamp": "2026-02-23T10:34:01.234763+00:00", "question": "What is the current state of Web3 gaming and NFT markets in early 2026?", "attempts": 3, "score": 3.2, "verdict": "reject", "strategy_version": "v001"}

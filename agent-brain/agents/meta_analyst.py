@@ -67,6 +67,8 @@ STRATEGY WRITING RULES:
 - Be specific: "search for X before Y" not "search more carefully"
 - Keep it concise — under 600 words. Agents perform worse with bloated prompts.
 - Preserve behaviors that scored well. Only change what's broken.
+- CRITICAL: The researcher has a hard cap of 10 searches. Strategies must recommend 3-8 searches.
+  Recommending more than 8 will cause the agent to hit its limit and produce corrupt output.
 
 OUTPUT FORMAT — respond with ONLY this JSON, no markdown fencing:
 {{
