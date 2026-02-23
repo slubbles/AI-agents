@@ -15,8 +15,8 @@ It is an autonomous research system that loops, scores its own output, and rewri
 
 1. **Knowledge Accumulation** — agent acts, output stored, retrieved later. (DONE — memory_store.py)
 2. **Evaluated Knowledge** — critic scores output 1-10 on structured rubric, score stored alongside output. (DONE — agents/critic.py)
-3. **Behavioral Adaptation** — Meta-Analyst extracts patterns from scores → rewrites agent strategy documents. Strategy = natural language instructions the agent follows. A/B test strategies, keep what scores higher. (NEXT)
-4. **Strategy Evolution** — the strategy rewriting itself becomes autonomous and recursive. Version control + rollback. Safety: never deploy strategy scoring >20% below current best without human review.
+3. **Behavioral Adaptation** — Meta-Analyst extracts patterns from scores → rewrites agent strategy documents. Strategy = natural language instructions the agent follows. Evolves every 3 outputs. (DONE — agents/meta_analyst.py)
+4. **Strategy Evolution** — the strategy rewriting itself becomes autonomous and recursive. Version control + rollback. Safety: never deploy strategy scoring >20% below current best without human review. (NEXT)
 5. **Cross-Domain Transfer** — insights from Domain A abstracted into general principles → applied as strategy seeds in Domain B. The system compounds intelligence, not just data.
 
 **Do NOT skip layers. Each layer is earned by getting the previous one working properly.**
@@ -26,12 +26,13 @@ It is an autonomous research system that loops, scores its own output, and rewri
 ```
 agent-brain/
 ├── config.py              — model assignments, thresholds
-├── main.py                — loop runner: research → critique → quality gate → store
+├── main.py                — loop runner: research → critique → quality gate → store → evolve
 ├── memory_store.py         — scored outputs → JSON files per domain
 ├── strategy_store.py       — versioned strategy documents per agent per domain
 ├── agents/
-│   ├── researcher.py      — web search tool use + structured findings
-│   └── critic.py          — scores on 5 dimensions, accepts/rejects
+│   ├── researcher.py      — web search tool use + structured findings (date-aware)
+│   ├── critic.py          — scores on 5 dimensions, accepts/rejects (date-aware)
+│   └── meta_analyst.py    — analyzes scored outputs → rewrites strategies (Layer 3)
 ├── tools/
 │   └── web_search.py      — DuckDuckGo search, Claude tool_use definition
 ├── memory/                — scored outputs (per domain subdirectory)
@@ -44,7 +45,8 @@ agent-brain/
 - No Supabase yet — local JSON files for now. Supabase comes later with the web dashboard.
 - No frontend yet — CLI only. Web dashboard (Next.js + FastAPI) comes after the loop is proven.
 - Loop is proven working (exit code 0, Feb 23 2026). Critic correctly rejects low-quality output. Researcher adapts to critique feedback across retries.
-- Known issue: researcher cites future-dated sources as fact. Fix: inject current date into researcher system prompt so it knows what's verifiable. Do this before Layer 3.
+- Layer 3 is proven working (Feb 23 2026). Meta-analyst evolves strategies. Score trajectory: 5.4 → 7.1 → 7.7.
+- Strategy evolution cooldown: meta-analyst runs every 3 outputs (not every run) to save API credits. `--evolve` flag forces it manually.
 
 ## Agent Roles
 
@@ -53,7 +55,7 @@ agent-brain/
 | Researcher | Searches web, produces structured findings | Claude Haiku 4.5 (cheap + fast) |
 | Critic | Scores output 1-10 on 5 dimensions, accepts/rejects | Claude Sonnet 4 (don't cut corners here) |
 | Quality Gate | Rejects below threshold, triggers retry with feedback | Logic in main.py |
-| Meta-Analyst | Extracts patterns from scored outputs, rewrites strategies | (Layer 3 — not built yet) |
+| Meta-Analyst | Extracts patterns from scored outputs, rewrites strategies | Claude Sonnet 4 (DONE — agents/meta_analyst.py) |
 | Orchestrator | Routes domains, manages agent coordination, reports to user | (future) |
 | Synthesizer | Integrates findings into domain knowledge base | (future) |
 
