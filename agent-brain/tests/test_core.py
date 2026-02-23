@@ -830,5 +830,7 @@ class TestRetry:
         assert is_retryable(Exception("overloaded"))
         assert is_retryable(Exception("Error code: 529"))
         assert is_retryable(Exception("rate_limit_error"))
+        assert is_retryable(Exception("Error code: 500 - internal server error"))
+        assert is_retryable(Exception("api_error"))
         assert not is_retryable(ValueError("bad input"))
         assert not is_retryable(TypeError("wrong type"))

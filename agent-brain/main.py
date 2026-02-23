@@ -316,6 +316,8 @@ def main():
     parser.add_argument("--dashboard", action="store_true", help="Show full system dashboard (all domains, strategies, budget)")
     parser.add_argument("--orchestrate", action="store_true", help="Smart multi-domain auto mode: prioritize and run across domains")
     parser.add_argument("--target-domains", default="", help="Comma-separated domains for --orchestrate (default: all)")
+    parser.add_argument("--export", action="store_true", help="Export full system report as JSON")
+    parser.add_argument("--export-md", action="store_true", help="Export full system report as Markdown")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -372,6 +374,9 @@ def main():
     if args.orchestrate:
         targets = [d.strip() for d in args.target_domains.split(",") if d.strip()] or None
         _run_orchestrate(targets, args.rounds)
+        return
+    if args.export or getattr(args, 'export_md', False):
+        _run_export(markdown=getattr(args, 'export_md', False))
         return
 
     if args.evolve:
@@ -1062,6 +1067,160 @@ def _run_orchestrate(target_domains: list[str] | None, total_rounds: int):
     print(f"\n  Budget: ${daily['total_usd']:.4f} spent today ({daily['calls']} API calls)")
     print(f"  System health: {health['health_score']}/100")
     print(f"{'='*60}\n")
+
+
+def _run_export(markdown: bool = False):
+    """Export a comprehensive system report as JSON or Markdown."""
+    from memory_store import load_knowledge_base
+    
+    now = datetime.now(timezone.utc)
+    domains = discover_domains()
+    health = get_system_health()
+    budget = check_budget()
+    daily = get_daily_spend()
+    alltime = get_all_time_spend()
+    principles_data = load_principles()
+    
+    report = {
+        "generated_at": now.isoformat(),
+        "system_health": health,
+        "budget": {
+            "daily_limit": budget["limit"],
+            "spent_today": budget["spent"],
+            "remaining_today": budget["remaining"],
+            "within_budget": budget["within_budget"],
+            "all_time": alltime,
+        },
+        "domains": {},
+    }
+    
+    for domain in domains:
+        stats = get_stats(domain)
+        sv = get_active_version("researcher", domain)
+        ss = get_strategy_status("researcher", domain)
+        pending = list_pending("researcher", domain)
+        perf = get_strategy_performance("researcher", domain)
+        kb = load_knowledge_base(domain)
+        outputs = load_outputs(domain)
+        
+        # Recent outputs summary
+        recent = sorted(outputs, key=lambda o: o.get("timestamp", ""), reverse=True)[:5]
+        recent_summary = []
+        for o in recent:
+            recent_summary.append({
+                "timestamp": o.get("timestamp", ""),
+                "question": o.get("question", "")[:100],
+                "score": o.get("overall_score", 0),
+                "accepted": o.get("accepted", False),
+                "strategy_version": o.get("strategy_version", ""),
+            })
+        
+        report["domains"][domain] = {
+            "stats": stats,
+            "strategy": {
+                "active_version": sv,
+                "status": ss,
+                "pending_count": len(pending),
+                "performance": perf,
+            },
+            "knowledge_base": {
+                "exists": kb is not None,
+                "claims": len(kb.get("claims", [])) if kb else 0,
+                "gaps": len(kb.get("knowledge_gaps", [])) if kb else 0,
+            },
+            "recent_outputs": recent_summary,
+        }
+    
+    report["principles"] = {
+        "count": len(principles_data.get("principles", [])) if principles_data else 0,
+        "version": principles_data.get("version", 0) if principles_data else 0,
+        "source_domains": principles_data.get("source_domains", []) if principles_data else [],
+    }
+    
+    if markdown:
+        _export_markdown(report, now)
+    else:
+        # JSON output
+        outpath = os.path.join(LOG_DIR, f"report_{now.strftime('%Y%m%d_%H%M%S')}.json")
+        with open(outpath, "w") as f:
+            json.dump(report, f, indent=2)
+        print(f"Report exported to: {outpath}")
+        print(f"  System health: {health['health_score']}/100")
+        print(f"  Domains: {len(domains)}")
+        print(f"  Total outputs: {health['total_outputs']}")
+        print(f"  Acceptance rate: {health['acceptance_rate']:.0%}")
+
+
+def _export_markdown(report: dict, now: datetime):
+    """Generate a Markdown system report."""
+    lines = []
+    h = report["system_health"]
+    b = report["budget"]
+    
+    lines.append(f"# Agent Brain — System Report")
+    lines.append(f"Generated: {now.strftime('%Y-%m-%d %H:%M UTC')}")
+    lines.append("")
+    lines.append(f"## System Health: {h['health_score']}/100")
+    lines.append("")
+    lines.append(f"| Metric | Value |")
+    lines.append(f"|--------|-------|")
+    lines.append(f"| Total Outputs | {h['total_outputs']} |")
+    lines.append(f"| Accepted | {h['total_accepted']} |")
+    lines.append(f"| Rejected | {h['total_rejected']} |")
+    lines.append(f"| Acceptance Rate | {h['acceptance_rate']:.0%} |")
+    lines.append(f"| Avg Score | {h['avg_score']} |")
+    lines.append(f"| Domains | {h['domain_count']} |")
+    lines.append(f"| w/ Strategy | {h['domains_with_strategy']} |")
+    lines.append(f"| w/ Knowledge Base | {h['domains_with_kb']} |")
+    lines.append(f"| Principles | {h['principle_count']} |")
+    lines.append("")
+    lines.append(f"## Budget")
+    lines.append(f"- Daily limit: ${b['daily_limit']:.2f}")
+    lines.append(f"- Spent today: ${b['spent_today']:.4f}")
+    lines.append(f"- All-time: ${b['all_time']['total_usd']:.4f} over {b['all_time']['days']} day(s)")
+    lines.append("")
+    lines.append(f"## Domains")
+    lines.append("")
+    
+    for domain, data in report["domains"].items():
+        s = data["stats"]
+        st = data["strategy"]
+        kb = data["knowledge_base"]
+        lines.append(f"### {domain.title()}")
+        lines.append(f"- Outputs: {s['count']} (accepted: {s['accepted']}, rejected: {s['rejected']})")
+        lines.append(f"- Avg Score: {s['avg_score']:.1f}")
+        rate = f"{s['accepted']/s['count']*100:.0f}%" if s['count'] > 0 else "N/A"
+        lines.append(f"- Acceptance Rate: {rate}")
+        lines.append(f"- Strategy: {st['active_version']} ({st['status']})")
+        if st['pending_count'] > 0:
+            lines.append(f"- **Pending approvals: {st['pending_count']}**")
+        lines.append(f"- Knowledge Base: {'Yes' if kb['exists'] else 'No'}" +
+                     (f" ({kb['claims']} claims, {kb['gaps']} gaps)" if kb['exists'] else ""))
+        lines.append("")
+        
+        if data["recent_outputs"]:
+            lines.append(f"**Recent Activity:**")
+            lines.append("")
+            lines.append(f"| Time | Score | Status | Question |")
+            lines.append(f"|------|-------|--------|----------|")
+            for o in data["recent_outputs"]:
+                t = o["timestamp"][:16] if o["timestamp"] else ""
+                status = "✓" if o["accepted"] else "✗"
+                lines.append(f"| {t} | {o['score']:.1f} | {status} | {o['question'][:60]} |")
+            lines.append("")
+    
+    p = report["principles"]
+    if p["count"] > 0:
+        lines.append(f"## Cross-Domain Principles")
+        lines.append(f"- {p['count']} principles (v{p['version']})")
+        lines.append(f"- Source domains: {', '.join(p['source_domains'])}")
+    
+    md = "\n".join(lines)
+    outpath = os.path.join(LOG_DIR, f"report_{now.strftime('%Y%m%d_%H%M%S')}.md")
+    with open(outpath, "w") as f:
+        f.write(md)
+    print(f"Markdown report exported to: {outpath}")
+    print(f"  System health: {h['health_score']}/100")
 
 
 def _run_synthesize(domain: str):
