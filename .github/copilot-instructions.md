@@ -16,8 +16,8 @@ It is an autonomous research system that loops, scores its own output, and rewri
 1. **Knowledge Accumulation** — agent acts, output stored, retrieved later. (DONE — memory_store.py)
 2. **Evaluated Knowledge** — critic scores output 1-10 on structured rubric, score stored alongside output. (DONE — agents/critic.py)
 3. **Behavioral Adaptation** — Meta-Analyst extracts patterns from scores → rewrites agent strategy documents. Strategy = natural language instructions the agent follows. Evolves every 3 outputs. (DONE — agents/meta_analyst.py)
-4. **Strategy Evolution** — the strategy rewriting itself becomes autonomous and recursive. Version control + rollback. Safety: never deploy strategy scoring >20% below current best without human review. (NEXT)
-5. **Cross-Domain Transfer** — insights from Domain A abstracted into general principles → applied as strategy seeds in Domain B. The system compounds intelligence, not just data.
+4. **Strategy Evolution** — the strategy rewriting itself becomes autonomous and recursive. Version control + rollback. Safety: never deploy strategy scoring >20% below current best without human review. (DONE — strategy_store.py rewrite, trial/active status, evaluate_trial(), rollback())
+5. **Cross-Domain Transfer** — insights from Domain A abstracted into general principles → applied as strategy seeds in Domain B. The system compounds intelligence, not just data. (NEXT)
 
 **Do NOT skip layers. Each layer is earned by getting the previous one working properly.**
 
@@ -46,7 +46,9 @@ agent-brain/
 - No frontend yet — CLI only. Web dashboard (Next.js + FastAPI) comes after the loop is proven.
 - Loop is proven working (exit code 0, Feb 23 2026). Critic correctly rejects low-quality output. Researcher adapts to critique feedback across retries.
 - Layer 3 is proven working (Feb 23 2026). Meta-analyst evolves strategies. Score trajectory: 5.4 → 7.1 → 7.7.
+- Layer 4 is proven working (Feb 23 2026). strategy_store.py rewritten with _meta.json tracking, trial/active status, evaluate_trial() with 3-output trial period, rollback() when score drops >1.0. Safety guard: meta-analysis skipped during active trials. MAX_SEARCHES=10 hard cap prevents search explosion. Hardened JSON parser handles model preamble.
 - Strategy evolution cooldown: meta-analyst runs every 3 outputs (not every run) to save API credits. `--evolve` flag forces it manually.
+- CLI flags: `--domain`, `--evolve`, `--status` (show strategy performance table), `--rollback` (manual rollback).
 
 ## Agent Roles
 
@@ -85,7 +87,7 @@ Threshold: score ≥ 6 to accept. Below 6 → retry with critique feedback (max 
 - Do NOT build the dashboard before the loop is proven and strategies evolve.
 - Do NOT use Telegram/WhatsApp/Discord integrations. The interface is CLI now, web dashboard later.
 - Do NOT over-architect. If something can be a JSON file, don't make it a database yet.
-- Do NOT inflate ambition beyond the current layer. Build Layer 3 before talking about Layer 5.
+- Do NOT inflate ambition beyond the current layer. Build Layer 4 before talking about Layer 5.
 - Do NOT create features just because they sound exciting. Every addition must serve the loop.
 
 ## Coding Standards
