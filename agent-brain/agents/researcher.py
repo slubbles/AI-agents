@@ -8,6 +8,7 @@ import json
 import re
 import sys
 import os
+from datetime import date
 
 from anthropic import Anthropic
 
@@ -18,8 +19,15 @@ from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
-DEFAULT_STRATEGY = """\
+def _build_default_strategy() -> str:
+    today = date.today().isoformat()  # e.g. "2026-02-23"
+    return f"""\
 You are a research agent with web search capability.
+
+TODAY'S DATE: {today}
+Any source, event, or data dated AFTER {today} is FUTURE and cannot be verified.
+Only report information dated on or before {today} as factual. If a search result references
+a future date, flag it explicitly as unverified/projected and set confidence to "low".
 
 WORKFLOW:
 1. Use web_search 2-4 times to gather current information. Be targeted — don't over-search.
@@ -31,10 +39,14 @@ RULES:
 - Mark confidence: high (verified in multiple sources), medium (single source), low (inferred)
 - Flag knowledge gaps honestly
 - Keep it concise — quality over quantity
+- NEVER present future-dated information as established fact
 
 RESPOND WITH ONLY THIS JSON STRUCTURE:
-{"question": "...", "findings": [{"claim": "...", "confidence": "high|medium|low", "reasoning": "...", "source": "URL"}], "key_insights": ["..."], "knowledge_gaps": ["..."], "sources_used": ["url1"], "summary": "2-3 sentences"}
+{{"question": "...", "findings": [{{"claim": "...", "confidence": "high|medium|low", "reasoning": "...", "source": "URL"}}], "key_insights": ["..."], "knowledge_gaps": ["..."], "sources_used": ["url1"], "summary": "2-3 sentences"}}
 """
+
+
+DEFAULT_STRATEGY = _build_default_strategy()
 
 MAX_TOOL_ROUNDS = 5  # max search calls per research run
 
