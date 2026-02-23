@@ -1,104 +1,114 @@
 {
-  "version": 2,
-  "extracted_at": "2026-02-23T13:15:29.156876+00:00",
+  "version": 4,
+  "extracted_at": "2026-02-23T15:49:53.656162+00:00",
   "source_domains": [
-    "crypto"
+    "crypto",
+    "geopolitics"
   ],
-  "source_count": 1,
+  "source_count": 2,
   "principles": [
     {
-      "principle": "Limit searches to 3-8 targeted queries maximum to prevent system parsing failures",
+      "principle": "Use 3-6 targeted searches maximum - avoid broad, unfocused searching that reduces parsing reliability",
       "category": "search_strategy",
-      "evidence": "Strategy explicitly limited to 3-8 searches and achieved 7.225 avg score with 4/4 acceptance rate, while earlier versions likely had parsing issues with higher search counts",
+      "evidence": "Both domains explicitly limit searches to 3-6 for crypto and 4-6 for geopolitics. Crypto high-score outputs averaged 7.5 searches with good results, while one low performer used 12 searches indicating diminishing returns",
       "source_domains": [
-        "crypto"
-      ],
-      "confidence": "medium"
-    },
-    {
-      "principle": "Establish clear source hierarchy prioritizing authoritative sources over industry publications",
-      "category": "source_quality",
-      "evidence": "Strategy used hierarchy: government sites \u2192 financial media \u2192 industry reports \u2192 crypto publications. High-scoring outputs (7.1-8.0) consistently used this approach",
-      "source_domains": [
-        "crypto"
-      ],
-      "confidence": "medium"
-    },
-    {
-      "principle": "Cross-verify all numerical data and factual claims through at least 2 independent source types",
-      "category": "source_quality",
-      "evidence": "High-scoring outputs (7.3, 8.0) praised for 'multiple independent sources cited' and 'cross-verification', while weaknesses noted 'over-reliance on single source types'",
-      "source_domains": [
-        "crypto"
-      ],
-      "confidence": "medium"
-    },
-    {
-      "principle": "Include specific confidence levels with reasoning for each major claim",
-      "category": "honesty_calibration",
-      "evidence": "All high-scoring outputs (6.2-8.0) consistently praised for 'transparent confidence levels and reasoning' and 'intellectual honesty with confidence ratings'",
-      "source_domains": [
-        "crypto"
+        "crypto",
+        "geopolitics"
       ],
       "confidence": "high"
     },
     {
-      "principle": "Explicitly identify and acknowledge knowledge gaps rather than speculating",
-      "category": "honesty_calibration",
-      "evidence": "High-scoring outputs consistently praised for 'honest acknowledgment of knowledge gaps' and 'clear acknowledgment of limitations', while this was required in JSON format",
+      "principle": "Establish and follow a strict source hierarchy prioritizing government/official sources over secondary sources",
+      "category": "source_quality",
+      "evidence": "Both domains prioritize government sources (.gov, official channels) first, then established institutions, then media. Crypto's best outputs (8.0 score) heavily used SEC.gov and official documentation",
       "source_domains": [
-        "crypto"
+        "crypto",
+        "geopolitics"
       ],
       "confidence": "high"
     },
     {
-      "principle": "Distinguish verified facts from projections and speculation clearly",
+      "principle": "Cross-verify every major factual claim through at least 2 different source types",
+      "category": "source_quality",
+      "evidence": "Both strategies mandate cross-verification. Geopolitics 7.9-score output succeeded by tracking claims to original sources, while 6.9-score output failed by relying on unverified secondary sources",
+      "source_domains": [
+        "crypto",
+        "geopolitics"
+      ],
+      "confidence": "high"
+    },
+    {
+      "principle": "Assign explicit confidence levels (High/Medium/Low with percentages) to every major finding with detailed reasoning",
       "category": "honesty_calibration",
-      "evidence": "8.0 score praised for 'distinguishes established facts from speculation' and 7.4 score for 'clearly distinguishes established facts from projections'",
+      "evidence": "Both domains require confidence scoring. High-scoring outputs (8.0 crypto, 7.9 geopolitics) extensively used confidence levels and transparent uncertainty acknowledgment",
       "source_domains": [
-        "crypto"
+        "crypto",
+        "geopolitics"
       ],
-      "confidence": "medium"
+      "confidence": "high"
     },
     {
-      "principle": "Include specific dates, numbers, and quantitative details rather than vague statements",
-      "category": "output_structure",
-      "evidence": "High scores (7.1, 8.0) praised for 'excellent specificity with concrete numbers, percentages, and dates' and 'specific dollar amounts', while weaknesses noted lack of specifics",
+      "principle": "Clearly distinguish between verified facts and speculation, projections, or unconfirmed claims",
+      "category": "honesty_calibration",
+      "evidence": "Highest scoring outputs in both domains (8.0 crypto, 7.9 geopolitics) excelled at distinguishing facts from speculation. Lower scores correlated with presenting unverified claims as facts",
       "source_domains": [
-        "crypto"
+        "crypto",
+        "geopolitics"
       ],
-      "confidence": "medium"
+      "confidence": "high"
     },
     {
-      "principle": "Verify temporal claims against current date awareness to catch anachronisms",
-      "category": "temporal_awareness",
-      "evidence": "Strategy explicitly required 'VERIFY ALL 2026 DATES' and 'flag temporal inconsistencies', with high-scoring outputs avoiding temporal errors",
-      "source_domains": [
-        "crypto"
-      ],
-      "confidence": "medium"
-    },
-    {
-      "principle": "Provide mechanistic analysis explaining WHY events occurred, not just WHAT happened",
+      "principle": "Provide mechanistic WHY analysis explaining underlying causes and processes, not just what happened",
       "category": "depth_vs_breadth",
-      "evidence": "Strategy required 'mechanistic analysis', but weaknesses consistently noted 'limited depth in explaining underlying mechanisms' and 'lacks technical depth'",
+      "evidence": "Both strategies explicitly require mechanistic analysis. High scorers provided decision-making processes and causal explanations, while surface-level treatment was noted as a weakness in lower-scoring outputs",
       "source_domains": [
-        "crypto"
+        "crypto",
+        "geopolitics"
       ],
-      "confidence": "low"
+      "confidence": "high"
+    },
+    {
+      "principle": "Verify temporal claims with specific dates and multiple independent sources, especially for recent events",
+      "category": "temporal_awareness",
+      "evidence": "Both domains emphasize 2026 temporal verification. Crypto's 8.0-score output provided 'precise dates, sources, and confidence levels' while temporal issues were flagged as problems in weaker outputs",
+      "source_domains": [
+        "crypto",
+        "geopolitics"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Explicitly document knowledge gaps and research limitations rather than attempting to cover gaps with speculation",
+      "category": "honesty_calibration",
+      "evidence": "High-scoring outputs consistently praised for 'excellent knowledge gap identification' and 'transparent about limitations', while attempts to fill gaps with weak sources were penalized",
+      "source_domains": [
+        "crypto",
+        "geopolitics"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Include specific quantitative details (dates, dollar amounts, percentages) with source attribution",
+      "category": "output_structure",
+      "evidence": "Best performers provided 'exact dollar amounts, dates, and statutory requirements' (8.0 crypto) and 'concrete dollar figures, percentages, and volumetric data' (6.9+ geopolitics)",
+      "source_domains": [
+        "crypto",
+        "geopolitics"
+      ],
+      "confidence": "medium"
     }
   ],
   "domain_specific_insights": [
     {
       "domain": "crypto",
-      "insight": "Prioritize government sources (.gov, SEC) over crypto publications for regulatory topics",
-      "not_transferable_because": "Specific to crypto's heavy regulatory environment - other domains may have different authoritative source hierarchies"
+      "insight": "Prioritize SEC.gov, Federal Register, and Congressional records for regulatory topics; emphasize numerical verification through financial media",
+      "not_transferable_because": "Specific to crypto regulatory structure and financial data requirements"
     },
     {
-      "domain": "crypto",
-      "insight": "Always verify 2026 crypto events against multiple sources due to speculation",
-      "not_transferable_because": "Crypto domain has unusual amounts of speculation and forward-looking claims compared to established fields"
+      "domain": "geopolitics",
+      "insight": "Distinguish between official policy positions vs unofficial signals, announced measures vs implemented actions",
+      "not_transferable_because": "Specific to diplomatic communication patterns and geopolitical analysis frameworks"
     }
   ],
-  "meta_observations": "Single domain data shows strong evidence for intellectual honesty principles (confidence levels, knowledge gaps) and source verification, but limited evidence for cross-domain applicability. The successful strategy emphasized quality controls and transparency over comprehensive coverage, suggesting general principles around research integrity and bounded scope may be universally valuable."
+  "meta_observations": "Both domains converge on similar quality principles: limited focused searches, strict source hierarchies, cross-verification, confidence calibration, and mechanistic analysis. The core difference is domain-specific source types, not research methodology."
 }

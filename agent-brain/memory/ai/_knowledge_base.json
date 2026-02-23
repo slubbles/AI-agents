@@ -1,0 +1,494 @@
+{
+  "domain_summary": "The AI domain in early 2026 is characterized by major advances in open-source models, with Alibaba's Qwen-3.5 (Feb 2026) featuring 397B MoE parameters and Meta's Llama 4 Maverick (April 2025) establishing multimodal benchmarks. Enterprise adoption has reached a tipping point with 76% of organizations using open-source LLMs, driven by cost efficiency and customization needs. Mixture-of-Experts architectures like Qwen-3.5 offer computational efficiency through sparse activation but face memory bandwidth bottlenecks and routing overhead challenges. Despite widespread deployment, official benchmark disclosure is asymmetric across major providers, with comprehensive inference performance data remaining largely unpublished by model creators.",
+  "topics": [
+    {
+      "name": "Model Releases and Specifications",
+      "subtopics": [
+        "release_dates",
+        "architecture_specs",
+        "parameter_counts",
+        "context_windows"
+      ]
+    },
+    {
+      "name": "Enterprise Adoption",
+      "subtopics": [
+        "adoption_rates",
+        "deployment_patterns",
+        "market_trends"
+      ]
+    },
+    {
+      "name": "Technical Architecture",
+      "subtopics": [
+        "moe_vs_dense",
+        "computational_efficiency",
+        "memory_requirements",
+        "inference_challenges"
+      ]
+    },
+    {
+      "name": "Performance Benchmarks",
+      "subtopics": [
+        "mmlu_scores",
+        "benchmark_availability",
+        "evaluation_gaps",
+        "benchmark_disclosure"
+      ]
+    },
+    {
+      "name": "Cloud Infrastructure and Pricing",
+      "subtopics": [
+        "cloud_provider_support",
+        "inference_performance",
+        "cost_metrics",
+        "specialized_hardware"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_001",
+      "claim": "Qwen-3.5 officially released February 16-17, 2026 by Alibaba Cloud with 397-billion parameter Mixture-of-Experts architecture",
+      "topic": "Model Releases and Specifications",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_confirmed": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 4,
+      "sources": [
+        "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894",
+        "https://www.reuters.com/world/china/alibaba-unveils-new-qwen35-model-agentic-ai-era-2026-02-16/",
+        "https://www.cnbc.com/2026/02/17/china-alibaba-qwen-ai-agent-latest-model.html"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Confirmed across multiple authoritative sources including official Alibaba blog and major news outlets"
+    },
+    {
+      "id": "claim_002",
+      "claim": "Llama 4 Maverick released April 5, 2025 with 17 billion active parameters in 400B MoE framework and multimodal capabilities",
+      "topic": "Model Releases and Specifications",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_confirmed": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 3,
+      "sources": [
+        "https://ai.meta.com/blog/llama-4-multimodal-intelligence/",
+        "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Official Meta release confirmed in April 2025, widely deployed in early 2026"
+    },
+    {
+      "id": "claim_003",
+      "claim": "Llama 4 Maverick features 1 million token context window",
+      "topic": "Model Releases and Specifications",
+      "confidence": "disputed",
+      "status": "conflicted",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_confirmed": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://ai.meta.com/blog/llama-4-multimodal-intelligence/"
+      ],
+      "supersedes": null,
+      "conflicted_by": "claim_004",
+      "notes": "Conflicted by Oracle documentation citing 512,000 tokens"
+    },
+    {
+      "id": "claim_004",
+      "claim": "Llama 4 Maverick features 512,000 token context window according to Oracle documentation",
+      "topic": "Model Releases and Specifications",
+      "confidence": "disputed",
+      "status": "conflicted",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_confirmed": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://docs.oracle.com/en-us/iaas/Content/generative-ai/meta-llama-4-maverick.htm"
+      ],
+      "supersedes": null,
+      "conflicted_by": "claim_003",
+      "notes": "Oracle official documentation conflicts with other sources citing 1M tokens"
+    },
+    {
+      "id": "claim_005",
+      "claim": "76% of enterprises using LLMs choose open-source options, often running them alongside proprietary models (as of November 2025)",
+      "topic": "Enterprise Adoption",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_confirmed": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.databricks.com/blog/state-ai-enterprise-adoption-growth-trends"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Databricks State of AI report data showing enterprise adoption trends"
+    },
+    {
+      "id": "claim_006",
+      "claim": "Over 50% of organizations implement open source across their AI technology stack (2025 data)",
+      "topic": "Enterprise Adoption",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_confirmed": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.arcade.dev/blog/open-source-ai-tool-trends"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Indicates mainstream adoption beyond early-adopter phase"
+    },
+    {
+      "id": "claim_007",
+      "claim": "Qwen-3.5 uses 397B total MoE parameters with only 17B active parameters per token",
+      "topic": "Technical Architecture",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T15:07:56.821792+00:00",
+      "last_confirmed": "2026-02-23T15:24:58.326772+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://www.digitalapplied.com/blog/qwen-3-5-agentic-ai-benchmarks-guide",
+        "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Core MoE architecture specification confirmed across multiple sources"
+    },
+    {
+      "id": "claim_008",
+      "claim": "MoE sparse activation reduces memory bandwidth and compute FLOPs compared to dense models with equivalent parameter counts",
+      "topic": "Technical Architecture",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:07:56.821792+00:00",
+      "last_confirmed": "2026-02-23T15:07:56.821792+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://ieeexplore.ieee.org/document/11397211"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Established MoE efficiency principle confirmed by IEEE research"
+    },
+    {
+      "id": "claim_009",
+      "claim": "Routing overhead is a significant latency penalty for MoE models not present in dense architectures",
+      "topic": "Technical Architecture",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:07:56.821792+00:00",
+      "last_confirmed": "2026-02-23T15:07:56.821792+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://dl.acm.org/doi/full/10.1145/3731599.3767706"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Fundamental MoE challenge identified by multiple 2026 sources"
+    },
+    {
+      "id": "claim_010",
+      "claim": "MoE serving requires preloading all experts into memory despite sparse activation, creating memory bandwidth bottleneck",
+      "topic": "Technical Architecture",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:07:56.821792+00:00",
+      "last_confirmed": "2026-02-23T15:07:56.821792+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://ieeexplore.ieee.org/document/11397211"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Critical MoE inefficiency at inference time"
+    },
+    {
+      "id": "claim_011",
+      "claim": "Llama 4 Maverick MMLU Pro score is 59.6",
+      "topic": "Performance Benchmarks",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-02-23T15:24:58.326772+00:00",
+      "last_confirmed": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://console.groq.com/docs/model/meta-llama/llama-4-maverick-17b-128e-instruct",
+        "https://github.com/meta-llama/llama-models/blob/main/models/llama4/MODEL_CARD.md"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Official Groq documentation and Meta model card, but MMLU Pro variant, not standard MMLU"
+    },
+    {
+      "id": "claim_012",
+      "claim": "Qwen-3.5-397B official benchmark scores from Alibaba NOT publicly available in verified sources",
+      "topic": "Performance Benchmarks",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T15:24:58.326772+00:00",
+      "last_confirmed": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894",
+        "https://qwen.ai/research/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Despite extensive searching, no official Alibaba technical report with specific benchmark scores found"
+    },
+    {
+      "id": "claim_013",
+      "claim": "No official Llama 4 Maverick ARC or TruthfulQA benchmark scores located in primary sources",
+      "topic": "Performance Benchmarks",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-02-23T15:24:58.326772+00:00",
+      "last_confirmed": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://ai.meta.com/blog/llama-4-multimodal-intelligence/",
+        "https://www.llama.com/docs/model-cards-and-prompt-formats/llama4/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Meta documentation focuses on MMLU Pro, MATH, HumanEval; ARC and TruthfulQA absent"
+    },
+    {
+      "id": "claim_014",
+      "claim": "GLM-4.7 achieves 73.8% on SWE-bench coding benchmark from THUDM",
+      "topic": "Performance Benchmarks",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_confirmed": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.digitalapplied.com/blog/open-source-ai-models-enterprise-guide-2026"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Chinese open-source model performance, but original benchmark source not directly verified"
+    },
+    {
+      "id": "claim_015",
+      "claim": "Meta has officially published MMLU-Pro score (59.6) for Llama 4 Maverick via model card and documentation",
+      "topic": "Performance Benchmarks",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:38:47.548878+00:00",
+      "last_confirmed": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://github.com/meta-llama/llama-models/blob/main/models/llama4/MODEL_CARD.md"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Verified in official Meta model card on GitHub and Hugging Face"
+    },
+    {
+      "id": "claim_016",
+      "claim": "Google has officially published benchmark scores for Gemma 3 (27B variant, March 25, 2025) including MMLU-Pro 67.5",
+      "topic": "Performance Benchmarks",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:38:47.548878+00:00",
+      "last_confirmed": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://arxiv.org/abs/2503.19786"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Gemma 3 technical report includes benchmark evaluation metrics"
+    },
+    {
+      "id": "claim_017",
+      "claim": "Anthropic has NOT released open-source models in 2025-2026; only proprietary Claude models exist",
+      "topic": "Model Releases and Specifications",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:38:47.548878+00:00",
+      "last_confirmed": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://anthropic.com/claude-sonnet-4-6-system-card"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Claude models are proprietary, not open-source"
+    },
+    {
+      "id": "claim_018",
+      "claim": "Llama 4 Maverick baseline inference specifications: $0.31 per 1M input tokens, $0.85 per 1M output tokens via Artificial Analysis",
+      "topic": "Cloud Infrastructure and Pricing",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_confirmed": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://artificialanalysis.ai/models/llama-4-maverick"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Independent benchmark aggregator tracking 11+ cloud providers, but compiled from APIs not official Meta specs"
+    },
+    {
+      "id": "claim_019",
+      "claim": "AWS Bedrock, Google Cloud Vertex AI, Azure, and Alibaba Cloud all offer Llama 4 Maverick and/or Qwen-3.5 as managed services",
+      "topic": "Cloud Infrastructure and Pricing",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_confirmed": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://aws.amazon.com/blogs/aws/llama-4-models-from-meta-now-available-in-amazon-bedrock-serverless/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Verified across multiple official cloud provider documentation"
+    },
+    {
+      "id": "claim_020",
+      "claim": "Llama 4 Maverick via Groq: 350 tokens per second throughput with ~4,900 ms latency",
+      "topic": "Cloud Infrastructure and Pricing",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_confirmed": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://console.groq.com/docs/changelog"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Groq specialized inference provider specifications from December 1, 2025"
+    },
+    {
+      "id": "claim_021",
+      "claim": "Qwen-3.5-397B on Cerebras Wafer: >1000 tokens per second",
+      "topic": "Cloud Infrastructure and Pricing",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_confirmed": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.deeplearning.ai/the-batch/qwen-announces-new-open-weights-flagship-update/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Specialized hardware performance, lacks detail on context length and batch size"
+    },
+    {
+      "id": "claim_022",
+      "claim": "No official MLPerf or standardized LMSys Chatbot Arena inference speed benchmarks published for Qwen-3.5-397B or Llama 4 Maverick as of February 2026",
+      "topic": "Cloud Infrastructure and Pricing",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_confirmed": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://huggingface.co/spaces/lmarena-ai/lmarena-leaderboard"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Standard benchmarking platforms measure capability/quality, not infrastructure performance metrics"
+    },
+    {
+      "id": "claim_023",
+      "claim": "Qwen-3.5-397B is available via API pricing on Alibaba Cloud but specific latency/throughput metrics not publicly disclosed",
+      "topic": "Cloud Infrastructure and Pricing",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_confirmed": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.alibabacloud.com/help/en/model-studio/models"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Alibaba Cloud provides token pricing ($0.115 per 1M input tokens) but no quantitative performance metrics"
+    }
+  ],
+  "contradictions": [
+    {
+      "claim_a": "claim_003",
+      "claim_b": "claim_004",
+      "description": "Llama 4 Maverick context window size - 1 million vs 512,000 tokens",
+      "resolution": "unresolved - suggests specification variations across deployment platforms or versioning differences"
+    }
+  ],
+  "knowledge_gaps": [
+    {
+      "gap": "Official MMLU, ARC, and TruthfulQA benchmark scores for both Qwen-3.5 and Llama 4 Maverick",
+      "priority": "high",
+      "related_topic": "Performance Benchmarks"
+    },
+    {
+      "gap": "Direct inference latency and cost-per-token comparisons between Qwen-3.5 MoE and Llama 4 on identical hardware",
+      "priority": "high",
+      "related_topic": "Cloud Infrastructure and Pricing"
+    },
+    {
+      "gap": "Exact VRAM requirements for Qwen-3.5-397B vs Llama 4 Maverick at different batch sizes",
+      "priority": "high",
+      "related_topic": "Technical Architecture"
+    },
+    {
+      "gap": "Official inference performance benchmarks from Meta and Alibaba for their respective models",
+      "priority": "high",
+      "related_topic": "Cloud Infrastructure and Pricing"
+    },
+    {
+      "gap": "Standardized comparison methodology for inference performance across cloud providers",
+      "priority": "medium",
+      "related_topic": "Cloud Infrastructure and Pricing"
+    },
+    {
+      "gap": "Market share distribution between different open-source models in early 2026",
+      "priority": "medium",
+      "related_topic": "Enterprise Adoption"
+    },
+    {
+      "gap": "Complete benchmark disclosures in official technical reports from Alibaba, Google, and Microsoft",
+      "priority": "medium",
+      "related_topic": "Performance Benchmarks"
+    },
+    {
+      "gap": "Context length effects on latency for both models with stratified measurements",
+      "priority": "medium",
+      "related_topic": "Cloud Infrastructure and Pricing"
+    },
+    {
+      "gap": "Hardware-specific optimization analysis for MoE routing efficiency across different GPU architectures",
+      "priority": "low",
+      "related_topic": "Technical Architecture"
+    }
+  ],
+  "synthesis_stats": {
+    "total_claims": 23,
+    "active_claims": 23,
+    "superseded_claims": 0,
+    "disputed_claims": 2,
+    "contradictions_found": 1,
+    "topics_covered": 5,
+    "outputs_synthesized": 5,
+    "synthesis_date": "2026-02-23"
+  },
+  "_synthesized_at": "2026-02-23T15:42:08.360628+00:00",
+  "_domain": "ai",
+  "_outputs_count": 5
+}

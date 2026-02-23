@@ -1264,3 +1264,99 @@ class TestValidator:
         assert "memory" in result
         assert "strategies" in result
         assert "costs" in result
+
+
+class TestScheduler:
+    """Tests for smart scheduler — no API calls."""
+
+    def test_create_plan_basic(self, tmp_memory, tmp_strategy, tmp_logs):
+        """Plan should be generated with allocation."""
+        from scheduler import create_plan
+        
+        # Create a test domain with data
+        domain_dir = os.path.join(tmp_memory, "test")
+        os.makedirs(domain_dir)
+        record = {
+            "timestamp": "2026-02-23T10:00:00+00:00",
+            "domain": "test",
+            "question": "Test?",
+            "overall_score": 7,
+            "accepted": True,
+            "research": {"summary": "test"},
+            "critique": {"overall_score": 7},
+        }
+        with open(os.path.join(domain_dir, "out1.json"), "w") as f:
+            json.dump(record, f)
+        
+        with patch("scheduler.MEMORY_DIR", tmp_memory), \
+             patch("scheduler.LOG_DIR", tmp_logs), \
+             patch("memory_store.MEMORY_DIR", tmp_memory), \
+             patch("agents.orchestrator.MEMORY_DIR", tmp_memory), \
+             patch("strategy_store.STRATEGY_DIR", tmp_strategy):
+            plan = create_plan()
+        
+        assert "executable" in plan
+        assert "allocation" in plan
+        assert "estimated_cost" in plan
+        assert "budget_remaining" in plan
+
+    def test_create_plan_no_budget(self, tmp_memory, tmp_logs):
+        """Plan should fail when budget exceeded."""
+        from scheduler import create_plan
+        
+        with patch("scheduler.check_budget", return_value={
+            "within_budget": False, "spent": 10.0, "limit": 5.0, "remaining": -5.0
+        }):
+            plan = create_plan()
+        
+        assert plan["executable"] is False
+        assert "Budget exceeded" in plan["reason"]
+
+    def test_get_recommendations(self, tmp_memory, tmp_strategy, tmp_logs):
+        """Should generate actionable recommendations."""
+        from scheduler import get_recommendations
+        
+        # Create empty domain to trigger recommendation
+        domain_dir = os.path.join(tmp_memory, "emptydom")
+        os.makedirs(domain_dir)
+        
+        with patch("scheduler.MEMORY_DIR", tmp_memory), \
+             patch("scheduler.LOG_DIR", tmp_logs), \
+             patch("memory_store.MEMORY_DIR", tmp_memory), \
+             patch("agents.orchestrator.MEMORY_DIR", tmp_memory), \
+             patch("strategy_store.STRATEGY_DIR", tmp_strategy):
+            recs = get_recommendations()
+        
+        assert isinstance(recs, list)
+        # Should have at least one rec about the empty domain
+        for r in recs:
+            assert "priority" in r
+            assert "message" in r
+            assert "action" in r
+
+    def test_estimate_cost(self, tmp_logs):
+        """Cost estimation should work with log data."""
+        from scheduler import estimate_total_cost, _estimate_cost_per_round
+        
+        # Create cost log
+        cost_log = os.path.join(tmp_logs, "costs.jsonl")
+        entries = [
+            {"timestamp": "2026-02-23T10:00:00+00:00", "date": "2026-02-23",
+             "model": "claude-haiku-4-5-20251001", "agent_role": "researcher",
+             "domain": "test", "estimated_cost_usd": 0.01},
+            {"timestamp": "2026-02-23T10:01:00+00:00", "date": "2026-02-23",
+             "model": "claude-sonnet-4-20250514", "agent_role": "critic",
+             "domain": "test", "estimated_cost_usd": 0.02},
+        ]
+        with open(cost_log, "w") as f:
+            for e in entries:
+                f.write(json.dumps(e) + "\n")
+        
+        with patch("scheduler.LOG_DIR", tmp_logs), \
+             patch("scheduler.MEMORY_DIR", "/nonexistent"):
+            # Should return fallback since domain doesn't have matching data
+            cost = _estimate_cost_per_round("unknown_domain")
+            assert cost > 0  # Should return some estimate
+        
+        result = estimate_total_cost({"test": 3, "other": 2})
+        assert result > 0

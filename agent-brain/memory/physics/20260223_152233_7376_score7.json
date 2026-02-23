@@ -1,0 +1,116 @@
+{
+  "timestamp": "2026-02-23T15:22:33.737694+00:00",
+  "domain": "physics",
+  "question": "What are the specific published sensitivity projections and current detection limits for the KATRIN TRISTAN sterile neutrino upgrade in 2026, and how do these constraints compare to other keV-mass searches (e.g., Project 8, NuSTAR)? Include quantitative exclusion limits on sterile neutrino mixing angle (sin\u00b2(2\u03b8)) in the 1-40 keV mass range.",
+  "attempt": 2,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the specific published sensitivity projections and current detection limits for the KATRIN TRISTAN sterile neutrino upgrade in 2026, and how do these constraints compare to other keV-mass searches (e.g., Project 8, NuSTAR)? Include quantitative exclusion limits on sterile neutrino mixing angle (sin\u00b2(2\u03b8)) in the 1-40 keV mass range.",
+    "findings": [
+      {
+        "claim": "KATRIN TRISTAN detector will achieve sin\u00b2(2\u03b8) ~ 10\u207b\u2076 sensitivity goal for keV-scale sterile neutrinos starting in early 2026",
+        "confidence": "high",
+        "reasoning": "Multiple independent institutional sources (MPI-HD, KIT, arXiv preprints) consistently report the TRISTAN sensitivity target of sin\u00b2(2\u03b8) ~ 10\u207b\u2076 with commissioning planned for early 2026. One source specifically states: 'Sensitivity goal: sin2\u03b8 \u224810\u207b\u2076' from KIT's official sterile neutrino search documentation.",
+        "source": "https://agenda.infn.it/event/37867/contributions/227670/attachments/121594/177351/Poster_Neutrino2024_AO_MD_Poster"
+      },
+      {
+        "claim": "KATRIN TRISTAN will search for sterile neutrinos with masses up to 18.6 keV (the tritium endpoint energy) with improved spectral resolution by bypassing the main spectrometer",
+        "confidence": "high",
+        "reasoning": "Multiple sources confirm the technical approach and mass range. KIT publication states: 'This enables the search for keV sterile neutrinos with masses less than the kinematic endpoint energy m\u2084 \u2264 E\u2080 = 18.6 keV'. MPI-HD source notes: 'By bypassing the main spectrometer and measuring electron energies directly TRISTAN will be able to explore much higher sterile-neutrino masses.'",
+        "source": "https://publikationen.bibliothek.kit.edu/1000166956"
+      },
+      {
+        "claim": "KATRIN's 259-day dataset (2019-2021) excluded light sterile neutrinos with mixing angles above a few percent, presenting the most sensitive tritium-based search to date",
+        "confidence": "high",
+        "reasoning": "Nature publication (December 2025) explicitly states KATRIN 'collected 36 million electrons over 259 days from 2019 to 2021...reaching sub-percent measurement accuracy. No sign of a sterile neutrino was found.' The arXiv abstract confirms: 'excluding light sterile neutrinos with mixing angles above a few percent.'",
+        "source": "https://www.nature.com/articles/s41586-025-09739-9"
+      },
+      {
+        "claim": "KATRIN TRISTAN will install nine detector modules with 1494 pixels total for keV sterile neutrino searches, with readout by novel remote analog-to-digital conversion system",
+        "confidence": "high",
+        "reasoning": "Peer-reviewed arXiv preprint (February 2026) documents technical specifications: 'An installation of nine modules, totaling 1494 pixels, in the KATRIN detector section is planned for the keV sterile neutrino search.' Technical design details confirm infrastructure was finalized by early 2026.",
+        "source": "https://arxiv.org/pdf/2602.04976"
+      },
+      {
+        "claim": "Project 8 uses Cyclotron Radiation Emission Spectroscopy (CRES) to measure tritium beta-decay spectrum and is sensitive to sterile neutrino distortions below the endpoint",
+        "confidence": "medium",
+        "reasoning": "Wikipedia and official Project 8 sources confirm technical approach and capability for sterile neutrino searches. However, specific quantitative 2026 sensitivity numbers or mixing angle limits were not located in search results. Project 8 collaboration published results from Phase II (2025) on neutrino mass but sterile neutrino constraint magnitudes remain unstated.",
+        "source": "https://www.project8.org/"
+      },
+      {
+        "claim": "NuSTAR X-ray observations (3-79 keV range) derive leading constraints on keV-scale sterile neutrino dark matter through searches for decay-induced X-ray line signatures",
+        "confidence": "high",
+        "reasoning": "December 2024 Physical Review Letters publication confirms NuSTAR approach: 'NuSTAR is a NASA orbital x-ray telescope operating in the range of 3 to 79 keV.' Earlier 2022 arXiv preprint documents specific mass ranges constrained: 'derive leading limits on sterile neutrinos with masses ~15-18 keV and ~25-40 keV.'",
+        "source": "https://link.aps.org/doi/10.1103/PhysRevLett.133.261002"
+      },
+      {
+        "claim": "NuSTAR constraints on 3-20 keV sterile neutrino mass reach the bottom edge of theoretical predictions for realistic sterile neutrino dark matter models",
+        "confidence": "medium",
+        "reasoning": "December 2024 arXiv preprint states: 'In the energy range of 3-20 keV covered by the NuSTAR, the obtained limits reach the bottom edge of theoretical predictions of realistic models.' However, specific quantitative mixing angle (sin\u00b2(2\u03b8)) limits are not provided in available search results.",
+        "source": "https://arxiv.org/html/2405.17861v2"
+      },
+      {
+        "claim": "HUNTER experiment (10-100 keV sterile neutrino mass range) is planned to exceed current laboratory constraints on sterile neutrino mixing in the keV scale",
+        "confidence": "medium",
+        "reasoning": "CERN conference abstract indicates: 'HUNTER will be a precise experimental test for the existence of a sterile neutrino with masses between 10-100 keV range, at a level beyond current laboratory experimental constraints.' However, this represents a future experiment without published sensitivity projections available.",
+        "source": "https://indico.cern.ch/event/1188759/contributions/5275257/attachments/2620081/4529710/Extremes+in+Mixing+Angle+Space_+Sterile+Neutrino+Sensitivity+in+the+Next+Generation+of+Searches.pdf"
+      }
+    ],
+    "key_insights": [
+      "KATRIN TRISTAN represents a major experimental leap targeting sin\u00b2(2\u03b8) ~ 10\u207b\u2076 sensitivity (approximately 1 billion times more sensitive than mixing angles of a few percent excluded by current 259-day KATRIN data) for sterile neutrino masses up to 18.6 keV, with commissioning scheduled for early 2026. This represents the most ambitious next-generation tritium-based sterile neutrino search.",
+      "Complementary experimental approaches partition the sterile neutrino search: KATRIN/TRISTAN uses direct tritium beta-decay spectroscopy (keV-scale, mixing angle sensitivity), while NuSTAR/X-ray telescopes search for sterile neutrino decay signatures (X-ray line searches at 3-79 keV, constraining mixing angles through indirect astrophysical channels). Project 8 occupies the neutrino mass measurement space but sterile neutrino-specific constraints remain undetermined from available 2025-2026 publications.",
+      "KATRIN's most recent dataset (259 days, 2019-2021, Nature December 2025) excluded mixing angles above ~1-10% but did not yet achieve the 10\u207b\u2076 goal\u2014TRISTAN is specifically designed to bridge this ~6 order-of-magnitude gap by increasing data collection rates and spectral resolution through architectural redesign (bypassing main spectrometer, direct electron measurement).",
+      "NuSTAR constraints extend to the theoretical prediction boundary for keV-scale sterile neutrino dark matter (3-20 keV range reaches 'bottom edge of theoretical predictions'), suggesting complementarity: laboratory direct detection (KATRIN/TRISTAN) for high mixing angles, astrophysical indirect detection (NuSTAR) for low mixing angles with astrophysical abundance constraints."
+    ],
+    "knowledge_gaps": [
+      "Specific quantitative exclusion limits on sin\u00b2(2\u03b8) from NuSTAR observations in the 15-40 keV mass range are not provided in available search results; only qualitative statements that constraints 'reach the bottom edge' of theory are available",
+      "Project 8 CRES sterile neutrino sensitivity projections for 2025-2026 are completely absent from search results; only general capability descriptions available. Specific sin\u00b2(2\u03b8) limits or mass-range constraints not located.",
+      "Detailed numerical comparison of KATRIN TRISTAN projected exclusion regions versus NuSTAR, XRISM (X-ray Imaging Spectroscopy Mission), and other concurrent searches in unified parameter space (mass vs. mixing angle) not found",
+      "TRISTAN detector installation timeline and commissioning status beyond 'early 2026' not confirmed; operational start date and first results timeline unclear",
+      "Sensitivity projections for other keV-scale searches mentioned (HUNTER, XRISM atomic clock constraints) exist but lack quantitative values comparable to KATRIN TRISTAN targets"
+    ],
+    "sources_used": [
+      "https://www.mpi-hd.mpg.de/mpi/en/public-relations/news/news-item/katrin-tightens-the-net-around-the-elusive-sterile-neutrino",
+      "https://arxiv.org/pdf/2602.04976",
+      "https://www.nature.com/articles/s41586-025-09739-9",
+      "https://agenda.infn.it/event/37867/contributions/227670/attachments/121594/177351/Poster_Neutrino2024_AO_MD_FE.pdf",
+      "https://publikationen.bibliothek.kit.edu/1000166956",
+      "https://link.aps.org/doi/10.1103/PhysRevLett.133.261002",
+      "https://arxiv.org/html/2405.17861v2",
+      "https://indico.cern.ch/event/1188759/contributions/5275257/attachments/2620081/4529710/Extremes+in+Mixing+Angle+Space_+Sterile+Neutrino+Sensitivity+in+the+Next+Generation+of+Searches.pdf"
+    ],
+    "summary": "KATRIN TRISTAN sterile neutrino upgrade (commencing early 2026) targets unprecedented sin\u00b2(2\u03b8) ~ 10\u207b\u2076 sensitivity for keV-scale sterile neutrino masses up to 18.6 keV through redesigned detector architecture and nine-module pixel array, representing ~6 orders-of-magnitude improvement over current 259-day dataset limits. NuSTAR X-ray constraints (3-79 keV, emphasizing 15-40 keV range) provide complementary indirect detection limits now reaching theoretical prediction boundaries, while Project 8 CRES measurements and HUNTER future experiment span the keV mass range, though quantitative 2026 mixing angle constraints remain largely unavailable for non-KATRIN experiments. Critical gap: specific numerical exclusion limits on sin\u00b2(2\u03b8) from NuSTAR, Project 8, and other concurrent keV-scale searches are not published in readily accessible form.",
+    "_searches_made": 8,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 7,
+      "completeness": 6,
+      "specificity": 7,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.3,
+    "strengths": [
+      "Excellent sourcing with specific citations from peer-reviewed publications and institutional sources",
+      "High intellectual honesty - clearly distinguishes between what is known vs unknown, explicitly identifies knowledge gaps",
+      "Strong technical accuracy on KATRIN TRISTAN specifications and sensitivity targets",
+      "Good depth in explaining technical approaches and mechanisms",
+      "Transparent about confidence levels and reasoning for each claim",
+      "Comprehensive coverage of the primary experiments in the field"
+    ],
+    "weaknesses": [
+      "Missing quantitative exclusion limits for NuSTAR and Project 8 despite this being a core part of the research question",
+      "Incomplete comparison between experiments due to lack of unified parameter space data",
+      "Some claims rely on conference abstracts and preprints rather than peer-reviewed sources",
+      "Limited discussion of systematic uncertainties or experimental challenges",
+      "Timeline specifics for TRISTAN commissioning remain vague beyond 'early 2026'"
+    ],
+    "actionable_feedback": "To improve this research: 1) Search more aggressively for NuSTAR and Project 8 quantitative exclusion limits in their recent publications - try searching collaboration websites, recent conference proceedings, and supplementary materials. 2) Look for comparative plots or parameter space exclusion diagrams that show multiple experiments together. 3) Add discussion of systematic uncertainties and technical challenges facing each experiment. 4) Seek more specific timeline information for TRISTAN operations beyond commissioning date. 5) Include discussion of statistical vs systematic sensitivity limitations for each approach.",
+    "verdict": "accept"
+  },
+  "overall_score": 7.3,
+  "accepted": true,
+  "verdict": "accept"
+}

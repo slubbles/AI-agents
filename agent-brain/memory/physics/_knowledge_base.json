@@ -1,0 +1,340 @@
+{
+  "domain_summary": "Dark matter is an invisible, hypothetical form of matter that comprises approximately 80% of all matter and 30.1% of the universe's total matter-energy content, detected only through gravitational effects. The three leading theoretical candidates are WIMPs (1 GeV/c\u00b2 - 10\u2075 GeV/c\u00b2 mass range, weak nuclear interactions), axions (microeV mass, solving the strong CP problem via Peccei-Quinn mechanism), and sterile neutrinos (keV mass range, gravitational-only interactions). As of 2025-2026, direct detection experiments have dramatically improved sensitivity with LUX-ZEPLIN achieving 2.2\u00d710\u207b\u2074\u2078 cm\u00b2 WIMP cross-section limits and ADMX excluding specific axion mass ranges, while axions are increasingly favored as the leading candidate due to lack of WIMP detection success. The field has reached the neutrino floor for WIMP detection, driving investment toward alternative candidate searches.",
+  "topics": [
+    {
+      "name": "Dark Matter Fundamentals",
+      "subtopics": [
+        "definition",
+        "composition",
+        "detection_principles",
+        "cosmic_evolution"
+      ]
+    },
+    {
+      "name": "WIMP Dark Matter",
+      "subtopics": [
+        "mass_ranges",
+        "interaction_mechanisms",
+        "thermal_relic_abundance",
+        "detection_limits"
+      ]
+    },
+    {
+      "name": "Axion Dark Matter",
+      "subtopics": [
+        "peccei_quinn_mechanism",
+        "photon_coupling",
+        "mass_predictions",
+        "experimental_exclusions"
+      ]
+    },
+    {
+      "name": "Sterile Neutrinos",
+      "subtopics": [
+        "kev_mass_range",
+        "gravitational_interactions",
+        "detection_challenges"
+      ]
+    },
+    {
+      "name": "Experimental Constraints",
+      "subtopics": [
+        "direct_detection",
+        "exclusion_limits",
+        "sensitivity_improvements",
+        "neutrino_floor"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_001",
+      "claim": "Dark matter is an invisible, hypothetical form of matter that does not interact with light or other electromagnetic radiation",
+      "topic": "Dark Matter Fundamentals",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_confirmed": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Dark_matter"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Consistent definition across multiple authoritative sources"
+    },
+    {
+      "id": "claim_002",
+      "claim": "Dark matter makes up approximately 80% of all matter in the universe",
+      "topic": "Dark Matter Fundamentals",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_confirmed": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://news.northeastern.edu/2026/01/26/dark-matter-map/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Multiple sources cite similar figures"
+    },
+    {
+      "id": "claim_003",
+      "claim": "Dark matter comprises 30.1% of the total matter-energy composition of the universe (with dark energy at 69.4% and ordinary matter at 0.5%)",
+      "topic": "Dark Matter Fundamentals",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_confirmed": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.britannica.com/science/dark-matter"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Specific percentage breakdown from peer-reviewed reference"
+    },
+    {
+      "id": "claim_004",
+      "claim": "Dark matter's presence is detected through its gravitational effects rather than direct observation",
+      "topic": "Dark Matter Fundamentals",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_confirmed": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.britannica.com/science/dark-matter"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Foundational principle of dark matter identification"
+    },
+    {
+      "id": "claim_005",
+      "claim": "Dark matter and ordinary matter co-existed and evolved together throughout cosmic history",
+      "topic": "Dark Matter Fundamentals",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_confirmed": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://news.ucr.edu/articles/2026/01/26/james-webb-space-telescope-reveals-new-details-about-dark-matter-universe"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Based on recent James Webb Space Telescope observations from January 2026"
+    },
+    {
+      "id": "claim_006",
+      "claim": "WIMPs (Weakly Interacting Massive Particles) have predicted mass ranges from 1 GeV/c\u00b2 to 10\u2075 GeV/c\u00b2 with typical focus on 100 GeV/c\u00b2 to TeV scale",
+      "topic": "WIMP Dark Matter",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_confirmed": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://arxiv.org/pdf/1707.06277",
+        "https://slac.stanford.edu/econf/C1307292/docs/CosmicFrontier/WIMPDirect-24.pdf"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Mass scale emerges naturally from electroweak symmetry breaking"
+    },
+    {
+      "id": "claim_007",
+      "claim": "WIMPs interact via the weak nuclear force with interaction cross sections ranging from 10\u207b\u2074\u00b9 to 10\u207b\u2075\u00b9 cm\u00b2, and require self-annihilation cross sections of approximately 3\u00d710\u207b\u00b2\u2076 cm\u00b3/s to achieve correct dark matter abundance",
+      "topic": "WIMP Dark Matter",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_confirmed": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Weakly_interacting_massive_particle"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Well-established theoretical prediction linked to thermal relic abundance"
+    },
+    {
+      "id": "claim_008",
+      "claim": "Axions are predicted to have very low masses in the microeV range (much smaller than other candidates) and couple to photons and gluons through the Peccei-Quinn mechanism, which solves the strong CP problem in QCD",
+      "topic": "Axion Dark Matter",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_confirmed": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Peccei%E2%80%93Quinn_theory",
+        "https://en.wikipedia.org/wiki/Axion"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Peccei-Quinn mechanism established in 1977"
+    },
+    {
+      "id": "claim_009",
+      "claim": "Sterile neutrinos are predicted to have keV/c\u00b2 mass range (1-100 keV) and interact extremely weakly through gravity only, making them distinct from active neutrinos",
+      "topic": "Sterile Neutrinos",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_confirmed": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.mpi-hd.mpg.de/mpi/en/public-relations/news/news-item/katrin-tightens-the-net-around-the-elusive-sterile-neutrino"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "KATRIN TRISTAN upgrade operational 2026 targets this mass range"
+    },
+    {
+      "id": "claim_010",
+      "claim": "As of 2025-2026, axions are increasingly cited as the leading dark matter candidate, with some physicists calling it 'the most likely dark matter candidate today,' due to lack of confirmed WIMP detection signals",
+      "topic": "Axion Dark Matter",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_confirmed": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://medium.com/@MarxismLeninism/-b1973f00de36"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Direct detection experiments reached neutrino floor without WIMP confirmation"
+    },
+    {
+      "id": "claim_011",
+      "claim": "Direct detection of WIMPs has entered the 'neutrino-floor era' as of 2025, where solar neutrino backgrounds limit further sensitivity improvements with current technology",
+      "topic": "Experimental Constraints",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_confirmed": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://arxiv.org/pdf/2510.17473"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Reported at ICRC 2025 conference by XENONnT and PandaX-4T"
+    },
+    {
+      "id": "claim_012",
+      "claim": "XENONnT achieves spin-independent WIMP-nucleon cross section limit of 1.7\u00d710\u207b\u2074\u2077 cm\u00b2 at 30 GeV/c\u00b2 WIMP mass (90% CL) with 3.1 tonne-year exposure",
+      "topic": "Experimental Constraints",
+      "confidence": "high",
+      "status": "superseded",
+      "first_seen": "2026-02-23T15:19:35.037302+00:00",
+      "last_confirmed": "2026-02-23T15:19:35.037302+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://arxiv.org/pdf/2406.13638"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Superseded by LUX-ZEPLIN results"
+    },
+    {
+      "id": "claim_013",
+      "claim": "LUX-ZEPLIN (LZ) sets most stringent spin-independent WIMP limits of 2.2\u00d710\u207b\u2074\u2078 cm\u00b2 at 43 GeV/c\u00b2 WIMP mass (90% CL) as of December 2025",
+      "topic": "Experimental Constraints",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:19:35.037302+00:00",
+      "last_confirmed": "2026-02-23T15:19:35.037302+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://indico.cern.ch/event/1493037/contributions/6558024/",
+        "https://lz.lbl.gov/"
+      ],
+      "supersedes": "claim_012",
+      "conflicted_by": null,
+      "notes": "~20-fold improvement over XENONnT sensitivity"
+    },
+    {
+      "id": "claim_014",
+      "claim": "ADMX excludes QCD axion parameter space in frequency range 1.10-1.31 GHz (4.54-5.41 \u03bceV axion mass) for plausible QCD axion models (2025 results)",
+      "topic": "Experimental Constraints",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:19:35.037302+00:00",
+      "last_confirmed": "2026-02-23T15:19:35.037302+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://arxiv.org/html/2504.07279v2"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Published in Physical Review Letters 2025"
+    },
+    {
+      "id": "claim_015",
+      "claim": "ADMX also excludes Dine-Fischler-Srednicki-Zhitnitsky (DFSZ) axions between 3.27-3.31 \u03bceV at 90% confidence level (2025 results)",
+      "topic": "Experimental Constraints",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:19:35.037302+00:00",
+      "last_confirmed": "2026-02-23T15:19:35.037302+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.134.111002"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "DFSZ model represents extended axion framework with different coupling constants"
+    }
+  ],
+  "contradictions": [],
+  "knowledge_gaps": [
+    {
+      "gap": "The exact composition and identity of dark matter particles remains unknown with no direct detection confirmed",
+      "priority": "high",
+      "related_topic": "Dark Matter Fundamentals"
+    },
+    {
+      "gap": "Specific 2026 SuperCDMS sensitivity numbers and low-mass WIMP cross-section limits not quantified",
+      "priority": "medium",
+      "related_topic": "Experimental Constraints"
+    },
+    {
+      "gap": "Current 2026 experimental constraints on sterile neutrino parameter space largely unexplored despite KATRIN TRISTAN upgrade",
+      "priority": "high",
+      "related_topic": "Sterile Neutrinos"
+    },
+    {
+      "gap": "Specific coupling constants and detailed interaction mechanisms for axion-photon and axion-gluon couplings not fully quantified",
+      "priority": "medium",
+      "related_topic": "Axion Dark Matter"
+    },
+    {
+      "gap": "Impact of neutrino fog on future WIMP discovery potential and fundamental physics limitations not addressed",
+      "priority": "high",
+      "related_topic": "Experimental Constraints"
+    },
+    {
+      "gap": "Combined parameter space visualization showing how different experiments complement/overlap not provided",
+      "priority": "medium",
+      "related_topic": "Experimental Constraints"
+    }
+  ],
+  "synthesis_stats": {
+    "total_claims": 15,
+    "active_claims": 14,
+    "superseded_claims": 1,
+    "disputed_claims": 0,
+    "contradictions_found": 0,
+    "topics_covered": 5,
+    "outputs_synthesized": 3,
+    "synthesis_date": "2026-02-23"
+  },
+  "_synthesized_at": "2026-02-23T15:20:30.427311+00:00",
+  "_domain": "physics",
+  "_outputs_count": 3
+}

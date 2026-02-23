@@ -68,6 +68,7 @@ from utils.retry import retry_api_call, is_retryable
 from analytics import display_analytics, search_memory, display_search_results, full_report
 from validator import display_validation
 from domain_seeder import get_seed_question, get_seed_questions, has_curated_seeds, list_available_domains
+from scheduler import create_plan, display_plan, get_recommendations, display_recommendations
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
@@ -325,6 +326,10 @@ def main():
     parser.add_argument("--search", metavar="QUERY", help="Search across all memory for matching outputs")
     parser.add_argument("--validate", action="store_true", help="Validate data integrity across memory, strategies, costs")
     parser.add_argument("--seed", action="store_true", help="Show seed questions for a domain (or list available domains)")
+    parser.add_argument("--plan", action="store_true", help="Show recommended research plan without running")
+    parser.add_argument("--run-plan", action="store_true", help="Execute the recommended research plan")
+    parser.add_argument("--aggressive", action="store_true", help="Use more budget per cycle (with --plan or --run-plan)")
+    parser.add_argument("--recommend", action="store_true", help="Show prioritized recommendations for system improvement")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -398,6 +403,23 @@ def main():
         return
     if args.seed:
         _show_seeds(args.domain)
+        return
+    if args.plan:
+        plan = create_plan(aggressive=args.aggressive)
+        display_plan(plan)
+        return
+    if args.run_plan:
+        plan = create_plan(aggressive=args.aggressive)
+        display_plan(plan)
+        if plan["executable"]:
+            print("  Executing plan...\n")
+            target = [a["domain"] for a in plan["allocation"]]
+            total = plan["total_rounds"]
+            _run_orchestrate(target, total)
+        return
+    if args.recommend:
+        recs = get_recommendations()
+        display_recommendations(recs)
         return
 
     if args.evolve:

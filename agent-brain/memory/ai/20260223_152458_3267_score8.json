@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-02-23T15:24:58.326772+00:00",
+  "domain": "ai",
+  "question": "What are the verified MMLU, ARC, and TruthfulQA benchmark scores for Qwen-3.5-397B and Llama 4 Maverick as of February 2026, and what is the official source for these measurements?",
+  "attempt": 2,
+  "strategy_version": "v001",
+  "research": {
+    "question": "What are the verified MMLU, ARC, and TruthfulQA benchmark scores for Qwen-3.5-397B and Llama 4 Maverick as of February 2026, and what is the official source for these measurements?",
+    "findings": [
+      {
+        "claim": "Qwen-3.5-397B was officially released by Alibaba on February 16-17, 2026",
+        "confidence": "high",
+        "reasoning": "Multiple independent sources confirm official release: Alibaba Cloud official blog (alibabacloud.com, Feb 17), Reuters (Feb 16), CNBC (Feb 17), and GitHub QwenLM official repository confirm release date and model architecture (397B MoE with 17B active parameters)",
+        "source": "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894"
+      },
+      {
+        "claim": "Llama 4 Maverick was officially released by Meta in April 2025 (not February 2026)",
+        "confidence": "high",
+        "reasoning": "Official Meta AI blog confirms April 5, 2025 release date. Wikipedia, official llama.com, Hugging Face, and arXiv papers (Jan 2026) all consistently cite April 2025 release. This model predates Qwen-3.5 by 10 months.",
+        "source": "https://ai.meta.com/blog/llama-4-multimodal-intelligence/"
+      },
+      {
+        "claim": "Llama 4 Maverick MMLU Pro score is 59.6 (not standard MMLU)",
+        "confidence": "medium",
+        "reasoning": "Groq Console official documentation lists 'MMLU Pro: 59.6' in model specifications. However, this is MMLU Pro (harder variant), not standard MMLU. ArXiv paper references official Llama 4 model card but doesn't provide raw benchmark tables in accessible text.",
+        "source": "https://console.groq.com/docs/model/meta-llama/llama-4-maverick-17b-128e-instruct"
+      },
+      {
+        "claim": "Llama 4 Maverick standard MMLU score reported as 83.2% in third-party sources",
+        "confidence": "low",
+        "reasoning": "Multiple secondary sources (collabnix.com, datalearner.com) cite 83.2% MMLU for Llama 4 Maverick, but these are NOT official Meta sources. No official Meta technical report with standard MMLU score accessible.",
+        "source": "https://collabnix.com/deep-technical-analysis-of-llama-4-scout-maverick-and-behemoth/"
+      },
+      {
+        "claim": "Qwen-3.5-397B official benchmark scores from Alibaba NOT publicly available in verified sources",
+        "confidence": "high",
+        "reasoning": "Despite extensive searching, no official Alibaba technical report, model card on Hugging Face, or GitHub documentation contains specific MMLU, ARC, or TruthfulQA scores. Alibaba blog announcement (Feb 17) mentions 'matching or exceeding GPT-5.2' qualitatively but provides no numerical scores. EQBench3 and other third-party benchmarks exist but are secondary sources.",
+        "source": "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894"
+      },
+      {
+        "claim": "Qwen-3.5-397B scores reported in secondary sources: MMLU-Pro (matching/exceeding), LiveCodeBench 83.6, AIME26 91.3",
+        "confidence": "low",
+        "reasoning": "Sources like cometapi.com, digitalapplied.com claim these scores, but these are SECONDARY aggregation sites, NOT official Alibaba sources. No direct link to official benchmark tables. LiveCodeBench and AIME are not standard MMLU/ARC/TruthfulQA benchmarks.",
+        "source": "https://www.cometapi.com/qwen-3-5-on-lunar-new-year-\u2014-does-it-beat-the-closed-source-top-tier-in-2026/"
+      },
+      {
+        "claim": "No official Llama 4 Maverick ARC or TruthfulQA benchmark scores located in primary sources",
+        "confidence": "high",
+        "reasoning": "Meta's official blog post and Hugging Face model card focus on MMLU Pro, MATH, HumanEval, and GSM8K. ARC and TruthfulQA are conspicuously absent from official Meta documentation accessible through standard searches.",
+        "source": "https://ai.meta.com/blog/llama-4-multimodal-intelligence/"
+      },
+      {
+        "claim": "No official Qwen-3.5-397B ARC or TruthfulQA benchmark scores located",
+        "confidence": "high",
+        "reasoning": "Alibaba official announcement and available public repositories do not contain ARC or TruthfulQA scores. Only MMLU-Pro mentioned qualitatively.",
+        "source": "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894"
+      }
+    ],
+    "key_insights": [
+      "Both models exist and were officially released, but from different time periods: Llama 4 Maverick (April 2025) predates Qwen-3.5-397B (February 2026) by 10 months",
+      "Official benchmark disclosure is asymmetric: Meta discloses MMLU Pro (59.6) and other metrics through model cards, while Alibaba has not published official numerical scores for standard benchmarks despite public release",
+      "Standard MMLU, ARC, and TruthfulQA scores from official sources are NOT available for either model\u2014only third-party aggregations and secondary sources report these metrics",
+      "MMLU Pro (harder variant) is reported more frequently than standard MMLU, suggesting models may be optimized for newer benchmark variants rather than legacy standards"
+    ],
+    "knowledge_gaps": [
+      "Official Qwen-3.5-397B MMLU (standard), ARC, TruthfulQA scores\u2014Alibaba has not published these in accessible technical documentation",
+      "Official Llama 4 Maverick MMLU (standard, non-Pro), ARC, TruthfulQA scores\u2014Meta does not appear to report these benchmarks in official documentation",
+      "Whether secondary sources citing specific scores (e.g., Llama 4 Maverick MMLU 83.2%) are based on independent evaluation or unverified claims",
+      "Exact evaluation methodology used by each organization (e.g., did Alibaba use same MMLU benchmark version as Llama 4?)",
+      "TruthfulQA scores for either model\u2014this benchmark appears absent from all found sources"
+    ],
+    "sources_used": [
+      "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894",
+      "https://www.reuters.com/world/china/alibaba-unveils-new-qwen35-model-agentic-ai-era-2026-02-16/",
+      "https://ai.meta.com/blog/llama-4-multimodal-intelligence/",
+      "https://console.groq.com/docs/model/meta-llama/llama-4-maverick-17b-128e-instruct",
+      "https://arxiv.org/html/2601.11659v1",
+      "https://collabnix.com/deep-technical-analysis-of-llama-4-scout-maverick-and-behemoth/",
+      "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct"
+    ],
+    "summary": "Both Qwen-3.5-397B (released Feb 16-17, 2026) and Llama 4 Maverick (released April 5, 2025) officially exist, but OFFICIAL verified benchmark scores for MMLU, ARC, and TruthfulQA are NOT available from primary sources. Meta discloses only MMLU Pro (59.6) for Maverick; Alibaba has published no numerical benchmark scores. Third-party sources report MMLU metrics (Llama: 83.2%, Qwen: claimed parity with GPT-5.2) but these are secondary aggregations without official backing. TruthfulQA scores are absent from all found sources for both models.",
+    "_searches_made": 13,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 7,
+      "completeness": 8,
+      "specificity": 8,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.9,
+    "strengths": [
+      "Excellent source verification with direct links to official documentation",
+      "Clear distinction between primary sources (official company releases) and secondary sources (third-party aggregations)",
+      "Honest acknowledgment of what could not be found rather than fabricating data",
+      "Proper confidence levels assigned to different claims based on source quality",
+      "Comprehensive coverage of the search process with 13 searches documented",
+      "Good chronological accuracy distinguishing release dates of different models"
+    ],
+    "weaknesses": [
+      "Could have explored alternative benchmark naming conventions or versions more systematically",
+      "Limited discussion of why these specific benchmarks might be selectively reported or omitted",
+      "Could have better explained the significance of MMLU Pro vs standard MMLU differences"
+    ],
+    "actionable_feedback": "For future research: 1) When official scores are unavailable, consider reaching out directly to model creators or checking academic papers that may have independently evaluated these models, 2) Explore whether benchmark organizations (like those behind MMLU, ARC, TruthfulQA) maintain their own leaderboards with these models, 3) Consider investigating if these models use different evaluation protocols that might explain the absence of standard benchmark reporting, 4) When secondary sources cite specific numbers, attempt to trace back to the ultimate source of those claims more rigorously",
+    "verdict": "accept"
+  },
+  "overall_score": 7.9,
+  "accepted": true,
+  "verdict": "accept"
+}
