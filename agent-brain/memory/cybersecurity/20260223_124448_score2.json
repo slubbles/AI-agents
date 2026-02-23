@@ -49,5 +49,6 @@
     "verdict": "reject"
   },
   "overall_score": 1.5,
-  "verdict": "reject"
+  "verdict": "reject",
+  "accepted": false
 }

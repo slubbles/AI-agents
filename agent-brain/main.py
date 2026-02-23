@@ -36,8 +36,12 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from agents.researcher import research
 from agents.critic import critique
-from agents.meta_analyst import analyze_and_evolve, MIN_OUTPUTS_FOR_ANALYSIS, EVOLVE_EVERY_N
-from config import QUALITY_THRESHOLD, MAX_RETRIES, DEFAULT_DOMAIN, LOG_DIR
+from agents.meta_analyst import analyze_and_evolve
+from config import (
+    QUALITY_THRESHOLD, MAX_RETRIES, DEFAULT_DOMAIN, LOG_DIR,
+    MIN_OUTPUTS_FOR_ANALYSIS, EVOLVE_EVERY_N,
+    MIN_OUTPUTS_FOR_SYNTHESIS, SYNTHESIZE_EVERY_N,
+)
 from memory_store import save_output, load_outputs, get_stats, prune_domain, get_archive_stats
 from strategy_store import (
     get_strategy, get_strategy_status, evaluate_trial,
@@ -51,7 +55,7 @@ from agents.cross_domain import (
     get_transfer_sources,
 )
 from agents.question_generator import generate_questions, get_next_question
-from agents.synthesizer import synthesize, show_knowledge_base, MIN_OUTPUTS_FOR_SYNTHESIS, SYNTHESIZE_EVERY_N
+from agents.synthesizer import synthesize, show_knowledge_base
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:

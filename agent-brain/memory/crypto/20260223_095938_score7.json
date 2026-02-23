@@ -113,5 +113,6 @@
     "verdict": "accept"
   },
   "overall_score": 7.1,
-  "verdict": "accept"
+  "verdict": "accept",
+  "accepted": true
 }

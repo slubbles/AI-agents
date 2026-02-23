@@ -30,21 +30,12 @@ from datetime import date, datetime, timezone
 from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import ANTHROPIC_API_KEY, MODELS
+from config import ANTHROPIC_API_KEY, MODELS, MIN_OUTPUTS_FOR_SYNTHESIS, MAX_OUTPUTS_TO_SYNTHESIZE, SYNTHESIZE_EVERY_N
 from memory_store import load_outputs, save_knowledge_base, load_knowledge_base, get_stats
 from cost_tracker import log_cost
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
-
-# Minimum accepted outputs before synthesis is meaningful
-MIN_OUTPUTS_FOR_SYNTHESIS = 3
-
-# Max outputs to feed into a single synthesis call
-MAX_OUTPUTS_TO_SYNTHESIZE = 25
-
-# Synthesize every N new accepted outputs (avoids over-spending)
-SYNTHESIZE_EVERY_N = 5
 
 
 def _build_synthesis_prompt() -> str:

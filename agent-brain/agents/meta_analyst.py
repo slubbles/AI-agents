@@ -20,22 +20,13 @@ from datetime import date
 from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import ANTHROPIC_API_KEY, MODELS
+from config import ANTHROPIC_API_KEY, MODELS, MIN_OUTPUTS_FOR_ANALYSIS, MAX_OUTPUTS_TO_ANALYZE, EVOLVE_EVERY_N
 from memory_store import load_outputs
 from strategy_store import get_strategy, save_strategy, list_versions
 from cost_tracker import log_cost
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
-
-# Minimum outputs needed before meta-analysis is meaningful
-MIN_OUTPUTS_FOR_ANALYSIS = 3
-
-# How many recent outputs to analyze (don't overwhelm context)
-MAX_OUTPUTS_TO_ANALYZE = 20
-
-# Only evolve every N new outputs (avoids burning API credits on every run)
-EVOLVE_EVERY_N = 3
 
 
 def _build_meta_prompt() -> str:

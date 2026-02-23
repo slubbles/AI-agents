@@ -42,3 +42,30 @@ DAILY_BUDGET_USD = 2.00  # Hard stop — refuse to run if daily spend exceeds th
 
 # --- Loop ---
 DEFAULT_DOMAIN = "general"
+
+# --- Research ---
+MAX_TOOL_ROUNDS = 5   # max rounds of tool-use before forcing output
+MAX_SEARCHES = 10     # hard cap on total web searches per run
+
+# --- Strategy Evolution ---
+SAFETY_DROP_THRESHOLD = 0.20  # block if new strategy avg drops >20%
+TRIAL_PERIOD = 3              # outputs under trial before evaluation
+
+# --- Meta-Analysis ---
+MIN_OUTPUTS_FOR_ANALYSIS = 3   # min outputs before meta-analysis runs
+MAX_OUTPUTS_TO_ANALYZE = 20    # max recent outputs fed into meta-analyst
+EVOLVE_EVERY_N = 3             # evolve every N new outputs
+
+# --- Synthesis ---
+MIN_OUTPUTS_FOR_SYNTHESIS = 3   # min accepted outputs to trigger synthesis
+MAX_OUTPUTS_TO_SYNTHESIZE = 25  # max outputs in one synthesis call
+SYNTHESIZE_EVERY_N = 5          # synthesize every N new accepted outputs
+
+# --- Cross-Domain Transfer ---
+MIN_OUTPUTS_FOR_TRANSFER = 5    # min outputs for a domain to be a transfer source
+MIN_AVG_SCORE_FOR_TRANSFER = 5.5
+
+# --- Memory Hygiene ---
+MAX_OUTPUTS_PER_DOMAIN = 100          # archive overflow beyond this
+ARCHIVE_REJECTED_AFTER_DAYS = 7       # archive rejected outputs after N days
+ARCHIVE_SCORE_THRESHOLD = 5           # archive outputs below this score after N days
