@@ -1,0 +1,88 @@
+{
+  "timestamp": "2026-02-23T11:17:17.447076+00:00",
+  "domain": "physics",
+  "question": "What is dark matter?",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What is dark matter?",
+    "findings": [
+      {
+        "claim": "Dark matter is an invisible, hypothetical form of matter that does not interact with light or other electromagnetic radiation",
+        "confidence": "high",
+        "reasoning": "Consistent definition across multiple authoritative sources (Wikipedia, NASA, Britannica, CERN)",
+        "source": "https://en.wikipedia.org/wiki/Dark_matter"
+      },
+      {
+        "claim": "Dark matter makes up approximately 80% of all matter in the universe",
+        "confidence": "high",
+        "reasoning": "Multiple sources cite similar figures; NASA and Northeastern University both reference ~80% of matter composition",
+        "source": "https://news.northeastern.edu/2026/01/26/dark-matter-map/"
+      },
+      {
+        "claim": "Dark matter comprises 30.1% of the total matter-energy composition of the universe (with dark energy at 69.4% and ordinary matter at 0.5%)",
+        "confidence": "high",
+        "reasoning": "Specific percentage breakdown cited by Britannica, a peer-reviewed reference source",
+        "source": "https://www.britannica.com/science/dark-matter"
+      },
+      {
+        "claim": "Dark matter's presence is detected through its gravitational effects rather than direct observation",
+        "confidence": "high",
+        "reasoning": "Consistent across all major sources; this is the foundational principle of how dark matter is identified",
+        "source": "https://www.britannica.com/science/dark-matter"
+      },
+      {
+        "claim": "Dark matter and ordinary matter co-existed and evolved together throughout cosmic history",
+        "confidence": "medium",
+        "reasoning": "Based on recent mapping data from James Webb Space Telescope (January 2026); represents current research findings",
+        "source": "https://news.ucr.edu/articles/2026/01/26/james-webb-space-telescope-reveals-new-details-about-dark-matter-universe"
+      }
+    ],
+    "key_insights": [
+      "Dark matter is invisible and undetectable by electromagnetic radiation; we know of it only through gravitational pull",
+      "It represents the dominant form of matter in the universe (~80% of all matter), yet comprises only 30.1% of the universe's total matter-energy when accounting for dark energy",
+      "Recent 2026 observations from the James Webb Space Telescope have enabled high-resolution mapping of dark matter distribution, advancing understanding of its relationship to ordinary matter"
+    ],
+    "knowledge_gaps": [
+      "The exact composition and identity of dark matter particles remains unknown; no direct detection has been confirmed",
+      "The specific mechanisms of how dark matter interacts gravitationally with ordinary matter at different cosmic scales are still under investigation"
+    ],
+    "sources_used": [
+      "https://en.wikipedia.org/wiki/Dark_matter",
+      "https://science.nasa.gov/dark-matter/",
+      "https://www.britannica.com/science/dark-matter",
+      "https://news.northeastern.edu/2026/01/26/dark-matter-map/",
+      "https://news.ucr.edu/articles/2026/01/26/james-webb-space-telescope-reveals-new-details-about-dark-matter-universe",
+      "https://home.cern/science/physics/dark-matter"
+    ],
+    "summary": "Dark matter is an invisible, non-luminous form of matter that constitutes approximately 80% of all matter in the universe, detected only through its gravitational effects on visible matter and galaxy formation. It comprises 30.1% of the universe's total matter-energy content alongside dark energy (69.4%) and ordinary matter (0.5%). Recent 2026 observations from the James Webb Space Telescope have provided unprecedented high-resolution maps showing how dark matter and ordinary matter co-evolved throughout cosmic history.",
+    "_searches_made": 2
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 6,
+      "completeness": 7,
+      "specificity": 7,
+      "intellectual_honesty": 8
+    },
+    "overall_score": 7.2,
+    "strengths": [
+      "Claims are factually accurate and well-sourced from authoritative references",
+      "Good use of specific percentages and numerical data",
+      "Appropriately flags uncertainty with confidence levels and acknowledges knowledge gaps",
+      "Includes recent 2026 research developments from James Webb Space Telescope",
+      "Clear distinction between established facts and ongoing research"
+    ],
+    "weaknesses": [
+      "Limited exploration of detection methods beyond gravitational effects",
+      "Missing discussion of leading dark matter particle candidates (WIMPs, axions, sterile neutrinos)",
+      "No mention of key historical observations that led to dark matter hypothesis (galaxy rotation curves, cosmic microwave background, gravitational lensing)",
+      "Lacks detail on experimental efforts to directly detect dark matter particles"
+    ],
+    "actionable_feedback": "To improve this research: 1) Include specific detection methods and experiments (LUX-ZEPLIN, XENON, particle accelerator searches), 2) Discuss leading theoretical candidates for dark matter particles with their properties, 3) Explain key observational evidence like galaxy rotation curves and bullet cluster observations that support dark matter's existence, 4) Add information about the scale of the problem - why alternative theories like MOND haven't replaced dark matter hypothesis",
+    "verdict": "accept"
+  },
+  "overall_score": 7.2,
+  "verdict": "accept"
+}
