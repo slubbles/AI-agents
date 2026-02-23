@@ -13,7 +13,7 @@ from datetime import date
 from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import ANTHROPIC_API_KEY, MODELS
+from config import ANTHROPIC_API_KEY, MODELS, MAX_TOOL_ROUNDS, MAX_SEARCHES
 from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 from cost_tracker import log_cost
 from memory_store import retrieve_relevant, load_knowledge_base
@@ -71,8 +71,7 @@ Do NOT output markdown, tables, or prose — ONLY the JSON object.
 === END DOMAIN STRATEGY ===
 """
 
-MAX_TOOL_ROUNDS = 5   # max rounds of tool use
-MAX_SEARCHES = 10     # hard cap on total searches per run (prevents strategy-driven explosion)
+# MAX_TOOL_ROUNDS and MAX_SEARCHES imported from config
 
 
 def _extract_json(text: str) -> dict | None:

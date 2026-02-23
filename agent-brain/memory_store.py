@@ -11,7 +11,7 @@ import re
 import shutil
 from collections import Counter
 from datetime import datetime, timezone
-from config import MEMORY_DIR
+from config import MEMORY_DIR, QUALITY_THRESHOLD, MAX_OUTPUTS_PER_DOMAIN, ARCHIVE_REJECTED_AFTER_DAYS, ARCHIVE_SCORE_THRESHOLD
 
 # Stop words to exclude from keyword matching
 _STOP_WORDS = {
@@ -43,6 +43,9 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
     filename = f"{timestamp}_score{critique.get('overall_score', 0):.0f}.json"
     filepath = os.path.join(domain_dir, filename)
 
+    score = critique.get("overall_score", 0)
+    accepted = score >= QUALITY_THRESHOLD
+
     record = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "domain": domain,
@@ -51,7 +54,8 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
         "strategy_version": strategy_version,
         "research": research,
         "critique": critique,
-        "overall_score": critique.get("overall_score", 0),
+        "overall_score": score,
+        "accepted": accepted,
         "verdict": critique.get("verdict", "unknown"),
     }
 
@@ -94,8 +98,8 @@ def get_stats(domain: str) -> dict:
     return {
         "count": len(outputs),
         "avg_score": sum(scores) / len(scores),
-        "accepted": sum(1 for o in outputs if o.get("verdict") == "accept"),
-        "rejected": sum(1 for o in outputs if o.get("verdict") == "reject"),
+        "accepted": sum(1 for o in outputs if o.get("accepted", o.get("verdict") == "accept")),
+        "rejected": sum(1 for o in outputs if not o.get("accepted", o.get("verdict") == "accept")),
     }
 
 
@@ -137,8 +141,10 @@ def _relevance_score(query_tokens: list[str], output: dict) -> float:
     max_possible = max(len(query_tokens), 1)
     keyword_score = min(overlap / max_possible, 1.0)
     
-    # Quality score (normalized to 0-1)
+    # Quality score (normalized to 0-1, with penalty for rejected outputs)
     quality = output.get("overall_score", 0) / 10.0
+    if not output.get("accepted", output.get("verdict") == "accept"):
+        quality *= 0.3  # Heavy penalty — rejected outputs are much less useful
     
     # Recency (outputs from today = 1.0, decays over time)
     try:
@@ -150,7 +156,7 @@ def _relevance_score(query_tokens: list[str], output: dict) -> float:
     except (ValueError, TypeError):
         recency = 0.5
     
-    return (keyword_score * 0.60) + (quality * 0.25) + (recency * 0.15)
+    return (keyword_score * 0.50) + (quality * 0.35) + (recency * 0.15)
 
 
 def retrieve_relevant(domain: str, question: str, max_results: int = 5, min_score: float = 4.0) -> list[dict]:
@@ -166,8 +172,8 @@ def retrieve_relevant(domain: str, question: str, max_results: int = 5, min_scor
     if not outputs:
         return []
     
-    # Only include accepted outputs
-    accepted = [o for o in outputs if o.get("verdict") == "accept"]
+    # Only include accepted outputs (use 'accepted' field with verdict fallback)
+    accepted = [o for o in outputs if o.get("accepted", o.get("verdict") == "accept")]
     if not accepted:
         return []
     
@@ -231,16 +237,7 @@ def save_knowledge_base(domain: str, knowledge_base: dict) -> str:
 # Memory Hygiene — Pruning, Archival, Domain Caps
 # ============================================================
 
-# Maximum active outputs per domain before archival kicks in
-MAX_OUTPUTS_PER_DOMAIN = 100
-
-# Rejected outputs are archived after this many days (they still count for
-# meta-analysis but are moved out of the active memory path)
-ARCHIVE_REJECTED_AFTER_DAYS = 7
-
-# Minimum score to keep in active memory long-term
-# Outputs below this AND rejected are candidates for archival
-ARCHIVE_SCORE_THRESHOLD = 5
+# MAX_OUTPUTS_PER_DOMAIN, ARCHIVE_REJECTED_AFTER_DAYS, ARCHIVE_SCORE_THRESHOLD imported from config
 
 
 def _get_archive_dir(domain: str) -> str:

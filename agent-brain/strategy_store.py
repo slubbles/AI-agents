@@ -14,13 +14,7 @@ Supports:
 import json
 import os
 from datetime import datetime, timezone
-from config import STRATEGY_DIR
-
-# Safety threshold: block if new strategy avg score drops more than this fraction
-SAFETY_DROP_THRESHOLD = 0.20  # 20%
-
-# Minimum outputs under a trial strategy before evaluating it
-TRIAL_PERIOD = 3
+from config import STRATEGY_DIR, SAFETY_DROP_THRESHOLD, TRIAL_PERIOD
 
 
 def _meta_path(domain: str) -> str:

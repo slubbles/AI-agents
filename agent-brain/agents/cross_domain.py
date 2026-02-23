@@ -22,7 +22,7 @@ from datetime import date, datetime, timezone
 from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import ANTHROPIC_API_KEY, MODELS, STRATEGY_DIR
+from config import ANTHROPIC_API_KEY, MODELS, STRATEGY_DIR, MIN_OUTPUTS_FOR_TRANSFER, MIN_AVG_SCORE_FOR_TRANSFER
 from memory_store import load_outputs, get_stats
 from strategy_store import (
     get_strategy, get_active_version, get_strategy_status,
@@ -32,12 +32,6 @@ from cost_tracker import log_cost
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
-
-# Minimum outputs in a domain before it qualifies as a transfer source
-MIN_OUTPUTS_FOR_TRANSFER = 5
-
-# Minimum average score for a domain to qualify as a transfer source
-MIN_AVG_SCORE_FOR_TRANSFER = 5.5
 
 # Principles file
 PRINCIPLES_FILE = os.path.join(STRATEGY_DIR, "_principles.json")
