@@ -80,6 +80,12 @@ app.add_middleware(
 
 # ── Health & Overview ─────────────────────────────────────────────────────
 
+@app.get("/")
+def api_root():
+    """Root endpoint — confirms API is running."""
+    return {"status": "ok", "service": "Agent Brain API", "version": "1.0.0", "docs": "/docs"}
+
+
 @app.get("/api/health")
 def api_health():
     """System health metrics."""

@@ -1,7 +1,17 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// API base: use Next.js rewrites proxy (same-origin) to avoid CORS/auth issues.
+// Falls back to direct URL only for local dev without Next.js proxy.
+function getApiBase(): string {
+  if (typeof window !== "undefined") {
+    // In browser: use same-origin (Next.js rewrites proxy handles /api/* → FastAPI)
+    return "";
+  }
+  // Server-side: direct connection
+  return process.env.API_URL || "http://localhost:8000";
+}
 
 export async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const base = getApiBase();
+  const res = await fetch(`${base}${path}`, {
     ...options,
     headers: { "Content-Type": "application/json", ...options?.headers },
   });
@@ -121,7 +131,8 @@ export function startRun(
   onDone: () => void,
   onError: (err: string) => void,
 ): () => void {
-  const url = `${API_BASE}/api/run?question=${encodeURIComponent(question)}&domain=${encodeURIComponent(domain)}`;
+  const base = getApiBase();
+  const url = `${base}/api/run?question=${encodeURIComponent(question)}&domain=${encodeURIComponent(domain)}`;
   
   const controller = new AbortController();
   
@@ -178,7 +189,8 @@ export function startAuto(
   onDone: () => void,
   onError: (err: string) => void,
 ): () => void {
-  const url = `${API_BASE}/api/auto?domain=${encodeURIComponent(domain)}&rounds=${rounds}`;
+  const base = getApiBase();
+  const url = `${base}/api/auto?domain=${encodeURIComponent(domain)}&rounds=${rounds}`;
   
   const controller = new AbortController();
   
