@@ -272,7 +272,20 @@ def api_strategy_diff(domain: str, v1: str, v2: str):
 @app.get("/api/cost")
 def api_cost():
     """Cost efficiency breakdown."""
-    return cost_efficiency()
+    raw = cost_efficiency()
+    daily = get_daily_spend()
+    budget_ok, limit = check_budget()
+    return {
+        "today_spend": daily,
+        "daily_budget": limit,
+        "remaining": max(0, limit - daily),
+        "total_all_time": raw.get("total_spend", 0),
+        "total_outputs": raw.get("total_outputs", 0),
+        "cost_per_output": raw.get("cost_per_output", 0),
+        "cost_per_accepted": raw.get("cost_per_accepted_output", 0),
+        "by_domain": raw.get("by_domain", {}),
+        "by_agent": raw.get("by_agent", {}),
+    }
 
 
 # ── Validation ────────────────────────────────────────────────────────────
@@ -280,7 +293,20 @@ def api_cost():
 @app.get("/api/validate")
 def api_validate():
     """Run data validation."""
-    return validate_all()
+    raw = validate_all()
+    # Collect all issues into a flat list
+    issues = []
+    for section in ["memory", "strategies", "costs"]:
+        for issue in raw.get(section, {}).get("issues", []):
+            issues.append(f"[{section}] {issue}")
+    return {
+        "valid": raw.get("status") == "HEALTHY",
+        "issues": issues,
+        "status": raw.get("status", "UNKNOWN"),
+        "total_valid": raw.get("total_valid", 0),
+        "total_invalid": raw.get("total_invalid", 0),
+        "total_warnings": raw.get("total_warnings", 0),
+    }
 
 
 # ── Domain Comparison ─────────────────────────────────────────────────────
@@ -372,10 +398,11 @@ async def api_run(
     """Start a research loop. Returns SSE stream of events."""
     global _is_running
     
-    if _is_running:
-        raise HTTPException(409, "A run is already in progress")
+    with _run_lock:
+        if _is_running:
+            raise HTTPException(409, "A run is already in progress")
+        _is_running = True
     
-    _is_running = True
     event_q: queue.Queue = queue.Queue(maxsize=500)
     
     thread = threading.Thread(target=_run_loop_thread, args=(question, domain, event_q), daemon=True)
@@ -486,10 +513,11 @@ async def api_auto(
     """Start autonomous research mode. Returns SSE stream."""
     global _is_running
     
-    if _is_running:
-        raise HTTPException(409, "A run is already in progress")
+    with _run_lock:
+        if _is_running:
+            raise HTTPException(409, "A run is already in progress")
+        _is_running = True
     
-    _is_running = True
     event_q: queue.Queue = queue.Queue(maxsize=1000)
     
     thread = threading.Thread(target=_auto_loop_thread, args=(domain, rounds, event_q), daemon=True)

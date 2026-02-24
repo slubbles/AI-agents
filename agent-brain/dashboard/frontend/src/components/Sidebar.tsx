@@ -19,7 +19,7 @@ const staticLinks = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [domains, setDomains] = useState<string[]>([]);
-  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     api.domains().then((d) => setDomains(d.map((x) => x.name))).catch(() => {});
@@ -39,19 +39,19 @@ export default function Sidebar() {
     <>
       {/* Mobile toggle */}
       <button
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={() => setMobileOpen(!mobileOpen)}
         className="fixed top-4 left-4 z-[60] lg:hidden w-10 h-10 flex items-center justify-center bg-[#08080c] border border-white/10 rounded-xl text-white/60"
       >
-        {collapsed ? "✕" : "☰"}
+        {mobileOpen ? "✕" : "☰"}
       </button>
 
       {/* Overlay */}
-      {collapsed && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setCollapsed(false)} />
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
       <aside className={`fixed left-0 top-0 h-screen w-64 border-r border-white/5 bg-[#08080c] flex flex-col z-50 transition-transform duration-200 ${
-        collapsed ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         {/* Logo */}
         <div className="p-6 border-b border-white/5">
@@ -66,7 +66,7 @@ export default function Sidebar() {
           {staticLinks.map(({ href, label, icon }) => {
             const active = pathname === href;
             return (
-              <Link key={href} href={href} onClick={() => setCollapsed(false)}
+              <Link key={href} href={href} onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
                   active
                     ? "bg-white/5 text-[#00e5ff] border border-[#00e5ff]/20"
@@ -87,7 +87,7 @@ export default function Sidebar() {
               {domainLinks.map(({ href, label, icon }) => {
                 const active = pathname === href;
                 return (
-                  <Link key={href} href={href} onClick={() => setCollapsed(false)}
+                  <Link key={href} href={href} onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
                       active
                         ? "bg-white/5 text-[#00e5ff] border border-[#00e5ff]/20"

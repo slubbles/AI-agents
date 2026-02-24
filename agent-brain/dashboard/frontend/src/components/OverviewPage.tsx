@@ -220,7 +220,7 @@ export default function OverviewPage() {
           { label: "In Trial",        value: h.domains_in_trial,      color: "#ffb300", icon: "🧪" },
           { label: "Pending",         value: h.domains_with_pending,  color: "#ff6ec7", icon: "⏳" },
           { label: "Principles",      value: h.principle_count,       color: "#00e5ff", icon: "💡" },
-        ].map(({ label, value, color, icon }) => (
+        ].map(({ label, value, icon }) => (
           <div key={label} className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 text-center hover:border-white/10 transition-colors">
             <div className="text-lg mb-1">{icon}</div>
             <CountUp to={value} className="text-xl font-bold" duration={0.8} />
