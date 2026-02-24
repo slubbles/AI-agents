@@ -134,8 +134,10 @@ export interface Strategy {
 
 export interface CostInfo {
   today_spend: number;
+  today_calls: number;
   daily_budget: number;
   remaining: number;
+  within_budget: boolean;
   total_all_time: number;
   [key: string]: unknown;
 }
@@ -159,6 +161,53 @@ export interface LoopEvent {
   type: string;
   data: Record<string, unknown>;
   timestamp?: string;
+}
+
+export interface GraphNode {
+  id: string;
+  type: string;
+  label: string;
+  confidence?: string;
+  status?: string;
+  source_count?: number;
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  type: string;
+  weight?: number;
+}
+
+export interface GraphSummary {
+  domain: string;
+  total_nodes: number;
+  total_edges: number;
+  total_clusters: number;
+  nodes_by_type: Record<string, number>;
+  edges_by_type: Record<string, number>;
+  isolated_claims: number;
+  weak_clusters: number;
+  empty_topics: number;
+}
+
+export interface KnowledgeGraph {
+  domain: string;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  summary: GraphSummary | null;
+  contradictions: Array<Record<string, unknown>>;
+}
+
+export interface DaemonStatus {
+  running: boolean;
+  state: Record<string, unknown> | null;
+  recent_log: Array<{ timestamp: string; level: string; message: string }>;
+}
+
+export interface ConsensusConfig {
+  enabled: boolean;
+  researchers: number;
 }
 
 // ── API functions ────────────────────────────────────────────────────────
@@ -196,6 +245,18 @@ export const api = {
   comparison: () => fetchApi<DomainComparison[]>("/api/comparison"),
   validate: () => fetchApi<ValidationResult>("/api/validate"),
   runStatus: () => fetchApi<{ running: boolean }>("/api/run/status"),
+  // Knowledge graph
+  domainGraph: (name: string) => fetchApi<KnowledgeGraph>(`/api/domains/${name}/graph`),
+  buildGraph: (name: string) => fetchApi<{ domain: string; summary: GraphSummary; built: boolean }>(`/api/domains/${name}/graph/build`, { method: "POST" }),
+  // Daemon/Scheduler
+  daemonStatus: () => fetchApi<DaemonStatus>("/api/daemon/status"),
+  daemonStart: (interval = 60, rounds = 3, maxCycles = 0) =>
+    fetchApi<{ started: boolean }>(`/api/daemon/start?interval=${interval}&rounds=${rounds}&max_cycles=${maxCycles}`, { method: "POST" }),
+  daemonStop: () => fetchApi<{ stopped: boolean }>("/api/daemon/stop", { method: "POST" }),
+  // Consensus config
+  consensusConfig: () => fetchApi<ConsensusConfig>("/api/config/consensus"),
+  setConsensus: (enabled: boolean, researchers = 3) =>
+    fetchApi<ConsensusConfig>(`/api/config/consensus?enabled=${enabled}&researchers=${researchers}`, { method: "POST" }),
 };
 
 // ── SSE Stream ───────────────────────────────────────────────────────────

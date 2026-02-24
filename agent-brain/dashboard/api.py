@@ -172,17 +172,25 @@ def api_domain_outputs(domain: str, limit: int = Query(50, ge=1, le=500)):
     
     results = []
     for o in outputs[:limit]:
+        research = o.get("research", {})
         results.append({
             "question": o.get("question", ""),
-            "score": o.get("score", o.get("overall_score")),
+            "score": o.get("overall_score", o.get("score")),
             "verdict": o.get("verdict", "unknown"),
+            "accepted": o.get("accepted", False),
             "timestamp": o.get("timestamp", ""),
             "strategy_version": o.get("strategy_version", "default"),
-            "searches_made": o.get("_searches_made", 0),
-            "findings_count": len(o.get("findings", [])),
-            "key_insights": o.get("key_insights", []),
-            "knowledge_gaps": o.get("knowledge_gaps", []),
+            "attempt": o.get("attempt", 1),
+            "searches_made": research.get("_searches_made", 0),
+            "findings_count": len(research.get("findings", [])),
+            "key_insights": research.get("key_insights", []),
+            "knowledge_gaps": research.get("knowledge_gaps", []),
             "critique_scores": o.get("critique", {}).get("scores", {}),
+            # Consensus metadata
+            "consensus": research.get("_consensus", False),
+            "consensus_level": research.get("consensus_level"),
+            "researchers_used": research.get("_researchers_used"),
+            "disagreements_count": len(research.get("disagreements", [])),
         })
     return results
 
@@ -274,11 +282,13 @@ def api_cost():
     """Cost efficiency breakdown."""
     raw = cost_efficiency()
     daily = get_daily_spend()
-    budget_ok, limit = check_budget()
+    budget = check_budget()
     return {
-        "today_spend": daily,
-        "daily_budget": limit,
-        "remaining": max(0, limit - daily),
+        "today_spend": daily.get("total_usd", 0),
+        "today_calls": daily.get("calls", 0),
+        "daily_budget": budget["limit"],
+        "remaining": budget["remaining"],
+        "within_budget": budget["within_budget"],
         "total_all_time": raw.get("total_spend", 0),
         "total_outputs": raw.get("total_outputs", 0),
         "cost_per_output": raw.get("cost_per_output", 0),
@@ -359,6 +369,12 @@ def _run_loop_thread(question: str, domain: str, event_q: queue.Queue):
                 event_q.put({"type": "synthesizer", "data": {"message": text.strip()}})
             elif "[BUDGET]" in text:
                 event_q.put({"type": "budget", "data": {"message": text.strip()}})
+            elif "[CONSENSUS]" in text:
+                event_q.put({"type": "consensus", "data": {"message": text.strip()}})
+            elif "[GRAPH]" in text:
+                event_q.put({"type": "graph", "data": {"message": text.strip()}})
+            elif "[QUESTION_GEN]" in text:
+                event_q.put({"type": "question_gen", "data": {"message": text.strip()}})
             elif "Attempt" in text or "---" in text:
                 event_q.put({"type": "attempt", "data": {"message": text.strip()}})
         
@@ -457,6 +473,12 @@ def _auto_loop_thread(domain: str, rounds: int, event_q: queue.Queue):
                 event_q.put({"type": "critic", "data": {"message": text.strip()}})
             elif "[QUALITY GATE]" in text:
                 event_q.put({"type": "quality_gate", "data": {"message": text.strip()}})
+            elif "[CONSENSUS]" in text:
+                event_q.put({"type": "consensus", "data": {"message": text.strip()}})
+            elif "[GRAPH]" in text:
+                event_q.put({"type": "graph", "data": {"message": text.strip()}})
+            elif "[QUESTION_GEN]" in text:
+                event_q.put({"type": "question_gen", "data": {"message": text.strip()}})
         
         builtins.print = capturing_print
         

@@ -84,7 +84,13 @@ function getEventDisplay(type: string, data: Record<string, unknown>): { icon: s
       return { icon: "💭", color: "#7c4dff", text: `Generating question for round ${data.round}...` };
     case "round_complete":
       return { icon: "🏁", color: "#00ff88", text: `Round ${data.round} — Score: ${data.score}/10, ${data.verdict}` };
+    case "consensus":
+      return { icon: "🤝", color: "#7c4dff", text: msg.replace(/\[CONSENSUS\]\s*/, "") };
+    case "graph":
+      return { icon: "🕸", color: "#00e5ff", text: msg.replace(/\[GRAPH\]\s*/, "") };
     case "log":
+      if (msg.includes("[CONSENSUS]")) return { icon: "🤝", color: "#7c4dff", text: msg.replace(/\[CONSENSUS\]\s*/, "") };
+      if (msg.includes("[GRAPH]")) return { icon: "🕸", color: "#00e5ff", text: msg.replace(/\[GRAPH\]\s*/, "") };
       return { icon: "•", color: "rgba(255,255,255,0.2)", text: msg };
     default:
       return { icon: "•", color: "rgba(255,255,255,0.25)", text: msg || JSON.stringify(data) };
@@ -93,6 +99,7 @@ function getEventDisplay(type: string, data: Record<string, unknown>): { icon: s
 
 const PIPELINE_STAGES = [
   { key: "researching",  label: "Researcher",    icon: "🔍", desc: "Web search + structured findings", eventType: "researcher" },
+  { key: "consensus",    label: "Consensus",     icon: "🤝", desc: "Multi-researcher merge",          eventType: "consensus" },
   { key: "critiquing",   label: "Critic",         icon: "⚖️", desc: "5-dimension quality scoring",      eventType: "critic" },
   { key: "evaluating",   label: "Quality Gate",   icon: "✓",  desc: "Accept ≥ 6 / Reject < 6",        eventType: "quality_gate" },
   { key: "evolving",     label: "Meta-Analyst",   icon: "🧠", desc: "Strategy evolution",              eventType: "meta_analyst" },
@@ -121,12 +128,14 @@ function LoopPageInner() {
   const [lastResult, setLastResult] = useState<{ score: number; verdict: string; strategy: string; question: string } | null>(null);
   const [completedPipeline, setCompletedPipeline] = useState<Set<string>>(new Set());
   const [domains, setDomains] = useState<Domain[]>([]);
+  const [consensus, setConsensus] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<(() => void) | null>(null);
   const idRef = useRef(0);
 
   useEffect(() => {
     api.domains().then(setDomains).catch(() => {});
+    api.consensusConfig().then(c => setConsensus(c.enabled)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -296,6 +305,26 @@ function LoopPageInner() {
                 <option key={d.name} value={d.name} className="bg-[#0a0a0f]">{d.name}</option>
               ))}
             </select>
+          </div>
+
+          {/* Consensus Toggle */}
+          <div>
+            <label className="block text-[10px] uppercase tracking-widest text-white/30 mb-1.5 font-medium">Consensus</label>
+            <button
+              onClick={async () => {
+                const next = !consensus;
+                setConsensus(next);
+                try { await api.setConsensus(next); } catch { setConsensus(!next); }
+              }}
+              disabled={running}
+              className={"px-4 py-2.5 rounded-xl text-sm font-medium transition-all border " + (
+                consensus
+                  ? "bg-[#7c4dff]/10 text-[#7c4dff] border-[#7c4dff]/30"
+                  : "bg-white/[0.02] text-white/30 border-white/10 hover:text-white/50"
+              ) + (running ? " opacity-40" : "")}
+            >
+              {consensus ? "🤝 On" : "Off"}
+            </button>
           </div>
 
           {mode === "single" ? (

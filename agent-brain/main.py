@@ -307,6 +307,9 @@ def log_run(domain: str, question: str, attempts: int, research: dict, critique:
         "score": critique.get("overall_score", 0),
         "verdict": critique.get("verdict", "unknown"),
         "strategy_version": strategy_version,
+        "consensus": research.get("_consensus", False),
+        "consensus_level": research.get("consensus_level"),
+        "researchers_used": research.get("_researchers_used"),
     }
 
     with open(log_file, "a") as f:

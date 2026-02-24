@@ -14,6 +14,7 @@ const DOMAIN_ICONS: Record<string, string> = {
 const staticLinks = [
   { href: "/", label: "Overview", icon: "◈" },
   { href: "/loop", label: "Live Loop", icon: "⟳" },
+  { href: "/scheduler", label: "Scheduler", icon: "⏱" },
 ];
 
 export default function Sidebar() {

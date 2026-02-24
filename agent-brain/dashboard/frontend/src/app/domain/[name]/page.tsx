@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { api, DomainDetail, ResearchOutput, KnowledgeBase, Strategy, PendingStrategy } from "@/lib/api";
+import { api, DomainDetail, ResearchOutput, KnowledgeBase, Strategy, PendingStrategy, KnowledgeGraph } from "@/lib/api";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import CountUp from "@/components/reactbits/CountUp";
 import DecryptedText from "@/components/reactbits/DecryptedText";
@@ -46,8 +46,10 @@ export default function DomainPage() {
   const [kb, setKb] = useState<KnowledgeBase | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"outputs" | "strategy" | "knowledge">("outputs");
+  const [tab, setTab] = useState<"outputs" | "strategy" | "knowledge" | "graph">("outputs");
   const [pending, setPending] = useState<PendingStrategy[]>([]);
+  const [graph, setGraph] = useState<KnowledgeGraph | null>(null);
+  const [graphLoading, setGraphLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const loadData = useCallback(() => {
@@ -59,12 +61,14 @@ export default function DomainPage() {
       api.domainStrategy(name).catch(() => null),
       api.domainKb(name).catch(() => null),
       api.strategyPending(name).catch(() => ({ pending: [] })),
-    ]).then(([d, o, s, k, p]) => {
+      api.domainGraph(name).catch(() => null),
+    ]).then(([d, o, s, k, p, g]) => {
       setDetail(d);
       setOutputs(o);
       setStrategy(s);
       setKb(k);
       setPending(p.pending || []);
+      setGraph(g);
       setLoading(false);
     }).catch((e) => {
       setError(e.message);
@@ -244,7 +248,7 @@ export default function DomainPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-white/[0.05] pb-0">
-        {(["outputs", "strategy", "knowledge"] as const).map((t) => (
+        {(["outputs", "strategy", "knowledge", "graph"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -254,7 +258,7 @@ export default function DomainPage() {
                 : "text-white/30 border-transparent hover:text-white/50 hover:bg-white/[0.01]"
             )}
           >
-            {t === "outputs" ? "Outputs (" + outputs.length + ")" : t === "strategy" ? "Strategy" : "Knowledge Base"}
+            {t === "outputs" ? "Outputs (" + outputs.length + ")" : t === "strategy" ? "Strategy" : t === "knowledge" ? "Knowledge Base" : "Graph"}
           </button>
         ))}
       </div>
@@ -482,6 +486,115 @@ export default function DomainPage() {
               <div className="text-4xl opacity-10 mb-3">📚</div>
               <p className="text-white/25">No knowledge base yet</p>
               <p className="text-white/15 text-xs mt-1">Generated after enough accepted outputs</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "graph" && (
+        <div className="space-y-4">
+          {graph && graph.nodes && graph.nodes.length > 0 ? (
+            <>
+              {/* Graph Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: "Nodes", value: graph.summary?.total_nodes ?? graph.nodes.length, icon: "◉" },
+                  { label: "Edges", value: graph.summary?.total_edges ?? graph.edges.length, icon: "⟷" },
+                  { label: "Clusters", value: graph.summary?.total_clusters ?? 0, icon: "◈" },
+                  { label: "Contradictions", value: graph.contradictions?.length ?? 0, icon: "⚡" },
+                ].map(({ label, value, icon }) => (
+                  <div key={label} className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3 text-center">
+                    <div className="text-lg opacity-20 mb-1">{icon}</div>
+                    <div className="text-lg font-mono text-white/80">{value}</div>
+                    <div className="text-[10px] text-white/25 mt-0.5">{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Nodes List */}
+              <div>
+                <h3 className="text-[10px] uppercase tracking-widest text-white/25 font-medium mb-3">Concept Nodes ({graph.nodes.length})</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {graph.nodes.slice(0, 30).map((node, i) => (
+                    <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-lg p-3 hover:border-white/10 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <span className={"text-[9px] px-1.5 py-0.5 rounded border font-mono " + (
+                          node.type === "concept" ? "bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/20"
+                          : node.type === "entity" ? "bg-[#ff6b6b]/10 text-[#ff6b6b] border-[#ff6b6b]/20"
+                          : node.type === "finding" ? "bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/20"
+                          : "bg-[#ffb300]/10 text-[#ffb300] border-[#ffb300]/20"
+                        )}>{node.type}</span>
+                        <span className="text-sm text-white/60 truncate">{node.label}</span>
+                        <span className="ml-auto text-[9px] font-mono text-white/20">{node.source_count ?? 0} sources</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Edges Sample */}
+              {graph.edges.length > 0 && (
+                <div>
+                  <h3 className="text-[10px] uppercase tracking-widest text-white/25 font-medium mb-3">Relationships ({graph.edges.length})</h3>
+                  <div className="space-y-1.5">
+                    {graph.edges.slice(0, 20).map((edge, i) => (
+                      <div key={i} className="bg-white/[0.015] border border-white/[0.04] rounded-lg px-3 py-2 flex items-center gap-2 text-xs">
+                        <span className="text-white/50 truncate max-w-[30%]">{edge.source}</span>
+                        <span className={"px-1.5 py-0.5 rounded text-[9px] font-mono border flex-shrink-0 " + (
+                          edge.type === "contradicts" ? "bg-[#ff4060]/10 text-[#ff4060] border-[#ff4060]/20"
+                          : edge.type === "supports" ? "bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/20"
+                          : edge.type === "supersedes" ? "bg-[#ffb300]/10 text-[#ffb300] border-[#ffb300]/20"
+                          : "bg-white/5 text-white/40 border-white/10"
+                        )}>{edge.type}</span>
+                        <span className="text-white/50 truncate max-w-[30%]">{edge.target}</span>
+                        <span className="ml-auto text-white/15 font-mono">{((edge.weight ?? 1) * 100).toFixed(0)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Build/Rebuild Button */}
+              <button
+                onClick={async () => {
+                  setGraphLoading(true);
+                  try {
+                    await api.buildGraph(name);
+                    const g = await api.domainGraph(name);
+                    setGraph(g);
+                    setActionMsg({ type: "success", text: "Knowledge graph rebuilt" });
+                  } catch (e) {
+                    setActionMsg({ type: "error", text: (e as Error).message });
+                  } finally { setGraphLoading(false); }
+                }}
+                disabled={graphLoading}
+                className="w-full py-2.5 rounded-lg text-xs border border-white/[0.06] bg-white/[0.02] text-white/40 hover:text-white/60 hover:bg-white/[0.04] transition-all disabled:opacity-30"
+              >
+                {graphLoading ? "Rebuilding…" : "🔄 Rebuild Graph from KB"}
+              </button>
+            </>
+          ) : (
+            <div className="text-center py-16">
+              <div className="text-4xl opacity-10 mb-3">🕸</div>
+              <p className="text-white/25">No knowledge graph yet</p>
+              <p className="text-white/15 text-xs mt-1 mb-4">Build from your knowledge base claims</p>
+              <button
+                onClick={async () => {
+                  setGraphLoading(true);
+                  try {
+                    await api.buildGraph(name);
+                    const g = await api.domainGraph(name);
+                    setGraph(g);
+                    setActionMsg({ type: "success", text: "Knowledge graph built" });
+                  } catch (e) {
+                    setActionMsg({ type: "error", text: (e as Error).message });
+                  } finally { setGraphLoading(false); }
+                }}
+                disabled={graphLoading}
+                className="px-6 py-2.5 rounded-xl text-xs border border-[#00e5ff]/20 bg-[#00e5ff]/5 text-[#00e5ff]/70 hover:text-[#00e5ff] hover:bg-[#00e5ff]/10 transition-all disabled:opacity-30"
+              >
+                {graphLoading ? "Building…" : "⚡ Build Knowledge Graph"}
+              </button>
             </div>
           )}
         </div>
