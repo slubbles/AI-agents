@@ -342,12 +342,12 @@ export default function OverviewPage() {
                   ? "bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/20"
                   : "bg-[#ff4060]/10 text-[#ff4060] border-[#ff4060]/20"
               )}>
-                {validation.valid ? "✓ All clear" : `⚠ ${validation.issues.length} issue${validation.issues.length !== 1 ? "s" : ""}`}
+                {validation.valid ? "✓ All clear" : `⚠ ${(validation.issues ?? []).length} issue${(validation.issues ?? []).length !== 1 ? "s" : ""}`}
               </span>
             </div>
-            {validation.issues.length > 0 ? (
+            {(validation.issues ?? []).length > 0 ? (
               <ul className="space-y-1.5">
-                {validation.issues.map((issue, i) => (
+                {(validation.issues ?? []).map((issue, i) => (
                   <li key={i} className="text-xs text-[#ffb300]/70 flex items-start gap-2">
                     <span className="text-[#ffb300] mt-0.5">•</span>
                     <span>{issue}</span>
