@@ -416,3 +416,301 @@ def display_recommendations(recs: list[dict]):
         print(f"     → {r['action']}")
     
     print(f"\n{'='*60}\n")
+
+
+# ============================================================
+# Scheduler Daemon — Continuous Autonomous Operation
+# ============================================================
+
+import signal
+import time
+import threading
+
+# Daemon state
+_daemon_running = False
+_daemon_lock = threading.Lock()
+_daemon_stop_event = threading.Event()
+_daemon_log = []  # Recent daemon activity log
+
+
+def _log_daemon(message: str, level: str = "info"):
+    """Log a daemon message with timestamp."""
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "level": level,
+        "message": message,
+    }
+    _daemon_log.append(entry)
+    # Keep only last 200 entries
+    if len(_daemon_log) > 200:
+        _daemon_log.pop(0)
+    print(f"  [{level.upper()}] {entry['timestamp'][:19]} {message}")
+
+
+def _save_daemon_state(state: dict):
+    """Persist daemon state for recovery and dashboard visibility."""
+    state_file = os.path.join(LOG_DIR, "daemon_state.json")
+    os.makedirs(LOG_DIR, exist_ok=True)
+    with open(state_file, "w") as f:
+        json.dump(state, f, indent=2)
+
+
+def _load_daemon_state() -> dict | None:
+    """Load daemon state from disk."""
+    state_file = os.path.join(LOG_DIR, "daemon_state.json")
+    if not os.path.exists(state_file):
+        return None
+    try:
+        with open(state_file) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return None
+
+
+def get_daemon_status() -> dict:
+    """Get current daemon status (for dashboard API)."""
+    state = _load_daemon_state()
+    return {
+        "running": _daemon_running,
+        "state": state,
+        "recent_log": _daemon_log[-20:],
+    }
+
+
+def run_daemon(
+    interval_minutes: int = 60,
+    rounds_per_cycle: int = 5,
+    max_cycles: int = 0,
+    aggressive: bool = False,
+    require_approval: bool = True,
+):
+    """
+    Run the scheduler as a continuous daemon.
+    
+    The daemon:
+    1. Wakes up every interval_minutes
+    2. Creates an optimal research plan
+    3. Executes the plan (orchestrated across domains)
+    4. Logs results and goes back to sleep
+    5. Repeats until stopped or max_cycles reached
+    
+    Safety:
+    - Budget is checked every cycle (daily limit enforced)
+    - Each cycle is logged to daemon_state.json
+    - SIGINT/SIGTERM triggers graceful shutdown
+    - Strategy changes still require human approval (unless require_approval=False)
+    - Maximum rounds per cycle prevents runaway
+    
+    Args:
+        interval_minutes: Time between cycles (default: 60)
+        rounds_per_cycle: Max research rounds per cycle (default: 5)
+        max_cycles: Stop after N cycles (0 = run forever until stopped)
+        aggressive: Use more budget per cycle
+        require_approval: Strategies require human approval (default: True)
+    """
+    global _daemon_running
+    
+    with _daemon_lock:
+        if _daemon_running:
+            print("  [DAEMON] Already running!")
+            return
+        _daemon_running = True
+    
+    _daemon_stop_event.clear()
+
+    # Setup graceful shutdown
+    original_sigint = signal.getsignal(signal.SIGINT)
+    original_sigterm = signal.getsignal(signal.SIGTERM)
+    
+    def _shutdown(signum, frame):
+        _log_daemon(f"Received signal {signum} — shutting down gracefully...", "warning")
+        _daemon_stop_event.set()
+    
+    signal.signal(signal.SIGINT, _shutdown)
+    signal.signal(signal.SIGTERM, _shutdown)
+
+    cycle = 0
+    _log_daemon(f"Daemon started: interval={interval_minutes}m, rounds={rounds_per_cycle}, "
+                f"max_cycles={'∞' if max_cycles == 0 else max_cycles}")
+
+    try:
+        while not _daemon_stop_event.is_set():
+            cycle += 1
+            
+            if max_cycles > 0 and cycle > max_cycles:
+                _log_daemon(f"Reached max cycles ({max_cycles}). Stopping.", "info")
+                break
+
+            cycle_start = datetime.now(timezone.utc)
+            _log_daemon(f"=== Cycle {cycle} starting ===")
+
+            # Check budget
+            budget = check_budget()
+            if not budget["within_budget"]:
+                _log_daemon(f"Budget exceeded (${budget['spent']:.2f}/${budget['limit']:.2f}). "
+                           f"Waiting for budget reset.", "warning")
+                _save_daemon_state({
+                    "status": "waiting_budget",
+                    "cycle": cycle,
+                    "last_run": cycle_start.isoformat(),
+                    "budget_spent": budget["spent"],
+                    "budget_limit": budget["limit"],
+                })
+                # Wait until next interval, then check again
+                if _daemon_stop_event.wait(timeout=interval_minutes * 60):
+                    break
+                continue
+
+            # Create and evaluate plan
+            plan = create_plan(aggressive=aggressive)
+            
+            if not plan["executable"]:
+                _log_daemon(f"No executable plan: {plan['reason']}", "warning")
+                _save_daemon_state({
+                    "status": "no_plan",
+                    "cycle": cycle,
+                    "last_run": cycle_start.isoformat(),
+                    "reason": plan["reason"],
+                })
+                if _daemon_stop_event.wait(timeout=interval_minutes * 60):
+                    break
+                continue
+
+            # Cap rounds per cycle
+            total_planned = min(plan["total_rounds"], rounds_per_cycle)
+            _log_daemon(f"Plan: {total_planned} rounds across "
+                       f"{len(plan['allocation'])} domains "
+                       f"(est. ${plan['estimated_cost']:.4f})")
+
+            # Execute the plan by importing and calling orchestrate
+            # We import here to avoid circular imports
+            cycle_results = {
+                "status": "running",
+                "cycle": cycle,
+                "started_at": cycle_start.isoformat(),
+                "planned_rounds": total_planned,
+                "domains": [a["domain"] for a in plan["allocation"]],
+            }
+            _save_daemon_state(cycle_results)
+
+            try:
+                # Run the orchestration (this does the actual research)
+                from agents.orchestrator import prioritize_domains, allocate_rounds
+                
+                priorities = prioritize_domains()
+                allocation = allocate_rounds(priorities, total_planned)
+                
+                completed = 0
+                domain_results = []
+                
+                for alloc in allocation:
+                    if _daemon_stop_event.is_set():
+                        _log_daemon("Stop requested during execution", "warning")
+                        break
+                    
+                    domain = alloc["domain"]
+                    rounds = alloc["rounds"]
+                    _log_daemon(f"Running {rounds} round(s) in {domain}...")
+                    
+                    domain_scores = []
+                    for r in range(rounds):
+                        if _daemon_stop_event.is_set():
+                            break
+                        
+                        # Budget check each round
+                        budget = check_budget()
+                        if not budget["within_budget"]:
+                            _log_daemon("Budget hit mid-cycle", "warning")
+                            break
+                        
+                        try:
+                            # Import late to avoid circular deps
+                            from agents.question_generator import get_next_question
+                            from domain_seeder import get_seed_question, has_curated_seeds
+                            
+                            # Generate question
+                            domain_stats = get_stats(domain)
+                            if domain_stats["count"] == 0:
+                                question = get_seed_question(domain)
+                            else:
+                                question = get_next_question(domain)
+                            
+                            if not question:
+                                _log_daemon(f"No question for {domain}, skipping", "warning")
+                                break
+                            
+                            # Import run_loop late to avoid circular deps
+                            import importlib
+                            main_mod = importlib.import_module("main")
+                            result = main_mod.run_loop(question=question, domain=domain)
+                            
+                            score = result.get("critique", {}).get("overall_score", 0)
+                            domain_scores.append(score)
+                            completed += 1
+                            _log_daemon(f"  {domain} round {r+1}: score {score}/10")
+                            
+                        except SystemExit:
+                            _log_daemon(f"Budget exceeded in {domain}", "warning")
+                            break
+                        except Exception as e:
+                            _log_daemon(f"Error in {domain} round {r+1}: {e}", "error")
+                    
+                    avg = sum(domain_scores) / len(domain_scores) if domain_scores else 0
+                    domain_results.append({
+                        "domain": domain,
+                        "rounds_completed": len(domain_scores),
+                        "avg_score": round(avg, 1),
+                    })
+
+                cycle_end = datetime.now(timezone.utc)
+                duration = (cycle_end - cycle_start).total_seconds()
+                
+                _log_daemon(f"=== Cycle {cycle} complete: {completed} rounds, "
+                           f"{duration:.0f}s ===")
+                
+                _save_daemon_state({
+                    "status": "idle",
+                    "cycle": cycle,
+                    "last_run": cycle_start.isoformat(),
+                    "last_completed": cycle_end.isoformat(),
+                    "duration_seconds": round(duration),
+                    "rounds_completed": completed,
+                    "domain_results": domain_results,
+                    "next_run": (cycle_end + __import__("datetime").timedelta(
+                        minutes=interval_minutes)).isoformat(),
+                })
+
+            except Exception as e:
+                _log_daemon(f"Cycle {cycle} failed: {e}", "error")
+                _save_daemon_state({
+                    "status": "error",
+                    "cycle": cycle,
+                    "error": str(e),
+                    "last_run": cycle_start.isoformat(),
+                })
+
+            # Wait for next cycle
+            _log_daemon(f"Sleeping {interval_minutes} minutes until next cycle...")
+            if _daemon_stop_event.wait(timeout=interval_minutes * 60):
+                break
+
+    finally:
+        _daemon_running = False
+        signal.signal(signal.SIGINT, original_sigint)
+        signal.signal(signal.SIGTERM, original_sigterm)
+        _log_daemon("Daemon stopped.")
+        _save_daemon_state({
+            "status": "stopped",
+            "total_cycles": cycle,
+            "stopped_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+
+def stop_daemon():
+    """Signal the daemon to stop gracefully."""
+    global _daemon_running
+    if _daemon_running:
+        _daemon_stop_event.set()
+        _log_daemon("Stop signal sent to daemon", "warning")
+        return True
+    return False

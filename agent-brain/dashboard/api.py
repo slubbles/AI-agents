@@ -36,7 +36,7 @@ from strategy_store import (
 from cost_tracker import get_daily_spend, get_all_time_spend, check_budget
 from validator import validate_all
 from agents.question_generator import get_next_question
-from config import MEMORY_DIR, QUALITY_THRESHOLD
+from config import MEMORY_DIR, QUALITY_THRESHOLD, CONSENSUS_ENABLED, CONSENSUS_RESEARCHERS
 
 
 # ── Global event bus for SSE ──────────────────────────────────────────────
@@ -544,6 +544,105 @@ async def api_auto(
             "Connection": "keep-alive",
         },
     )
+
+
+# ── Knowledge Graph endpoints ─────────────────────────────────────────────
+
+@app.get("/api/domains/{domain}/graph")
+async def api_domain_graph(domain: str):
+    """Get knowledge graph for a domain."""
+    from knowledge_graph import load_graph, get_graph_summary, get_contradictions
+    graph = load_graph(domain)
+    if not graph or not graph.get("nodes"):
+        return {"domain": domain, "nodes": [], "edges": [], "summary": None}
+    summary = get_graph_summary(graph)
+    contradictions = get_contradictions(graph)
+    return {
+        "domain": domain,
+        "nodes": graph["nodes"],
+        "edges": graph["edges"],
+        "summary": summary,
+        "contradictions": contradictions,
+    }
+
+
+@app.post("/api/domains/{domain}/graph/build")
+async def api_build_graph(domain: str):
+    """Build/rebuild knowledge graph from KB."""
+    from knowledge_graph import build_graph_from_kb, save_graph, get_graph_summary
+    kb = load_knowledge_base(domain)
+    if not kb:
+        raise HTTPException(404, f"No knowledge base for domain '{domain}'")
+    graph = build_graph_from_kb(domain, kb)
+    save_graph(domain, graph)
+    summary = get_graph_summary(graph)
+    return {"domain": domain, "summary": summary, "built": True}
+
+
+# ── Daemon endpoints ──────────────────────────────────────────────────────
+
+@app.get("/api/daemon/status")
+async def api_daemon_status():
+    """Get daemon status."""
+    from scheduler import get_daemon_status
+    return get_daemon_status()
+
+
+@app.post("/api/daemon/start")
+async def api_daemon_start(
+    interval: int = Query(60, ge=5, le=1440),
+    rounds: int = Query(3, ge=1, le=20),
+    max_cycles: int = Query(0, ge=0, description="0=unlimited"),
+):
+    """Start daemon (runs in background thread)."""
+    from scheduler import run_daemon, get_daemon_status
+    status = get_daemon_status()
+    if status.get("running"):
+        raise HTTPException(409, "Daemon is already running")
+    thread = threading.Thread(
+        target=run_daemon,
+        kwargs={
+            "interval_minutes": interval,
+            "rounds_per_cycle": rounds,
+            "max_cycles": max_cycles or None,
+            "require_approval": True,
+        },
+        daemon=True,
+    )
+    thread.start()
+    return {"started": True, "interval": interval, "rounds": rounds, "max_cycles": max_cycles}
+
+
+@app.post("/api/daemon/stop")
+async def api_daemon_stop():
+    """Stop the running daemon."""
+    from scheduler import stop_daemon
+    stopped = stop_daemon()
+    return {"stopped": stopped}
+
+
+# ── Consensus endpoints ──────────────────────────────────────────────────
+
+@app.get("/api/config/consensus")
+async def api_consensus_config():
+    """Get consensus configuration."""
+    import config as _cfg
+    return {
+        "enabled": _cfg.CONSENSUS_ENABLED,
+        "researchers": _cfg.CONSENSUS_RESEARCHERS,
+    }
+
+
+@app.post("/api/config/consensus")
+async def api_set_consensus(
+    enabled: bool = Query(..., description="Enable or disable consensus"),
+    researchers: int = Query(3, ge=2, le=5, description="Number of parallel researchers"),
+):
+    """Toggle consensus mode at runtime."""
+    import config as _cfg
+    _cfg.CONSENSUS_ENABLED = enabled
+    _cfg.CONSENSUS_RESEARCHERS = researchers
+    return {"enabled": _cfg.CONSENSUS_ENABLED, "researchers": _cfg.CONSENSUS_RESEARCHERS}
 
 
 # ── Entry point ───────────────────────────────────────────────────────────

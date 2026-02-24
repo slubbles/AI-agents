@@ -68,6 +68,10 @@ SYNTHESIZE_EVERY_N = 5          # synthesize every N new accepted outputs
 MIN_OUTPUTS_FOR_TRANSFER = 5    # min outputs for a domain to be a transfer source
 MIN_AVG_SCORE_FOR_TRANSFER = 5.5
 
+# --- Multi-Researcher Consensus ---
+CONSENSUS_ENABLED = False       # disabled by default — run N researchers in parallel
+CONSENSUS_RESEARCHERS = 3       # number of parallel researchers (max 5)
+
 # --- Memory Hygiene ---
 MAX_OUTPUTS_PER_DOMAIN = 100          # archive overflow beyond this
 ARCHIVE_REJECTED_AFTER_DAYS = 7       # archive rejected outputs after N days

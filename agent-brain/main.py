@@ -40,11 +40,13 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from agents.researcher import research
 from agents.critic import critique
+from agents.consensus import consensus_research
 from agents.meta_analyst import analyze_and_evolve
 from config import (
     QUALITY_THRESHOLD, MAX_RETRIES, DEFAULT_DOMAIN, LOG_DIR,
     MIN_OUTPUTS_FOR_ANALYSIS, EVOLVE_EVERY_N,
     MIN_OUTPUTS_FOR_SYNTHESIS, SYNTHESIZE_EVERY_N,
+    CONSENSUS_ENABLED, CONSENSUS_RESEARCHERS,
 )
 from memory_store import save_output, load_outputs, get_stats, prune_domain, get_archive_stats
 from strategy_store import (
@@ -68,7 +70,8 @@ from utils.retry import retry_api_call, is_retryable
 from analytics import display_analytics, search_memory, display_search_results, full_report
 from validator import display_validation
 from domain_seeder import get_seed_question, get_seed_questions, has_curated_seeds, list_available_domains
-from scheduler import create_plan, display_plan, get_recommendations, display_recommendations
+from scheduler import create_plan, display_plan, get_recommendations, display_recommendations, run_daemon, stop_daemon, get_daemon_status
+from knowledge_graph import build_graph_from_kb, save_graph, load_graph, get_graph_summary
 
 
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
@@ -119,14 +122,24 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
         attempt += 1
         print(f"\n--- Attempt {attempt}/{MAX_RETRIES + 1} ---\n")
 
-        # Step 1: Research
-        print("[RESEARCHER] Generating findings...")
-        research_output = research(
-            question=question,
-            strategy=strategy,
-            critique=previous_critique_feedback,
-            domain=domain,
-        )
+        # Step 1: Research (single or consensus mode)
+        if CONSENSUS_ENABLED:
+            print(f"[RESEARCHER] Generating findings (consensus mode, {CONSENSUS_RESEARCHERS} researchers)...")
+            research_output = consensus_research(
+                question=question,
+                strategy=strategy,
+                critique=previous_critique_feedback,
+                domain=domain,
+                n_researchers=CONSENSUS_RESEARCHERS,
+            )
+        else:
+            print("[RESEARCHER] Generating findings...")
+            research_output = research(
+                question=question,
+                strategy=strategy,
+                critique=previous_critique_feedback,
+                domain=domain,
+            )
 
         findings_count = len(research_output.get("findings", []))
         print(f"[RESEARCHER] Produced {findings_count} findings")
@@ -227,6 +240,14 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
         if kb:
             active_claims = len([c for c in kb.get("claims", []) if c.get("status") == "active"])
             print(f"[SYNTHESIZER] Knowledge base: {active_claims} active claims")
+            # Auto-build knowledge graph
+            try:
+                graph = build_graph_from_kb(domain, kb)
+                save_graph(domain, graph)
+                gs = get_graph_summary(graph)
+                print(f"[GRAPH] ✓ {gs['total_nodes']} nodes, {gs['total_edges']} edges")
+            except Exception as e:
+                print(f"[GRAPH] ⚠ Graph build failed: {e}")
 
     # Step 7: Meta-analysis — evolve strategy if enough data
     # SAFETY: Never evolve while a trial is still being evaluated
@@ -330,12 +351,30 @@ def main():
     parser.add_argument("--run-plan", action="store_true", help="Execute the recommended research plan")
     parser.add_argument("--aggressive", action="store_true", help="Use more budget per cycle (with --plan or --run-plan)")
     parser.add_argument("--recommend", action="store_true", help="Show prioritized recommendations for system improvement")
+    parser.add_argument("--smart-orchestrate", action="store_true", help="LLM-reasoned multi-domain orchestration")
+    parser.add_argument("--consensus", action="store_true", help="Force consensus mode for this run (multi-researcher)")
+    parser.add_argument("--no-consensus", action="store_true", help="Force single-researcher mode for this run")
+    parser.add_argument("--graph", action="store_true", help="Show knowledge graph summary for a domain")
+    parser.add_argument("--daemon", action="store_true", help="Run scheduler daemon (continuous autonomous operation)")
+    parser.add_argument("--daemon-stop", action="store_true", help="Stop the running daemon")
+    parser.add_argument("--daemon-status", action="store_true", help="Show daemon status")
+    parser.add_argument("--interval", type=int, default=60, help="Daemon interval in minutes (default: 60)")
+    parser.add_argument("--max-cycles", type=int, default=0, help="Max daemon cycles (0=unlimited)")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("ERROR: Set ANTHROPIC_API_KEY environment variable first.")
         print("  export ANTHROPIC_API_KEY=sk-ant-...")
         sys.exit(1)
+
+    # Apply consensus overrides
+    import config as _cfg
+    if args.consensus:
+        _cfg.CONSENSUS_ENABLED = True
+        print("  [CONFIG] Consensus mode ENABLED for this run")
+    elif getattr(args, 'no_consensus', False):
+        _cfg.CONSENSUS_ENABLED = False
+        print("  [CONFIG] Consensus mode DISABLED for this run")
 
     # Dispatch control commands
     if args.status:
@@ -420,6 +459,25 @@ def main():
     if args.recommend:
         recs = get_recommendations()
         display_recommendations(recs)
+        return
+    if getattr(args, 'smart_orchestrate', False):
+        _run_smart_orchestrate(args)
+        return
+    if args.graph:
+        _show_graph(args.domain)
+        return
+    if args.daemon:
+        _run_daemon(args)
+        return
+    if getattr(args, 'daemon_stop', False):
+        if stop_daemon():
+            print("  Daemon stop signal sent.")
+        else:
+            print("  No daemon is running.")
+        return
+    if getattr(args, 'daemon_status', False):
+        status = get_daemon_status()
+        _show_daemon_status(status)
         return
 
     if args.evolve:
@@ -1122,6 +1180,150 @@ def _run_orchestrate(target_domains: list[str] | None, total_rounds: int):
     print(f"{'='*60}\n")
 
 
+def _run_smart_orchestrate(args):
+    """LLM-reasoned orchestration — Claude decides domain allocation."""
+    from agents.orchestrator import smart_orchestrate
+
+    print(f"\n{'='*60}")
+    print(f"  SMART ORCHESTRATOR — LLM-Reasoned Allocation")
+    print(f"  {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
+    print(f"{'='*60}")
+
+    total = args.rounds if hasattr(args, 'rounds') and args.rounds else 5
+    target = args.target.split(",") if hasattr(args, 'target') and args.target else None
+
+    result = smart_orchestrate(total_rounds=total, target_domains=target)
+
+    if not result:
+        print("\n  ✗ Smart orchestration failed.")
+        return
+
+    print(f"\n  Reasoning: {result.get('reasoning', 'N/A')}")
+    print(f"\n  Allocation:")
+    allocation = result.get("allocation", [])
+    for a in allocation:
+        print(f"    {a['domain']:<16} → {a['rounds']} round(s)")
+        if a.get("reason"):
+            print(f"    {'':>16}   ↳ {a['reason']}")
+
+    actions = result.get("recommended_actions", [])
+    if actions:
+        print(f"\n  Recommended actions:")
+        for act in actions:
+            print(f"    • {act}")
+
+    # Execute the allocation
+    if allocation:
+        print(f"\n  Executing allocation...")
+        targets = [a["domain"] for a in allocation]
+        total_rounds = sum(a["rounds"] for a in allocation)
+        _run_orchestrate(targets, total_rounds)
+
+
+def _show_graph(domain: str):
+    """Display knowledge graph summary for a domain."""
+    print(f"\n{'='*60}")
+    print(f"  KNOWLEDGE GRAPH — {domain}")
+    print(f"{'='*60}")
+
+    graph = load_graph(domain)
+    if not graph or not graph.get("nodes"):
+        print(f"\n  No knowledge graph found for '{domain}'.")
+        print(f"  Run --synthesize first to build knowledge base, then graph auto-builds.")
+        print()
+        return
+
+    summary = get_graph_summary(graph)
+
+    print(f"\n  Nodes: {summary['total_nodes']}")
+    print(f"  Edges: {summary['total_edges']}")
+    print(f"  Clusters: {summary['total_clusters']}")
+
+    # Node breakdown by type
+    print(f"\n  Node Types:")
+    for ntype, count in sorted(summary.get("node_types", {}).items(), key=lambda x: -x[1]):
+        print(f"    {ntype:<16} {count:>4}")
+
+    # Edge breakdown by type
+    print(f"\n  Edge Types:")
+    for etype, count in sorted(summary.get("edge_types", {}).items(), key=lambda x: -x[1]):
+        print(f"    {etype:<16} {count:>4}")
+
+    # Contradictions
+    from knowledge_graph import get_contradictions
+    contradictions = get_contradictions(graph)
+    if contradictions:
+        print(f"\n  ⚠ Contradictions ({len(contradictions)}):")
+        for c in contradictions[:5]:
+            src = next((n for n in graph["nodes"] if n["id"] == c["source"]), {})
+            tgt = next((n for n in graph["nodes"] if n["id"] == c["target"]), {})
+            print(f"    • {src.get('label', c['source'])[:40]}")
+            print(f"      ↔ {tgt.get('label', c['target'])[:40]}")
+
+    # Gaps
+    gaps = summary.get("gaps", {})
+    isolated = gaps.get("isolated_nodes", [])
+    if isolated:
+        print(f"\n  Knowledge Gaps ({len(isolated)} isolated nodes):")
+        for node_id in isolated[:5]:
+            node = next((n for n in graph["nodes"] if n["id"] == node_id), {})
+            print(f"    • {node.get('label', node_id)[:60]}")
+
+    print()
+
+
+def _run_daemon(args):
+    """Start the autonomous daemon."""
+    interval = getattr(args, 'interval', 60) or 60
+    max_cycles = getattr(args, 'max_cycles', None)
+    aggressive = getattr(args, 'aggressive', False)
+
+    print(f"\n{'='*60}")
+    print(f"  DAEMON MODE — Autonomous Operation")
+    print(f"{'='*60}")
+    print(f"\n  Interval: {interval} minutes")
+    print(f"  Max cycles: {max_cycles or 'unlimited'}")
+    print(f"  Aggressive: {aggressive}")
+    print(f"\n  ⚠ Human approval still required for strategy changes.")
+    print(f"  Press Ctrl+C to stop gracefully.\n")
+
+    run_daemon(
+        interval_minutes=interval,
+        rounds_per_cycle=getattr(args, 'rounds', 3) or 3,
+        max_cycles=max_cycles,
+        aggressive=aggressive,
+        require_approval=True,
+    )
+
+
+def _show_daemon_status(status: dict):
+    """Display daemon status."""
+    print(f"\n{'='*60}")
+    print(f"  DAEMON STATUS")
+    print(f"{'='*60}")
+
+    if not status or not status.get("running"):
+        last_run = status.get("last_run", "never") if status else "never"
+        print(f"\n  Status: stopped")
+        print(f"  Last run: {last_run}")
+    else:
+        print(f"\n  Status: RUNNING")
+        print(f"  Started: {status.get('started_at', 'unknown')}")
+        print(f"  Cycles completed: {status.get('cycles_completed', 0)}")
+        print(f"  Total rounds: {status.get('total_rounds', 0)}")
+        print(f"  Last cycle: {status.get('last_cycle', 'N/A')}")
+
+        cycle_results = status.get("cycle_results", [])
+        if cycle_results:
+            print(f"\n  Recent cycles:")
+            for cr in cycle_results[-5:]:
+                print(f"    [{cr.get('timestamp', '?')}] "
+                      f"{cr.get('rounds_completed', 0)} rounds, "
+                      f"avg {cr.get('avg_score', 0):.1f}")
+
+    print()
+
+
 def _show_seeds(domain: str):
     """Show seed questions for a domain or list all available seed domains."""
     if domain == DEFAULT_DOMAIN:
@@ -1333,6 +1535,14 @@ def _run_synthesize(domain: str):
     if not result:
         print(f"\n  ✗ Synthesis failed or not enough data.")
         print(f"  Need at least {MIN_OUTPUTS_FOR_SYNTHESIS} accepted outputs.")
+    else:
+        # Build knowledge graph from the synthesized KB
+        print(f"\n[GRAPH] Building knowledge graph...")
+        graph = build_graph_from_kb(domain, result)
+        save_graph(domain, graph)
+        summary = get_graph_summary(graph)
+        print(f"[GRAPH] ✓ {summary['total_nodes']} nodes, {summary['total_edges']} edges, "
+              f"{summary['total_clusters']} clusters")
     print()
 
 

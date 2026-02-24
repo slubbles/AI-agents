@@ -8,13 +8,17 @@ It decides:
   3. When to trigger synthesis, evolution, or cross-domain transfers
   4. What the overall system health looks like
 
-This is NOT an LLM agent — it's pure logic. No API calls.
-The Orchestrator is deterministic and cheap: it routes work, not generates content.
+Two modes:
+  - Deterministic (default): Pure logic scoring. No API calls. Fast and cheap.
+  - LLM-Reasoned (--smart-orchestrate): Uses Claude to reason about allocation
+    when the deterministic approach would benefit from nuance (e.g., score plateaus,
+    cross-domain synergies, strategic pivots).
 
 Usage (via main.py):
-    python main.py --orchestrate                    # Auto-allocate rounds across domains
+    python main.py --orchestrate                    # Deterministic allocation
     python main.py --orchestrate --rounds 10        # 10 total rounds, split intelligently
     python main.py --orchestrate --target-domains crypto,ai  # Only orchestrate specific domains
+    python main.py --smart-orchestrate              # LLM-reasoned allocation
 """
 
 import os
@@ -384,3 +388,151 @@ def get_system_health() -> dict:
         "budget_spent_today": budget["spent"],
         "api_calls_today": daily["calls"],
     }
+
+
+# ============================================================
+# LLM-Reasoned Orchestration
+# ============================================================
+
+def smart_orchestrate(total_rounds: int = 10,
+                      target_domains: list[str] | None = None) -> dict:
+    """
+    Use LLM reasoning to decide resource allocation across domains.
+    
+    Instead of purely deterministic scoring, this feeds the full system state
+    to Claude Haiku and asks it to reason about:
+    - Which domains have the highest learning potential
+    - Where diminishing returns are setting in
+    - What cross-domain synergies could be exploited
+    - Whether to explore new domains or deepen existing ones
+    
+    Falls back to deterministic allocation if the LLM call fails.
+    Uses Haiku to keep costs minimal — this is a routing decision, not content generation.
+    
+    Returns:
+        Dict with allocation, reasoning, and recommended actions
+    """
+    import json
+    from anthropic import Anthropic
+    from config import ANTHROPIC_API_KEY, MODELS
+    from cost_tracker import log_cost
+    from utils.retry import create_message
+    from utils.json_parser import extract_json
+
+    # Gather full system state
+    health = get_system_health()
+    priorities = prioritize_domains(target_domains)
+    budget = check_budget()
+    principles = load_principles()
+    principle_count = len(principles.get("principles", [])) if principles else 0
+
+    # Build domain summaries
+    domain_summaries = []
+    for p in priorities:
+        domain = p["domain"]
+        stats = p["stats"]
+        kb = load_knowledge_base(domain)
+        kb_claims = len(kb.get("claims", [])) if kb else 0
+        
+        domain_summaries.append({
+            "domain": domain,
+            "outputs": stats["count"],
+            "accepted": stats["accepted"],
+            "avg_score": stats["avg_score"],
+            "acceptance_rate": f"{stats['accepted']/stats['count']*100:.0f}%" if stats["count"] > 0 else "N/A",
+            "strategy": p["strategy"],
+            "strategy_status": p["strategy_status"],
+            "kb_claims": kb_claims,
+            "deterministic_priority": p["priority"],
+            "deterministic_reasons": p["reasons"],
+            "skip": p["skip"],
+        })
+
+    system_prompt = f"""\
+You are the Orchestrator for an autonomous research system. Your job is to decide
+how to allocate {total_rounds} research rounds across domains to maximize learning.
+
+SYSTEM STATE:
+- Health: {health['health_score']}/100
+- Total outputs: {health['total_outputs']}
+- Budget remaining: ${budget['remaining']:.2f}
+- Cross-domain principles: {principle_count}
+- Domains: {len(domain_summaries)}
+
+YOUR DECISION:
+Allocate exactly {total_rounds} rounds across the domains below. Consider:
+1. Which domains have the highest learning potential RIGHT NOW
+2. Where scores are plateauing (diminishing returns)
+3. Whether new/sparse domains need seeding
+4. Cross-domain synergies (knowledge in domain A could help domain B)
+5. Budget: each round costs ~$0.05-0.15
+
+RULES:
+- Skip domains with pending strategy approvals (skip=true)
+- Minimum 1 round per active domain you include
+- Maximum 5 rounds per domain (prevent tunnel vision)
+- If a domain is healthy (high scores, many outputs), give it fewer rounds
+- If a domain is struggling (low acceptance rate), consider strategy fix first
+
+Respond with ONLY this JSON:
+{{
+    "allocation": [
+        {{"domain": "name", "rounds": N, "reason": "why this many"}}
+    ],
+    "reasoning": "2-3 sentences explaining your overall strategy",
+    "recommended_actions": ["action1", "action2"],
+    "explore_new_domain": null
+}}
+"""
+
+    user_message = f"DOMAIN DATA:\n{json.dumps(domain_summaries, indent=2)}"
+
+    try:
+        client = Anthropic(api_key=ANTHROPIC_API_KEY)
+        response = create_message(
+            client,
+            model=MODELS["question_generator"],  # Haiku — cheap routing decision
+            max_tokens=2048,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_message}],
+        )
+
+        log_cost(
+            MODELS["question_generator"],
+            response.usage.input_tokens,
+            response.usage.output_tokens,
+            "orchestrator",
+            "system",
+        )
+
+        raw = response.content[0].text.strip()
+        result = extract_json(raw, expected_keys={"allocation", "reasoning"})
+        
+        if result and result.get("allocation"):
+            # Validate allocation totals
+            allocated = sum(a.get("rounds", 0) for a in result["allocation"])
+            result["total_rounds"] = allocated
+            result["budget_remaining"] = budget["remaining"]
+            result["health_score"] = health["health_score"]
+            result["mode"] = "llm_reasoned"
+            return result
+
+    except Exception as e:
+        print(f"  [ORCHESTRATOR] LLM reasoning failed: {e}")
+        print(f"  [ORCHESTRATOR] Falling back to deterministic allocation")
+
+    # Fallback to deterministic
+    allocation = allocate_rounds(priorities, total_rounds)
+    return {
+        "allocation": [
+            {"domain": a["domain"], "rounds": a["rounds"], "reason": "; ".join(a["reasons"][:2])}
+            for a in allocation
+        ],
+        "reasoning": "Deterministic allocation based on priority scoring (LLM fallback)",
+        "recommended_actions": [],
+        "total_rounds": sum(a["rounds"] for a in allocation),
+        "budget_remaining": budget["remaining"],
+        "health_score": health["health_score"],
+        "mode": "deterministic_fallback",
+    }
+
