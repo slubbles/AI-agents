@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { startRun, startAuto, LoopEvent, api, Domain } from "@/lib/api";
-import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import GlitchText from "@/components/reactbits/GlitchText";
 import ShinyText from "@/components/reactbits/ShinyText";
 
