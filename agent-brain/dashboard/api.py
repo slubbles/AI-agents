@@ -287,12 +287,17 @@ def _run_loop_thread(question: str, domain: str, event_q: queue.Queue):
         
         try:
             result = run_loop(question, domain)
+            critique = result.get("critique", {})
+            score = critique.get("overall_score")
+            verdict = critique.get("verdict")
+            strategy_v = result.get("research", {}).get("strategy_version", "default")
             event_q.put({"type": "run_complete", "data": {
                 "question": question,
                 "domain": domain,
-                "score": result.get("score"),
-                "verdict": result.get("verdict"),
-                "strategy_version": result.get("strategy_version"),
+                "score": score,
+                "verdict": verdict,
+                "strategy_version": strategy_v,
+                "attempts": result.get("attempts", 1),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }})
         except SystemExit:
@@ -326,7 +331,7 @@ async def api_run(
     async def event_stream():
         while True:
             try:
-                event = event_q.get(timeout=0.5)
+                event = event_q.get(timeout=0.3)
                 yield f"data: {json.dumps(event)}\n\n"
                 if event.get("type") == "run_end":
                     break
@@ -335,7 +340,15 @@ async def api_run(
                 if not thread.is_alive():
                     break
     
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @app.get("/api/run/status")
@@ -392,12 +405,13 @@ def _auto_loop_thread(domain: str, rounds: int, event_q: queue.Queue):
                 
                 # Run research loop
                 result = run_loop(question, domain)
+                critique = result.get("critique", {})
                 
                 event_q.put({"type": "round_complete", "data": {
                     "round": round_num,
                     "question": question,
-                    "score": result.get("score"),
-                    "verdict": result.get("verdict"),
+                    "score": critique.get("overall_score"),
+                    "verdict": critique.get("verdict"),
                 }})
                 
         except SystemExit:
@@ -431,7 +445,7 @@ async def api_auto(
     async def event_stream():
         while True:
             try:
-                event = event_q.get(timeout=0.5)
+                event = event_q.get(timeout=0.3)
                 yield f"data: {json.dumps(event)}\n\n"
                 if event.get("type") == "run_end":
                     break
@@ -440,7 +454,15 @@ async def api_auto(
                 if not thread.is_alive():
                     break
     
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 # ── Entry point ───────────────────────────────────────────────────────────

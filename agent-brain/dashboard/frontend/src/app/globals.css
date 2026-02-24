@@ -60,6 +60,28 @@ body {
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
+/* Smooth page transitions */
+main {
+  animation: fadeIn 0.2s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Selection color */
+::selection {
+  background: rgba(0, 229, 255, 0.2);
+  color: #fff;
+}
+
+/* Focus rings */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid rgba(0, 229, 255, 0.4);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
 .score-high { color: #00ff88; }
 .score-mid { color: #ffb300; }
 .score-low { color: #ff4060; }
