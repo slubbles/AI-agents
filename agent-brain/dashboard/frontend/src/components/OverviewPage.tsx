@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { api, SystemHealth, Domain, BudgetInfo } from "@/lib/api";
+import { api, SystemHealth, Domain, BudgetInfo, DomainComparison, ValidationResult, CostInfo } from "@/lib/api";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import CountUp from "@/components/reactbits/CountUp";
 import DecryptedText from "@/components/reactbits/DecryptedText";
@@ -36,17 +36,30 @@ export default function OverviewPage() {
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [budget, setBudget] = useState<BudgetInfo | null>(null);
+  const [comparison, setComparison] = useState<DomainComparison[]>([]);
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [costInfo, setCostInfo] = useState<CostInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(() => {
     setLoading(true);
     setError(null);
-    Promise.all([api.health(), api.domains(), api.budget()])
-      .then(([h, d, b]) => {
+    Promise.all([
+      api.health(),
+      api.domains(),
+      api.budget(),
+      api.comparison().catch(() => []),
+      api.validate().catch(() => null),
+      api.cost().catch(() => null),
+    ])
+      .then(([h, d, b, comp, val, cost]) => {
         setHealth(h);
         setDomains(d);
         setBudget(b);
+        setComparison(comp);
+        setValidation(val);
+        setCostInfo(cost);
         setLoading(false);
       })
       .catch((e) => {
@@ -272,6 +285,105 @@ export default function OverviewPage() {
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* Domain Comparison Table */}
+      {comparison.length > 0 && (
+        <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5 overflow-x-auto">
+          <h2 className="text-sm font-semibold text-white/50 mb-4">Domain Comparison</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] text-white/25 uppercase tracking-wider">
+                <th className="text-left pb-3 font-medium">Domain</th>
+                <th className="text-center pb-3 font-medium">Outputs</th>
+                <th className="text-center pb-3 font-medium">Accepted</th>
+                <th className="text-center pb-3 font-medium">Avg Score</th>
+                <th className="text-center pb-3 font-medium">Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparison.map((c) => (
+                <tr key={c.domain} className="border-t border-white/[0.03] hover:bg-white/[0.01] transition-colors">
+                  <td className="py-2.5">
+                    <Link href={"/domain/" + c.domain} className="flex items-center gap-2 text-white/70 hover:text-[#00e5ff] transition-colors">
+                      <span>{DOMAIN_ICONS[c.domain] || "◈"}</span>
+                      <span className="capitalize">{c.domain}</span>
+                    </Link>
+                  </td>
+                  <td className="text-center text-white/40 font-mono">{c.outputs}</td>
+                  <td className="text-center text-[#00ff88]/70 font-mono">{c.accepted}</td>
+                  <td className="text-center font-mono" style={{ color: scoreColor(c.avg_score) }}>{c.avg_score.toFixed(1)}</td>
+                  <td className="text-center">
+                    <span className={"text-[10px] px-2 py-0.5 rounded-full " + (
+                      c.trend === "improving" ? "text-[#00ff88] bg-[#00ff88]/10"
+                      : c.trend === "declining" ? "text-[#ff4060] bg-[#ff4060]/10"
+                      : c.trend === "stable" ? "text-[#00e5ff] bg-[#00e5ff]/10"
+                      : "text-white/30 bg-white/5"
+                    )}>
+                      {c.trend === "improving" ? "↗" : c.trend === "declining" ? "↘" : c.trend === "stable" ? "→" : "—"} {c.trend}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Validation + Cost Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Validation */}
+        {validation && (
+          <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-white/50">System Checks</h2>
+              <span className={"text-[10px] px-2.5 py-1 rounded-full border font-medium " + (
+                validation.valid
+                  ? "bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/20"
+                  : "bg-[#ff4060]/10 text-[#ff4060] border-[#ff4060]/20"
+              )}>
+                {validation.valid ? "✓ All clear" : `⚠ ${validation.issues.length} issue${validation.issues.length !== 1 ? "s" : ""}`}
+              </span>
+            </div>
+            {validation.issues.length > 0 ? (
+              <ul className="space-y-1.5">
+                {validation.issues.map((issue, i) => (
+                  <li key={i} className="text-xs text-[#ffb300]/70 flex items-start gap-2">
+                    <span className="text-[#ffb300] mt-0.5">•</span>
+                    <span>{issue}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-white/25">No data integrity issues detected.</p>
+            )}
+          </div>
+        )}
+
+        {/* Cost */}
+        {costInfo && (
+          <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
+            <h2 className="text-sm font-semibold text-white/50 mb-3">Cost Efficiency</h2>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-[10px] text-white/25 uppercase tracking-wider font-medium">Today</p>
+                <p className="text-lg font-bold text-[#00e5ff] font-mono">${costInfo.today_spend?.toFixed(4) || "0.00"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-white/25 uppercase tracking-wider font-medium">All Time</p>
+                <p className="text-lg font-bold font-mono">${costInfo.total_all_time?.toFixed(4) || "0.00"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-white/25 uppercase tracking-wider font-medium">Budget Left</p>
+                <p className="text-lg font-bold text-[#00ff88] font-mono">${costInfo.remaining?.toFixed(2) || "0.00"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-white/25 uppercase tracking-wider font-medium">Daily Limit</p>
+                <p className="text-lg font-bold font-mono text-white/50">${costInfo.daily_budget?.toFixed(2) || "2.00"}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Quick Actions */}

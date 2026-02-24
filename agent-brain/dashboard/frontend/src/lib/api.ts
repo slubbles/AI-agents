@@ -163,6 +163,22 @@ export interface LoopEvent {
 
 // ── API functions ────────────────────────────────────────────────────────
 
+export interface PendingStrategy {
+  version: string;
+  strategy_text: string;
+  created_at?: string;
+  [key: string]: unknown;
+}
+
+export interface StrategyDiff {
+  v1: string;
+  v2: string;
+  diff?: string;
+  v1_text?: string;
+  v2_text?: string;
+  [key: string]: unknown;
+}
+
 export const api = {
   health: () => fetchApi<SystemHealth>("/api/health"),
   domains: () => fetchApi<Domain[]>("/api/domains"),
@@ -170,6 +186,11 @@ export const api = {
   domainOutputs: (name: string) => fetchApi<ResearchOutput[]>(`/api/domains/${name}/outputs`),
   domainKb: (name: string) => fetchApi<KnowledgeBase>(`/api/domains/${name}/kb`),
   domainStrategy: (name: string) => fetchApi<Strategy>(`/api/domains/${name}/strategy`),
+  strategyPending: (domain: string) => fetchApi<{ domain: string; pending: PendingStrategy[] }>(`/api/domains/${domain}/strategy/pending`),
+  strategyApprove: (domain: string, version: string) => fetchApi<{ success: boolean }>(`/api/domains/${domain}/strategy/approve?version=${version}`, { method: "POST" }),
+  strategyReject: (domain: string, version: string) => fetchApi<{ success: boolean }>(`/api/domains/${domain}/strategy/reject?version=${version}`, { method: "POST" }),
+  strategyRollback: (domain: string) => fetchApi<{ success: boolean; rolled_back_to: string }>(`/api/domains/${domain}/strategy/rollback`, { method: "POST" }),
+  strategyDiff: (domain: string, v1: string, v2: string) => fetchApi<StrategyDiff>(`/api/domains/${domain}/strategy/diff?v1=${v1}&v2=${v2}`),
   budget: () => fetchApi<BudgetInfo>("/api/budget"),
   cost: () => fetchApi<CostInfo>("/api/cost"),
   comparison: () => fetchApi<DomainComparison[]>("/api/comparison"),

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { api, DomainDetail, ResearchOutput, KnowledgeBase, Strategy } from "@/lib/api";
+import { api, DomainDetail, ResearchOutput, KnowledgeBase, Strategy, PendingStrategy } from "@/lib/api";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import CountUp from "@/components/reactbits/CountUp";
 import DecryptedText from "@/components/reactbits/DecryptedText";
@@ -47,6 +47,8 @@ export default function DomainPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<"outputs" | "strategy" | "knowledge">("outputs");
+  const [pending, setPending] = useState<PendingStrategy[]>([]);
+  const [actionMsg, setActionMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -56,11 +58,13 @@ export default function DomainPage() {
       api.domainOutputs(name),
       api.domainStrategy(name).catch(() => null),
       api.domainKb(name).catch(() => null),
-    ]).then(([d, o, s, k]) => {
+      api.strategyPending(name).catch(() => ({ pending: [] })),
+    ]).then(([d, o, s, k, p]) => {
       setDetail(d);
       setOutputs(o);
       setStrategy(s);
       setKb(k);
+      setPending(p.pending || []);
       setLoading(false);
     }).catch((e) => {
       setError(e.message);
@@ -69,6 +73,37 @@ export default function DomainPage() {
   }, [name]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  const handleApprove = async (version: string) => {
+    try {
+      await api.strategyApprove(name, version);
+      setActionMsg({ type: "success", text: `Strategy ${version} approved → entering trial` });
+      loadData();
+    } catch (e) { setActionMsg({ type: "error", text: (e as Error).message }); }
+  };
+
+  const handleReject = async (version: string) => {
+    try {
+      await api.strategyReject(name, version);
+      setActionMsg({ type: "success", text: `Strategy ${version} rejected` });
+      loadData();
+    } catch (e) { setActionMsg({ type: "error", text: (e as Error).message }); }
+  };
+
+  const handleRollback = async () => {
+    try {
+      const result = await api.strategyRollback(name);
+      setActionMsg({ type: "success", text: `Rolled back to ${result.rolled_back_to}` });
+      loadData();
+    } catch (e) { setActionMsg({ type: "error", text: (e as Error).message }); }
+  };
+
+  // Auto-clear action messages
+  useEffect(() => {
+    if (!actionMsg) return;
+    const t = setTimeout(() => setActionMsg(null), 5000);
+    return () => clearTimeout(t);
+  }, [actionMsg]);
 
   if (loading && !detail) {
     return (
@@ -295,6 +330,54 @@ export default function DomainPage() {
 
       {tab === "strategy" && (
         <div className="space-y-4">
+          {/* Action message toast */}
+          {actionMsg && (
+            <div className={"px-4 py-3 rounded-xl border text-sm " + (
+              actionMsg.type === "success"
+                ? "bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/20"
+                : "bg-[#ff4060]/10 text-[#ff4060] border-[#ff4060]/20"
+            )}>
+              {actionMsg.type === "success" ? "✓ " : "✗ "}{actionMsg.text}
+            </div>
+          )}
+
+          {/* Pending strategies */}
+          {pending.length > 0 && (
+            <div className="bg-[#7c4dff]/[0.04] border border-[#7c4dff]/20 rounded-xl p-5">
+              <h3 className="text-[10px] uppercase tracking-widest text-[#7c4dff]/60 mb-3 font-medium">
+                Pending Approval ({pending.length})
+              </h3>
+              <div className="space-y-3">
+                {pending.map((p) => (
+                  <div key={p.version} className="bg-white/[0.02] border border-white/[0.05] rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-mono text-sm text-[#7c4dff]">{p.version}</span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApprove(p.version)}
+                          className="px-3 py-1.5 bg-[#00ff88]/10 text-[#00ff88] border border-[#00ff88]/20 rounded-lg text-xs font-medium hover:bg-[#00ff88]/20 transition-all"
+                        >
+                          ✓ Approve
+                        </button>
+                        <button
+                          onClick={() => handleReject(p.version)}
+                          className="px-3 py-1.5 bg-[#ff4060]/10 text-[#ff4060] border border-[#ff4060]/20 rounded-lg text-xs font-medium hover:bg-[#ff4060]/20 transition-all"
+                        >
+                          ✗ Reject
+                        </button>
+                      </div>
+                    </div>
+                    {p.strategy_text && (
+                      <pre className="text-xs text-white/40 whitespace-pre-wrap font-mono mt-2 max-h-32 overflow-y-auto leading-relaxed">
+                        {p.strategy_text}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {strategy ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -304,8 +387,20 @@ export default function DomainPage() {
                   <p className="text-xs text-white/25 mt-2">Status: <span className="text-white/50">{strategy.status}</span></p>
                 </SpotlightCard>
                 <SpotlightCard spotlightColor="rgba(124, 77, 255, 0.1)">
-                  <p className="text-white/25 text-[10px] uppercase tracking-wider mb-2 font-medium">Version Count</p>
-                  <p className="text-2xl font-bold">{strategy.all_versions?.length || 0}</p>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-white/25 text-[10px] uppercase tracking-wider mb-2 font-medium">Version Count</p>
+                      <p className="text-2xl font-bold">{strategy.all_versions?.length || 0}</p>
+                    </div>
+                    {strategy.all_versions && strategy.all_versions.length > 1 && (
+                      <button
+                        onClick={handleRollback}
+                        className="px-3 py-1.5 bg-[#ffb300]/10 text-[#ffb300] border border-[#ffb300]/20 rounded-lg text-[10px] font-medium hover:bg-[#ffb300]/20 transition-all"
+                      >
+                        ↩ Rollback
+                      </button>
+                    )}
+                  </div>
                   <p className="text-xs text-white/25 mt-2 font-mono">
                     {strategy.all_versions?.join(" → ")}
                   </p>

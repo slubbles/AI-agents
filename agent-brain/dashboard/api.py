@@ -30,6 +30,8 @@ from memory_store import load_outputs, get_stats, load_knowledge_base
 from strategy_store import (
     get_active_version, get_strategy_status, get_strategy,
     list_versions, get_version_history, load_strategy_file,
+    approve_strategy, reject_strategy, rollback, list_pending,
+    get_strategy_diff,
 )
 from cost_tracker import get_daily_spend, get_all_time_spend, check_budget
 from validator import validate_all
@@ -212,6 +214,57 @@ def api_domain_strategy(domain: str):
         "history": history,
         "all_versions": versions,
     }
+
+
+@app.get("/api/domains/{domain}/strategy/pending")
+def api_strategy_pending(domain: str):
+    """List pending strategies for a domain."""
+    pending = list_pending("researcher", domain)
+    return {"domain": domain, "pending": pending}
+
+
+@app.post("/api/domains/{domain}/strategy/approve")
+def api_strategy_approve(domain: str, version: str):
+    """Approve a pending strategy."""
+    try:
+        result = approve_strategy("researcher", domain, version)
+        return {"success": True, **result}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/domains/{domain}/strategy/reject")
+def api_strategy_reject(domain: str, version: str):
+    """Reject a pending strategy."""
+    try:
+        result = reject_strategy("researcher", domain, version)
+        return {"success": True, **result}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/domains/{domain}/strategy/rollback")
+def api_strategy_rollback(domain: str):
+    """Rollback to the previous strategy version."""
+    try:
+        result = rollback("researcher", domain)
+        if result is None:
+            raise HTTPException(status_code=400, detail="No previous version to rollback to")
+        return {"success": True, "rolled_back_to": result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/domains/{domain}/strategy/diff")
+def api_strategy_diff(domain: str, v1: str, v2: str):
+    """Show diff between two strategy versions."""
+    try:
+        result = get_strategy_diff("researcher", domain, v1, v2)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ── Cost Efficiency ──────────────────────────────────────────────────────
