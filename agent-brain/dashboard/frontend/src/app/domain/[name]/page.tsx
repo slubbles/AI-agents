@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { api, DomainDetail, ResearchOutput } from "@/lib/api";
+import { api, DomainDetail, ResearchOutput, KnowledgeBase, Strategy } from "@/lib/api";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import CountUp from "@/components/reactbits/CountUp";
 import DecryptedText from "@/components/reactbits/DecryptedText";
@@ -42,8 +42,8 @@ export default function DomainPage() {
   const name = params.name as string;
   const [detail, setDetail] = useState<DomainDetail | null>(null);
   const [outputs, setOutputs] = useState<ResearchOutput[]>([]);
-  const [strategy, setStrategy] = useState<Record<string, unknown> | null>(null);
-  const [kb, setKb] = useState<Record<string, unknown> | null>(null);
+  const [strategy, setStrategy] = useState<Strategy | null>(null);
+  const [kb, setKb] = useState<KnowledgeBase | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<"outputs" | "strategy" | "knowledge">("outputs");
@@ -154,7 +154,7 @@ export default function DomainPage() {
         <SpotlightCard spotlightColor="rgba(0, 229, 255, 0.1)">
           <div className="text-center">
             <p className="text-lg font-bold font-mono text-[#00e5ff]">
-              {strategy ? (strategy.active_version as string) : "default"}
+              {strategy ? strategy.active_version : "default"}
             </p>
             <p className="text-[10px] text-white/25 uppercase mt-1 tracking-wider">Strategy</p>
           </div>
@@ -300,14 +300,14 @@ export default function DomainPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <SpotlightCard spotlightColor="rgba(0, 229, 255, 0.1)">
                   <p className="text-white/25 text-[10px] uppercase tracking-wider mb-2 font-medium">Active Version</p>
-                  <p className="text-2xl font-mono font-bold text-[#00e5ff]">{strategy.active_version as string}</p>
-                  <p className="text-xs text-white/25 mt-2">Status: <span className="text-white/50">{strategy.status as string}</span></p>
+                  <p className="text-2xl font-mono font-bold text-[#00e5ff]">{strategy.active_version}</p>
+                  <p className="text-xs text-white/25 mt-2">Status: <span className="text-white/50">{strategy.status}</span></p>
                 </SpotlightCard>
                 <SpotlightCard spotlightColor="rgba(124, 77, 255, 0.1)">
                   <p className="text-white/25 text-[10px] uppercase tracking-wider mb-2 font-medium">Version Count</p>
-                  <p className="text-2xl font-bold">{(strategy.all_versions as string[])?.length || 0}</p>
+                  <p className="text-2xl font-bold">{strategy.all_versions?.length || 0}</p>
                   <p className="text-xs text-white/25 mt-2 font-mono">
-                    {(strategy.all_versions as string[])?.join(" → ")}
+                    {strategy.all_versions?.join(" → ")}
                   </p>
                 </SpotlightCard>
               </div>
@@ -315,15 +315,15 @@ export default function DomainPage() {
                 <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-5">
                   <h3 className="text-[10px] uppercase tracking-widest text-white/25 mb-3 font-medium">Strategy Content</h3>
                   <pre className="text-sm text-white/60 whitespace-pre-wrap font-mono leading-relaxed max-h-[500px] overflow-y-auto">
-                    {strategy.strategy_text as string}
+                    {strategy.strategy_text}
                   </pre>
                 </div>
               )}
-              {(strategy.history as Array<Record<string, unknown>>)?.length > 0 && (
+              {strategy.history && strategy.history.length > 0 && (
                 <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-5">
                   <h3 className="text-[10px] uppercase tracking-widest text-white/25 mb-3 font-medium">Version History</h3>
                   <div className="space-y-2">
-                    {(strategy.history as Array<Record<string, string>>).map((h, i) => (
+                    {strategy.history.map((h, i) => (
                       <div key={i} className="flex items-center gap-3 px-3 py-2 bg-white/[0.01] rounded-lg">
                         <span className="font-mono text-xs text-[#00e5ff]/70 w-12">{h.version}</span>
                         <span className={"text-[10px] px-2 py-0.5 rounded-full border " + (
@@ -355,15 +355,15 @@ export default function DomainPage() {
               {kb.domain_summary && (
                 <SpotlightCard spotlightColor="rgba(0, 255, 136, 0.1)">
                   <h3 className="text-[10px] uppercase tracking-widest text-white/25 mb-3 font-medium">Domain Summary</h3>
-                  <p className="text-sm text-white/60 leading-relaxed">{kb.domain_summary as string}</p>
+                  <p className="text-sm text-white/60 leading-relaxed">{kb.domain_summary}</p>
                 </SpotlightCard>
               )}
-              {(kb.claims as Array<Record<string, unknown>>)?.length > 0 && (
+              {kb.claims && kb.claims.length > 0 && (
                 <div className="space-y-2">
                   <h3 className="text-[10px] uppercase tracking-widest text-white/25 font-medium">
-                    Verified Claims ({(kb.claims as Array<unknown>).length})
+                    Verified Claims ({kb.claims.length})
                   </h3>
-                  {(kb.claims as Array<Record<string, string>>).map((claim, i) => (
+                  {kb.claims.map((claim, i) => (
                     <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 hover:border-white/10 transition-colors">
                       <div className="flex items-start gap-3">
                         <span className={"text-[10px] px-2 py-0.5 rounded-full border flex-shrink-0 mt-1 font-medium " + (

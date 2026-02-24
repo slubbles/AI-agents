@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { startRun, startAuto, LoopEvent, api, Domain } from "@/lib/api";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import GlitchText from "@/components/reactbits/GlitchText";
@@ -102,8 +103,17 @@ const PIPELINE_STAGES = [
 // ── Component ────────────────────────────────────────────────────────────
 
 export default function LoopPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-[60vh] text-white/30">Loading...</div>}>
+      <LoopPageInner />
+    </Suspense>
+  );
+}
+
+function LoopPageInner() {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<RunMode>("single");
-  const [domain, setDomain] = useState("general");
+  const [domain, setDomain] = useState(searchParams.get("domain") || "general");
   const [question, setQuestion] = useState("");
   const [rounds, setRounds] = useState(3);
   const [running, setRunning] = useState(false);

@@ -11,15 +11,29 @@ function getApiBase(): string {
 
 export async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
   const base = getApiBase();
-  const res = await fetch(`${base}${path}`, {
-    ...options,
-    headers: { "Content-Type": "application/json", ...options?.headers },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`API ${res.status}: ${body}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(`${base}${path}`, {
+      ...options,
+      signal: options?.signal || controller.signal,
+      headers: { "Content-Type": "application/json", ...options?.headers },
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      let detail = `API ${res.status}`;
+      try { const j = JSON.parse(body); detail = j.detail || detail; } catch { detail += body ? `: ${body}` : ""; }
+      throw new Error(detail);
+    }
+    return res.json();
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error("Request timed out — is the API server running?");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
   }
-  return res.json();
 }
 
 // ── Types ────────────────────────────────────────────────────────────────
@@ -100,6 +114,47 @@ export interface DomainDetail {
   velocity: Record<string, unknown>;
 }
 
+export interface KnowledgeBase {
+  domain: string;
+  domain_summary?: string;
+  claims?: Array<{ claim: string; confidence: string; sources?: string[]; first_seen?: string }>;
+  knowledge_gaps?: string[];
+  last_updated?: string;
+  [key: string]: unknown;
+}
+
+export interface Strategy {
+  active_version: string;
+  status: string;
+  strategy_text?: string;
+  all_versions?: string[];
+  history?: Array<{ version: string; status: string; replaced_at?: string }>;
+  [key: string]: unknown;
+}
+
+export interface CostInfo {
+  today_spend: number;
+  daily_budget: number;
+  remaining: number;
+  total_all_time: number;
+  [key: string]: unknown;
+}
+
+export interface DomainComparison {
+  domain: string;
+  outputs: number;
+  accepted: number;
+  avg_score: number;
+  trend: string;
+  [key: string]: unknown;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  issues: string[];
+  [key: string]: unknown;
+}
+
 export interface LoopEvent {
   type: string;
   data: Record<string, unknown>;
@@ -113,12 +168,12 @@ export const api = {
   domains: () => fetchApi<Domain[]>("/api/domains"),
   domain: (name: string) => fetchApi<DomainDetail>(`/api/domains/${name}`),
   domainOutputs: (name: string) => fetchApi<ResearchOutput[]>(`/api/domains/${name}/outputs`),
-  domainKb: (name: string) => fetchApi<Record<string, unknown>>(`/api/domains/${name}/kb`),
-  domainStrategy: (name: string) => fetchApi<Record<string, unknown>>(`/api/domains/${name}/strategy`),
+  domainKb: (name: string) => fetchApi<KnowledgeBase>(`/api/domains/${name}/kb`),
+  domainStrategy: (name: string) => fetchApi<Strategy>(`/api/domains/${name}/strategy`),
   budget: () => fetchApi<BudgetInfo>("/api/budget"),
-  cost: () => fetchApi<Record<string, unknown>>("/api/cost"),
-  comparison: () => fetchApi<Array<Record<string, unknown>>>("/api/comparison"),
-  validate: () => fetchApi<Record<string, unknown>>("/api/validate"),
+  cost: () => fetchApi<CostInfo>("/api/cost"),
+  comparison: () => fetchApi<DomainComparison[]>("/api/comparison"),
+  validate: () => fetchApi<ValidationResult>("/api/validate"),
   runStatus: () => fetchApi<{ running: boolean }>("/api/run/status"),
 };
 

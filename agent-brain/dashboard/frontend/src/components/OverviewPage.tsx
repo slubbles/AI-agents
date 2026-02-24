@@ -66,8 +66,33 @@ export default function OverviewPage() {
 
   if (loading && !health) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <DecryptedText text="Loading system data..." className="text-xl text-white/60" speed={40} />
+      <div className="space-y-6 max-w-7xl animate-pulse">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-48 bg-white/[0.04] rounded-lg" />
+          <div className="h-6 w-24 bg-white/[0.04] rounded-full" />
+        </div>
+        {/* Metric cards skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5 h-24">
+              <div className="h-4 w-16 bg-white/[0.04] rounded mb-3" />
+              <div className="h-7 w-12 bg-white/[0.04] rounded" />
+            </div>
+          ))}
+        </div>
+        {/* Secondary metrics skeleton */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3 h-16" />
+          ))}
+        </div>
+        {/* Domain cards skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5 h-40" />
+          ))}
+        </div>
       </div>
     );
   }
