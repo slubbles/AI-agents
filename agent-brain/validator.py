@@ -14,7 +14,7 @@ No API calls — pure filesystem validation.
 import json
 import os
 from datetime import datetime, timezone
-from config import MEMORY_DIR, STRATEGY_DIR, LOG_DIR
+from config import MEMORY_DIR, STRATEGY_DIR, LOG_DIR, QUALITY_THRESHOLD
 
 
 REQUIRED_OUTPUT_FIELDS = [
@@ -116,11 +116,20 @@ def validate_memory(domain: str | None = None) -> dict:
                     warnings += 1
                     d_warnings += 1
             
-            # Check accepted field exists
+            # Check accepted field exists and is consistent with score
             if "accepted" not in record:
                 issues.append(f"[{d}] {filename}: Missing 'accepted' boolean field")
                 warnings += 1
                 d_warnings += 1
+            elif isinstance(record.get("overall_score"), (int, float)):
+                score = record["overall_score"]
+                accepted = record["accepted"]
+                expected = score >= QUALITY_THRESHOLD
+                if accepted != expected:
+                    issues.append(f"[{d}] {filename}: Score/accepted mismatch — "
+                                  f"score={score}, accepted={accepted}, expected={expected}")
+                    warnings += 1
+                    d_warnings += 1
             
             # Check research is a dict
             if "research" in record and not isinstance(record["research"], dict):
@@ -291,6 +300,117 @@ def validate_cost_log() -> dict:
     }
 
 
+def validate_knowledge_graphs() -> dict:
+    """
+    Validate knowledge graph files across all domains.
+    
+    Checks:
+    - JSON structure and required fields
+    - Node/edge integrity (valid types, required sub-fields)
+    - Edge references point to existing nodes
+    - Metadata consistency (node_count matches actual nodes)
+    
+    Returns:
+        {valid: int, invalid: int, warnings: int, issues: [str]}
+    """
+    valid = 0
+    invalid = 0
+    warnings = 0
+    issues = []
+
+    if not os.path.exists(MEMORY_DIR):
+        return {"valid": 0, "invalid": 0, "warnings": 0, "issues": []}
+
+    valid_node_types = {"claim", "topic", "source", "gap", "question"}
+    valid_edge_types = {"supports", "contradicts", "supersedes", "relates_to",
+                        "belongs_to", "sourced_from", "answers"}
+
+    for d in sorted(os.listdir(MEMORY_DIR)):
+        domain_dir = os.path.join(MEMORY_DIR, d)
+        if not os.path.isdir(domain_dir):
+            continue
+        graph_file = os.path.join(domain_dir, "_knowledge_graph.json")
+        if not os.path.exists(graph_file):
+            continue
+
+        try:
+            with open(graph_file) as f:
+                graph = json.load(f)
+        except json.JSONDecodeError as e:
+            issues.append(f"[{d}] _knowledge_graph.json: Invalid JSON — {e}")
+            invalid += 1
+            continue
+
+        file_valid = True
+
+        # Check top-level structure
+        for field in ["nodes", "edges", "metadata"]:
+            if field not in graph:
+                issues.append(f"[{d}] Graph missing '{field}'")
+                file_valid = False
+
+        if not file_valid:
+            invalid += 1
+            continue
+
+        nodes = graph.get("nodes", [])
+        edges = graph.get("edges", [])
+        metadata = graph.get("metadata", {})
+        node_ids = {n.get("id") for n in nodes}
+
+        # Validate metadata consistency
+        if metadata.get("node_count", 0) != len(nodes):
+            issues.append(f"[{d}] Graph node_count mismatch: "
+                          f"meta={metadata.get('node_count')}, actual={len(nodes)}")
+            warnings += 1
+
+        if metadata.get("edge_count", 0) != len(edges):
+            issues.append(f"[{d}] Graph edge_count mismatch: "
+                          f"meta={metadata.get('edge_count')}, actual={len(edges)}")
+            warnings += 1
+
+        # Validate nodes
+        for node in nodes:
+            if "id" not in node or "type" not in node:
+                issues.append(f"[{d}] Node missing id or type: {node}")
+                file_valid = False
+                continue
+            if node["type"] not in valid_node_types:
+                issues.append(f"[{d}] Node '{node['id']}' has invalid type: {node['type']}")
+                warnings += 1
+
+        # Validate edges
+        orphan_edges = 0
+        for edge in edges:
+            if "source" not in edge or "target" not in edge or "type" not in edge:
+                issues.append(f"[{d}] Edge missing required fields: {edge}")
+                file_valid = False
+                continue
+            if edge["type"] not in valid_edge_types:
+                issues.append(f"[{d}] Edge has invalid type: {edge['type']}")
+                warnings += 1
+            if edge["source"] not in node_ids:
+                orphan_edges += 1
+            if edge["target"] not in node_ids:
+                orphan_edges += 1
+
+        if orphan_edges > 0:
+            issues.append(f"[{d}] Graph has {orphan_edges} edge reference(s) to non-existent nodes")
+            warnings += 1
+
+        if file_valid:
+            valid += 1
+        else:
+            invalid += 1
+
+    return {
+        "valid": valid,
+        "invalid": invalid,
+        "warnings": warnings,
+        "issues": issues,
+    }
+
+
 def validate_all() -> dict:
     """
     Run all validation checks and return comprehensive report.
@@ -298,11 +418,12 @@ def validate_all() -> dict:
     memory = validate_memory()
     strategies = validate_strategies()
     costs = validate_cost_log()
+    graphs = validate_knowledge_graphs()
     
-    total_issues = len(memory["issues"]) + len(strategies["issues"]) + len(costs["issues"])
-    total_valid = memory["valid"] + strategies["valid"] + costs["entries"]
-    total_invalid = memory["invalid"] + strategies["invalid"] + costs["invalid_lines"]
-    total_warnings = memory["warnings"] + strategies["warnings"]
+    total_issues = len(memory["issues"]) + len(strategies["issues"]) + len(costs["issues"]) + len(graphs["issues"])
+    total_valid = memory["valid"] + strategies["valid"] + costs["entries"] + graphs["valid"]
+    total_invalid = memory["invalid"] + strategies["invalid"] + costs["invalid_lines"] + graphs["invalid"]
+    total_warnings = memory["warnings"] + strategies["warnings"] + graphs["warnings"]
     
     # Overall health
     if total_invalid == 0 and total_warnings == 0:
@@ -321,6 +442,7 @@ def validate_all() -> dict:
         "memory": memory,
         "strategies": strategies,
         "costs": costs,
+        "graphs": graphs,
     }
 
 
@@ -364,8 +486,15 @@ def display_validation():
     if not costs["issues"]:
         print(f"    Cost log valid.")
     
+    # Knowledge Graphs
+    graphs = result.get("graphs", {})
+    if graphs.get("valid", 0) + graphs.get("invalid", 0) > 0:
+        print(f"\n  ── Knowledge Graphs ({graphs['valid']} valid, {graphs['invalid']} invalid, {graphs['warnings']} warnings) ──")
+        if not graphs["issues"]:
+            print(f"    All knowledge graphs valid.")
+    
     # Show issues
-    all_issues = mem["issues"] + strat["issues"] + costs["issues"]
+    all_issues = mem["issues"] + strat["issues"] + costs["issues"] + graphs.get("issues", [])
     if all_issues:
         print(f"\n  ── Issues ({len(all_issues)}) ──")
         for i, issue in enumerate(all_issues[:20], 1):
