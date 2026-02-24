@@ -30,6 +30,7 @@ from strategy_store import (
 )
 from cost_tracker import log_cost
 from utils.retry import create_message
+from utils.json_parser import extract_json
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -247,14 +248,14 @@ def extract_principles(force: bool = False) -> dict | None:
 
     response = create_message(
         client,
-        model=MODELS["meta_analyst"],
+        model=MODELS["cross_domain"],
         max_tokens=4096,
         system=EXTRACTION_PROMPT,
         messages=[{"role": "user", "content": user_message}],
     )
 
     log_cost(
-        MODELS["meta_analyst"],
+        MODELS["cross_domain"],
         response.usage.input_tokens,
         response.usage.output_tokens,
         "cross_domain",
@@ -263,15 +264,11 @@ def extract_principles(force: bool = False) -> dict | None:
 
     raw_text = response.content[0].text.strip()
 
-    # Strip markdown fences if present
-    if raw_text.startswith("```"):
-        lines = raw_text.split("\n")
-        lines = [l for l in lines[1:] if l.strip() != "```"]
-        raw_text = "\n".join(lines)
+    # Robust JSON extraction
+    EXPECTED_KEYS = {"principles", "domain_specific_insights", "meta_observations"}
+    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
 
-    try:
-        result = json.loads(raw_text)
-    except json.JSONDecodeError:
+    if result is None:
         print("[CROSS-DOMAIN] ⚠ Failed to parse principle extraction output")
         return None
 
@@ -360,14 +357,14 @@ def generate_seed_strategy(target_domain: str, question_hint: str = "") -> dict 
 
     response = create_message(
         client,
-        model=MODELS["meta_analyst"],
+        model=MODELS["cross_domain"],
         max_tokens=4096,
         system=SEED_PROMPT,
         messages=[{"role": "user", "content": user_message}],
     )
 
     log_cost(
-        MODELS["meta_analyst"],
+        MODELS["cross_domain"],
         response.usage.input_tokens,
         response.usage.output_tokens,
         "cross_domain",
@@ -377,14 +374,13 @@ def generate_seed_strategy(target_domain: str, question_hint: str = "") -> dict 
     raw_text = response.content[0].text.strip()
 
     # Strip markdown fences if present
-    if raw_text.startswith("```"):
-        lines = raw_text.split("\n")
-        lines = [l for l in lines[1:] if l.strip() != "```"]
-        raw_text = "\n".join(lines)
+    raw_text = response.content[0].text.strip()
 
-    try:
-        result = json.loads(raw_text)
-    except json.JSONDecodeError:
+    # Robust JSON extraction
+    EXPECTED_KEYS = {"strategy", "principles_applied", "domain_adaptations"}
+    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
+
+    if result is None:
         print("[CROSS-DOMAIN] ⚠ Failed to parse seed strategy output")
         return None
 

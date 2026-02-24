@@ -990,11 +990,13 @@ class TestAnalytics:
                 "research": {},
                 "critique": {
                     "overall_score": 7,
-                    "accuracy": {"score": 8},
-                    "depth": {"score": 6},
-                    "completeness": {"score": 7},
-                    "specificity": {"score": 9},
-                    "intellectual_honesty": {"score": 7},
+                    "scores": {
+                        "accuracy": 8,
+                        "depth": 6,
+                        "completeness": 7,
+                        "specificity": 9,
+                        "intellectual_honesty": 7,
+                    },
                     "strengths": ["Good data"],
                     "weaknesses": ["Shallow analysis"],
                 },
@@ -1025,7 +1027,7 @@ class TestAnalytics:
                 "research": {
                     "findings": [{"claim": "A"}, {"claim": "B"}, {"claim": "C"}],
                     "key_insights": ["X", "Y"],
-                    "searches_used": 3,
+                    "_searches_made": 3,
                 },
                 "critique": {},
             },
@@ -1039,7 +1041,7 @@ class TestAnalytics:
                 "research": {
                     "findings": [{"claim": "D"}],
                     "key_insights": ["Z"],
-                    "searches_used": 2,
+                    "_searches_made": 2,
                 },
                 "critique": {},
             },
@@ -1360,3 +1362,225 @@ class TestScheduler:
         
         result = estimate_total_cost({"test": 3, "other": 2})
         assert result > 0
+
+
+# ============================================================
+# JSON Parser Tests (#23)
+# ============================================================
+
+class TestJsonParser:
+    """Tests for the shared JSON extraction utility."""
+
+    def test_parse_clean_json(self):
+        """Parses valid JSON directly."""
+        from utils.json_parser import extract_json
+        text = '{"key": "value", "num": 42}'
+        result = extract_json(text)
+        assert result == {"key": "value", "num": 42}
+
+    def test_parse_with_markdown_fences(self):
+        """Strips markdown code fences before parsing."""
+        from utils.json_parser import extract_json
+        text = '```json\n{"key": "value"}\n```'
+        result = extract_json(text)
+        assert result == {"key": "value"}
+
+    def test_parse_with_preamble(self):
+        """Handles model preamble before JSON."""
+        from utils.json_parser import extract_json
+        text = 'Here is my analysis:\n\n{"question": "test", "findings": [], "summary": "done"}'
+        result = extract_json(text, expected_keys={"question", "findings", "summary"})
+        assert result is not None
+        assert result["question"] == "test"
+
+    def test_parse_nested_objects(self):
+        """Handles nested JSON objects."""
+        from utils.json_parser import extract_json
+        text = '{"scores": {"accuracy": 8, "depth": 6}, "overall_score": 7.0}'
+        result = extract_json(text)
+        assert result["scores"]["accuracy"] == 8
+        assert result["overall_score"] == 7.0
+
+    def test_parse_multiple_objects_picks_best(self):
+        """When multiple JSON objects exist, picks the one with most expected keys."""
+        from utils.json_parser import extract_json
+        text = 'First: {"a": 1}. Second: {"question": "q", "findings": [{"claim": "c"}], "summary": "s"}'
+        result = extract_json(text, expected_keys={"question", "findings", "summary"})
+        assert result is not None
+        assert result["question"] == "q"
+
+    def test_parse_returns_none_for_no_json(self):
+        """Returns None when no valid JSON found."""
+        from utils.json_parser import extract_json
+        text = "This is just plain text with no JSON at all."
+        result = extract_json(text)
+        assert result is None
+
+    def test_parse_with_preamble_and_fences(self):
+        """Handles both preamble text and markdown fences."""
+        from utils.json_parser import extract_json
+        text = 'Let me analyze this:\n```json\n{"scores": {"accuracy": 9}, "overall_score": 8.5, "verdict": "accept"}\n```\nThat is my evaluation.'
+        result = extract_json(text, expected_keys={"scores", "overall_score", "verdict"})
+        assert result is not None
+        assert result["verdict"] == "accept"
+
+    def test_parse_with_escaped_strings(self):
+        """Handles JSON with escaped characters in strings."""
+        from utils.json_parser import extract_json
+        text = '{"claim": "He said \\"hello\\"", "source": "test"}'
+        result = extract_json(text)
+        assert result is not None
+        assert "hello" in result["claim"]
+
+
+# ============================================================
+# Strategy Store Approval Gate Tests (#21 partial - critical path)
+# ============================================================
+
+class TestApprovalGate:
+    """Tests that the approval gate actually prevents pending strategies from activating."""
+
+    @pytest.fixture
+    def tmp_strategies(self, tmp_path):
+        d = str(tmp_path / "strategies")
+        os.makedirs(d, exist_ok=True)
+        with patch("strategy_store.STRATEGY_DIR", d):
+            yield d
+
+    def test_pending_strategy_not_active(self, tmp_strategies):
+        """Saving a pending strategy should NOT make it the active version."""
+        from strategy_store import save_strategy, get_active_version, get_strategy_status
+        
+        with patch("strategy_store.STRATEGY_DIR", tmp_strategies):
+            # Save a strategy as pending
+            save_strategy("researcher", "test", "my strategy", "v001", 
+                         reason="test", status="pending")
+            
+            # Active should still be default
+            active = get_active_version("researcher", "test")
+            assert active == "default", f"Pending strategy became active: {active}"
+
+    def test_trial_strategy_becomes_active(self, tmp_strategies):
+        """Saving a trial strategy SHOULD make it active."""
+        from strategy_store import save_strategy, get_active_version, get_strategy_status
+        
+        with patch("strategy_store.STRATEGY_DIR", tmp_strategies):
+            save_strategy("researcher", "test", "my strategy", "v001",
+                         reason="test", status="trial")
+            
+            active = get_active_version("researcher", "test")
+            assert active == "v001"
+            status = get_strategy_status("researcher", "test")
+            assert status == "trial"
+
+    def test_approve_promotes_pending(self, tmp_strategies):
+        """Approving a pending strategy should promote it to trial."""
+        from strategy_store import save_strategy, get_active_version, approve_strategy
+        
+        with patch("strategy_store.STRATEGY_DIR", tmp_strategies):
+            save_strategy("researcher", "test", "my strategy", "v001",
+                         reason="test", status="pending")
+            
+            # Still default before approval
+            assert get_active_version("researcher", "test") == "default"
+            
+            # Approve
+            result = approve_strategy("researcher", "test", "v001")
+            assert result["action"] == "approved"
+            
+            # Now it should be active with trial status
+            assert get_active_version("researcher", "test") == "v001"
+
+
+# ============================================================
+# Rollback History Tests (#11 - rollback pops)
+# ============================================================
+
+class TestRollbackHistory:
+    """Tests that rollback properly pops from history."""
+
+    @pytest.fixture
+    def tmp_strategies(self, tmp_path):
+        d = str(tmp_path / "strategies")
+        os.makedirs(d, exist_ok=True)
+        with patch("strategy_store.STRATEGY_DIR", d):
+            yield d
+
+    def test_rollback_pops_history(self, tmp_strategies):
+        """Rollback should pop the history entry so repeated rollbacks work correctly."""
+        from strategy_store import save_strategy, rollback, get_active_version, get_version_history
+        
+        with patch("strategy_store.STRATEGY_DIR", tmp_strategies):
+            # Create v001 (active), then v002 (trial)
+            save_strategy("researcher", "test", "strategy 1", "v001", status="active")
+            save_strategy("researcher", "test", "strategy 2", "v002", status="trial")
+            
+            assert get_active_version("researcher", "test") == "v002"
+            
+            # Rollback → should go to v001
+            result = rollback("researcher", "test")
+            assert result == "v001"
+            assert get_active_version("researcher", "test") == "v001"
+            
+            # Second rollback → should go to default (not v001 again)
+            result = rollback("researcher", "test")
+            assert result == "default"
+
+
+# ============================================================  
+# Migration Status Check Tests (#7)
+# ============================================================
+
+class TestMigrationStatusCheck:
+    """Tests that strategy migration skips rejected/pending files."""
+
+    @pytest.fixture
+    def tmp_strategies(self, tmp_path):
+        d = str(tmp_path / "strategies")
+        os.makedirs(d, exist_ok=True)
+        with patch("strategy_store.STRATEGY_DIR", d):
+            yield d
+
+    def test_migration_skips_rejected(self, tmp_strategies):
+        """Pre-Layer-4 migration should skip rejected strategy files."""
+        from strategy_store import get_strategy
+        
+        with patch("strategy_store.STRATEGY_DIR", tmp_strategies):
+            # Create a strategy file marked as rejected
+            domain_dir = os.path.join(tmp_strategies, "test")
+            os.makedirs(domain_dir, exist_ok=True)
+            
+            rejected = {
+                "agent_role": "researcher", "domain": "test", 
+                "version": "v001", "strategy": "bad strategy",
+                "status": "rejected"
+            }
+            with open(os.path.join(domain_dir, "researcher_v001.json"), "w") as f:
+                json.dump(rejected, f)
+            
+            # get_strategy should NOT activate the rejected one
+            strategy, version = get_strategy("researcher", "test")
+            assert version == "default"
+            assert strategy is None
+
+    def test_migration_picks_active(self, tmp_strategies):
+        """Pre-Layer-4 migration should pick the latest active/trial file."""
+        from strategy_store import get_strategy
+        
+        with patch("strategy_store.STRATEGY_DIR", tmp_strategies):
+            domain_dir = os.path.join(tmp_strategies, "test")
+            os.makedirs(domain_dir, exist_ok=True)
+            
+            # v001 is rejected, v002 is active
+            for v, status in [("v001", "rejected"), ("v002", "active")]:
+                data = {
+                    "agent_role": "researcher", "domain": "test",
+                    "version": v, "strategy": f"strategy {v}",
+                    "status": status
+                }
+                with open(os.path.join(domain_dir, f"researcher_{v}.json"), "w") as f:
+                    json.dump(data, f)
+            
+            strategy, version = get_strategy("researcher", "test")
+            assert version == "v002"
+            assert strategy == "strategy v002"

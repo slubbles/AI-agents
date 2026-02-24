@@ -25,6 +25,7 @@ from memory_store import load_outputs
 from strategy_store import get_strategy, save_strategy, list_versions
 from cost_tracker import log_cost
 from utils.retry import create_message
+from utils.json_parser import extract_json
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -168,15 +169,11 @@ def analyze_and_evolve(domain: str) -> dict | None:
 
     raw_text = response.content[0].text.strip()
 
-    # Strip markdown fences if present
-    if raw_text.startswith("```"):
-        lines = raw_text.split("\n")
-        lines = [l for l in lines[1:] if l.strip() != "```"]
-        raw_text = "\n".join(lines)
+    # Robust JSON extraction (handles markdown fences, preamble, etc.)
+    EXPECTED_KEYS = {"new_strategy", "changes", "reasoning"}
+    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
 
-    try:
-        result = json.loads(raw_text)
-    except json.JSONDecodeError:
+    if result is None:
         print("[META-ANALYST] ⚠ Failed to parse meta-analyst output")
         return None
 

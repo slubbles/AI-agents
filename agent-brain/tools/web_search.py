@@ -25,7 +25,7 @@ def web_search(query: str, max_results: int = 5) -> list[dict]:
             for r in results
         ]
     except Exception as e:
-        return [{"title": "Search failed", "url": "", "snippet": str(e)}]
+        return [{"title": "Search failed", "url": "", "snippet": str(e), "error": True}]
 
 
 # Claude tool definition for tool_use

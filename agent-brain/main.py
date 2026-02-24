@@ -221,7 +221,7 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
 
     # Step 6.5: Knowledge synthesis — integrate findings into domain knowledge base
     accepted_count = get_stats(domain).get("accepted", 0)
-    if accepted_count >= MIN_OUTPUTS_FOR_SYNTHESIS:
+    if accepted_count >= MIN_OUTPUTS_FOR_SYNTHESIS and accepted_count % SYNTHESIZE_EVERY_N == 0:
         # Auto-synthesize every SYNTHESIZE_EVERY_N accepted outputs
         kb = synthesize(domain)
         if kb:
@@ -472,8 +472,8 @@ def _show_status(domain: str):
         for v in versions:
             perf = get_strategy_performance(domain, v)
             # Get version status from file
-            from strategy_store import _load_strategy_file
-            vdata = _load_strategy_file("researcher", domain, v)
+            from strategy_store import load_strategy_file
+            vdata = load_strategy_file("researcher", domain, v)
             vstatus = vdata.get("status", "?") if vdata else "?"
             marker = " ←" if v == active else ""
             print(f"  {v:<10} {vstatus:<10} {perf['count']:>8} {perf['avg_score']:>10.1f} "
@@ -496,10 +496,10 @@ def _show_status(domain: str):
 
 def _do_approve(domain: str, version: str):
     """Approve a pending strategy → promote to trial."""
-    from strategy_store import _load_strategy_file
+    from strategy_store import load_strategy_file
 
     # Show the strategy before approving
-    data = _load_strategy_file("researcher", domain, version)
+    data = load_strategy_file("researcher", domain, version)
     if data is None:
         print(f"\n  ✗ Strategy {version} not found in domain '{domain}'")
         return
@@ -843,6 +843,7 @@ def _run_auto(domain: str, rounds: int = 1):
     print(f"  Rounds: {rounds}")
     print(f"{'='*60}\n")
 
+    question = None  # Initialize before loop to avoid NameError in summary
     for round_num in range(1, rounds + 1):
         print(f"\n{'─'*50}")
         print(f"  ROUND {round_num}/{rounds}")
@@ -1193,7 +1194,7 @@ def _run_export(markdown: bool = False):
         sv = get_active_version("researcher", domain)
         ss = get_strategy_status("researcher", domain)
         pending = list_pending("researcher", domain)
-        perf = get_strategy_performance("researcher", domain)
+        perf = get_strategy_performance(domain, sv)
         kb = load_knowledge_base(domain)
         outputs = load_outputs(domain)
         

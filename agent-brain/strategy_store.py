@@ -50,6 +50,11 @@ def _load_strategy_file(agent_role: str, domain: str, version: str) -> dict | No
         return json.load(f)
 
 
+def load_strategy_file(agent_role: str, domain: str, version: str) -> dict | None:
+    """Public accessor: load a specific strategy version file."""
+    return _load_strategy_file(agent_role, domain, version)
+
+
 def get_active_version(agent_role: str, domain: str) -> str:
     """Get the active strategy version for an agent+domain. Returns 'default' if none."""
     meta = _load_meta(domain)
@@ -116,14 +121,18 @@ def get_strategy(agent_role: str, domain: str) -> tuple[str | None, str]:
         if not files:
             return None, "default"
 
-        # Migrate: set the latest as active
-        latest = files[-1]
-        filepath = os.path.join(strategy_dir, latest)
-        with open(filepath) as f:
-            data = json.load(f)
-        version = data.get("version", "unknown")
-        set_active_version(agent_role, domain, version, "active")
-        return data.get("strategy"), version
+        # Migrate: set the latest non-rejected, non-pending as active
+        for latest in reversed(files):
+            filepath = os.path.join(strategy_dir, latest)
+            with open(filepath) as f:
+                data = json.load(f)
+            file_status = data.get("status", "active")
+            if file_status in ("active", "trial"):
+                version = data.get("version", "unknown")
+                set_active_version(agent_role, domain, version, "active")
+                return data.get("strategy"), version
+        # All files are rejected/pending — no active strategy
+        return None, "default"
 
     data = _load_strategy_file(agent_role, domain, active)
     if data is None:
@@ -158,8 +167,10 @@ def save_strategy(agent_role: str, domain: str, strategy_text: str, version: str
     with open(filepath, "w") as f:
         json.dump(record, f, indent=2)
 
-    # Set as active with trial status
-    set_active_version(agent_role, domain, version, status)
+    # Only set as active for non-pending statuses
+    # Pending strategies require explicit approval before becoming active/trial
+    if status != "pending":
+        set_active_version(agent_role, domain, version, status)
 
     return filepath
 
@@ -178,13 +189,29 @@ def rollback(agent_role: str, domain: str) -> str | None:
     if not history:
         return None
 
-    # Pop the most recent previous version
-    previous = history[-1]
+    # Pop the most recent previous version from history
+    previous = history.pop()
     prev_version = previous["version"]
 
+    # Mark current as rolled_back in its file
+    current_version = meta.get(f"{agent_role}_active", "default")
+    if current_version != "default":
+        current_data = _load_strategy_file(agent_role, domain, current_version)
+        if current_data:
+            current_data["status"] = "rolled_back"
+            current_data["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
+            filepath = os.path.join(STRATEGY_DIR, domain, f"{agent_role}_{current_version}.json")
+            with open(filepath, "w") as f:
+                json.dump(current_data, f, indent=2)
+
+    # Update meta directly (don't use set_active_version — it would re-add current to history)
+    meta[history_key] = history
+    meta[f"{agent_role}_active"] = prev_version
+    meta[f"{agent_role}_status"] = "active"
+    meta[f"{agent_role}_updated_at"] = datetime.now(timezone.utc).isoformat()
+    _save_meta(domain, meta)
+
     if prev_version == "default":
-        # Roll back to no custom strategy
-        set_active_version(agent_role, domain, "default", "active")
         return "default"
 
     # Verify the strategy file exists
@@ -192,17 +219,6 @@ def rollback(agent_role: str, domain: str) -> str | None:
     if data is None:
         return None
 
-    # Mark current as rolled_back in its file
-    current_version = get_active_version(agent_role, domain)
-    current_data = _load_strategy_file(agent_role, domain, current_version)
-    if current_data:
-        current_data["status"] = "rolled_back"
-        current_data["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
-        filepath = os.path.join(STRATEGY_DIR, domain, f"{agent_role}_{current_version}.json")
-        with open(filepath, "w") as f:
-            json.dump(current_data, f, indent=2)
-
-    set_active_version(agent_role, domain, prev_version, "active")
     return prev_version
 
 

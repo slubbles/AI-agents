@@ -10,6 +10,8 @@ from anthropic import Anthropic
 from config import ANTHROPIC_API_KEY, MODELS
 from cost_tracker import log_cost
 from utils.retry import create_message
+from utils.json_parser import extract_json
+from utils.json_parser import extract_json
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -80,15 +82,11 @@ def critique(research_output: dict) -> dict:
 
     raw_text = response.content[0].text.strip()
 
-    # Strip markdown code fences if present
-    if raw_text.startswith("```"):
-        lines = raw_text.split("\n")
-        lines = [l for l in lines[1:] if l.strip() != "```"]
-        raw_text = "\n".join(lines)
+    # Robust JSON extraction (handles markdown fences, preamble, etc.)
+    EXPECTED_KEYS = {"scores", "overall_score", "verdict"}
+    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
 
-    try:
-        result = json.loads(raw_text)
-    except json.JSONDecodeError:
+    if result is None:
         # Fallback if critic response isn't valid JSON
         result = {
             "scores": {"accuracy": 0, "depth": 0, "completeness": 0, "specificity": 0, "intellectual_honesty": 0},
