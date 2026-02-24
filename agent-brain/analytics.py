@@ -291,9 +291,10 @@ def critic_analysis(domain: str) -> dict:
     for o in outputs:
         critique = o.get("critique", {})
         
-        # Extract dimension scores
+        # Extract dimension scores (stored under critique["scores"])
+        scores_dict = critique.get("scores", {})
         for dim_name in ["accuracy", "depth", "completeness", "specificity", "intellectual_honesty"]:
-            dim_data = critique.get(dim_name, {})
+            dim_data = scores_dict.get(dim_name)
             if isinstance(dim_data, dict) and "score" in dim_data:
                 dimensions[dim_name].append(dim_data["score"])
             elif isinstance(dim_data, (int, float)):
@@ -369,7 +370,7 @@ def research_patterns(domain: str) -> dict:
         research = o.get("research", {})
         findings_counts.append(len(research.get("findings", [])))
         insights_counts.append(len(research.get("key_insights", [])))
-        search_counts.append(research.get("searches_used", 0))
+        search_counts.append(research.get("_searches_made", 0))
     
     retry_count = sum(1 for a in attempts if a > 1)
     

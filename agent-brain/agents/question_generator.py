@@ -31,6 +31,7 @@ from config import ANTHROPIC_API_KEY, MODELS
 from memory_store import load_outputs, get_stats, load_knowledge_base
 from cost_tracker import log_cost
 from utils.retry import create_message
+from utils.json_parser import extract_json
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -210,14 +211,14 @@ def generate_questions(domain: str) -> dict | None:
 
     response = create_message(
         client,
-        model=MODELS["researcher"],  # Use Haiku — it's a synthesis task
+        model=MODELS["question_generator"],  # Haiku — it's a synthesis task
         max_tokens=2048,
         system=GENERATOR_PROMPT,
         messages=[{"role": "user", "content": user_message}],
     )
 
     log_cost(
-        MODELS["researcher"],
+        MODELS["question_generator"],
         response.usage.input_tokens,
         response.usage.output_tokens,
         "question_generator",
@@ -226,23 +227,13 @@ def generate_questions(domain: str) -> dict | None:
 
     raw_text = response.content[0].text.strip()
 
-    # Strip ALL markdown fences
-    raw_text = re.sub(r'```(?:json)?\s*\n?', '', raw_text).strip()
+    # Robust JSON extraction
+    EXPECTED_KEYS = {"questions", "diagnosis"}
+    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
 
-    try:
-        result = json.loads(raw_text)
-    except json.JSONDecodeError:
-        # Try to find JSON object in text (model may add preamble)
-        match = re.search(r'\{.*\}', raw_text, re.DOTALL)
-        if match:
-            try:
-                result = json.loads(match.group())
-            except json.JSONDecodeError:
-                print("[QUESTION-GEN] ⚠ Failed to parse question generator output")
-                return None
-        else:
-            print("[QUESTION-GEN] ⚠ Failed to parse question generator output")
-            return None
+    if result is None:
+        print("[QUESTION-GEN] ⚠ Failed to parse question generator output")
+        return None
 
     questions = result.get("questions", [])
     if not questions:

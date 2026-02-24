@@ -18,6 +18,7 @@ from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 from cost_tracker import log_cost
 from memory_store import retrieve_relevant, load_knowledge_base
 from utils.retry import create_message
+from utils.json_parser import extract_json
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -73,86 +74,6 @@ Do NOT output markdown, tables, or prose — ONLY the JSON object.
 """
 
 # MAX_TOOL_ROUNDS and MAX_SEARCHES imported from config
-
-
-def _extract_json(text: str) -> dict | None:
-    """
-    Extract a JSON object from text that may contain preamble or markdown fencing.
-    Handles the common case where the model writes text before/after the JSON,
-    or nests JSON inside markdown code fences within its output.
-    """
-    # Strip ALL markdown code fences (including nested ones)
-    text = re.sub(r'```(?:json)?\s*\n?', '', text)
-    text = text.strip()
-
-    # Try direct parse first
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
-
-    # Strategy: find all balanced JSON objects and pick the best one
-    # "Best" = the one with expected keys (question, findings, summary)
-    EXPECTED_KEYS = {"question", "findings", "summary"}
-    candidates = []
-
-    # Find all top-level '{' positions
-    i = 0
-    while i < len(text):
-        if text[i] == '{':
-            # Track depth to find the matching '}'
-            depth = 0
-            in_string = False
-            escape_next = False
-            for j in range(i, len(text)):
-                c = text[j]
-                if escape_next:
-                    escape_next = False
-                    continue
-                if c == '\\' and in_string:
-                    escape_next = True
-                    continue
-                if c == '"' and not escape_next:
-                    in_string = not in_string
-                    continue
-                if in_string:
-                    continue
-                if c == '{':
-                    depth += 1
-                elif c == '}':
-                    depth -= 1
-                    if depth == 0:
-                        fragment = text[i:j + 1]
-                        try:
-                            obj = json.loads(fragment)
-                            if isinstance(obj, dict):
-                                candidates.append(obj)
-                        except json.JSONDecodeError:
-                            pass
-                        break
-            i = j + 1 if depth == 0 else i + 1
-        else:
-            i += 1
-
-    # Pick the candidate with the most expected keys
-    if candidates:
-        scored = [(len(EXPECTED_KEYS & set(c.keys())), len(c), c) for c in candidates]
-        scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
-        return scored[0][2]
-
-    # Last resort: try from first { to end with manual closing
-    brace_start = text.find('{')
-    if brace_start == -1:
-        return None
-
-    fragment = text[brace_start:]
-    for suffix in ['"}]}', '"}]', '"}', '}']:
-        try:
-            return json.loads(fragment + suffix)
-        except json.JSONDecodeError:
-            continue
-
-    return None
 
 
 def research(question: str, strategy: str | None = None, critique: str | None = None, domain: str = "general") -> dict:
@@ -227,7 +148,7 @@ If prior knowledge conflicts with new search results, flag the contradiction.
         )
 
         # Track cost
-        log_cost(MODELS["researcher"], response.usage.input_tokens, response.usage.output_tokens, "researcher", "research")
+        log_cost(MODELS["researcher"], response.usage.input_tokens, response.usage.output_tokens, "researcher", domain)
 
         if response.stop_reason == "tool_use":
             tool_results = []
@@ -246,7 +167,14 @@ If prior knowledge conflicts with new search results, flag the contradiction.
                     max_res = min(block.input.get("max_results", 5), 8)
                     print(f"  [SEARCH #{search_count}] \"{query}\"")
                     results = web_search(query, max_results=max_res)
-                    print(f"  [SEARCH #{search_count}] Got {len(results)} results")
+                    
+                    # Detect search failures (error marker in result)
+                    search_failed = len(results) == 1 and results[0].get("error", False)
+                    if search_failed:
+                        print(f"  [SEARCH #{search_count}] FAILED: {results[0].get('snippet', 'unknown error')}")
+                        empty_search_count += 1
+                    else:
+                        print(f"  [SEARCH #{search_count}] Got {len(results)} results")
                     
                     if len(results) == 0:
                         empty_search_count += 1
@@ -287,7 +215,8 @@ If prior knowledge conflicts with new search results, flag the contradiction.
     raw_text = raw_text.strip()
 
     # Robust JSON extraction
-    result = _extract_json(raw_text)
+    EXPECTED_KEYS = {"question", "findings", "summary"}
+    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
     if result:
         findings = result.get("findings", [])
         # Smart recovery: if structured output has 0 findings but we did searches,

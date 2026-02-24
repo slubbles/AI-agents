@@ -34,6 +34,7 @@ from config import ANTHROPIC_API_KEY, MODELS, MIN_OUTPUTS_FOR_SYNTHESIS, MAX_OUT
 from memory_store import load_outputs, save_knowledge_base, load_knowledge_base, get_stats
 from cost_tracker import log_cost
 from utils.retry import create_message
+from utils.json_parser import extract_json
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -154,64 +155,6 @@ def _prepare_synthesis_data(outputs: list[dict], existing_kb: dict | None) -> st
     return json.dumps(data, indent=2)
 
 
-def _extract_json(text: str) -> dict | None:
-    """Extract JSON from text that may contain preamble or markdown fencing."""
-    # Strip markdown fences
-    text = re.sub(r'```(?:json)?\s*\n?', '', text).strip()
-
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
-
-    # Find the best JSON object
-    EXPECTED_KEYS = {"claims", "domain_summary", "synthesis_stats"}
-    candidates = []
-
-    i = 0
-    while i < len(text):
-        if text[i] == '{':
-            depth = 0
-            in_string = False
-            escape_next = False
-            for j in range(i, len(text)):
-                c = text[j]
-                if escape_next:
-                    escape_next = False
-                    continue
-                if c == '\\' and in_string:
-                    escape_next = True
-                    continue
-                if c == '"' and not escape_next:
-                    in_string = not in_string
-                    continue
-                if in_string:
-                    continue
-                if c == '{':
-                    depth += 1
-                elif c == '}':
-                    depth -= 1
-                    if depth == 0:
-                        fragment = text[i:j + 1]
-                        try:
-                            obj = json.loads(fragment)
-                            if isinstance(obj, dict):
-                                candidates.append(obj)
-                        except json.JSONDecodeError:
-                            pass
-                        break
-            i = j + 1 if depth == 0 else i + 1
-        else:
-            i += 1
-
-    if candidates:
-        scored = [(len(EXPECTED_KEYS & set(c.keys())), len(c), c) for c in candidates]
-        scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
-        return scored[0][2]
-
-    return None
-
-
 def synthesize(domain: str, force: bool = False) -> dict | None:
     """
     Synthesize all accepted outputs for a domain into a unified knowledge base.
@@ -267,14 +210,14 @@ def synthesize(domain: str, force: bool = False) -> dict | None:
     # Call the synthesizer model (Sonnet — needs strong reasoning for contradictions)
     response = create_message(
         client,
-        model=MODELS["meta_analyst"],  # Sonnet — same reasoning tier as meta-analyst
+        model=MODELS["synthesizer"],  # Sonnet — needs strong reasoning for contradictions
         max_tokens=8192,
         system=SYNTHESIS_PROMPT,
         messages=[{"role": "user", "content": user_message}],
     )
 
     log_cost(
-        MODELS["meta_analyst"],
+        MODELS["synthesizer"],
         response.usage.input_tokens,
         response.usage.output_tokens,
         "synthesizer",
@@ -282,7 +225,8 @@ def synthesize(domain: str, force: bool = False) -> dict | None:
     )
 
     raw_text = response.content[0].text.strip()
-    result = _extract_json(raw_text)
+    EXPECTED_KEYS = {"claims", "domain_summary", "synthesis_stats"}
+    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
 
     if not result:
         print("[SYNTHESIZER] ⚠ Failed to parse synthesizer output")

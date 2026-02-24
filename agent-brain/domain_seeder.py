@@ -112,7 +112,12 @@ def get_seed_questions(domain: str, count: int = 1) -> list[str]:
     domain_lower = domain.lower()
     
     if domain_lower in SEED_QUESTIONS:
-        questions = SEED_QUESTIONS[domain_lower][:count]
+        curated = SEED_QUESTIONS[domain_lower]
+        questions = curated[:count]
+        # If requesting more than available curated seeds, pad with generic
+        if count > len(curated):
+            generic = [q.replace("{domain}", domain) for q in GENERIC_SEEDS]
+            questions.extend(generic[:count - len(curated)])
     else:
         questions = [q.replace("{domain}", domain) for q in GENERIC_SEEDS[:count]]
     

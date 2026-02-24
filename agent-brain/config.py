@@ -20,6 +20,9 @@ MODELS = {
     "researcher": "claude-haiku-4-5-20251001",    # cheap — searches + compiles
     "critic": "claude-sonnet-4-20250514",         # strong — quality is sacred
     "meta_analyst": "claude-sonnet-4-20250514",   # strong — pattern extraction needs reasoning
+    "synthesizer": "claude-sonnet-4-20250514",    # strong — contradiction detection + integration
+    "cross_domain": "claude-sonnet-4-20250514",   # strong — principle abstraction
+    "question_generator": "claude-haiku-4-5-20251001",  # cheap — routing/synthesis task
 }
 
 # --- Quality Gate ---

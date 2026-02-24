@@ -41,9 +41,10 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
 
     now = datetime.now(timezone.utc)
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    # Add microsecond suffix to prevent filename collisions within same second
-    micro = now.strftime("%f")[:4]  # first 4 digits of microseconds
-    filename = f"{timestamp}_{micro}_score{critique.get('overall_score', 0):.0f}.json"
+    # Add full microseconds + process ID to prevent filename collisions
+    micro = now.strftime("%f")  # full 6 digits of microseconds
+    pid = os.getpid()
+    filename = f"{timestamp}_{micro}_{pid}_score{critique.get('overall_score', 0):.0f}.json"
     filepath = os.path.join(domain_dir, filename)
 
     score = critique.get("overall_score", 0)
@@ -117,8 +118,8 @@ def _relevance_score(query_tokens: list[str], output: dict) -> float:
     Score how relevant a stored output is to a new query.
     
     Combines:
-    - Keyword overlap between query and output question/findings/insights (60%)
-    - Output quality score (25%) — higher-quality outputs preferred
+    - Keyword overlap between query and output question/findings/insights (50%)
+    - Output quality score (35%) — higher-quality outputs preferred
     - Recency bonus (15%) — more recent outputs slightly preferred
     """
     # Build output text for matching

@@ -218,15 +218,16 @@ def validate_strategies() -> dict:
         
         # Cross-validate: active version in meta exists as a file
         if meta:
-            for agent_role, info in meta.items():
-                if not isinstance(info, dict):
+            for key, value in meta.items():
+                if not key.endswith("_active"):
                     continue
-                active_v = info.get("active_version")
-                if active_v and active_v != "default":
-                    expected_file = os.path.join(domain_dir, f"{agent_role}_{active_v}.json")
-                    if not os.path.exists(expected_file):
-                        issues.append(f"[{domain}] Active version {agent_role}_{active_v} file not found")
-                        warnings += 1
+                if not isinstance(value, str) or value == "default":
+                    continue
+                agent_role = key.replace("_active", "")
+                expected_file = os.path.join(domain_dir, f"{agent_role}_{value}.json")
+                if not os.path.exists(expected_file):
+                    issues.append(f"[{domain}] Active version {agent_role}_{value} file not found")
+                    warnings += 1
     
     return {"valid": valid, "invalid": invalid, "warnings": warnings, "issues": issues}
 
