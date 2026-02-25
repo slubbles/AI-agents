@@ -111,8 +111,8 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
                 domain=domain,
                 details={"question": question, "error": error_msg},
             )
-        except Exception:
-            pass
+        except Exception as db_err:
+            print(f"[DB] \u26a0 Alert insert failed: {db_err}")
         
         return {"error": error_msg, "research": None, "critique": None}
 
@@ -296,6 +296,15 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     print(f"\n[STATS] Domain '{domain}': {stats['count']} outputs, avg score {stats['avg_score']:.1f}, "
           f"{stats['accepted']} accepted / {stats['rejected']} rejected")
 
+    # Warmup mode: first N outputs in a domain require explicit approval
+    from config import WARMUP_OUTPUTS, WARMUP_APPROVAL_REQUIRED
+    if WARMUP_APPROVAL_REQUIRED and stats['accepted'] <= WARMUP_OUTPUTS:
+        verdict = final_critique.get("verdict", "unknown")
+        if verdict == "accept":
+            print(f"\n[WARMUP] ⚠ Domain '{domain}' is in warmup mode ({stats['accepted']}/{WARMUP_OUTPUTS} outputs)")
+            print(f"  Results are stored but strategy evolution is suppressed until warmup completes.")
+            print(f"  This prevents premature strategy changes based on insufficient data.")
+
     # Step 6: Evaluate trial strategy (if one is active)
     trial_result = evaluate_trial("researcher", domain)
     if trial_result["action"] == "rollback":
@@ -324,8 +333,13 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
 
     # Step 7: Meta-analysis — evolve strategy if enough data
     # SAFETY: Never evolve while a trial is still being evaluated
+    # SAFETY: Never evolve during warmup period (insufficient data)
     current_status = get_strategy_status("researcher", domain)
-    if current_status == "trial":
+    in_warmup = WARMUP_APPROVAL_REQUIRED and stats['accepted'] <= WARMUP_OUTPUTS
+    if in_warmup:
+        remaining_warmup = WARMUP_OUTPUTS - stats['accepted']
+        print(f"\n[META-ANALYST] Skipping — domain in warmup mode ({remaining_warmup} more output(s) until warmup completes)")
+    elif current_status == "trial":
         print(f"\n[META-ANALYST] Skipping — trial strategy is still being evaluated")
     else:
         # Check for pending strategies waiting for approval
@@ -393,8 +407,8 @@ def log_run(domain: str, question: str, attempts: int, research: dict, critique:
         from db import insert_run_log
         entry["domain"] = domain
         insert_run_log(entry)
-    except Exception:
-        pass  # DB write failure should never block the loop
+    except Exception as e:
+        print(f"[DB] \u26a0 Run log write failed (non-blocking): {e}")
 
 
 def main():
@@ -954,6 +968,106 @@ def _do_transfer(target_domain: str, question_hint: str = ""):
     print()
 
 
+def _generate_digest(domain: str, round_results: list[dict], dedup_skipped: int = 0) -> dict:
+    """
+    Generate a run digest summarizing what happened.
+    
+    Includes: questions researched, scores, strategy changes, alerts, spend.
+    Returns dict that can be printed or sent via webhook.
+    """
+    stats = get_stats(domain)
+    daily = get_daily_spend()
+    
+    # Compute score stats from this run
+    scores = [r["score"] for r in round_results if r.get("score")]
+    avg_score = sum(scores) / len(scores) if scores else 0
+    accepted = sum(1 for r in round_results if r.get("verdict") == "accept")
+    rejected = len(round_results) - accepted
+    
+    # Check for strategy changes
+    pending = list_pending("researcher", domain)
+    
+    # Check recent alerts
+    try:
+        from db import get_alerts
+        recent_alerts = get_alerts(limit=10, severity=None, domain=domain)
+    except Exception:
+        recent_alerts = []
+    
+    digest = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "domain": domain,
+        "rounds_completed": len(round_results),
+        "dedup_skipped": dedup_skipped,
+        "scores": {
+            "avg": round(avg_score, 1),
+            "min": min(scores) if scores else 0,
+            "max": max(scores) if scores else 0,
+            "accepted": accepted,
+            "rejected": rejected,
+        },
+        "questions": [r.get("question", "")[:80] for r in round_results],
+        "domain_totals": {
+            "count": stats["count"],
+            "avg_score": round(stats["avg_score"], 1),
+            "accepted": stats["accepted"],
+        },
+        "spend_today_usd": round(daily["total_usd"], 4),
+        "pending_strategies": len(pending),
+        "recent_alerts": len(recent_alerts),
+    }
+    
+    # Print digest summary
+    print(f"\n  ── Run Digest ──")
+    print(f"  Avg score this run: {avg_score:.1f} ({accepted} accepted, {rejected} rejected)")
+    if dedup_skipped > 0:
+        print(f"  Dedup skipped: {dedup_skipped} duplicate question(s)")
+    if pending:
+        print(f"  ⚠ {len(pending)} pending strategy(ies) await approval")
+    if recent_alerts:
+        print(f"  ⚠ {len(recent_alerts)} recent alert(s) — run --check-health for details")
+    
+    # Save digest to log file
+    digest_path = os.path.join(LOG_DIR, "digests.jsonl")
+    os.makedirs(LOG_DIR, exist_ok=True)
+    try:
+        with open(digest_path, "a") as f:
+            f.write(json.dumps(digest) + "\n")
+    except Exception as e:
+        print(f"  [DIGEST] ⚠ Failed to save digest: {e}")
+    
+    # Webhook push (if configured)
+    webhook_url = os.environ.get("AGENT_BRAIN_WEBHOOK_URL")
+    if webhook_url:
+        _push_webhook(webhook_url, digest)
+    
+    return digest
+
+
+def _push_webhook(url: str, payload: dict):
+    """Push a digest payload to a webhook URL (Slack, Discord, etc.)."""
+    import urllib.request
+    import urllib.error
+    
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            if resp.status < 300:
+                print(f"  [WEBHOOK] ✓ Digest pushed ({resp.status})")
+            else:
+                print(f"  [WEBHOOK] ⚠ Unexpected status: {resp.status}")
+    except urllib.error.URLError as e:
+        print(f"  [WEBHOOK] ⚠ Failed to push: {e}")
+    except Exception as e:
+        print(f"  [WEBHOOK] ⚠ Error: {e}")
+
+
 def _show_next(domain: str):
     """Show self-generated next questions for a domain."""
     print(f"\n{'='*60}")
@@ -999,6 +1113,8 @@ def _run_auto(domain: str, rounds: int = 1):
     print(f"{'='*60}\n")
 
     question = None  # Initialize before loop to avoid NameError in summary
+    round_results = []
+    dedup_skipped = 0
     for round_num in range(1, rounds + 1):
         print(f"\n{'─'*50}")
         print(f"  ROUND {round_num}/{rounds}")
@@ -1029,6 +1145,15 @@ def _run_auto(domain: str, rounds: int = 1):
 
         print(f"\n[QUESTION] → {question}")
 
+        # Dedup check — avoid re-researching known questions
+        from memory_store import is_duplicate_question
+        is_dup, matched = is_duplicate_question(domain, question, threshold=0.80)
+        if is_dup:
+            print(f"[DEDUP] ⚠ Skipping — too similar to already-researched question:")
+            print(f"  → {matched[:100]}")
+            dedup_skipped += 1
+            continue
+
         # Stages 3+4+5: Research → Evaluate (handled by run_loop)
         print(f"\n[STAGE 3-5] Researching, evaluating, storing...")
         try:
@@ -1040,21 +1165,38 @@ def _run_auto(domain: str, rounds: int = 1):
 
         score = result.get("critique", {}).get("overall_score", 0)
         verdict = result.get("critique", {}).get("verdict", "unknown")
+        round_results.append({
+            "round": round_num,
+            "question": question,
+            "score": score,
+            "verdict": verdict,
+        })
 
         print(f"\n[ROUND {round_num} COMPLETE] Score: {score}/10 — {verdict}")
 
         if round_num < rounds:
             print(f"\n  Continuing to round {round_num + 1}...")
 
+    # Run claim expiry check after auto rounds
+    from memory_store import expire_stale_claims
+    expiry = expire_stale_claims(domain)
+    if expiry["flagged"] > 0 or expiry["expired"] > 0:
+        print(f"\n[CLAIM EXPIRY] Flagged {expiry['flagged']} stale, expired {expiry['expired']} claims")
+
+    # Generate digest
+    digest = _generate_digest(domain, round_results, dedup_skipped)
+
     # Summary
     stats = get_stats(domain)
     daily = get_daily_spend()
     print(f"\n{'='*60}")
     print(f"  AUTO MODE COMPLETE")
-    print(f"  Rounds completed: {round_num if question else round_num - 1}/{rounds}")
+    print(f"  Rounds completed: {len(round_results)}/{rounds} ({dedup_skipped} skipped as duplicates)")
     print(f"  Domain '{domain}': {stats['count']} total outputs, avg {stats['avg_score']:.1f}")
     print(f"  Today's spend: ${daily['total_usd']:.4f}")
     print(f"{'='*60}\n")
+
+    return digest
 
 
 def _run_orchestrate(target_domains: list[str] | None, total_rounds: int):

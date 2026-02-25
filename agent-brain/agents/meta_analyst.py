@@ -21,7 +21,11 @@ from datetime import date, datetime, timezone
 from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import ANTHROPIC_API_KEY, MODELS, MIN_OUTPUTS_FOR_ANALYSIS, MAX_OUTPUTS_TO_ANALYZE, EVOLVE_EVERY_N, STRATEGY_DIR
+from config import (
+    ANTHROPIC_API_KEY, MODELS, MIN_OUTPUTS_FOR_ANALYSIS, MAX_OUTPUTS_TO_ANALYZE,
+    EVOLVE_EVERY_N, STRATEGY_DIR, MAX_EVOLUTION_HISTORY, IMMUTABLE_STRATEGY_CLAUSES,
+    DRIFT_WARNING_THRESHOLD,
+)
 from memory_store import load_outputs
 from strategy_store import get_strategy, save_strategy, list_versions, get_strategy_performance
 from cost_tracker import log_cost
@@ -69,8 +73,8 @@ def _format_evolution_history(domain: str) -> str:
     if not log:
         return "(No previous evolution history — this is the first analysis)"
     
-    # Show last 5 evolutions to keep context manageable
-    recent = log[-5:]
+    # Show last N evolutions to keep context manageable
+    recent = log[-MAX_EVOLUTION_HISTORY:]
     entries = []
     for entry in recent:
         outcome = entry.get("outcome", "pending")
@@ -270,6 +274,22 @@ def analyze_and_evolve(domain: str) -> dict | None:
     if not new_strategy:
         print("[META-ANALYST] ⚠ No new strategy in output")
         return None
+
+    # ── Drift Guardrail: enforce immutable clauses ──
+    missing_clauses = []
+    for clause in IMMUTABLE_STRATEGY_CLAUSES:
+        if clause.lower() not in new_strategy.lower():
+            missing_clauses.append(clause)
+    
+    if missing_clauses:
+        print(f"[META-ANALYST] ⚠ DRIFT GUARD: New strategy missing {len(missing_clauses)} immutable clause(s):")
+        for mc in missing_clauses:
+            print(f"  ✗ '{mc}'")
+        # Auto-append missing clauses rather than reject entirely
+        new_strategy += "\n\n# Immutable constraints (auto-restored by drift guard):\n"
+        for mc in missing_clauses:
+            new_strategy += f"- {mc}\n"
+        print(f"[META-ANALYST]   → Auto-restored missing clauses")
 
     # Compute new version number
     existing_versions = list_versions("researcher", domain)
