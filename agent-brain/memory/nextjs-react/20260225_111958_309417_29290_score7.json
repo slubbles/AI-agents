@@ -1,0 +1,138 @@
+{
+  "timestamp": "2026-02-25T11:19:58.309417+00:00",
+  "domain": "nextjs-react",
+  "question": "What are the specific performance metrics and benchmarks comparing Server Component vs Client Component rendering in Next.js App Router, including Time to First Byte (TTFB), First Contentful Paint (FCP), and bundle size impact in real-world applications?",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the specific performance metrics and benchmarks comparing Server Component vs Client Component rendering in Next.js App Router, including Time to First Byte (TTFB), First Contentful Paint (FCP), and bundle size impact in real-world applications?",
+    "findings": [
+      {
+        "claim": "Enterprise audit of 32 apps migrated to Server Components showed 68% smaller client bundles, 55% faster Time to Interactive (TTI), and zero client-side data exposure",
+        "confidence": "medium",
+        "reasoning": "Cited as audit result from CODISM, a software development company, dated Oct 30, 2025. Specific metrics provided but single source.",
+        "source": "https://codism.io/react-server-components-vs-client-components-the-2025-enterprise-guide/"
+      },
+      {
+        "claim": "Case study of e-commerce site using Next.js Server Components showed 67% Largest Contentful Paint (LCP) improvement and 51% bundle size reduction",
+        "confidence": "medium",
+        "reasoning": "Real-world case study with concrete metrics, dated Jan 2026, but limited source detail on specific implementation.",
+        "source": "https://snapitsoftware.com/blog/react-server-components-performance/"
+      },
+      {
+        "claim": "React Server Components deployment observed up to 62% reduction in JavaScript bundle size, enabling sites to render almost three times faster than traditional client-rendered solutions",
+        "confidence": "medium",
+        "reasoning": "Specific metric from Perficient blog dated Dec 10, 2025, but 'one case study' noted without implementation details.",
+        "source": "https://blogs.perficient.com/2025/12/10/why-react-server-components-matter-production-performance-insights/"
+      },
+      {
+        "claim": "Frigade experiment reported 62% reduction in JavaScript bundle size with Server Components",
+        "confidence": "medium",
+        "reasoning": "Referenced in performance analysis article dated Oct 2025, but limited detail on scope and methodology.",
+        "source": "https://flutebyte.com/react-server-components-next-js-real-world-patterns-that-actually-move-inp/"
+      },
+      {
+        "claim": "Internal study found bundle size reduction of 32% and Core Web Vitals improvement of 42% when migrating to Server Components",
+        "confidence": "low",
+        "reasoning": "Vague attribution to 'internal study' without clear source or methodology details, dated Dec 2025.",
+        "source": "https://medium.com/@sureshdotariya/boosting-core-web-vitals-with-next-js-16-server-components-a-deep-dive-into-lightning-fast-ux-700b45baca9f"
+      },
+      {
+        "claim": "React Server Components significantly increase page load time and reduce total JavaScript bundle size by eliminating hydration and avoiding JS shipping to clients",
+        "confidence": "high",
+        "reasoning": "Architectural principle confirmed across multiple sources (LogRocket Aug 2024, React Foundations docs). Explains why metrics show bundle reduction.",
+        "source": "https://blog.logrocket.com/react-server-components-comprehensive-guide/"
+      },
+      {
+        "claim": "TTFB (Time to First Byte) is improved through streaming SSR in Server Components, avoiding traditional round-trip delays of client-side data fetching",
+        "confidence": "high",
+        "reasoning": "Confirmed across multiple sources emphasizing streaming benefits; structural advantage of server-side data fetching vs client-side requests.",
+        "source": "https://www.fullstackfoundations.com/blog/react-server-components"
+      },
+      {
+        "claim": "FCP and LCP metrics benefit significantly from server-first approach with Server Components compared to Client Components",
+        "confidence": "medium",
+        "reasoning": "Stated in Perficient analysis dated Dec 2025 but without specific numerical FCP benchmarks; LCP improvements (67%) documented in case study.",
+        "source": "https://blogs.perficient.com/2025/12/10/why-react-server-components-matter-production-performance-insights/"
+      },
+      {
+        "claim": "70% TTFB reduction claimed for Server Components approach",
+        "confidence": "low",
+        "reasoning": "Single source (Strapi, Jan 26, 2026) with no methodology or case study details provided; unusually high figure not corroborated elsewhere.",
+        "source": "https://strapi.io/blog/best-javascript-frameworks"
+      },
+      {
+        "claim": "Server Components alone do not reduce bundle size enough if app is a mix of Client and Server components",
+        "confidence": "medium",
+        "reasoning": "DeveloperWay analysis dated Oct 2025 highlights important caveat about hybrid implementations not achieving full benefits.",
+        "source": "https://www.developerway.com/posts/react-server-components-performance"
+      },
+      {
+        "claim": "Pages Router handles 6x more concurrent requests than App Router in heavy server-side rendering scenarios",
+        "confidence": "low",
+        "reasoning": "Recently published (Feb 2026) benchmark claim, but contradicts common Next.js App Router recommendations; methodology unclear and may indicate specific edge case.",
+        "source": "https://markaicode.com/nextjs-15-router-performance-comparison/"
+      }
+    ],
+    "key_insights": [
+      "Bundle size reductions with Server Components range from 32% to 68% across documented case studies, with most reliable enterprise audit showing 68% reduction and 55% faster TTI",
+      "LCP improvements are most consistently documented (67% reported) compared to other metrics; FCP specific benchmarks are scarce in available sources",
+      "TTFB improvements are architectural rather than numerically quantified in most sources\u2014the advantage comes from eliminating client-side data fetching round trips and using streaming SSR",
+      "Hybrid Server/Client Component implementations show diminished performance benefits; maximum gains occur with server-first architecture",
+      "Real-world metrics vary significantly by application type and implementation quality; case studies show 30-70% bundle reduction range depending on migration approach"
+    ],
+    "knowledge_gaps": [
+      "Specific FCP (First Contentful Paint) numerical benchmarks comparing pure Server Components vs pure Client Components in controlled environments are not documented in available sources",
+      "Detailed TTFB measurements in milliseconds for comparable applications using Server Components vs Client Components are absent; claims are qualitative or percentage-based",
+      "Methodology transparency for most case studies is limited\u2014difficult to assess whether improvements came from Server Components alone or combined optimizations (code-splitting, lazy loading, etc.)",
+      "No peer-reviewed or standardized benchmark suite found comparing App Router Server/Client rendering across identical test applications",
+      "Performance impact of different data fetching patterns (fetch, cache revalidation) on TTFB/FCP metrics not comprehensively documented",
+      "Effect of Server Component streaming on perceived performance (first paint timing) vs actual metrics not clearly distinguished in available sources"
+    ],
+    "sources_used": [
+      "https://codism.io/react-server-components-vs-client-components-the-2025-enterprise-guide/",
+      "https://snapitsoftware.com/blog/react-server-components-performance/",
+      "https://blogs.perficient.com/2025/12/10/why-react-server-components-matter-production-performance-insights/",
+      "https://flutebyte.com/react-server-components-next-js-real-world-patterns-that-actually-move-inp/",
+      "https://medium.com/@sureshdotariya/boosting-core-web-vitals-with-next-js-16-server-components-a-deep-dive-into-lightning-fast-ux-700b45baca9f",
+      "https://blog.logrocket.com/react-server-components-comprehensive-guide/",
+      "https://www.fullstackfoundations.com/blog/react-server-components",
+      "https://www.developerway.com/posts/react-server-components-performance",
+      "https://strapi.io/blog/best-javascript-frameworks",
+      "https://markaicode.com/nextjs-15-router-performance-comparison/",
+      "https://nextjs.org/docs/app/guides/analytics"
+    ],
+    "summary": "Real-world case studies document bundle size reductions of 32\u201368% with Server Components, most reliably supported by a 68% reduction in an enterprise audit of 32 apps. LCP improvements are better documented (67% in one case) than FCP or TTFB metrics, which are discussed qualitatively (streaming benefits, eliminated round trips) rather than with specific millisecond measurements. Critical gap: most sources lack controlled benchmarks comparing identical applications, making it difficult to isolate Server Component benefits from other optimizations; FCP-specific metrics and detailed TTFB measurements in milliseconds remain underreported.",
+    "_searches_made": 6,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 7,
+      "depth": 6,
+      "completeness": 7,
+      "specificity": 6,
+      "intellectual_honesty": 8
+    },
+    "overall_score": 6.7,
+    "strengths": [
+      "Honest confidence ratings and clear distinction between high/medium/low confidence claims",
+      "Transparent identification of knowledge gaps and methodology limitations in sources",
+      "Good range of sources from enterprise audits to individual case studies",
+      "Specific numerical metrics provided where available (32-68% bundle reduction, 67% LCP improvement)",
+      "Recognition that hybrid implementations show diminished benefits compared to server-first approaches"
+    ],
+    "weaknesses": [
+      "Heavy reliance on blog posts and company marketing materials rather than peer-reviewed studies or standardized benchmarks",
+      "Limited verification of claimed metrics - most sources are single case studies without independent validation",
+      "Some sources are very recent (2025-2026) without time for broader validation of claims",
+      "Missing analysis of potential confounding factors in the reported performance improvements",
+      "Several claims lack sufficient implementation detail to assess validity"
+    ],
+    "actionable_feedback": "To improve this research: 1) Seek out controlled benchmarks or A/B tests rather than just migration case studies, 2) Look for independent validation of the enterprise audit claims, 3) Include more technical analysis of why certain metrics (FCP) are underreported compared to others, 4) Investigate potential bias in company blog sources reporting their own success stories, 5) Add more context about baseline performance characteristics that could affect the magnitude of improvements, 6) Consider reaching out to Next.js team or Vercel for official performance data",
+    "verdict": "accept"
+  },
+  "overall_score": 6.7,
+  "accepted": true,
+  "verdict": "accept"
+}

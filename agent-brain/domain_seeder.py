@@ -86,6 +86,13 @@ SEED_QUESTIONS = {
         "What recent astronomical discoveries have been made using the James Webb Space Telescope?",
         "What is the current state of the satellite internet industry and space debris management?",
     ],
+    "nextjs-react": [
+        "What are the current best practices for Next.js App Router architecture, including when to use Server Components vs Client Components and how to structure layouts and routes?",
+        "What are the most effective React component composition patterns in 2025-2026, including compound components, render props alternatives, and the latest hooks patterns?",
+        "What are the current best practices for data fetching and caching in Next.js App Router, including Server Actions, React Server Components data patterns, and cache invalidation strategies?",
+        "What are the most important React 19 features and patterns, including use() hook, Actions, useOptimistic, and how they change component architecture?",
+        "What are the current best practices for styling and design systems in Next.js applications, including Tailwind CSS patterns, CSS Modules vs styled-components tradeoffs, and responsive design approaches?",
+    ],
 }
 
 # Generic seed questions for any domain not in the list above
