@@ -42,8 +42,8 @@ def log_cost(model: str, input_tokens: int, output_tokens: int, agent_role: str,
     try:
         from db import insert_cost
         insert_cost(entry)
-    except Exception:
-        pass  # DB write failure should never block the research loop
+    except Exception as e:
+        print(f"[DB] \u26a0 Cost write failed (non-blocking): {e}")
 
     return cost
 

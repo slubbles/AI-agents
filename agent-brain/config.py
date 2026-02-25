@@ -23,7 +23,7 @@ MODELS = {
     "synthesizer": "claude-sonnet-4-20250514",    # strong — contradiction detection + integration
     "cross_domain": "claude-sonnet-4-20250514",   # strong — principle abstraction
     "question_generator": "claude-haiku-4-5-20251001",  # cheap — routing/synthesis task
-    "verifier": "claude-haiku-4-5-20251001",      # cheap — web search + fact checking
+    "verifier": "claude-sonnet-4-20250514",        # strong — reality checking is sacred (don't cut corners)
 }
 
 # --- Quality Gate ---
@@ -69,8 +69,25 @@ MAX_OUTPUTS_TO_SYNTHESIZE = 25  # max outputs in one synthesis call
 SYNTHESIZE_EVERY_N = 5          # synthesize every N new accepted outputs
 
 # --- Cross-Domain Transfer ---
-MIN_OUTPUTS_FOR_TRANSFER = 5    # min outputs for a domain to be a transfer source
-MIN_AVG_SCORE_FOR_TRANSFER = 5.5
+MIN_OUTPUTS_FOR_TRANSFER = 10   # min outputs for a domain to be a transfer source
+MIN_AVG_SCORE_FOR_TRANSFER = 6.0
+
+# --- Claim Expiry ---
+CLAIM_EXPIRY_DAYS = 30           # claims older than this without re-verification get flagged
+CLAIM_MAX_AGE_DAYS = 90          # claims older than this are auto-expired
+
+# --- Warmup Mode ---
+WARMUP_OUTPUTS = 5               # first N outputs in a new domain require manual review
+WARMUP_APPROVAL_REQUIRED = True  # if True, warmup outputs need --approve before entering KB
+
+# --- Prompt Drift ---
+MAX_EVOLUTION_HISTORY = 10       # past evolution entries to show meta-analyst (was 5)
+IMMUTABLE_STRATEGY_CLAUSES = [   # these rules can never be removed from strategies
+    "Always cite sources with URLs",
+    "Flag uncertainty and distinguish fact from speculation",
+    "Include TODAY'S DATE awareness", 
+]
+DRIFT_WARNING_THRESHOLD = 0.6    # warn when strategy has <60% overlap with v001
 
 # --- Multi-Researcher Consensus ---
 CONSENSUS_ENABLED = False       # disabled by default — run N researchers in parallel

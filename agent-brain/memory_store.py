@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-from config import MEMORY_DIR, QUALITY_THRESHOLD, MAX_OUTPUTS_PER_DOMAIN, ARCHIVE_REJECTED_AFTER_DAYS, ARCHIVE_SCORE_THRESHOLD
+from config import MEMORY_DIR, QUALITY_THRESHOLD, MAX_OUTPUTS_PER_DOMAIN, ARCHIVE_REJECTED_AFTER_DAYS, ARCHIVE_SCORE_THRESHOLD, CLAIM_EXPIRY_DAYS, CLAIM_MAX_AGE_DAYS
 
 # Stop words to exclude from keyword matching
 _STOP_WORDS = {
@@ -148,8 +148,8 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
     try:
         from db import insert_output
         insert_output(domain, record)
-    except Exception:
-        pass  # DB write failure should never block the research loop
+    except Exception as e:
+        print(f"[DB] \u26a0 Output write failed (non-blocking): {e}")
 
     return filepath
 
@@ -560,3 +560,133 @@ def get_archive_stats(domain: str) -> dict:
             continue
 
     return {"count": len(files), "files": files}
+
+
+# ============================================================
+# Claim Expiry — Flag or expire stale KB claims
+# ============================================================
+
+def expire_stale_claims(domain: str) -> dict:
+    """
+    Check knowledge base claims for staleness and mark them.
+    
+    - Claims older than CLAIM_EXPIRY_DAYS without re-verification → status='stale'
+    - Claims older than CLAIM_MAX_AGE_DAYS → status='expired'
+    
+    Returns:
+        Dict with counts of flagged/expired claims.
+    """
+    kb = load_knowledge_base(domain)
+    if not kb:
+        return {"flagged": 0, "expired": 0, "active": 0}
+    
+    claims = kb.get("claims", [])
+    now = datetime.now(timezone.utc)
+    flagged = 0
+    expired = 0
+    active = 0
+    
+    for claim in claims:
+        if claim.get("status") in ("superseded", "expired"):
+            continue
+            
+        # Use last_confirmed if available, fall back to first_seen
+        last_date_str = claim.get("last_confirmed") or claim.get("first_seen", "")
+        if not last_date_str:
+            continue
+            
+        try:
+            last_date = datetime.fromisoformat(last_date_str)
+            if last_date.tzinfo is None:
+                last_date = last_date.replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            continue
+        
+        age_days = (now - last_date).days
+        
+        if age_days >= CLAIM_MAX_AGE_DAYS and claim.get("status") != "expired":
+            claim["status"] = "expired"
+            claim["notes"] = (claim.get("notes", "") + f" [AUTO-EXPIRED: {age_days}d old, no re-verification]").strip()
+            expired += 1
+        elif age_days >= CLAIM_EXPIRY_DAYS and claim.get("status") not in ("stale", "expired"):
+            claim["status"] = "stale"
+            claim["notes"] = (claim.get("notes", "") + f" [STALE: {age_days}d since last verification]").strip()
+            flagged += 1
+        elif claim.get("status") == "active":
+            active += 1
+    
+    if flagged > 0 or expired > 0:
+        save_knowledge_base(domain, kb)
+    
+    return {"flagged": flagged, "expired": expired, "active": active}
+
+
+# ============================================================
+# Question Deduplication
+# ============================================================
+
+def is_duplicate_question(domain: str, question: str, threshold: float = 0.80) -> tuple[bool, str | None]:
+    """
+    Check if a question has already been researched (or is very similar to one).
+    
+    Uses TF-IDF cosine similarity against all previously asked questions.
+    
+    Args:
+        domain: Domain to check
+        question: The candidate question
+        threshold: Similarity threshold above which we consider it a duplicate
+    
+    Returns:
+        (is_duplicate, matched_question_or_None)
+    """
+    outputs = load_outputs(domain, min_score=0)
+    if not outputs:
+        return False, None
+    
+    past_questions = [o.get("question", "") for o in outputs if o.get("question")]
+    if not past_questions:
+        return False, None
+    
+    # Quick exact match
+    question_lower = question.lower().strip()
+    for pq in past_questions:
+        if pq.lower().strip() == question_lower:
+            return True, pq
+    
+    # TF-IDF similarity
+    if len(past_questions) < 2:
+        # Not enough data for TF-IDF — use token overlap
+        q_tokens = set(_tokenize(question))
+        for pq in past_questions:
+            pq_tokens = set(_tokenize(pq))
+            if not q_tokens or not pq_tokens:
+                continue
+            overlap = len(q_tokens & pq_tokens) / max(len(q_tokens | pq_tokens), 1)
+            if overlap >= threshold:
+                return True, pq
+        return False, None
+    
+    try:
+        corpus = past_questions + [question]
+        vectorizer = TfidfVectorizer(
+            stop_words='english',
+            max_features=2000,
+            ngram_range=(1, 2),
+            min_df=1,
+        )
+        tfidf_matrix = vectorizer.fit_transform(corpus)
+        
+        # Compare the last vector (our question) against all others
+        query_vec = tfidf_matrix[-1]
+        past_matrix = tfidf_matrix[:-1]
+        similarities = cosine_similarity(query_vec, past_matrix).flatten()
+        
+        max_idx = int(np.argmax(similarities))
+        max_sim = float(similarities[max_idx])
+        
+        if max_sim >= threshold:
+            return True, past_questions[max_idx]
+    except Exception:
+        pass
+    
+    return False, None
