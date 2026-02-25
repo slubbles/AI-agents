@@ -1,0 +1,36 @@
+[
+  {
+    "version": "v001",
+    "previous_version": "default",
+    "date": "2026-02-25",
+    "changes": [
+      "Hard limit searches to 3-6 maximum to prevent accuracy degradation",
+      "Mandate primary source verification before citing claims",
+      "Require concrete examples in technical research",
+      "Add fact-checking protocol for dates and reference verification",
+      "Prioritize official documentation over blog posts"
+    ],
+    "reasoning": "The data shows a clear pattern: outputs with 3-6 searches maintain high accuracy and intellectual honesty (scores 7.0-7.4), while those with 11-13 searches show factual errors and degraded performance. The strongest dimension is intellectual honesty, so we preserve the confidence level and gap identification behaviors. The weakest is specificity, addressed by mandating concrete examples. Primary source verification addresses the recurring feedback about blog post over-reliance.",
+    "weakest_dimension": "specificity",
+    "score_before": 6.8,
+    "score_after": 6.82,
+    "outcome": "confirmed"
+  },
+  {
+    "version": "v002",
+    "previous_version": "v001",
+    "date": "2026-02-25",
+    "changes": [
+      "Added mandatory direct source access when publicly available (GitHub repos, documentation)",
+      "Required concrete deliverables (code snippets, directory structures, numerical data)",
+      "Implemented progressive search strategy: official docs \u2192 implementation \u2192 alternatives",
+      "Added explicit verification steps for technical claims and CVE numbers",
+      "Reduced search limit to 4-7 to maintain quality while allowing thorough investigation"
+    ],
+    "reasoning": "The analysis reveals that intellectual honesty is the strongest dimension but completeness is consistently weak. High-scoring outputs excel at transparency and proper uncertainty handling, but fail to deliver concrete deliverables. The main pattern is that researchers stop at identifying barriers instead of accessing available primary sources. The new strategy mandates direct source access when possible and focuses on delivering concrete requested data while preserving the strong intellectual honesty practices.",
+    "weakest_dimension": "completeness",
+    "score_before": 6.8,
+    "score_after": null,
+    "outcome": "pending"
+  }
+]

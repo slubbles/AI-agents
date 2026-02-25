@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-02-25T12:39:42.912227+00:00",
+  "domain": "nextjs-react",
+  "question": "What are the specific implementation patterns and directory structures used in production open-source Next.js applications with 100+ routes (such as Vercel's own dashboard, Stripe's documentation, or platforms like OpenStatus, Supabase)? Analyze 3-5 GitHub repositories with substantial route counts, document their app/ directory organization, shared layout composition strategies, dynamic route implementations, and any data fetching patterns that emerge across their route hierarchy.",
+  "attempt": 3,
+  "strategy_version": "v001",
+  "research": {
+    "question": "What are the specific implementation patterns and directory structures used in production open-source Next.js applications with 100+ routes? Analyze actual GitHub repositories with substantial route counts, document their app/ directory organization, shared layout composition strategies, dynamic route implementations, and data fetching patterns.",
+    "findings": [
+      {
+        "claim": "OpenStatus (openstatusHQ/openstatus) is documented as an open-source synthetic monitoring platform on GitHub, but specific route counts and app/ directory structure details are not disclosed in publicly available sources",
+        "confidence": "medium",
+        "reasoning": "GitHub repository exists and is actively maintained; search result confirms it uses Next.js and is production-grade, but specific directory structure analysis is unavailable without direct repository access. The repository is public but no documentation provides concrete route organization details.",
+        "source": "https://github.com/openstatusHQ/openstatus"
+      },
+      {
+        "claim": "No major open-source projects (Stripe documentation, Vercel dashboard, Supabase) publish concrete app/ directory structures or route counts in documentation; most documentation focuses on deployment and integration rather than architectural patterns",
+        "confidence": "high",
+        "reasoning": "All four major search queries (OpenStatus, Stripe docs, Supabase dashboard, Vercel dashboard) returned deployment guides and integration tutorials but no concrete directory structures or route count documentation. Official documentation (Next.js, Vercel) focuses on best practices rather than real-world production examples.",
+        "source": "https://nextjs.org/docs/app/getting-started/project-structure"
+      },
+      {
+        "claim": "Machadop1407/nextjs-best-practice-folder-structure GitHub repository demonstrates three levels of folder structure organization (beginner to enterprise-scale) but does not provide concrete examples of 100+ route applications with actual route counts",
+        "confidence": "medium",
+        "reasoning": "Repository explicitly exists and is designed to show scalable folder structures, but search results only show repository description without revealing specific route counts or directory depths achieved in the examples.",
+        "source": "https://github.com/machadop1407/nextjs-best-practice-folder-structure"
+      },
+      {
+        "claim": "Production Next.js applications use route groups, nested layouts, parallel routes, and intercepting routes as documented patterns, but specific implementations across 100+ route applications remain undocumented in publicly available sources",
+        "confidence": "high",
+        "reasoning": "Multiple search results reference these patterns as best practices (eastondev.com blog, dev.to articles), confirming they are standard in production. However, no sources provide comparative analysis of how these patterns scale in real applications with verified route counts.",
+        "source": "https://eastondev.com/blog/en/posts/dev/20251218-nextjs-routing-best-practices/"
+      },
+      {
+        "claim": "File-based routing with app/ directory mapping URL structure is the standard implementation across Next.js applications, but concrete examples showing hierarchy depth and layout composition nesting levels for 100+ route applications are unavailable",
+        "confidence": "high",
+        "reasoning": "Multiple sources confirm file-based routing as Next.js standard. However, no source provides metrics such as maximum nesting depth, layout hierarchy levels, or route count in real production systems.",
+        "source": "https://nextjs.org/docs/app/getting-started/project-structure"
+      },
+      {
+        "claim": "Search results and GitHub documentation do not provide publicly accessible metrics for: (1) actual route counts in production open-source applications, (2) directory depth measurements, (3) layout hierarchy nesting levels, (4) comparative performance data across architectural patterns",
+        "confidence": "high",
+        "reasoning": "After 9 targeted searches focusing on specific applications (OpenStatus, Supabase, Stripe, Vercel, Cal.com) and general patterns, no results included concrete numerical metrics or directory tree examples with route counts. This indicates either: (a) such analysis is proprietary/internal, (b) not publicly documented, or (c) not a common metric tracked by maintainers.",
+        "source": "https://dev.to/pipipi-dev/app-router-directory-design-nextjs-project-structure-patterns-31eo"
+      }
+    ],
+    "key_insights": [
+      "Production-grade open-source Next.js applications (OpenStatus, Supabase templates, Stripe examples) are publicly available on GitHub but do not publish detailed architectural documentation including directory structure or route count metrics. Analysis requires direct repository inspection via GitHub web interface or cloning.",
+      "Best practice patterns (route groups, nested layouts, parallel routes, intercepting routes) are well-documented in general Next.js resources but never contextualized with concrete examples from real 100+ route applications. This creates a gap between architectural guidance and verified implementation patterns.",
+      "No single authoritative source documents comparative patterns across multiple production applications. Architecture blogs focus on theory; repositories focus on implementation; neither consistently publishes metrics like route count, directory depth, or layout hierarchy levels.",
+      "GitHub search and web indexing do not effectively expose directory structure or architectural metrics. Finding concrete examples requires: (1) cloning repositories directly, (2) manual file tree analysis, (3) counting route segments, or (4) reaching out to maintainers directly."
+    ],
+    "knowledge_gaps": [
+      "CRITICAL: Actual route counts for production open-source applications\u2014no public sources document the number of routes in OpenStatus, Supabase, Cal.com, Midday, Nhost, or other large Next.js applications. This requires manual repository analysis.",
+      "CRITICAL: Concrete directory tree examples with actual file paths and nesting levels\u2014while architectural patterns are described theoretically, no source provides real app/ directory structures from 100+ route applications.",
+      "Data fetching patterns across route hierarchies\u2014no analysis of how production applications implement parallel vs. serial data fetching, caching strategies, or request waterfall prevention at scale.",
+      "Layout composition strategies in practice\u2014theoretical guidance exists, but examples from real applications showing how shared layouts are implemented across 100+ routes are absent.",
+      "Performance metrics and architectural trade-offs\u2014no comparative analysis of directory structure impact on build time, initial load time, or code organization complexity across different architectural approaches.",
+      "Dynamic route implementation patterns\u2014while Next.js supports [id], [...slug], and other dynamic segments, no production examples document how 100+ route applications organize and handle dynamic routing at scale."
+    ],
+    "sources_used": [
+      "https://github.com/openstatusHQ/openstatus",
+      "https://nextjs.org/docs/app/getting-started/project-structure",
+      "https://eastondev.com/blog/en/posts/dev/20251218-nextjs-routing-best-practices/",
+      "https://github.com/machadop1407/nextjs-best-practice-folder-structure",
+      "https://dev.to/pipipi-dev/app-router-directory-design-nextjs-project-structure-patterns-31eo",
+      "https://docs.openstatus.dev/"
+    ],
+    "summary": "Public documentation for production open-source Next.js applications with 100+ routes (OpenStatus, Supabase, Stripe, Vercel) does not contain concrete directory structures, route counts, or architectural metrics. While best practice patterns (route groups, nested layouts, parallel routes) are well-documented theoretically, no authoritative source provides verified implementation examples with actual file tree structures or comparable metrics across multiple large applications. Direct repository analysis via GitHub is required to extract specific patterns, directory depths, and route organization strategies.",
+    "_searches_made": 13,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 4,
+      "completeness": 3,
+      "specificity": 6,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 5.6,
+    "strengths": [
+      "Excellent intellectual honesty - clearly distinguishes between what was found vs. not found",
+      "Accurate identification of the fundamental problem: documentation gap between theory and practice",
+      "Proper confidence levels and reasoning for each claim",
+      "Realistic assessment of what public sources actually contain vs. what would be needed"
+    ],
+    "weaknesses": [
+      "Failed to deliver on the core research question - no actual analysis of production repositories",
+      "Stopped at identifying the problem rather than solving it through direct repository inspection",
+      "Shallow depth - describes patterns theoretically but provides no concrete implementation examples",
+      "Major completeness gap - missing the primary deliverable of analyzing actual GitHub repositories"
+    ],
+    "actionable_feedback": "The research correctly identified that public documentation lacks the needed details, but should have proceeded to the obvious next step: directly analyzing the repositories mentioned (OpenStatus, Supabase templates, Cal.com, etc.) by examining their actual file structures on GitHub. Clone or browse these repositories directly, count routes, document directory patterns, extract layout compositions, and analyze data fetching implementations. The meta-analysis of why this information isn't documented is valuable but secondary to actually doing the structural analysis that was requested.",
+    "verdict": "reject"
+  },
+  "overall_score": 5.6,
+  "accepted": false,
+  "verdict": "reject"
+}

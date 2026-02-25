@@ -1,0 +1,124 @@
+{
+  "timestamp": "2026-02-25T11:52:16.971082+00:00",
+  "domain": "nextjs-react",
+  "question": "What is the complete set of type tags and serialization format specification in the React Flight protocol wire format? Search for official React RFC documents, source code comments in packages/react-server/src/, and any public protocol specification documents that detail how type tags beyond '$', '$@', '$#' are encoded, what each tag represents, and provide actual examples of serialized Flight payloads.",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What is the complete set of type tags and serialization format specification in the React Flight protocol wire format?",
+    "findings": [
+      {
+        "claim": "React Flight is a row-based, line-delimited, JSON-like serialization format designed to represent React component trees and async boundaries, fundamentally different from standard JSON",
+        "confidence": "high",
+        "reasoning": "Multiple recent sources (blog.nidhin.dev, deepwiki.com, ox.security) consistently describe Flight as a compact, streaming, JSON-like format. DeepWiki (Dec 25, 2025) explicitly states: 'React Flight serializes component trees on the server into a streaming wire format and reconstructs them on the client.' Unlike Fizz (HTML streaming), Flight produces React tree representations.",
+        "source": "https://blog.nidhin.dev/react-flight-protocol"
+      },
+      {
+        "claim": "React Flight uses '$' prefix reference notation with documented type tags including '$@' (chunk references), '$#' (async boundaries), but official complete type tag set specification does not exist",
+        "confidence": "high",
+        "reasoning": "Prior research confirmed '$', '$@', '$#' through CVE-2025-55182 analysis. Search results mention '$B' handler (GitHub ejpir research on CVE-2025-55182) and references to FormData with specific prefixes in GitHub commits, but no single authoritative source lists all type tags. Multiple security analyses reference specific tags discovered through vulnerability research rather than official documentation.",
+        "source": "https://github.com/ejpir/CVE-2025-55182-research"
+      },
+      {
+        "claim": "React Flight serialization supports complex data types including Date, Set, Map, TypedArrays, ArrayBuffer, and FormData objects, with each type requiring specific serialization handlers",
+        "confidence": "medium",
+        "reasoning": "GitHub commit descriptions reference '[Flight] Serialize Date (#26622)', '[Flight] Add Serialization of Typed Arrays / ArrayBuffer', and 'Support All of Structure Clone in RSC Serialization #25687'. GitHub actions show work on Promise serialization ('Serialize Promises through Flight (#26086)'). These indicate extended type support beyond primitive JSON.",
+        "source": "https://github.com/facebook/react/actions/runs/5415518206/workflow"
+      },
+      {
+        "claim": "No official technical RFC or specification document exists for React Flight protocol from the React team; technical details have been reverse-engineered primarily from CVE-2025-55182 security analyses and source code",
+        "confidence": "high",
+        "reasoning": "Search results show comprehensive security analyses (ox.security, trendmicro, Resecurity) from Dec 2025 that document Flight protocol through vulnerability research. Blog post by Tim Neutkens (Nov 2023) explicitly states 'React Server & React Flight APIs being completely undocumented as mentioned earlier'. RFC search yields only RFC-0188 for Server Components (Dec 2020) which does not detail Flight serialization format specifications.",
+        "source": "https://timtech.blog/posts/react-server-components-rsc-no-framework/"
+      },
+      {
+        "claim": "Flight protocol uses reviveModel() function for reference resolution with hasOwnProperty() validation, which was the attack surface for CVE-2025-55182 prototype pollution vulnerability",
+        "confidence": "high",
+        "reasoning": "Multiple security analyses (ox.security, Resecurity, medium articles from Dec 2025) document how CVE-2025-55182 exploits the deserialization mechanism via reviveModel(). Prior research established this as the reference resolution method. The vulnerability exploited unsafe deserialization where the server did not enforce structural constraints on Flight payloads.",
+        "source": "https://www.ox.security/blog/react2shell-going-granular-a-deep-deep-deep-technical-analysis-of-cve-2025-55182/"
+      },
+      {
+        "claim": "Flight protocol serialization includes row-based format with RSCPayloadRow structure, but exact algorithmic rules for chunk boundaries, buffer fragmentation, and backpressure mechanisms remain undocumented",
+        "confidence": "medium",
+        "reasoning": "Prior research established RSCPayloadRow array structure. GitHub commits show work on 'Refactor Flight Encoding (#26082)' but without public specification details. Security analyses detail exploitation patterns but not the complete algorithmic specification for chunk boundary determination.",
+        "source": "https://github.com/facebook/react/actions/runs/4060801071/usage"
+      },
+      {
+        "claim": "Flight protocol handles Promises and lazy-loaded components with markers for incomplete async boundaries, allowing streaming of server components before all data resolution completes",
+        "confidence": "medium",
+        "reasoning": "Tony Alicea's blog (tonyalicea.dev) states: 'the Flight format itself includes markers for things that haven't completed yet. Like Promises and lazy loading.' JSer.dev article (Apr 2023) discusses REACT_LAZY_TYPE handling. However, specific syntax for async markers beyond '$@' is not detailed in available sources.",
+        "source": "https://tonyalicea.dev/blog/understanding-react-server-components/"
+      },
+      {
+        "claim": "FormData objects serialize through Flight with ID prefixes on each entry, and deserialization reconstructs FormData from prefixed fields without explicit type tag documentation",
+        "confidence": "medium",
+        "reasoning": "GitHub commit explicitly states: 'This lets you pass FormData objects through the Flight Reply serialization. It does that by prefixing each entry with the ID of the reference and then the decoding side creates a new FormData object containing only those fields (without the prefix).' This documents a specific serialization mechanism without broader type tag context.",
+        "source": "https://github.com/facebook/react/commits?after=587ae49d71f218d34393291933d513d2975e22c3+139"
+      },
+      {
+        "claim": "React Flight is used for both server-to-client serialization (rendering Server Components) and client-to-server serialization (Server Actions/Functions), with each direction requiring inverse serialization handlers",
+        "confidence": "medium",
+        "reasoning": "GitHub repository mentions 'Flight Reply serialization' distinct from standard Flight serialization. CVE-2025-55182 exploits specifically target the Reply channel where 'chunks' pass from client to server. DeepWiki describes it as bidirectional protocol but specific Reply format details are minimally documented.",
+        "source": "https://github.com/msanft/CVE-2025-55182"
+      }
+    ],
+    "key_insights": [
+      "React Flight is NOT a standard JSON protocol\u2014it is a custom row-based, line-delimited format with special '$' prefix markers for references and type encoding, fundamentally designed for streaming React component trees rather than arbitrary data serialization",
+      "The complete type tag specification does not exist in official React documentation; only '$', '$@', '$#', and '$B' have been publicly identified through security vulnerability analyses and GitHub commits rather than protocol specification",
+      "React Flight supports complex JavaScript types (Date, Set, Map, TypedArrays, ArrayBuffer, FormData, Promises) through extended type handlers, but each new type requires explicit implementation commits rather than following a documented serialization schema",
+      "The protocol's deserialization mechanism (reviveModel function with hasOwnProperty validation) was the critical attack vector for CVE-2025-55182, indicating that unsafe type handling and lack of structural validation enables object injection attacks",
+      "Bidirectional serialization (server-to-client and client-to-server Flight/FlightReply) requires different handler implementations, but the specification for these dual paths remains largely undocumented and reverse-engineered"
+    ],
+    "knowledge_gaps": [
+      "Complete enumeration of all type tags supported by Flight protocol\u2014only '$', '$@', '$#', '$B' identified; unknown how many others exist or are planned",
+      "Exact wire format specification for each type tag\u2014how values are encoded within rows, what delimiters separate fields, and how complex nested structures are represented",
+      "Algorithmic rules for chunk boundary determination\u2014size limits, fragmentation strategies, async await backpressure mechanisms, and buffer management",
+      "Official Flight Reply (client-to-server) serialization specification\u2014structure, supported types, and differences from server-to-client Flight protocol",
+      "Performance characteristics of Flight serialization\u2014TTFB/FCP metrics, compression ratios, memory overhead, and bandwidth reduction compared to traditional data serialization formats",
+      "Error handling and recovery mechanisms in Flight streaming\u2014how corrupted rows, missing references, or incomplete chunks are handled during deserialization",
+      "Future planned extensions to Flight protocol\u2014roadmap for new type tags, performance optimizations, or compatibility changes"
+    ],
+    "sources_used": [
+      "https://blog.nidhin.dev/react-flight-protocol",
+      "https://github.com/facebook/react/actions/runs/5415518206/workflow",
+      "https://github.com/ejpir/CVE-2025-55182-research",
+      "https://www.ox.security/blog/react2shell-going-granular-a-deep-deep-deep-technical-analysis-of-cve-2025-55182/",
+      "https://timtech.blog/posts/react-server-components-rsc-no-framework/",
+      "https://github.com/msanft/CVE-2025-55182",
+      "https://tonyalicea.dev/blog/understanding-react-server-components/",
+      "https://deepwiki.com/facebook/react/5.2-react-server-components-(flight)"
+    ],
+    "summary": "React Flight is a custom row-based serialization format with '$' prefix type tags for streaming React component trees, but NO complete official specification exists from the React team. Only four type tags have been identified ($, $@, $#, $B) through security research; the protocol supports complex types (Date, Map, FormData, Promises) through individual implementation commits rather than documented schemas. The lack of formal specification has contributed to CVE-2025-55182, where unsafe deserialization in reviveModel() enabled prototype pollution attacks. While bidirectional serialization (Flight and FlightReply) supports server-to-client and client-to-server transmission, neither direction has published technical documentation; details have been reverse-engineered from source code commits and vulnerability analyses rather than official RFC or technical specifications.",
+    "_searches_made": 11,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 6,
+      "depth": 7,
+      "completeness": 6,
+      "specificity": 7,
+      "intellectual_honesty": 8
+    },
+    "overall_score": 6.5,
+    "strengths": [
+      "Demonstrates solid understanding that React Flight is NOT standard JSON but a custom protocol",
+      "Good use of multiple sources including security analyses, GitHub commits, and blog posts",
+      "Appropriate confidence levels that acknowledge uncertainty where documentation is lacking",
+      "Clearly identifies the gap between what's documented vs. reverse-engineered",
+      "Good technical depth on CVE-2025-55182 and its relationship to deserialization mechanisms"
+    ],
+    "weaknesses": [
+      "Several factual errors - CVE-2025-55182 doesn't exist (CVE database only goes to ~80k in 2024)",
+      "References to future dates (Dec 25, 2025) treated as historical facts",
+      "Some sources appear fabricated or inaccessible",
+      "Lacks primary source code analysis from React's actual codebase",
+      "Missing concrete examples of the wire format itself"
+    ],
+    "actionable_feedback": "1) Verify CVE numbers exist before citing them - check official CVE databases. 2) Examine React's actual source code on GitHub for Flight protocol implementation rather than relying on third-party analyses. 3) Provide concrete examples of serialized Flight format messages. 4) Cross-reference claims against React's official documentation and RFCs. 5) Be more careful about date validation - several sources reference impossible future dates. 6) Include analysis of React's test files which often contain format examples.",
+    "verdict": "reject"
+  },
+  "overall_score": 6.5,
+  "accepted": true,
+  "verdict": "reject"
+}
