@@ -461,6 +461,13 @@ def main():
     parser.add_argument("--migrate", action="store_true", help="Migrate JSON/JSONL data to SQLite database")
     parser.add_argument("--alerts", action="store_true", help="Show monitoring alerts")
     parser.add_argument("--check-health", action="store_true", help="Run health checks and monitoring")
+
+    # Agent Hands — Execution Layer
+    parser.add_argument("--execute", action="store_true", help="Execute a task using Agent Hands (code generation)")
+    parser.add_argument("--goal", default="", help="Task goal for --execute mode (alternative to positional arg)")
+    parser.add_argument("--exec-status", action="store_true", help="Show execution memory stats")
+    parser.add_argument("--exec-evolve", action="store_true", help="Force execution strategy evolution")
+    parser.add_argument("--workspace", default="", help="Workspace directory for execution output")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -589,6 +596,20 @@ def main():
         return
     if getattr(args, 'check_health', False):
         _run_health_check()
+        return
+
+    # --- Agent Hands dispatch ---
+    if args.execute:
+        goal = args.goal or args.question
+        if not goal:
+            parser.error("--execute requires a goal: --execute --goal 'Build a todo app' OR --execute 'Build a todo app'")
+        _run_execute(args.domain, goal, workspace_dir=args.workspace)
+        return
+    if getattr(args, 'exec_status', False):
+        _show_exec_status(args.domain)
+        return
+    if getattr(args, 'exec_evolve', False):
+        _run_exec_evolve(args.domain)
         return
 
     if args.evolve:
@@ -2054,6 +2075,252 @@ def _run_health_check():
     if result.get("alerts_generated", 0) > 0:
         print(f"  New alerts: {result['alerts_generated']}")
     print(f"\n{'='*60}\n")
+
+
+# ============================================================
+# Agent Hands — Execution Functions
+# ============================================================
+
+def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
+    """
+    Execute a task using Agent Hands.
+    
+    Pipeline: Plan → Execute → Validate → (retry if needed) → Store
+    """
+    from hands.planner import plan as create_plan_hands
+    from hands.executor import execute_plan
+    from hands.validator import validate_execution
+    from hands.exec_memory import save_exec_output, get_exec_stats
+    from hands.tools.registry import create_default_registry
+
+    # Budget check
+    budget = check_budget()
+    if not budget["within_budget"]:
+        print(f"\n[BUDGET] Blocked — daily limit reached")
+        sys.exit(1)
+
+    print(f"\n{'='*60}")
+    print(f"  AGENT HANDS — Execution Mode")
+    print(f"  Domain: {domain}")
+    print(f"  Goal: {goal}")
+    print(f"  Budget: ${budget['remaining']:.4f} remaining")
+    print(f"{'='*60}\n")
+
+    # Set up workspace
+    if not workspace_dir:
+        workspace_dir = os.path.join(os.path.dirname(__file__), "output", domain)
+    os.makedirs(workspace_dir, exist_ok=True)
+    print(f"[WORKSPACE] {workspace_dir}")
+
+    # Create tool registry
+    registry = create_default_registry()
+    tools_desc = registry.get_tool_descriptions()
+    print(f"[TOOLS] {', '.join(registry.list_tools())}")
+
+    # Load execution strategy (if exists)
+    strategy, strategy_version = get_strategy("executor", domain)
+    if strategy:
+        print(f"[EXEC-STRATEGY] Loaded: {strategy_version}")
+    else:
+        strategy_version = "default"
+        print(f"[EXEC-STRATEGY] Using defaults (no custom strategy yet)")
+
+    # Load domain knowledge from Brain (if available)
+    domain_knowledge = ""
+    try:
+        from memory_store import load_knowledge_base
+        kb = load_knowledge_base(domain)
+        if kb and kb.get("claims"):
+            claims_text = []
+            for claim in kb["claims"][:15]:
+                claims_text.append(f"- {claim.get('claim', '')}")
+            domain_knowledge = "\n".join(claims_text)
+            print(f"[KB] Loaded {len(kb['claims'])} claims from Brain's knowledge base")
+    except Exception:
+        pass
+
+    from config import EXEC_MAX_RETRIES, EXEC_QUALITY_THRESHOLD
+
+    attempt = 0
+    previous_feedback = None
+    final_plan = None
+    final_report = None
+    final_validation = None
+
+    while attempt <= EXEC_MAX_RETRIES:
+        attempt += 1
+        print(f"\n--- Attempt {attempt}/{EXEC_MAX_RETRIES + 1} ---\n")
+
+        # Step 1: Plan
+        print("[PLANNER] Decomposing task into steps...")
+        context = ""
+        if previous_feedback:
+            context = f"PREVIOUS ATTEMPT FEEDBACK (fix these issues):\n{previous_feedback}"
+
+        plan_data = create_plan_hands(
+            goal=goal,
+            tools_description=tools_desc,
+            domain=domain,
+            domain_knowledge=domain_knowledge,
+            execution_strategy=strategy or "",
+            context=context,
+        )
+
+        if not plan_data:
+            print("[PLANNER] Failed to generate plan")
+            if attempt <= EXEC_MAX_RETRIES:
+                previous_feedback = "Planning failed. Simplify the approach."
+                continue
+            break
+
+        steps_count = len(plan_data.get("steps", []))
+        complexity = plan_data.get("estimated_complexity", "?")
+        print(f"[PLANNER] Generated {steps_count}-step plan (complexity: {complexity})")
+        for step in plan_data.get("steps", []):
+            print(f"  {step.get('step_number', '?')}. [{step.get('tool', '?')}] {step.get('description', '')[:80]}")
+
+        final_plan = plan_data
+
+        # Step 2: Execute
+        report = execute_plan(
+            plan=plan_data,
+            registry=registry,
+            domain=domain,
+            execution_strategy=strategy or "",
+            workspace_dir=workspace_dir,
+        )
+
+        final_report = report
+
+        completed = report.get("completed_steps", 0)
+        failed = report.get("failed_steps", 0)
+        artifacts = report.get("artifacts", [])
+        print(f"\n[EXECUTOR] Steps: {completed} completed, {failed} failed")
+        if artifacts:
+            print(f"[EXECUTOR] Artifacts: {', '.join(artifacts[:10])}")
+
+        # Step 3: Validate
+        print("\n[VALIDATOR] Evaluating execution quality...")
+        validation = validate_execution(
+            goal=goal,
+            plan=plan_data,
+            execution_report=report,
+            domain=domain,
+            domain_knowledge=domain_knowledge,
+        )
+
+        final_validation = validation
+
+        score = validation.get("overall_score", 0)
+        verdict = validation.get("verdict", "unknown")
+        print(f"[VALIDATOR] Score: {score}/10 — Verdict: {verdict}")
+
+        scores = validation.get("scores", {})
+        if scores:
+            for dim, val in scores.items():
+                print(f"           {dim}: {val}/10")
+
+        for s in validation.get("strengths", []):
+            print(f"  + {s}")
+        for w in validation.get("weaknesses", []):
+            print(f"  - {w}")
+        for ci in validation.get("critical_issues", []):
+            print(f"  ! CRITICAL: {ci}")
+
+        # Quality gate
+        if score >= EXEC_QUALITY_THRESHOLD:
+            print(f"\n[QUALITY] Accepted (score {score} >= threshold {EXEC_QUALITY_THRESHOLD})")
+            break
+        else:
+            print(f"\n[QUALITY] Rejected (score {score} < threshold {EXEC_QUALITY_THRESHOLD})")
+            if attempt <= EXEC_MAX_RETRIES:
+                previous_feedback = validation.get("actionable_feedback", "Improve quality.")
+                if validation.get("critical_issues"):
+                    previous_feedback += " CRITICAL: " + "; ".join(validation["critical_issues"])
+                print(f"  Retrying with feedback...")
+            else:
+                print(f"  Max retries reached. Storing as-is.")
+
+    # Step 4: Store result
+    if final_plan and final_report and final_validation:
+        filepath = save_exec_output(
+            domain=domain,
+            goal=goal,
+            plan=final_plan,
+            execution_report=final_report,
+            validation=final_validation,
+            attempt=attempt,
+            strategy_version=strategy_version,
+        )
+        print(f"\n[MEMORY] Saved execution output: {filepath}")
+
+    # Check if exec strategy evolution is due
+    stats = get_exec_stats(domain)
+    from config import EXEC_EVOLVE_EVERY_N
+    if stats["count"] > 0 and stats["count"] % EXEC_EVOLVE_EVERY_N == 0:
+        print(f"\n[EXEC-META] Evolution due ({stats['count']} outputs, every {EXEC_EVOLVE_EVERY_N})")
+        _run_exec_evolve(domain)
+
+    # Summary
+    daily = get_daily_spend()
+    print(f"\n{'='*60}")
+    print(f"  EXECUTION COMPLETE")
+    print(f"  Score: {final_validation.get('overall_score', 0) if final_validation else 0}/10")
+    print(f"  Artifacts: {len(final_report.get('artifacts', [])) if final_report else 0}")
+    print(f"  Domain '{domain}': {stats['count']} total executions, avg {stats['avg_score']:.1f}")
+    print(f"  Daily spend: ${daily:.4f}")
+    print(f"{'='*60}\n")
+
+
+def _show_exec_status(domain: str):
+    """Show execution memory stats."""
+    from hands.exec_memory import get_exec_stats, load_exec_outputs
+
+    print(f"\n{'='*60}")
+    print(f"  EXECUTION STATUS — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    stats = get_exec_stats(domain)
+    if stats["count"] == 0:
+        print(f"  No execution outputs yet for domain '{domain}'.")
+        print(f"  Run: python main.py --domain {domain} --execute --goal 'Your task here'")
+        return
+
+    print(f"  Total executions: {stats['count']}")
+    print(f"  Average score: {stats['avg_score']:.1f}")
+    print(f"  Accepted: {stats['accepted']}")
+    print(f"  Rejected: {stats['rejected']}")
+    print(f"  Total artifacts: {stats['total_artifacts']}")
+
+    # Show recent outputs
+    outputs = load_exec_outputs(domain)
+    print(f"\n  Recent executions:")
+    for o in outputs[-5:]:
+        score = o.get("overall_score", 0)
+        goal = o.get("goal", "?")[:60]
+        verdict = o.get("verdict", "?")
+        ts = o.get("timestamp", "?")[:10]
+        print(f"    {ts} | {score}/10 ({verdict}) | {goal}")
+
+    print(f"\n{'='*60}\n")
+
+
+def _run_exec_evolve(domain: str):
+    """Force execution strategy evolution."""
+    from hands.exec_meta import analyze_and_evolve_exec
+
+    print(f"\n{'='*60}")
+    print(f"  EXEC META-ANALYST — Strategy Evolution")
+    print(f"  Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    result = analyze_and_evolve_exec(domain)
+    if not result:
+        print("  Not enough data or evolution failed.")
+        return
+
+    print(f"\n  New version: {result['new_version']} (pending approval)")
+    print(f"  Run: python main.py --domain {domain} --approve {result['new_version']}")
 
 
 if __name__ == "__main__":

@@ -3,3 +3,7 @@ agent-brain/.env
 __pycache__/
 *.pyc
 openclaw/
+agent-brain/output/
+agent-brain/logs/agent_brain.db
+node_modules/
+package-lock.json
