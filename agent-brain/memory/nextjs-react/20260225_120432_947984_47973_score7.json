@@ -1,0 +1,119 @@
+{
+  "timestamp": "2026-02-25T12:04:32.947984+00:00",
+  "domain": "nextjs-react",
+  "question": "What are the specific performance metrics (TTFB, FCP, LCP in milliseconds) and controlled lab methodology from Vercel, Meta, or other authoritative sources that directly compare identical Next.js applications built with pure Server Components vs pure Client Components, including test application specifications and reproduction instructions?",
+  "attempt": 2,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the specific performance metrics (TTFB, FCP, LCP in milliseconds) and controlled lab methodology from Vercel, Meta, or other authoritative sources that directly compare identical Next.js applications built with pure Server Components vs pure Client Components?",
+    "findings": [
+      {
+        "claim": "No official Vercel or Meta published controlled benchmarks comparing pure Server Components vs pure Client Components with specific TTFB/FCP/LCP millisecond measurements exist",
+        "confidence": "high",
+        "reasoning": "Extensive search across official Vercel documentation (nextjs.org), Next.js GitHub repository, Meta React documentation, and primary sources found no peer-reviewed or officially published side-by-side performance comparisons with numerical metrics. Vercel maintains a benchmark workflow (github.com/vercel/next.js/actions/workflows/bench.yml) but this focuses on build performance and internal regression testing, not Server vs Client Component comparisons.",
+        "source": "https://github.com/vercel/next.js/actions/workflows/bench.yml"
+      },
+      {
+        "claim": "Community-authored performance study 'Are React Server Components Actually Faster? I Ran the Tests' (Jan 5, 2026) concludes that Server Components alone are not a magic performance button; real power comes from streaming and Suspense setup",
+        "confidence": "medium",
+        "reasoning": "Published on Medium on 2026-01-05 (within verification window) by user @iamqitmeeer. Article title indicates actual testing was conducted, but accessible snippet does not reveal specific numerical metrics or test methodology details. Article URL is accessible but full content (including test application specifications, TTFB/FCP/LCP numbers, and reproduction instructions) requires direct article access beyond search snippet.",
+        "source": "https://medium.com/@iamqitmeeer/are-react-server-components-actually-faster-i-ran-the-tests-bf3644003b0b"
+      },
+      {
+        "claim": "GitNation published '22-minute conference talk: I Measured React Server Components' Performance So You Don't Have To' (Dec 1, 2025) by Nadia Makarevich at React Advanced 2025",
+        "confidence": "medium",
+        "reasoning": "Conference talk title suggests empirical measurement was performed. Published Dec 1, 2025 (within verification window). However, search results only provide event scheduling information, not access to talk video content, transcript, or underlying benchmark data/methodology.",
+        "source": "https://gitnation.com/contents/i-measured-react-server-components-performance-so-you-dont-have-to"
+      },
+      {
+        "claim": "DeveloperWay published 'React Server Components: Do They Really Improve Performance?' (Oct 21, 2025) but search snippet does not reveal specific performance numbers",
+        "confidence": "medium",
+        "reasoning": "Published Oct 21, 2025 (within verification window). Article URL and title indicate performance comparison content exists, but search snippet and Reddit discussion threads only reference the article without disclosing numerical metrics or test methodology.",
+        "source": "https://www.developerway.com/posts/react-server-components-performance"
+      },
+      {
+        "claim": "GitHub performance comparison repository 'marco-faltoni/react-flight-comparison' exists but README excerpt provides no performance metrics or test methodology details",
+        "confidence": "low",
+        "reasoning": "Repository URL is accessible (https://github.com/marco-faltoni/react-flight-comparison) but search results only return generic Create React App template text and contribution prompts. Repository contents (actual test application code, performance data files, and results) are not accessible via search results alone and would require direct GitHub repository cloning to verify.",
+        "source": "https://github.com/marco-faltoni/react-flight-comparison"
+      },
+      {
+        "claim": "Performance concern raised in Next.js GitHub discussions: App Router TTFB reported as significantly slower than Pages Router despite streaming and Server Components (#67048, #86711)",
+        "confidence": "medium",
+        "reasoning": "Official Next.js GitHub discussion threads indicate community-reported performance issues with App Router TTFB, suggesting that Server Components do not automatically guarantee faster TTFB. Discussions reference real-world developer experiences but do not provide controlled benchmark data or reproduction test cases with specific millisecond measurements.",
+        "source": "https://github.com/vercel/next.js/discussions/67048"
+      },
+      {
+        "claim": "Third-party benchmark: 'Stop Choosing Wrong: Next.js 15 App Router vs Pages Router Performance Comparison' (Feb 2026) claims Pages Router handles 6x more concurrent requests than App Router in heavy SSR scenarios",
+        "confidence": "low",
+        "reasoning": "Published in Feb 2026 (within verification window). Claims specific numerical advantage (6x concurrent request handling) but author/publication (markaicode.com) is not an official source, methodology is not transparent in search results, and article does not clarify whether test compared Server Components (default in App Router) vs Client Components (typical in Pages Router) or pure routing overhead.",
+        "source": "https://markaicode.com/nextjs-15-router-performance-comparison/"
+      },
+      {
+        "claim": "Community tool 'traverse' by devdumpling provides performance data capture and comparison for Next.js App Router & Pages Router with 'traverse compare' feature",
+        "confidence": "low",
+        "reasoning": "GitHub repository (github.com/devdumpling/traverse) exists and claims to support performance comparisons, but repository snippet does not provide example benchmark data, methodology documentation, or sample results. Would require repository cloning and execution to verify usability and data validity.",
+        "source": "https://github.com/devdumpling/traverse"
+      }
+    ],
+    "key_insights": [
+      "No peer-reviewed, officially published, controlled benchmark from Vercel or Meta comparing identical Next.js applications built with pure Server Components vs pure Client Components with numerical TTFB/FCP/LCP metrics exists in publicly accessible sources as of Feb 25, 2026",
+      "Multiple recent publications (Jan-Dec 2025) claim to have conducted empirical performance measurements, but search results only provide article titles and summaries; full methodology, test specifications, reproduction instructions, and numerical data are not accessible via search results and would require direct access to articles, videos, or GitHub repositories",
+      "Community-reported evidence (GitHub discussions #67048, #86711) suggests App Router may have TTFB performance concerns despite Server Components, contradicting marketing claims of automatic performance benefits",
+      "Quantitative claims found (e.g., 6x concurrent request difference, 32-68% bundle reduction from prior knowledge base) come from non-official sources with unclear methodology and limited transparency regarding whether comparisons isolated Server Component benefits or combined them with other optimizations",
+      "Lack of standardized, reproducible benchmark application prevents scientific comparison; existing third-party repositories (traverse, react-flight-comparison) lack public benchmark data or methodology documentation"
+    ],
+    "knowledge_gaps": [
+      "Full content and numerical results from Medium article by qitmeeer ('Are React Server Components Actually Faster?'), DeveloperWay article, and Nadia Makarevich's conference talk\u2014search results only provide titles and summaries, not methodology or data",
+      "Test application specifications for any published benchmarks\u2014programming language, data fetching strategy, caching configuration, hydration approach, target metrics collection tool (Lighthouse, WebPageTest, custom instrumentation), and network/device simulation parameters",
+      "Methodology transparency: whether published benchmarks controlled for confounding variables (code-splitting, lazy loading, third-party scripts, image optimization, caching headers) or isolated Server Component impact alone",
+      "Specific TTFB, FCP, and LCP measurements in milliseconds from any controlled comparison; all findings are either architectural descriptions or percentage claims without baseline absolute values",
+      "Reproduction instructions or open-source test applications allowing verification of published claims or execution of independent benchmarks",
+      "Official Vercel or Meta stance on why controlled public benchmarks comparing these architectures have not been published despite Server Components being marked stable in Next.js 16 (Oct 2025)",
+      "Whether community tools like 'traverse' have validation or comparison against industry-standard benchmark tools (Lighthouse, WebPageTest)"
+    ],
+    "sources_used": [
+      "https://medium.com/@iamqitmeeer/are-react-server-components-actually-faster-i-ran-the-tests-bf3644003b0b",
+      "https://gitnation.com/contents/i-measured-react-server-components-performance-so-you-dont-have-to",
+      "https://www.developerway.com/posts/react-server-components-performance",
+      "https://github.com/marco-faltoni/react-flight-comparison",
+      "https://github.com/vercel/next.js/discussions/67048",
+      "https://github.com/vercel/next.js/discussions/86711",
+      "https://markaicode.com/nextjs-15-router-performance-comparison/",
+      "https://github.com/devdumpling/traverse",
+      "https://github.com/vercel/next.js/actions/workflows/bench.yml",
+      "https://nextjs.org/docs/pages/guides/analytics"
+    ],
+    "summary": "Despite extensive search, no official Vercel or Meta published controlled benchmarks with specific TTFB/FCP/LCP millisecond measurements comparing identical Next.js applications built with pure Server Components vs pure Client Components exist as of Feb 25, 2026. Recent publications (Jan-Dec 2025) claim empirical testing but full methodology, test specifications, and numerical results are inaccessible via search; community discussions indicate App Router may have TTFB concerns despite Server Components. The absence of transparent, reproducible benchmarks with clear test application specifications and methodology documentation represents a critical gap in validating the quantitative performance claims (32-68% bundle reduction, 55% faster TTI, 67% LCP improvement) found in prior knowledge base.",
+    "_searches_made": 11,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 7,
+      "depth": 6,
+      "completeness": 7,
+      "specificity": 8,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.1,
+    "strengths": [
+      "Excellent intellectual honesty - clearly distinguishes between accessible content and inaccessible full articles/videos",
+      "High specificity with exact URLs, dates, and GitHub issue numbers",
+      "Systematic approach covering official sources (Vercel, Meta) and community sources",
+      "Transparent about confidence levels and reasoning for each claim",
+      "Clearly identifies knowledge gaps and limitations of search-based methodology"
+    ],
+    "weaknesses": [
+      "Limited depth due to inability to access full content of key sources - many findings are based only on titles and snippets",
+      "Some claims have low confidence but are included without stronger verification attempts",
+      "Could have attempted to access at least some of the GitHub repositories directly rather than relying only on search snippets",
+      "The negative finding (no official benchmarks exist) while likely accurate, is inherently difficult to prove definitively"
+    ],
+    "actionable_feedback": "To improve this research: 1) Attempt direct access to at least 2-3 of the GitHub repositories mentioned to verify their actual content and methodology, 2) Contact authors of recent articles directly for access to full methodologies and data, 3) Check if any of the conference talks have publicly available recordings or slides, 4) Search academic databases and preprint servers for any peer-reviewed performance studies, 5) Examine Vercel's own case studies and blog posts more thoroughly for any embedded benchmark data",
+    "verdict": "accept"
+  },
+  "overall_score": 7.1,
+  "accepted": true,
+  "verdict": "accept"
+}

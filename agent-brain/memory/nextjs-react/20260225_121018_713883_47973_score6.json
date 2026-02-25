@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-02-25T12:10:18.713883+00:00",
+  "domain": "nextjs-react",
+  "question": "What are the specific architectural patterns, directory structures, and routing strategies used in production Next.js applications with 100+ routes (such as e-commerce platforms, documentation sites, or SaaS dashboards)? Search for open-source Next.js applications on GitHub with large route counts, examine their app/ directory organization, layout nesting patterns, and dynamic route implementations.",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the specific architectural patterns, directory structures, and routing strategies used in production Next.js applications with 100+ routes (such as e-commerce platforms, documentation sites, or SaaS dashboards)?",
+    "findings": [
+      {
+        "claim": "Large-scale Next.js applications use route groups, nested layouts, parallel routes, and intercepting routes as primary organizational patterns to manage complexity in 100+ route projects",
+        "confidence": "high",
+        "reasoning": "Multiple sources (Next.js App Router in Practice article from eastondev.com, Feature-Sliced Design blog) explicitly document these patterns as solutions for large project directory organization. Route groups enable logical separation without affecting URLs, nested layouts share structure across hierarchies, parallel routes enable sophisticated UI composition, and intercepting routes handle modals and overlays\u2014all documented as standard patterns.",
+        "source": "https://eastondev.com/blog/en/posts/dev/20251218-nextjs-routing-best-practices/"
+      },
+      {
+        "claim": "Production-ready Next.js architectures recommend feature-based or domain-based directory organization combined with hierarchical layout nesting to prevent directory chaos and maintain scalability",
+        "confidence": "medium",
+        "reasoning": "Feature-Sliced Design guide (Jan 23, 2026) references production-tested Next.js App Router architecture patterns, and dev.to article mentions 'battle-tested in production' architecture with emphasis on blurred layers prevention. However, specific numerical breakdown of how features should be organized in 100+ route applications is not provided in search results.",
+        "source": "https://feature-sliced.design/blog/nextjs-app-router-guide"
+      },
+      {
+        "claim": "E-commerce platforms built with Next.js 15 use App Router with admin dashboards, Stripe integration, and advanced inventory management, demonstrating real production-scale routing patterns",
+        "confidence": "medium",
+        "reasoning": "GitHub project 'Nextjs-Ecommerce' is documented as a 'modern, production-ready e-commerce platform' with complete admin dashboard and comprehensive test coverage. While specific route count is not mentioned, it represents a substantial real-world application. However, detailed directory structure from this project was not accessible in search results.",
+        "source": "https://github.com/SatvikPraveen/Nextjs-Ecommerce/"
+      },
+      {
+        "claim": "Next.js official documentation provides standard folder/file conventions for App Router project structure, with layout nesting and dynamic routes as core patterns",
+        "confidence": "high",
+        "reasoning": "Next.js official docs (nextjs.org/docs/app/getting-started/project-structure) and routing documentation explicitly document these patterns as framework features. Dynamic routes use [param] bracket notation, nested layouts use directory nesting, and route organization follows file-based routing convention.",
+        "source": "https://nextjs.org/docs/app/getting-started/project-structure"
+      },
+      {
+        "claim": "avijit-wd/nextjs-foundation GitHub project demonstrates comprehensive multi-page structure with route groups, parallel routes, catch-all segments, and nested layouts as architectural reference implementation",
+        "confidence": "medium",
+        "reasoning": "Project is explicitly described as showcasing 'advanced Next.js routing features' including route groups, parallel routes, catch-all segments, and nested layouts. However, specific route count and detailed directory structure breakdown were not available in search results.",
+        "source": "https://github.com/avijit-wd/nextjs-foundation"
+      },
+      {
+        "claim": "Production Next.js applications address state management, caching issues, and Server Actions testing as critical architectural concerns in large-scale deployments",
+        "confidence": "medium",
+        "reasoning": "Multiple sources (Mastering Next.js App Router article from EdgeOne, production architecture guides from Medium) identify these as the 'biggest production challenges' in App Router implementations. Emphasis on caching strategies and Server Actions testing suggests these are practical concerns in 100+ route applications.",
+        "source": "https://pages.edgeone.ai/resources/nextjs-app-router-in-production"
+      }
+    ],
+    "key_insights": [
+      "Route groups, nested layouts, parallel routes, and intercepting routes are the primary architectural patterns for managing complexity in large Next.js applications\u2014these patterns separate concerns without affecting URL structure",
+      "Feature-based or domain-based directory organization combined with hierarchical layout composition prevents directory chaos and enables team collaboration at scale",
+      "Real-world e-commerce and SaaS applications use App Router with Server Components by default, leveraging Server Actions for mutations and admin operations",
+      "Production architectures prioritize clear layer separation (avoiding 'hydration chaos') and explicit server/client boundaries to prevent technical debt in 100+ route applications",
+      "Caching strategy complexity increases significantly in large-scale applications\u2014multiple sources recommend granular revalidation control at layout and segment levels"
+    ],
+    "knowledge_gaps": [
+      "Specific route counts for public GitHub examples\u2014while several projects claim production-scale architecture, exact number of routes in these applications is not documented in search results",
+      "Detailed directory structure examples for 100+ route applications\u2014search results reference architectural patterns but don't provide concrete directory tree examples for e-commerce or SaaS dashboards",
+      "Comparative analysis of feature-based vs. domain-based vs. flat directory structures for 100+ route applications\u2014recommendations exist but numerical comparisons or case study data is absent",
+      "Performance benchmarks comparing different routing strategies (route groups vs. parallel routes vs. simple nested layouts) in 100+ route applications",
+      "Specific patterns for handling cross-domain data fetching in shared layouts across 50+ nested route hierarchies\u2014mentioned as a concern but not detailed in search results"
+    ],
+    "sources_used": [
+      "https://eastondev.com/blog/en/posts/dev/20251218-nextjs-routing-best-practices/",
+      "https://feature-sliced.design/blog/nextjs-app-router-guide",
+      "https://github.com/SatvikPraveen/Nextjs-Ecommerce/",
+      "https://nextjs.org/docs/app/getting-started/project-structure",
+      "https://github.com/avijit-wd/nextjs-foundation",
+      "https://pages.edgeone.ai/resources/nextjs-app-router-in-production",
+      "https://medium.com/@yuki.onishi1129/building-a-production-ready-next-js-app-router-architecture-a-complete-playbook-a26e21fe9ad9"
+    ],
+    "summary": "Production Next.js applications with 100+ routes use route groups, nested layouts, parallel routes, and intercepting routes as core architectural patterns for managing complexity and team collaboration. Feature-based or domain-based directory organization combined with hierarchical layout composition addresses the 'directory chaos' problem at scale, while caching strategy complexity and explicit server/client boundaries are identified as critical production concerns. However, specific route counts and detailed directory structures for real-world e-commerce or SaaS applications remain largely undocumented in publicly available sources, limiting concrete implementation guidance.",
+    "_searches_made": 4,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 6,
+      "completeness": 5,
+      "specificity": 4,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 6.3,
+    "strengths": [
+      "Excellent intellectual honesty - clearly flags uncertainty and knowledge gaps",
+      "Accurate claims about Next.js architectural patterns with proper source attribution",
+      "Good identification of the gap between theoretical patterns and concrete implementation examples",
+      "Appropriate confidence levels that reflect the strength of evidence",
+      "Uses legitimate, recent sources including official Next.js documentation"
+    ],
+    "weaknesses": [
+      "Limited depth in explaining WHY these patterns solve specific problems at 100+ route scale",
+      "Lacks concrete examples of directory structures despite claiming to research production applications",
+      "Missing performance implications and trade-offs between different architectural choices",
+      "No quantitative data on route distribution, bundle sizes, or build times",
+      "Incomplete coverage of critical production concerns like SEO, deployment strategies, and team workflow patterns"
+    ],
+    "actionable_feedback": "To improve this research: 1) Analyze actual open-source codebases (Vercel's examples, Shopify Hydrogen, etc.) to extract concrete directory structures and route counts, 2) Include performance benchmarks or at least theoretical analysis of why each pattern helps at scale, 3) Research team workflow implications - how do multiple developers work on 100+ route apps without conflicts, 4) Add coverage of deployment patterns, CDN strategies, and build optimization for large Next.js apps, 5) Seek out case studies from companies that have documented their migration to App Router at scale",
+    "verdict": "accept"
+  },
+  "overall_score": 6.3,
+  "accepted": true,
+  "verdict": "accept"
+}

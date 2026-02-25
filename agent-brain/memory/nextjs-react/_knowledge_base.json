@@ -1,5 +1,5 @@
 {
-  "domain_summary": "Next.js React Server Components represent a server-first architecture that uses a custom React Flight protocol to stream serialized component trees to clients, achieving 32-68% bundle size reductions and significant performance improvements in real-world applications. The App Router implements file-based routing with nested layouts, prioritizing Server Components by default for data fetching and security while reserving Client Components for interactive features. React Flight uses a row-based, JSON-like serialization format with '$' prefix reference notation to enable cross-chunk references and streaming of async boundaries, though official technical specifications remain largely undocumented by the React team.",
+  "domain_summary": "Next.js React Server Components represent a server-first architecture that uses the React Flight protocol to stream serialized component trees to clients, achieving 32-68% bundle size reductions and significant performance improvements in real-world applications. The App Router implements hierarchical file-based routing with parallel data fetching, granular error boundaries, and nested layouts for managing 100+ route applications. React Flight uses a row-based, line-delimited, JSON-like serialization format with '$' prefix reference notation for cross-chunk streaming, but remains completely undocumented by the React team\u2014all detailed protocol knowledge derives from CVE-2025-55182 security research rather than official specifications.",
   "topics": [
     {
       "name": "Architecture and Routing",
@@ -8,7 +8,8 @@
         "file-based-routing",
         "nested-layouts",
         "route-groups",
-        "parallel-routes"
+        "parallel-routes",
+        "100-route-scale-patterns"
       ]
     },
     {
@@ -26,7 +27,8 @@
         "bundle-size-reduction",
         "core-web-vitals",
         "streaming-benefits",
-        "enterprise-metrics"
+        "enterprise-metrics",
+        "controlled-benchmarks"
       ]
     },
     {
@@ -35,7 +37,9 @@
         "serialization-format",
         "reference-system",
         "chunk-boundaries",
-        "streaming-mechanics"
+        "streaming-mechanics",
+        "type-tags",
+        "protocol-undocumented"
       ]
     },
     {
@@ -44,6 +48,16 @@
         "infrastructure-requirements",
         "browser-parser-interaction",
         "security-vulnerabilities"
+      ]
+    },
+    {
+      "name": "Error Handling and Streaming",
+      "subtopics": [
+        "error-boundaries",
+        "suspense-streaming",
+        "progressive-recovery",
+        "timeout-strategies",
+        "fallback-patterns"
       ]
     }
   ],
@@ -55,14 +69,15 @@
       "confidence": "established",
       "status": "active",
       "first_seen": "2026-02-25T11:18:57.457979+00:00",
-      "last_confirmed": "2026-02-25T11:18:57.457979+00:00",
-      "source_count": 1,
+      "last_confirmed": "2026-02-25T12:10:18.713883+00:00",
+      "source_count": 2,
       "sources": [
+        "https://nextjs.org/docs/app/getting-started/project-structure",
         "https://nextjs.org/docs/app/getting-started/project-structure"
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": ""
+      "notes": "Confirmed in multiple new outputs"
     },
     {
       "id": "claim_002",
@@ -71,14 +86,16 @@
       "confidence": "established",
       "status": "active",
       "first_seen": "2026-02-25T11:18:57.457979+00:00",
-      "last_confirmed": "2026-02-25T11:18:57.457979+00:00",
-      "source_count": 1,
+      "last_confirmed": "2026-02-25T12:24:00.020783+00:00",
+      "source_count": 3,
       "sources": [
-        "https://nextjs.org/learn/react-foundations/server-and-client-components"
+        "https://nextjs.org/learn/react-foundations/server-and-client-components",
+        "https://nextjs.org/docs/app/getting-started/server-and-client-components",
+        "https://medium.com/@devFemzy/day-7-error-handling-route-level-isolation-in-next-js-b691be235f24"
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": ""
+      "notes": "Consistently reinforced across new outputs"
     },
     {
       "id": "claim_003",
@@ -87,14 +104,15 @@
       "confidence": "established",
       "status": "active",
       "first_seen": "2026-02-25T11:18:57.457979+00:00",
-      "last_confirmed": "2026-02-25T11:18:57.457979+00:00",
-      "source_count": 1,
+      "last_confirmed": "2026-02-25T12:00:42.803745+00:00",
+      "source_count": 2,
       "sources": [
-        "https://prateekbadjatya.medium.com/react-server-component-vs-client-component-when-to-use-what-in-next-js-e924a39965c3"
+        "https://prateekbadjatya.medium.com/react-server-component-vs-client-component-when-to-use-what-in-next-js-e924a39965c3",
+        "https://nextjs.org/docs/app/building-your-application/data-fetching/patterns"
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": ""
+      "notes": "Reinforced by new data fetching patterns documentation"
     },
     {
       "id": "claim_004",
@@ -184,21 +202,22 @@
       "confidence": "high",
       "status": "active",
       "first_seen": "2026-02-25T11:20:58.880915+00:00",
-      "last_confirmed": "2026-02-25T11:20:58.880915+00:00",
-      "source_count": 1,
+      "last_confirmed": "2026-02-25T12:24:00.020783+00:00",
+      "source_count": 2,
       "sources": [
-        "https://www.sitepoint.com/react-server-components-streaming-performance-2026/"
+        "https://www.sitepoint.com/react-server-components-streaming-performance-2026/",
+        "https://www.learnlog.dev/nextjs-streaming-production-fix"
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": ""
+      "notes": "Confirmed again in new streaming error handling research"
     },
     {
       "id": "claim_010",
       "claim": "React Flight is a compact, streaming, JSON-like serialization format specifically designed to represent a React component tree",
       "topic": "React Flight Protocol",
       "confidence": "established",
-      "status": "active",
+      "status": "superseded",
       "first_seen": "2026-02-25T11:22:55.148017+00:00",
       "last_confirmed": "2026-02-25T11:24:32.199134+00:00",
       "source_count": 2,
@@ -208,14 +227,14 @@
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": ""
+      "notes": "Superseded by more specific claim_016"
     },
     {
       "id": "claim_011",
       "claim": "React Flight uses a row-based JSON format (not standard JSON) that supports references, React elements, and extended data types like Date, Set, and Map",
       "topic": "React Flight Protocol",
       "confidence": "high",
-      "status": "active",
+      "status": "superseded",
       "first_seen": "2026-02-25T11:24:32.199134+00:00",
       "last_confirmed": "2026-02-25T11:24:32.199134+00:00",
       "source_count": 1,
@@ -224,7 +243,7 @@
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": ""
+      "notes": "Superseded by more detailed claim_016"
     },
     {
       "id": "claim_012",
@@ -233,14 +252,15 @@
       "confidence": "high",
       "status": "active",
       "first_seen": "2026-02-25T11:24:32.199134+00:00",
-      "last_confirmed": "2026-02-25T11:24:32.199134+00:00",
-      "source_count": 1,
+      "last_confirmed": "2026-02-25T11:59:07.263215+00:00",
+      "source_count": 2,
       "sources": [
-        "https://dev.to/jmmy/cve-2025-55182-explained-2e85"
+        "https://dev.to/jmmy/cve-2025-55182-explained-2e85",
+        "https://www.analogue.computer/blog/react4shell"
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": ""
+      "notes": "Extensively confirmed and detailed in new CVE research"
     },
     {
       "id": "claim_013",
@@ -249,14 +269,15 @@
       "confidence": "high",
       "status": "active",
       "first_seen": "2026-02-25T11:24:32.199134+00:00",
-      "last_confirmed": "2026-02-25T11:24:32.199134+00:00",
-      "source_count": 1,
+      "last_confirmed": "2026-02-25T11:59:07.263215+00:00",
+      "source_count": 2,
       "sources": [
-        "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md"
+        "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md",
+        "https://github.com/kavienanj/CVE-2025-55182"
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": ""
+      "notes": "Confirmed in CVE analysis with security vulnerability details"
     },
     {
       "id": "claim_014",
@@ -265,14 +286,15 @@
       "confidence": "low",
       "status": "conflicted",
       "first_seen": "2026-02-25T11:19:58.309417+00:00",
-      "last_confirmed": "2026-02-25T11:19:58.309417+00:00",
-      "source_count": 1,
+      "last_confirmed": "2026-02-25T12:04:32.947984+00:00",
+      "source_count": 2,
       "sources": [
+        "https://markaicode.com/nextjs-15-router-performance-comparison/",
         "https://markaicode.com/nextjs-15-router-performance-comparison/"
       ],
       "supersedes": null,
       "conflicted_by": "claim_002",
-      "notes": "Contradicts claims about App Router performance benefits"
+      "notes": "Confirmed again but still conflicts with App Router benefits; methodology unclear"
     },
     {
       "id": "claim_015",
@@ -289,6 +311,173 @@
       "supersedes": null,
       "conflicted_by": null,
       "notes": "Unusually high figure not corroborated elsewhere"
+    },
+    {
+      "id": "claim_016",
+      "claim": "React Flight is a row-based, line-delimited, JSON-like (but not standard JSON) streaming protocol designed specifically for serializing React component trees and async boundaries, not HTML",
+      "topic": "React Flight Protocol",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:59:07.263215+00:00",
+      "last_confirmed": "2026-02-25T12:22:26.725177+00:00",
+      "source_count": 3,
+      "sources": [
+        "https://deepwiki.com/mrknow001/RSC_Detector/7.2-react-flight-protocol",
+        "https://deepwiki.com/mrknow001/RSC_Detector/7.2-react-flight-protocol",
+        "https://blog.nidhin.dev/decoding-the-flight-payload-in-react-server-components"
+      ],
+      "supersedes": "claim_010",
+      "conflicted_by": null,
+      "notes": "More precise than previous claim_010"
+    },
+    {
+      "id": "claim_017",
+      "claim": "Known type tag markers include: $ (basic reference), $@ (chunk reference/promise), $# (async boundary), $B (Blob), $D (Date), $L (lazy), $F (FormData), $S (Set), $W (WeakMap), but React's official documentation does not provide exhaustive enumeration",
+      "topic": "React Flight Protocol",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-25T11:59:07.263215+00:00",
+      "last_confirmed": "2026-02-25T11:59:07.263215+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.trendmicro.com/en_us/research/25/l/CVE-2025-55182-analysis-poc-itw.html"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_018",
+      "claim": "Each Flight message consists of three parts: an ID, a type indicator, and a data payload, followed by a newline character, creating line-delimited rows",
+      "topic": "React Flight Protocol",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:59:07.263215+00:00",
+      "last_confirmed": "2026-02-25T11:59:07.263215+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://blog.securelayer7.net/cve-2025-55182/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_019",
+      "claim": "React does not publish official technical specifications or RFC documents for the Flight protocol; all detailed protocol documentation has been reverse-engineered from source code commits, security analyses, and CVE-2025-55182 research",
+      "topic": "React Flight Protocol",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:59:07.263215+00:00",
+      "last_confirmed": "2026-02-25T12:22:26.725177+00:00",
+      "source_count": 4,
+      "sources": [
+        "https://deepwiki.com/mrknow001/RSC_Detector/7.2-react-flight-protocol",
+        "https://www.rfc-editor.org/",
+        "https://github.com/facebook/react/blob/main/packages/react-server/README.md",
+        "https://github.com/kavienanj/CVE-2025-55182"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Critical finding confirmed across multiple outputs"
+    },
+    {
+      "id": "claim_020",
+      "claim": "Next.js recommends parallel data fetching as the primary strategy to prevent waterfalls in App Router applications, where requests at the same hierarchical level are initiated simultaneously rather than sequentially",
+      "topic": "Architecture and Routing",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T12:00:42.803745+00:00",
+      "last_confirmed": "2026-02-25T12:00:42.803745+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://nextjs.org/docs/14/app/building-your-application/data-fetching/patterns"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_021",
+      "claim": "The lowest revalidate value across each layout and page of a single route determines the revalidation frequency of the entire route, ensuring child pages are revalidated as frequently as their parent layouts require",
+      "topic": "Architecture and Routing",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T12:00:42.803745+00:00",
+      "last_confirmed": "2026-02-25T12:00:42.803745+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_022",
+      "claim": "Error boundaries in Next.js App Router must be Client Components ('use client'); they wrap route segments and nested children in React Error Boundaries, catching errors thrown during rendering",
+      "topic": "Error Handling and Streaming",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T12:02:03.309336+00:00",
+      "last_confirmed": "2026-02-25T12:24:00.020783+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/file-conventions/error",
+        "https://nextjs.org/docs/14/app/building-your-application/routing/error-handling"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Confirmed across error handling outputs"
+    },
+    {
+      "id": "claim_023",
+      "claim": "Skeleton loading fallbacks with Suspense improve perceived performance by maintaining layout stability; this strategy prevents cumulative layout shift and creates content-shaped loading indicators instead of blank screens",
+      "topic": "Error Handling and Streaming",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T12:02:03.309336+00:00",
+      "last_confirmed": "2026-02-25T12:02:03.309336+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://react.dev/reference/react/Suspense"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_024",
+      "claim": "No official Vercel or Meta published controlled benchmarks comparing pure Server Components vs pure Client Components with specific TTFB/FCP/LCP millisecond measurements exist",
+      "topic": "Performance Characteristics",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T12:04:32.947984+00:00",
+      "last_confirmed": "2026-02-25T12:16:13.015169+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://github.com/vercel/next.js/actions/workflows/bench.yml",
+        "Multiple searches; no accessible source with specific FCP numbers"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Critical gap confirmed across multiple benchmark search outputs"
+    },
+    {
+      "id": "claim_025",
+      "claim": "Large-scale Next.js applications use route groups, nested layouts, parallel routes, and intercepting routes as primary organizational patterns to manage complexity in 100+ route projects",
+      "topic": "Architecture and Routing",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T12:10:18.713883+00:00",
+      "last_confirmed": "2026-02-25T12:10:18.713883+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://eastondev.com/blog/en/posts/dev/20251218-nextjs-routing-best-practices/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
     }
   ],
   "contradictions": [
@@ -297,53 +486,60 @@
       "claim_b": "claim_014",
       "description": "App Router performance benefits vs Pages Router handling more concurrent requests",
       "resolution": "App Router benefits are well-documented for general use cases; Pages Router claim may be specific edge case with unclear methodology"
+    },
+    {
+      "claim_a": "claim_024",
+      "claim_b": "claim_005",
+      "description": "No official controlled benchmarks exist vs enterprise audit claims of 68% bundle reduction",
+      "resolution": "Enterprise claims lack transparent methodology; official benchmarks remain unavailable despite Server Components being stable"
     }
   ],
   "knowledge_gaps": [
     {
-      "gap": "Specific FCP (First Contentful Paint) numerical benchmarks comparing pure Server Components vs pure Client Components in controlled environments",
-      "priority": "high",
-      "related_topic": "Performance Characteristics"
-    },
-    {
-      "gap": "Official technical specification for Flight serialization format, including complete type tag system and chunk boundary algorithms",
+      "gap": "Complete enumeration of ALL type tags supported by Flight protocol\u2014while ~8 tags identified through security research ($, $@, $#, $B, $D, $L, $F, $S, $W), no comprehensive list exists and hidden type tags may remain undiscovered",
       "priority": "high",
       "related_topic": "React Flight Protocol"
     },
     {
-      "gap": "Detailed TTFB measurements in milliseconds for comparable applications using Server Components vs Client Components",
+      "gap": "Exact chunk boundary determination algorithm\u2014precise rules for fragmentation, buffer size thresholds, async await backpressure mechanisms, and how streaming adapts to network conditions or promise resolution delays",
+      "priority": "high",
+      "related_topic": "React Flight Protocol"
+    },
+    {
+      "gap": "Specific FCP numerical benchmarks (milliseconds) comparing pure Server Components vs pure Client Components from controlled experiments by DeveloperWay and Nadia Makarevich\u2014articles exist but numerical results inaccessible via search",
       "priority": "high",
       "related_topic": "Performance Characteristics"
     },
     {
-      "gap": "Real-world recommendations for structuring large applications with hundreds of routes using App Router",
+      "gap": "Detailed directory structure examples for 100+ route applications\u2014architectural patterns documented but concrete implementation examples for e-commerce or SaaS dashboards remain sparse",
       "priority": "medium",
       "related_topic": "Architecture and Routing"
     },
     {
-      "gap": "Advanced error handling and boundary patterns beyond basic error.tsx usage",
-      "priority": "medium",
-      "related_topic": "Architecture and Routing"
+      "gap": "React Flight streaming error handling specification\u2014no official documentation exists for how Flight protocol recovers from corrupted chunks, missing references, or deserialization failures during streaming",
+      "priority": "high",
+      "related_topic": "Error Handling and Streaming"
     },
     {
-      "gap": "Performance impact of different data fetching patterns on TTFB/FCP metrics",
+      "gap": "Quantitative guidelines for optimal Suspense boundary granularity (e.g., how many boundaries before overhead increases) in large streaming applications (100+ routes)",
       "priority": "medium",
-      "related_topic": "Performance Characteristics"
+      "related_topic": "Error Handling and Streaming"
     }
   ],
   "synthesis_stats": {
-    "total_claims": 15,
-    "active_claims": 14,
-    "superseded_claims": 0,
+    "total_claims": 25,
+    "active_claims": 23,
+    "superseded_claims": 2,
     "disputed_claims": 1,
-    "contradictions_found": 1,
-    "topics_covered": 5,
-    "outputs_synthesized": 5,
+    "contradictions_found": 2,
+    "topics_covered": 6,
+    "outputs_synthesized": 14,
     "synthesis_date": "2026-02-25",
-    "incremental": false
+    "incremental": true,
+    "new_outputs_merged": 9
   },
-  "_synthesized_at": "2026-02-25T11:25:25.571164+00:00",
+  "_synthesized_at": "2026-02-25T12:25:30.575036+00:00",
   "_domain": "nextjs-react",
-  "_outputs_count": 5,
-  "_incremental": false
+  "_outputs_count": 9,
+  "_incremental": true
 }

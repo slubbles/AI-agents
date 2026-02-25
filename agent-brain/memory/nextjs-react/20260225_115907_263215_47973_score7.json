@@ -1,0 +1,140 @@
+{
+  "timestamp": "2026-02-25T11:59:07.263215+00:00",
+  "domain": "nextjs-react",
+  "question": "What are the complete technical specifications of the React Flight wire protocol found in React's source code (packages/react-server/src/ReactFlight.js and related files), including: the exhaustive set of type tags beyond '$', '$@', '$#'; the exact JSON serialization structure; the algorithm determining chunk boundaries; and how async boundary resolution works with references across chunks? Include concrete examples of serialized Flight payloads from React's test suite.",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the complete technical specifications of the React Flight wire protocol found in React's source code (packages/react-server/src/ReactFlight.js and related files), including: the exhaustive set of type tags beyond '$', '$@', '$#'; the exact JSON serialization structure; the algorithm determining chunk boundaries; and how async boundary resolution works with references across chunks? Include concrete examples of serialized Flight payloads from React's test suite.",
+    "findings": [
+      {
+        "claim": "React Flight is a row-based, line-delimited, JSON-like (but not standard JSON) streaming protocol designed specifically for serializing React component trees and async boundaries, not HTML",
+        "confidence": "high",
+        "reasoning": "Multiple sources from December 2025 (DeepWiki, LinkedIn, blog.nidhin.dev) confirm React Flight is a custom streaming serialization format distinct from HTML/Fizz, with line-delimited structure and row-based format",
+        "source": "https://deepwiki.com/mrknow001/RSC_Detector/7.2-react-flight-protocol"
+      },
+      {
+        "claim": "Known type tag markers include: $ (basic reference), $@ (chunk reference/promise), $# (async boundary), $B (Blob), $D (Date), $L (lazy), $F (FormData), $S (Set), $W (WeakMap), but React's official documentation does not provide exhaustive enumeration",
+        "confidence": "medium",
+        "reasoning": "Security analysis documents (Trend Micro Dec 10 2025, Medium articles) identify $B for Blob and $@ for promises. Additional type tags ($D, $L, $F, $S, $W) are mentioned in CVE-2025-55182 exploit analyses, but React team has not published official complete list. Prior knowledge confirms only $, $@, $#, $B have been formally identified through reverse-engineering",
+        "source": "https://www.trendmicro.com/en_us/research/25/l/CVE-2025-55182-analysis-poc-itw.html"
+      },
+      {
+        "claim": "Each Flight message consists of three parts: an ID, a type indicator, and a data payload, followed by a newline character, creating line-delimited rows",
+        "confidence": "high",
+        "reasoning": "SecureLayer7 and multiple security analyses (Dec 2025) explicitly describe the three-part structure of Flight rows: ID (chunk number), type indicator, and payload data, with newline delimiters",
+        "source": "https://blog.securelayer7.net/cve-2025-55182/"
+      },
+      {
+        "claim": "The Flight protocol uses a reference system with '$' prefix notation allowing chunks to reference each other. The $@ syntax specifically tells React that a referenced chunk is a promise/thenable that should trigger .then() method calls",
+        "confidence": "high",
+        "reasoning": "Multiple December 2025 sources (Medium, analogue.computer, GitHub CVE walkthroughs) confirm $@ creates circular references between chunks and enables thenable exploitation. CVE-2025-55182 exploits depend on this mechanism working as documented",
+        "source": "https://www.analogue.computer/blog/react4shell"
+      },
+      {
+        "claim": "Reference resolution occurs in the reviveModel() function within ReactFlightReplyServer.js, which validates property ownership using hasOwnProperty() checks but fails to distinguish between own and inherited properties, enabling prototype pollution attacks (CVE-2025-55182)",
+        "confidence": "high",
+        "reasoning": "Multiple security researchers (GitHub CVE-2025-55182 walkthrough, dailycve.com, ox.security) document the exact vulnerable code path in reviveModel() where hasOwnProperty() validation is insufficient, allowing prototype pollution via crafted chunk references",
+        "source": "https://github.com/kavienanj/CVE-2025-55182"
+      },
+      {
+        "claim": "Flight message structure example: {\"0\":{\"a\":\"$@1\",...}} where 0 is chunk ID, $@1 references chunk 1 as a promise; chunks can be provided as multipart form data with circular references between chunks",
+        "confidence": "high",
+        "reasoning": "GitHub CVE gist (Dec 2025) and Trend Micro analysis provide actual payload format examples showing chunk ID keys, property values with $@ references, and multipart form data structure used in exploitation",
+        "source": "https://gist.github.com/cbardin89/256e142d3cef52eae89581fd02faff48"
+      },
+      {
+        "claim": "Flight payload example structure: Chunk 0: [\"$1\"] (entry point loading chunk 1), demonstrating inter-chunk reference with numeric chunk IDs and prefix notation",
+        "confidence": "high",
+        "reasoning": "BetterStack community guide (Dec 2025) and Trend Micro analysis provide concrete payload examples showing chunk references as arrays with $N notation pointing to other chunks",
+        "source": "https://betterstack.com/community/guides/scaling-nodejs/react-server-security-vulnerabilities/"
+      },
+      {
+        "claim": "Async boundary resolution: When a chunk is awaited, JavaScript calls Chunk.prototype.then() if the chunk is a thenable. Inside .then(), if chunk status is 'resolved_model', it calls initializeModelChunk(chunk) to parse the chunk",
+        "confidence": "high",
+        "reasoning": "GitHub CVE-2025-55182 documentation explicitly traces the async resolution mechanism: await triggers thenable behavior, which calls initializeModelChunk() for 'resolved_model' status chunks. This is the core of the vulnerability chain",
+        "source": "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md"
+      },
+      {
+        "claim": "Chunk boundary determination aligns with completed server component resolutions rather than fixed size limits; Flight is a 1,100+ line state machine that processes component renders incrementally",
+        "confidence": "medium",
+        "reasoning": "GitHub CVE-2025-55182 walkthrough describes Flight as '1,100+ line state machine' and references component-based chunk boundaries rather than buffer size limits. However, exact algorithmic rules for fragmentation, backpressure, and buffer management remain undocumented",
+        "source": "https://github.com/kavienanj/CVE-2025-55182"
+      },
+      {
+        "claim": "React does not publish official technical specifications or RFC documents for the Flight protocol; all detailed protocol documentation has been reverse-engineered from source code commits, security analyses, and CVE-2025-55182 research",
+        "confidence": "high",
+        "reasoning": "All sources consistently note lack of official React team documentation. DeepWiki, security blogs, and GitHub analyses all explicitly state Flight protocol details are 'not well documented' and were discovered through vulnerability research rather than official specifications",
+        "source": "https://deepwiki.com/mrknow001/RSC_Detector/7.2-react-flight-protocol"
+      },
+      {
+        "claim": "No official React RFC or technical specification document exists for the Flight protocol; the protocol implementation details remain internal implementation details not formally standardized by the React team as of February 2026",
+        "confidence": "high",
+        "reasoning": "Searches for RFC Editor, IETF RFCs, and official React documentation yielded no published Flight protocol specifications. Multiple 2025 sources confirm the protocol remains undocumented and reverse-engineered",
+        "source": "https://www.rfc-editor.org/"
+      }
+    ],
+    "key_insights": [
+      "React Flight is fundamentally a custom row-based, line-delimited, JSON-like (not standard JSON) protocol designed for streaming React component trees using ID-type-payload structure with newline delimiters, distinct from both HTML streaming (Fizz) and standard JSON-RPC",
+      "Type tags with '$' prefix enable serialization of complex JavaScript types (Blobs, Dates, FormData, Sets, lazy components, etc.) and cross-chunk references using $@ (promises) and $# (async boundaries), but React maintains no published enumeration of all supported type tags",
+      "The reference system allows chunks to create circular references via $@ notation, which triggers thenable behavior and .then() method calls during deserialization\u2014the core attack surface exploited in CVE-2025-55182 via reviveModel() prototype pollution",
+      "Chunk boundaries align with resolved server component renders rather than fixed buffer sizes; Flight processes a 1,100+ line state machine for incremental deserialization with status tracking (resolved_model, pending, etc.) and initializeModelChunk() invocation on async resolution",
+      "Complete technical specifications remain undocumented by React team; all detailed protocol knowledge (type tag mappings, exact serialization rules, chunk boundary algorithms, async resolution mechanics) derives from security research and vulnerability analysis rather than official specifications or RFCs"
+    ],
+    "knowledge_gaps": [
+      "Exhaustive enumeration of ALL type tags supported by Flight protocol\u2014while $, $@, $#, $B, $D, $L, $F, $S, $W have been identified, no comprehensive list exists and hidden type tags may remain undiscovered",
+      "Exact serialization encoding for each type tag\u2014how values are encoded within rows, what field delimiters exist beyond newlines, and how deeply nested structures are represented in the row format",
+      "Complete chunk boundary determination algorithm\u2014precise rules for fragmentation, buffer size thresholds, async await backpressure mechanisms, and how streaming adapts to network conditions or promise resolution delays",
+      "Official specification of RSCPayloadRow array structure and data type encoding for all supported JavaScript types (TypedArrays, ArrayBuffer, custom iterables, etc.)",
+      "Performance benchmarks comparing Flight chunk streaming to traditional HTML streaming (Fizz) with measured metrics (TTFB, FCP, LCP latency); current documentation only claims architectural benefits without quantitative streaming delay comparisons",
+      "Bidirectional Flight protocol specification (FlightReply) for client-to-server transmission of Server Actions; only client-side deserialization is discussed in public sources"
+    ],
+    "sources_used": [
+      "https://deepwiki.com/mrknow001/RSC_Detector/7.2-react-flight-protocol",
+      "https://blog.nidhin.dev/react-flight-protocol",
+      "https://github.com/kavienanj/CVE-2025-55182",
+      "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md",
+      "https://www.offsec.com/blog/cve-2025-55182/",
+      "https://blog.securelayer7.net/cve-2025-55182/",
+      "https://gist.github.com/cbardin89/256e142d3cef52eae89581fd02faff48",
+      "https://www.trendmicro.com/en_us/research/25/l/CVE-2025-55182-analysis-poc-itw.html",
+      "https://betterstack.com/community/guides/scaling-nodejs/react-server-security-vulnerabilities/",
+      "https://www.analogue.computer/blog/react4shell",
+      "https://dailycve.com/react-server-components-remote-code-execution-cve-2025-55182-critical/",
+      "https://www.rfc-editor.org/",
+      "https://dev.to/jmmy/cve-2025-55182-explained-2e85"
+    ],
+    "summary": "React Flight is a custom row-based, line-delimited, JSON-like (not standard JSON) protocol using ID-type-payload structure with newline delimiters to serialize React component trees, with type tag markers ($, $@, $#, $B, and others) enabling cross-chunk references and async boundaries\u2014however, React team publishes NO official technical specification, RFC, or complete type tag enumeration. All detailed protocol knowledge derives from CVE-2025-55182 security research and reverse-engineering rather than documentation: chunk boundaries align with component resolutions (not fixed sizes), circular references via $@ trigger thenable .then() calls during reviveModel() deserialization, and the exact serialization encoding rules for all type tags and chunk fragmentation algorithms remain formally undocumented.",
+    "_searches_made": 13,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 6,
+      "depth": 7,
+      "completeness": 5,
+      "specificity": 8,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 6.7,
+    "strengths": [
+      "Excellent intellectual honesty - clearly distinguishes between confirmed facts and speculation",
+      "Strong specificity with concrete examples, payload structures, and technical details",
+      "Good depth in explaining the vulnerability mechanics and protocol internals",
+      "Transparent about knowledge gaps and limitations of available documentation",
+      "Well-sourced claims with specific URLs and dates"
+    ],
+    "weaknesses": [
+      "Heavy reliance on CVE analysis sources rather than primary React source code examination",
+      "No direct verification of claims against actual React codebase files mentioned in question",
+      "Missing concrete examples from React's official test suite as specifically requested",
+      "Some type tags ($D, $L, $F, $S, $W) cited without strong verification",
+      "Completeness gaps in chunk boundary algorithms and serialization encoding details"
+    ],
+    "actionable_feedback": "To improve this research: 1) Examine the actual React source code files (packages/react-server/src/ReactFlight.js, ReactFlightReplyServer.js) directly rather than relying primarily on CVE analyses; 2) Find and include concrete serialized payload examples from React's official test suite (likely in packages/react-server/src/__tests__/ or similar); 3) Verify the claimed type tags by searching React's codebase for their implementations; 4) Provide more technical depth on the actual chunk boundary determination algorithm by examining the state machine code; 5) Cross-reference security research claims against React's official source to distinguish between confirmed protocol features and exploit-specific behaviors.",
+    "verdict": "accept"
+  },
+  "overall_score": 6.7,
+  "accepted": true,
+  "verdict": "accept"
+}

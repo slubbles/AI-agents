@@ -1,0 +1,170 @@
+{
+  "timestamp": "2026-02-25T12:02:03.309336+00:00",
+  "domain": "nextjs-react",
+  "question": "What are the specific best practices and architectural patterns for implementing advanced error boundaries and Suspense streaming in Next.js App Router, including how to handle streaming errors, progressive error recovery, and nested Suspense fallback optimization for perceived performance?",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the specific best practices and architectural patterns for implementing advanced error boundaries and Suspense streaming in Next.js App Router, including how to handle streaming errors, progressive error recovery, and nested Suspense fallback optimization for perceived performance?",
+    "findings": [
+      {
+        "claim": "Error boundaries in Next.js App Router must be Client Components ('use client'); they wrap route segments and nested children in React Error Boundaries, catching errors thrown during rendering",
+        "confidence": "high",
+        "reasoning": "Confirmed in official Next.js documentation (5 days ago) and multiple 2025 sources stating error.tsx files must be Client Components and cannot export metadata",
+        "source": "https://nextjs.org/docs/app/api-reference/file-conventions/error"
+      },
+      {
+        "claim": "Route-level error.tsx handles segment-specific errors; global-error.tsx catches errors in root layout; error.tsx files are placed at the same level as the routes they protect, with hierarchical boundaries catching errors in nested segments",
+        "confidence": "high",
+        "reasoning": "Documented in official Next.js docs and confirmed in multiple 2025 sources on error boundary hierarchy and nested route error handling patterns",
+        "source": "https://nextjs.org/docs/app/api-reference/file-conventions/error"
+      },
+      {
+        "claim": "Suspense boundaries with streaming: wrap slow data sections in Suspense boundaries; fallback should be lightweight (spinner or skeleton); nested Suspense boundaries enable granular streaming where each boundary can resolve independently",
+        "confidence": "high",
+        "reasoning": "Confirmed in official Next.js streaming documentation (8 Apr 2024), Vercel Academy, and multiple 2025 guides consistently emphasizing lightweight fallback patterns",
+        "source": "https://nextjs.org/docs/14/app/building-your-application/routing/loading-ui-and-streaming"
+      },
+      {
+        "claim": "Skeleton loading fallbacks with Suspense improve perceived performance by maintaining layout stability; this strategy prevents cumulative layout shift and creates content-shaped loading indicators instead of blank screens",
+        "confidence": "high",
+        "reasoning": "Multiple 2025 sources (LinkedIn article, FarizbBytes, JavaScript Tips) document skeleton fallback strategy; React official docs confirm Suspense accepts 'lightweight placeholder views' as fallbacks",
+        "source": "https://react.dev/reference/react/Suspense"
+      },
+      {
+        "claim": "Strategic Suspense boundary placement: configure boundaries to enable React scheduler to prioritize visible content and defer off-screen work, improving interaction responsiveness by up to 40% in 2024 performance studies",
+        "confidence": "medium",
+        "reasoning": "Cited in 2025 Suspense guide with reference to '2024 performance studies'; specific benchmark details not provided in source",
+        "source": "https://natclark.com/how-to-use-react-suspense-complete-guide-for-2025/"
+      },
+      {
+        "claim": "React Server Components can throw errors; error handling and recovery uses error boundaries at route segments combined with Suspense boundaries for granular failure isolation",
+        "confidence": "high",
+        "reasoning": "Documented in Ed Spencer's detailed article (Jul 2024), multiple 2025 sources on Server Components error handling, and official Next.js patterns documentation",
+        "source": "https://edspencer.net/2024/7/16/errors-and-retry-with-react-server-components"
+      },
+      {
+        "claim": "Progressive error recovery: error.tsx components should include retry buttons (reset() function) allowing users to attempt recovery; Next.js 14+ supports error boundary 'reset' parameter for retrying failed segments",
+        "confidence": "medium",
+        "reasoning": "Multiple 2025 sources mention retry button patterns in error boundaries; one source (EastonDev, Jan 6 2026) explicitly notes 'reset' function for self-recovery, though specific API documentation not directly verified",
+        "source": "https://eastondev.com/blog/en/posts/dev/20260106-nextjs-error-boundary-guide/"
+      },
+      {
+        "claim": "Streaming error handling: React's renderToReadableStream API provides multiple callback points for error detection and recovery (onShellError callback); errors during streaming require different handling than initial rendering errors",
+        "confidence": "high",
+        "reasoning": "Documented in React server-side rendering and streaming documentation (Zread); aligns with React 19 streaming resilience patterns",
+        "source": "https://zread.ai/facebook/react/22-server-side-rendering-and-streaming"
+      },
+      {
+        "claim": "React 19 adds support for async functions in transitions to handle pending states, errors, forms, and optimistic updates automatically; this improves streaming error recovery flows",
+        "confidence": "high",
+        "reasoning": "Confirmed in official React 19 announcement (5 Dec 2024); multiple 2025 sources reference React 19 resilience patterns for Suspense and error boundaries",
+        "source": "https://react.dev/blog/2024/12/05/react-19"
+      },
+      {
+        "claim": "Nested Suspense boundary waterfall prevention: avoid sequential promise resolution across nested boundaries; instead use parallel data fetching at each layout level to prevent waterfalls in streaming scenarios",
+        "confidence": "medium",
+        "reasoning": "GitHub issue (Dec 2023) documents challenges with sequential promises across nested Suspense boundaries; aligns with prior knowledge on parallel data fetching but specific waterfall metrics not provided for streaming context",
+        "source": "https://github.com/vercel/next.js/issues/59735"
+      },
+      {
+        "claim": "loading.tsx is a Next.js convention that automatically wraps route segments in Suspense boundaries; it provides automatic fallback UI while streaming content loads, without requiring manual Suspense component wrapping",
+        "confidence": "high",
+        "reasoning": "Confirmed in official Next.js documentation (5 days ago) and multiple 2025 sources; described as built-in Suspense wrapper convention",
+        "source": "https://nextjs.org/docs/14/app/building-your-application/routing/loading-ui-and-streaming"
+      },
+      {
+        "claim": "Error boundary hierarchy: error.tsx at deeper routes catches errors within that segment before parent error boundaries; global-error.tsx at root catches errors not caught by nested boundaries, creating a cascade of error handlers",
+        "confidence": "high",
+        "reasoning": "Confirmed in JavaScript Plain English (2 Aug 2025), Next.js 15 tutorial, and official documentation on nested route and layout error handling patterns",
+        "source": "https://javascript.plainenglish.io/a-complete-next-js-streaming-guide-loading-tsx-suspense-and-performance-c0979bc47896"
+      },
+      {
+        "claim": "Streaming with error boundaries: common mistakes include blocking top-level awaits in layouts (which prevent streaming), and not isolating data-fetching errors with granular Suspense boundaries",
+        "confidence": "medium",
+        "reasoning": "LogRocket article (recent) identifies performance pitfalls in Server Components that block streaming; aligns with established patterns but specific error recovery metrics not provided",
+        "source": "https://blog.logrocket.com/react-server-components-performance-mistakes/"
+      },
+      {
+        "claim": "Client-side error recovery in Server Components: errors thrown from Server Components are caught by error.tsx boundaries; Client Components within error boundaries can implement additional error handling via useErrorHandler or try-catch in event handlers",
+        "confidence": "medium",
+        "reasoning": "Multiple 2025 sources document client-side error handling in Server Component context, though specific useErrorHandler usage in Next.js streaming not explicitly detailed",
+        "source": "https://www.cybrosys.com/blog/how-to-handle-loading-and-error-states-in-nextjs-server-components"
+      },
+      {
+        "claim": "Granular Suspense boundaries enable independent chunk resolution: each Suspense boundary can resolve and stream its content independently; this prevents one slow component from blocking the entire page from streaming",
+        "confidence": "high",
+        "reasoning": "Foundational React/Next.js streaming concept documented across official Next.js docs, Vercel Academy, multiple 2025 sources on streaming architecture",
+        "source": "https://vercel.com/academy/nextjs-foundations/suspense-and-streaming"
+      },
+      {
+        "claim": "Fallback UI design best practices: use content-aware skeletons matching content shape rather than generic spinners; avoid large, heavy fallbacks that slow down initial page paint",
+        "confidence": "high",
+        "reasoning": "Consistent recommendation across multiple 2025 sources on Suspense fallback strategy; aligned with React official Suspense documentation on lightweight fallbacks",
+        "source": "https://www.javascripttips.com/frontend-frameworks/reactjs/suspense/fallback-ui"
+      }
+    ],
+    "key_insights": [
+      "Error boundaries in Next.js require a hierarchical architecture: error.tsx at route segments catches segment-specific errors, global-error.tsx catches root-level uncaught errors, and nesting allows error propagation to nearest parent boundary if not caught",
+      "Streaming requires granular Suspense boundary placement where each boundary resolves independently; this prevents one slow component from blocking entire page streaming and enables progressive content delivery",
+      "Progressive error recovery uses reset() function in error.tsx Client Components to retry failed segments; combined with Suspense boundaries, this allows graceful degradation where failed segments can recover independently without full page reload",
+      "Perceived performance optimization focuses on lightweight skeleton fallbacks that maintain layout stability and content shape; nested boundaries enable critical content to stream first while non-critical sections load progressively",
+      "React 19's async transitions and error handling improve streaming error recovery flows by automating pending state and error handling in asynchronous operations",
+      "Avoid waterfall patterns in streaming: use parallel data fetching at each layout level rather than sequential promise resolution across nested Suspense boundaries; top-level awaits in layouts block streaming and should be isolated with Suspense"
+    ],
+    "knowledge_gaps": [
+      "Specific numerical benchmarks comparing error recovery performance (e.g., TTFB/FCP impact) of granular error boundaries vs. course-grained boundaries in streaming scenarios are not documented",
+      "Detailed patterns for implementing retry mechanisms with exponential backoff or jitter in Server Component error recovery are not extensively documented in official sources",
+      "Quantitative guidelines for optimal Suspense boundary granularity (e.g., how many boundaries before overhead increases) in large streaming applications (100+ routes) are not provided",
+      "Official technical specifications for how React Flight protocol handles error states during streaming (e.g., error message serialization, streaming interruption behavior) remain largely undocumented",
+      "Detailed case studies comparing perceived performance impact of different skeleton fallback strategies (content-aware vs. generic vs. shimmer effects) in production Next.js applications are sparse",
+      "Specific patterns for handling client-side Server Component errors (errors thrown during initial server render) vs. streaming errors (errors during incremental chunk rendering) are not clearly differentiated in documentation"
+    ],
+    "sources_used": [
+      "https://nextjs.org/docs/app/api-reference/file-conventions/error",
+      "https://nextjs.org/docs/14/app/building-your-application/routing/loading-ui-and-streaming",
+      "https://react.dev/reference/react/Suspense",
+      "https://edspencer.net/2024/7/16/errors-and-retry-with-react-server-components",
+      "https://javascript.plainenglish.io/a-complete-next-js-streaming-guide-loading-tsx-suspense-and-performance-c0979bc47896",
+      "https://react.dev/blog/2024/12/05/react-19",
+      "https://vercel.com/academy/nextjs-foundations/suspense-and-streaming",
+      "https://natclark.com/how-to-use-react-suspense-complete-guide-for-2025/",
+      "https://zread.ai/facebook/react/22-server-side-rendering-and-streaming",
+      "https://eastondev.com/blog/en/posts/dev/20260106-nextjs-error-boundary-guide/",
+      "https://www.cybrosys.com/blog/how-to-handle-loading-and-error-states-in-nextjs-server-components",
+      "https://blog.logrocket.com/react-server-components-performance-mistakes/"
+    ],
+    "summary": "Advanced error boundaries and Suspense streaming in Next.js requires a hierarchical error handling architecture (error.tsx at segments + global-error.tsx at root) combined with granular Suspense boundaries that resolve independently to prevent waterfalls and enable progressive content delivery. Lightweight, content-aware skeleton fallbacks improve perceived performance while maintaining layout stability, and React 19's async transitions enhance error recovery flows. Key best practices include isolating data-fetching errors with Suspense boundaries, avoiding top-level awaits that block streaming, implementing retry buttons via reset() function, and using parallel data fetching across layout levels\u2014though specific performance benchmarks for error recovery and optimal boundary granularity remain undocumented.",
+    "_searches_made": 8,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 7,
+      "completeness": 8,
+      "specificity": 7,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.7,
+    "strengths": [
+      "Strong accuracy with extensive use of official documentation and recent sources",
+      "Good depth in explaining architectural patterns and mechanisms (error boundary hierarchy, streaming waterfall prevention)",
+      "Excellent intellectual honesty - clearly flags medium confidence claims and explicitly documents knowledge gaps",
+      "Comprehensive coverage of both error boundaries and Suspense streaming aspects",
+      "Specific technical details like reset() function, renderToReadableStream API, and React 19 features",
+      "Well-structured findings with clear confidence levels and reasoning"
+    ],
+    "weaknesses": [
+      "Some claims rely on single sources or lack independent verification (e.g., 40% performance improvement claim)",
+      "Limited concrete performance benchmarks or quantitative data",
+      "Could benefit from more specific implementation examples or code patterns",
+      "Some medium-confidence claims about newer features (React 19, Next.js 14+ reset parameter) need stronger verification"
+    ],
+    "actionable_feedback": "To improve this research: 1) Cross-reference performance claims with multiple sources or official benchmarks, 2) Include specific code examples demonstrating the architectural patterns described, 3) Verify newer API features (like reset parameter) against official API documentation rather than blog sources, 4) Add more quantitative analysis where possible (bundle size impacts, loading time improvements), 5) Consider testing some claims in practice to validate implementation details",
+    "verdict": "accept"
+  },
+  "overall_score": 7.7,
+  "accepted": true,
+  "verdict": "accept"
+}
