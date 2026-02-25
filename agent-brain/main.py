@@ -84,7 +84,58 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     4. Critic scores findings
     5. If score < threshold: retry with critique feedback (up to MAX_RETRIES)
     6. Store final output to memory
+    
+    Wrapped in error recovery — API failures and agent crashes are caught,
+    logged, and reported without killing the process.
     """
+    try:
+        return _run_loop_inner(question, domain)
+    except KeyboardInterrupt:
+        print("\n[INTERRUPT] Stopped by user.")
+        raise
+    except SystemExit:
+        raise  # Let sys.exit() through (budget blocks etc.)
+    except Exception as e:
+        # Log the error
+        error_msg = f"{type(e).__name__}: {e}"
+        print(f"\n[ERROR] ✗ Loop crashed: {error_msg}")
+        _log_error(domain, question, error_msg)
+        
+        # Generate alert in DB
+        try:
+            from db import insert_alert
+            insert_alert(
+                alert_type="loop_crash",
+                message=f"Research loop crashed: {error_msg}",
+                severity="critical",
+                domain=domain,
+                details={"question": question, "error": error_msg},
+            )
+        except Exception:
+            pass
+        
+        return {"error": error_msg, "research": None, "critique": None}
+
+
+def _log_error(domain: str, question: str, error: str):
+    """Log an error to the error log file."""
+    os.makedirs(LOG_DIR, exist_ok=True)
+    error_log = os.path.join(LOG_DIR, "errors.jsonl")
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "domain": domain,
+        "question": question,
+        "error": error,
+    }
+    try:
+        with open(error_log, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception:
+        pass  # Even error logging shouldn't crash
+
+
+def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
+    """Inner loop — the actual research cycle, separated for error wrapping."""
     # Budget check
     budget = check_budget()
     if not budget["within_budget"]:
@@ -123,23 +174,32 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
         print(f"\n--- Attempt {attempt}/{MAX_RETRIES + 1} ---\n")
 
         # Step 1: Research (single or consensus mode)
-        if CONSENSUS_ENABLED:
-            print(f"[RESEARCHER] Generating findings (consensus mode, {CONSENSUS_RESEARCHERS} researchers)...")
-            research_output = consensus_research(
-                question=question,
-                strategy=strategy,
-                critique=previous_critique_feedback,
-                domain=domain,
-                n_researchers=CONSENSUS_RESEARCHERS,
-            )
-        else:
-            print("[RESEARCHER] Generating findings...")
-            research_output = research(
-                question=question,
-                strategy=strategy,
-                critique=previous_critique_feedback,
-                domain=domain,
-            )
+        try:
+            if CONSENSUS_ENABLED:
+                print(f"[RESEARCHER] Generating findings (consensus mode, {CONSENSUS_RESEARCHERS} researchers)...")
+                research_output = consensus_research(
+                    question=question,
+                    strategy=strategy,
+                    critique=previous_critique_feedback,
+                    domain=domain,
+                    n_researchers=CONSENSUS_RESEARCHERS,
+                )
+            else:
+                print("[RESEARCHER] Generating findings...")
+                research_output = research(
+                    question=question,
+                    strategy=strategy,
+                    critique=previous_critique_feedback,
+                    domain=domain,
+                )
+        except Exception as e:
+            print(f"[RESEARCHER] ✗ Agent error: {type(e).__name__}: {e}")
+            if attempt <= MAX_RETRIES:
+                print(f"  Retrying...")
+                previous_critique_feedback = f"Previous attempt crashed with error: {e}. Try a different approach."
+                continue
+            else:
+                raise  # Final attempt — let outer handler catch it
 
         findings_count = len(research_output.get("findings", []))
         print(f"[RESEARCHER] Produced {findings_count} findings")
@@ -155,7 +215,20 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
 
         # Step 2: Critique
         print("[CRITIC] Evaluating findings...")
-        critique_output = critique(research_output)
+        try:
+            critique_output = critique(research_output, domain=domain)
+        except Exception as e:
+            print(f"[CRITIC] ✗ Agent error: {type(e).__name__}: {e}")
+            # Use a minimal critique so we can still store the output
+            critique_output = {
+                "overall_score": 3,
+                "verdict": "reject",
+                "scores": {},
+                "strengths": [],
+                "weaknesses": [f"Critic crashed: {e}"],
+                "actionable_feedback": "Critic was unable to evaluate. Retry needed.",
+                "_error": str(e),
+            }
 
         score = critique_output.get("overall_score", 0)
         verdict = critique_output.get("verdict", "unknown")
@@ -296,7 +369,7 @@ def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
 
 
 def log_run(domain: str, question: str, attempts: int, research: dict, critique: dict, strategy_version: str):
-    """Append a line to the run log."""
+    """Append a line to the run log. Dual-writes to JSONL and SQLite."""
     os.makedirs(LOG_DIR, exist_ok=True)
     log_file = os.path.join(LOG_DIR, f"{domain}.jsonl")
 
@@ -314,6 +387,14 @@ def log_run(domain: str, question: str, attempts: int, research: dict, critique:
 
     with open(log_file, "a") as f:
         f.write(json.dumps(entry) + "\n")
+
+    # Dual-write to SQLite
+    try:
+        from db import insert_run_log
+        entry["domain"] = domain
+        insert_run_log(entry)
+    except Exception:
+        pass  # DB write failure should never block the loop
 
 
 def main():
@@ -363,6 +444,9 @@ def main():
     parser.add_argument("--daemon-status", action="store_true", help="Show daemon status")
     parser.add_argument("--interval", type=int, default=60, help="Daemon interval in minutes (default: 60)")
     parser.add_argument("--max-cycles", type=int, default=0, help="Max daemon cycles (0=unlimited)")
+    parser.add_argument("--migrate", action="store_true", help="Migrate JSON/JSONL data to SQLite database")
+    parser.add_argument("--alerts", action="store_true", help="Show monitoring alerts")
+    parser.add_argument("--check-health", action="store_true", help="Run health checks and monitoring")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -481,6 +565,16 @@ def main():
     if getattr(args, 'daemon_status', False):
         status = get_daemon_status()
         _show_daemon_status(status)
+        return
+
+    if args.migrate:
+        _run_migrate()
+        return
+    if args.alerts:
+        _show_alerts()
+        return
+    if getattr(args, 'check_health', False):
+        _run_health_check()
         return
 
     if args.evolve:
@@ -1763,6 +1857,60 @@ def _show_dashboard():
     else:
         print(f"  No activity logged yet.")
 
+    print(f"\n{'='*60}\n")
+
+
+def _run_migrate():
+    """Migrate JSON/JSONL data to SQLite."""
+    from db import migrate_from_json
+    from config import MEMORY_DIR, LOG_DIR as _LOG_DIR
+
+    print(f"\n{'='*60}")
+    print(f"  DATABASE MIGRATION — JSON → SQLite")
+    print(f"{'='*60}\n")
+    result = migrate_from_json(MEMORY_DIR, _LOG_DIR, verbose=True)
+    print(f"\n{'='*60}\n")
+
+
+def _show_alerts():
+    """Show monitoring alerts."""
+    from db import get_alerts, get_alert_summary, acknowledge_alert
+
+    print(f"\n{'='*60}")
+    print(f"  MONITORING ALERTS")
+    print(f"{'='*60}\n")
+
+    summary = get_alert_summary()
+    print(f"  Total: {summary['total']}  |  Unacknowledged: {summary['unacknowledged']}")
+    if summary["by_severity"]:
+        parts = [f"{k}: {v}" for k, v in summary["by_severity"].items()]
+        print(f"  By severity: {', '.join(parts)}")
+
+    alerts = get_alerts(acknowledged=False, limit=20)
+    if not alerts:
+        print(f"\n  No unacknowledged alerts. System is healthy.")
+    else:
+        print(f"\n  {'ID':>4}  {'Severity':<10} {'Type':<22} {'Domain':<12} Message")
+        print(f"  {'─'*80}")
+        for a in alerts:
+            print(f"  {a['id']:>4}  {a['severity']:<10} {a['alert_type']:<22} {a.get('domain', ''):<12} {a['message'][:50]}")
+
+    print(f"\n{'='*60}\n")
+
+
+def _run_health_check():
+    """Run health checks and score trend monitoring."""
+    from monitoring import run_health_check
+
+    print(f"\n{'='*60}")
+    print(f"  HEALTH CHECK + MONITORING")
+    print(f"{'='*60}\n")
+
+    result = run_health_check(verbose=True)
+
+    print(f"\n  Status: {result['status'].upper()}")
+    if result.get("alerts_generated", 0) > 0:
+        print(f"  New alerts: {result['alerts_generated']}")
     print(f"\n{'='*60}\n")
 
 

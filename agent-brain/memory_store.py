@@ -3,14 +3,21 @@ Memory Store
 Handles reading/writing scored research outputs to disk.
 Includes relevance retrieval for memory-informed research.
 Includes memory hygiene: pruning rejected outputs, archiving old data, domain caps.
+Includes persistent TF-IDF cache for fast retrieval without per-call rebuilds.
 """
 
 import json
 import os
+import pickle
+import hashlib
 import re
 import shutil
 from collections import Counter
 from datetime import datetime, timezone
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 from config import MEMORY_DIR, QUALITY_THRESHOLD, MAX_OUTPUTS_PER_DOMAIN, ARCHIVE_REJECTED_AFTER_DAYS, ARCHIVE_SCORE_THRESHOLD
 
 # Stop words to exclude from keyword matching
@@ -27,6 +34,74 @@ _STOP_WORDS = {
     "just", "because", "but", "and", "or", "if", "while", "about", "what",
     "which", "who", "whom", "this", "that", "these", "those", "it", "its",
 }
+
+
+# ============================================================
+# Persistent TF-IDF Cache
+# ============================================================
+
+# In-memory cache: {domain: {"vectorizer": obj, "matrix": sparse, "fingerprint": str, "outputs": list}}
+_tfidf_cache: dict[str, dict] = {}
+
+
+def _cache_dir(domain: str) -> str:
+    """Directory for storing TF-IDF cache files."""
+    return os.path.join(MEMORY_DIR, domain, "_cache")
+
+
+def _compute_fingerprint(accepted_outputs: list[dict]) -> str:
+    """
+    Compute a fingerprint for a set of outputs to detect cache invalidation.
+    Uses count + hash of timestamps (fast, avoids reading full content).
+    """
+    if not accepted_outputs:
+        return "empty"
+    timestamps = sorted(o.get("timestamp", "") for o in accepted_outputs)
+    content = f"{len(timestamps)}:{','.join(timestamps)}"
+    return hashlib.md5(content.encode()).hexdigest()[:12]
+
+
+def _load_tfidf_cache(domain: str, fingerprint: str) -> dict | None:
+    """Load cached TF-IDF vectorizer + matrix from disk if fingerprint matches."""
+    cache_path = os.path.join(_cache_dir(domain), "tfidf_cache.pkl")
+    if not os.path.exists(cache_path):
+        return None
+    try:
+        with open(cache_path, "rb") as f:
+            cached = pickle.load(f)
+        if cached.get("fingerprint") == fingerprint:
+            return cached
+    except Exception:
+        pass
+    return None
+
+
+def _save_tfidf_cache(domain: str, vectorizer, matrix, fingerprint: str):
+    """Save TF-IDF vectorizer + matrix to disk."""
+    cache_d = _cache_dir(domain)
+    os.makedirs(cache_d, exist_ok=True)
+    cache_path = os.path.join(cache_d, "tfidf_cache.pkl")
+    try:
+        with open(cache_path, "wb") as f:
+            pickle.dump({
+                "vectorizer": vectorizer,
+                "matrix": matrix,
+                "fingerprint": fingerprint,
+                "cached_at": datetime.now(timezone.utc).isoformat(),
+            }, f)
+    except Exception:
+        pass  # Cache write failure is non-fatal
+
+
+def invalidate_tfidf_cache(domain: str):
+    """Invalidate TF-IDF cache for a domain (call after new outputs are added)."""
+    _tfidf_cache.pop(domain, None)
+    cache_path = os.path.join(_cache_dir(domain), "tfidf_cache.pkl")
+    if os.path.exists(cache_path):
+        try:
+            os.remove(cache_path)
+        except OSError:
+            pass
 
 
 def save_output(domain: str, question: str, research: dict, critique: dict, attempt: int, strategy_version: str) -> str:
@@ -65,6 +140,16 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
 
     with open(filepath, "w") as f:
         json.dump(record, f, indent=2)
+
+    # Invalidate TF-IDF cache for this domain (new data available)
+    invalidate_tfidf_cache(domain)
+
+    # Dual-write to SQLite
+    try:
+        from db import insert_output
+        insert_output(domain, record)
+    except Exception:
+        pass  # DB write failure should never block the research loop
 
     return filepath
 
@@ -113,16 +198,8 @@ def _tokenize(text: str) -> list[str]:
     return [w for w in words if w not in _STOP_WORDS and len(w) > 2]
 
 
-def _relevance_score(query_tokens: list[str], output: dict) -> float:
-    """
-    Score how relevant a stored output is to a new query.
-    
-    Combines:
-    - Keyword overlap between query and output question/findings/insights (50%)
-    - Output quality score (35%) — higher-quality outputs preferred
-    - Recency bonus (15%) — more recent outputs slightly preferred
-    """
-    # Build output text for matching
+def _build_output_text(output: dict) -> str:
+    """Build a text representation of an output for TF-IDF indexing."""
     parts = [
         output.get("question", ""),
         output.get("research", {}).get("summary", ""),
@@ -131,8 +208,39 @@ def _relevance_score(query_tokens: list[str], output: dict) -> float:
         parts.append(f.get("claim", ""))
     for insight in output.get("research", {}).get("key_insights", []):
         parts.append(insight)
+    return " ".join(parts)
+
+
+def _quality_score(output: dict) -> float:
+    """Compute quality score (0-1), with penalty for rejected outputs."""
+    quality = output.get("overall_score", 0) / 10.0
+    if not output.get("accepted", output.get("verdict") == "accept"):
+        quality *= 0.3  # Heavy penalty — rejected outputs are much less useful
+    return quality
+
+
+def _recency_score(output: dict) -> float:
+    """Compute recency score (0-1), decays to 0 over 90 days."""
+    try:
+        ts = datetime.fromisoformat(output.get("timestamp", "2000-01-01"))
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        age_days = (datetime.now(timezone.utc) - ts).days
+        return max(0.0, 1.0 - (age_days / 90.0))
+    except (ValueError, TypeError):
+        return 0.5
+
+
+def _relevance_score(query_tokens: list[str], output: dict) -> float:
+    """
+    Fallback keyword relevance score for when TF-IDF can't be used (< 2 docs).
     
-    output_text = " ".join(parts)
+    Combines:
+    - Keyword overlap between query and output question/findings/insights (50%)
+    - Output quality score (35%) — higher-quality outputs preferred
+    - Recency bonus (15%) — more recent outputs slightly preferred
+    """
+    output_text = _build_output_text(output)
     output_tokens = _tokenize(output_text)
     
     if not output_tokens or not query_tokens:
@@ -145,20 +253,8 @@ def _relevance_score(query_tokens: list[str], output: dict) -> float:
     max_possible = max(len(query_tokens), 1)
     keyword_score = min(overlap / max_possible, 1.0)
     
-    # Quality score (normalized to 0-1, with penalty for rejected outputs)
-    quality = output.get("overall_score", 0) / 10.0
-    if not output.get("accepted", output.get("verdict") == "accept"):
-        quality *= 0.3  # Heavy penalty — rejected outputs are much less useful
-    
-    # Recency (outputs from today = 1.0, decays over time)
-    try:
-        ts = datetime.fromisoformat(output.get("timestamp", "2000-01-01"))
-        if ts.tzinfo is None:
-            ts = ts.replace(tzinfo=timezone.utc)
-        age_days = (datetime.now(timezone.utc) - ts).days
-        recency = max(0.0, 1.0 - (age_days / 90.0))  # Decays to 0 over 90 days
-    except (ValueError, TypeError):
-        recency = 0.5
+    quality = _quality_score(output)
+    recency = _recency_score(output)
     
     return (keyword_score * 0.50) + (quality * 0.35) + (recency * 0.15)
 
@@ -166,6 +262,9 @@ def _relevance_score(query_tokens: list[str], output: dict) -> float:
 def retrieve_relevant(domain: str, question: str, max_results: int = 5, min_score: float = 4.0) -> list[dict]:
     """
     Retrieve the most relevant past findings for a new research question.
+    
+    Uses TF-IDF cosine similarity for semantic matching, combined with
+    quality and recency signals. Falls back to keyword matching for < 2 docs.
     
     Only returns accepted outputs (score >= min_score) to avoid feeding the
     researcher bad information from its own rejected outputs.
@@ -181,14 +280,75 @@ def retrieve_relevant(domain: str, question: str, max_results: int = 5, min_scor
     if not accepted:
         return []
     
-    query_tokens = _tokenize(question)
+    # Build text corpus for TF-IDF
+    corpus_texts = [_build_output_text(o) for o in accepted]
     
-    # Score all outputs
-    scored = []
-    for output in accepted:
-        rel_score = _relevance_score(query_tokens, output)
-        if rel_score > 0.05:  # Minimum relevance threshold
-            scored.append((rel_score, output))
+    # Need at least 2 documents for TF-IDF to work meaningfully
+    if len(accepted) < 2:
+        # Fallback to keyword matching
+        query_tokens = _tokenize(question)
+        scored = []
+        for output in accepted:
+            rel_score = _relevance_score(query_tokens, output)
+            if rel_score > 0.05:
+                scored.append((rel_score, output))
+    else:
+        # TF-IDF cosine similarity — with persistent caching
+        try:
+            fingerprint = _compute_fingerprint(accepted)
+            
+            # Check in-memory cache first
+            cached = _tfidf_cache.get(domain)
+            if cached and cached.get("fingerprint") == fingerprint:
+                vectorizer = cached["vectorizer"]
+                tfidf_matrix = cached["matrix"]
+            else:
+                # Check disk cache
+                disk_cache = _load_tfidf_cache(domain, fingerprint)
+                if disk_cache:
+                    vectorizer = disk_cache["vectorizer"]
+                    tfidf_matrix = disk_cache["matrix"]
+                else:
+                    # Rebuild from scratch
+                    vectorizer = TfidfVectorizer(
+                        stop_words='english',
+                        max_features=5000,
+                        ngram_range=(1, 2),
+                        min_df=1,
+                        sublinear_tf=True,
+                    )
+                    tfidf_matrix = vectorizer.fit_transform(corpus_texts)
+                    # Save to disk
+                    _save_tfidf_cache(domain, vectorizer, tfidf_matrix, fingerprint)
+                
+                # Update in-memory cache
+                _tfidf_cache[domain] = {
+                    "vectorizer": vectorizer,
+                    "matrix": tfidf_matrix,
+                    "fingerprint": fingerprint,
+                }
+            
+            query_vec = vectorizer.transform([question])
+            similarities = cosine_similarity(query_vec, tfidf_matrix).flatten()
+            
+            scored = []
+            for i, output in enumerate(accepted):
+                semantic = float(similarities[i])
+                quality = _quality_score(output)
+                recency = _recency_score(output)
+                
+                # Combined: 55% semantic + 30% quality + 15% recency
+                combined = (semantic * 0.55) + (quality * 0.30) + (recency * 0.15)
+                if combined > 0.02:
+                    scored.append((combined, output))
+        except Exception:
+            # Fallback to keyword matching on any sklearn error
+            query_tokens = _tokenize(question)
+            scored = []
+            for output in accepted:
+                rel_score = _relevance_score(query_tokens, output)
+                if rel_score > 0.05:
+                    scored.append((rel_score, output))
     
     # Sort by relevance (descending)
     scored.sort(key=lambda x: x[0], reverse=True)

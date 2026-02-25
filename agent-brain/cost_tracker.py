@@ -3,6 +3,8 @@ Cost Tracker — Budget Awareness & Spend Control
 
 Tracks estimated API costs per run and enforces daily budget limits.
 Costs are approximations based on token counts, not actual billing.
+
+Dual-writes to both JSONL (backward compat) and SQLite (fast queries).
 """
 
 import json
@@ -15,7 +17,7 @@ COST_LOG = os.path.join(LOG_DIR, "costs.jsonl")
 
 
 def log_cost(model: str, input_tokens: int, output_tokens: int, agent_role: str, domain: str):
-    """Log the estimated cost of an API call."""
+    """Log the estimated cost of an API call. Writes to both JSONL and DB."""
     os.makedirs(LOG_DIR, exist_ok=True)
 
     rates = COST_PER_1K.get(model, {"input": 0.003, "output": 0.015})
@@ -32,8 +34,16 @@ def log_cost(model: str, input_tokens: int, output_tokens: int, agent_role: str,
         "estimated_cost_usd": round(cost, 6),
     }
 
+    # Write to JSONL (backward compat)
     with open(COST_LOG, "a") as f:
         f.write(json.dumps(entry) + "\n")
+
+    # Write to SQLite
+    try:
+        from db import insert_cost
+        insert_cost(entry)
+    except Exception:
+        pass  # DB write failure should never block the research loop
 
     return cost
 

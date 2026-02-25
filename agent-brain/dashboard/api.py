@@ -85,13 +85,88 @@ app.add_middleware(
 @app.get("/")
 def api_root():
     """Root endpoint — confirms API is running."""
-    return {"status": "ok", "service": "Agent Brain API", "version": "1.0.0", "docs": "/docs"}
+    return {"status": "ok", "service": "Agent Brain API", "version": "2.0.0", "docs": "/docs"}
 
 
 @app.get("/api/health")
 def api_health():
-    """System health metrics."""
+    """System health metrics from orchestrator."""
     return get_system_health()
+
+
+@app.get("/api/health/deep")
+def api_health_deep():
+    """
+    Deep health check — runs all monitoring checks, generates alerts,
+    and returns comprehensive system status.
+    
+    Checks: score trends, sudden drops, budget, stale domains,
+    rejection rates, error rates.
+    """
+    try:
+        from monitoring import run_health_check
+        result = run_health_check(verbose=False)
+        return result
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+@app.get("/api/alerts")
+def api_alerts(
+    acknowledged: bool | None = None,
+    severity: str | None = None,
+    limit: int = Query(default=50, le=200),
+):
+    """Query monitoring alerts."""
+    try:
+        from db import get_alerts as db_get_alerts, get_alert_summary
+        alerts = db_get_alerts(acknowledged=acknowledged, severity=severity, limit=limit)
+        summary = get_alert_summary()
+        return {"alerts": alerts, "summary": summary}
+    except Exception as e:
+        return {"alerts": [], "summary": {}, "error": str(e)}
+
+
+@app.post("/api/alerts/{alert_id}/acknowledge")
+def api_acknowledge_alert(alert_id: int):
+    """Acknowledge a monitoring alert."""
+    try:
+        from db import acknowledge_alert
+        acknowledge_alert(alert_id)
+        return {"status": "acknowledged", "alert_id": alert_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/db/stats")
+def api_db_stats():
+    """Database statistics — row counts, domains, etc."""
+    try:
+        from db import list_domains_db, get_connection, DB_PATH
+        import os as _os
+        
+        with get_connection() as conn:
+            outputs = conn.execute("SELECT COUNT(*) as c FROM outputs").fetchone()["c"]
+            costs = conn.execute("SELECT COUNT(*) as c FROM costs").fetchone()["c"]
+            alerts = conn.execute("SELECT COUNT(*) as c FROM alerts").fetchone()["c"]
+            runs = conn.execute("SELECT COUNT(*) as c FROM run_log").fetchone()["c"]
+        
+        db_size = _os.path.getsize(DB_PATH) if _os.path.exists(DB_PATH) else 0
+        
+        return {
+            "db_path": DB_PATH,
+            "db_size_bytes": db_size,
+            "db_size_mb": round(db_size / (1024 * 1024), 2),
+            "tables": {
+                "outputs": outputs,
+                "costs": costs,
+                "alerts": alerts,
+                "run_log": runs,
+            },
+            "domains": list_domains_db(),
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/api/overview")

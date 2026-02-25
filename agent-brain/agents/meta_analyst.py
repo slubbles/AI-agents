@@ -6,29 +6,99 @@ This is the novel piece: strategy evolution driven by empirical performance scor
 
 The meta-analyst:
 1. Loads recent scored outputs for a domain
-2. Analyzes what scored well vs. poorly across dimensions
-3. Extracts actionable patterns (do more of X, stop doing Y)
-4. Generates a new strategy document that incorporates these patterns
-5. The new strategy replaces the old one for future research runs
+2. Loads the evolution log (past decisions + their outcomes)
+3. Analyzes what scored well vs. poorly across dimensions
+4. Extracts actionable patterns (do more of X, stop doing Y)
+5. Generates a new strategy document that incorporates these patterns
+6. Logs this evolution decision for future reference
 """
 
 import json
 import sys
 import os
-from datetime import date
+from datetime import date, datetime, timezone
 
 from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import ANTHROPIC_API_KEY, MODELS, MIN_OUTPUTS_FOR_ANALYSIS, MAX_OUTPUTS_TO_ANALYZE, EVOLVE_EVERY_N
+from config import ANTHROPIC_API_KEY, MODELS, MIN_OUTPUTS_FOR_ANALYSIS, MAX_OUTPUTS_TO_ANALYZE, EVOLVE_EVERY_N, STRATEGY_DIR
 from memory_store import load_outputs
-from strategy_store import get_strategy, save_strategy, list_versions
+from strategy_store import get_strategy, save_strategy, list_versions, get_strategy_performance
 from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
+
+
+# ============================================================
+# Evolution Log — persistent memory across meta-analysis runs
+# ============================================================
+
+def _evolution_log_path(domain: str) -> str:
+    """Return path to evolution log for a domain."""
+    return os.path.join(STRATEGY_DIR, domain, "_evolution_log.json")
+
+
+def load_evolution_log(domain: str) -> list[dict]:
+    """Load the full evolution log for a domain."""
+    path = _evolution_log_path(domain)
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return []
+
+
+def save_evolution_entry(domain: str, entry: dict) -> None:
+    """Append a new evolution entry to the domain's log."""
+    log = load_evolution_log(domain)
+    log.append(entry)
+    path = _evolution_log_path(domain)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(log, f, indent=2)
+
+
+def _format_evolution_history(domain: str) -> str:
+    """Format past evolution decisions for injection into the meta-analyst prompt."""
+    log = load_evolution_log(domain)
+    if not log:
+        return "(No previous evolution history — this is the first analysis)"
+    
+    # Show last 5 evolutions to keep context manageable
+    recent = log[-5:]
+    entries = []
+    for entry in recent:
+        outcome = entry.get("outcome", "pending")
+        score_before = entry.get("score_before", "?")
+        score_after = entry.get("score_after", "?")
+        entries.append(
+            f"- Version {entry.get('version', '?')} ({entry.get('date', '?')}): "
+            f"Changes: {'; '.join(entry.get('changes', [])[:3])}. "
+            f"Outcome: {outcome} (score {score_before} → {score_after})"
+        )
+    return "\n".join(entries)
+
+
+def update_evolution_outcome(domain: str, version: str, outcome: str, score_after: float) -> None:
+    """
+    Update the outcome of a past evolution entry once we know how it performed.
+    Called after trial evaluation (confirm/rollback).
+    """
+    log = load_evolution_log(domain)
+    for entry in reversed(log):
+        if entry.get("version") == version:
+            entry["outcome"] = outcome
+            entry["score_after"] = score_after
+            break
+    path = _evolution_log_path(domain)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(log, f, indent=2)
 
 
 def _build_meta_prompt() -> str:
@@ -42,17 +112,24 @@ strategy document to improve future performance.
 You receive:
 1. A set of scored research outputs (each with scores across 5 dimensions + critic feedback)
 2. The current strategy document the researcher is using
+3. EVOLUTION HISTORY: past decisions you made and their outcomes (did scores improve?)
+
+CRITICAL: Use the evolution history to avoid repeating changes that failed. Double down on
+changes that worked. If the history shows a pattern (e.g., "adding source verification improved
+accuracy"), build on it rather than reverting.
 
 You must:
 1. Identify patterns: what behaviors correlate with HIGH scores? What correlates with LOW?
 2. Extract specific, actionable improvements (not vague advice)
 3. Write a NEW strategy document that preserves what works and fixes what doesn't
+4. Optionally recommend rubric weight adjustments if one dimension is consistently weak
 
 ANALYSIS FRAMEWORK:
 - Look at score distributions across dimensions (accuracy, depth, completeness, specificity, honesty)
 - Read critic feedback for recurring themes
 - Compare high-scoring vs low-scoring outputs — what did the high-scorers do differently?
 - Identify the weakest dimension — that's the biggest improvement opportunity
+- Check evolution history: what was tried before? Did it help or hurt?
 
 STRATEGY WRITING RULES:
 - The strategy is a system prompt for the researcher agent
@@ -75,8 +152,14 @@ OUTPUT FORMAT — respond with ONLY this JSON, no markdown fencing:
         "low_score_behaviors": ["what low scorers did"]
     }},
     "changes_made": ["specific change 1", "specific change 2"],
+    "lessons_from_history": ["what past evolutions taught us"],
     "new_strategy": "THE FULL NEW STRATEGY TEXT HERE",
-    "reasoning": "Why these changes should improve scores"
+    "reasoning": "Why these changes should improve scores",
+    "rubric_recommendation": {{
+        "adjust": true,
+        "weights": {{"accuracy": 0.30, "depth": 0.20, "completeness": 0.20, "specificity": 0.15, "intellectual_honesty": 0.15}},
+        "reason": "Why these weights should change (or null if no change needed)"
+    }}
 }}
 """
 
@@ -84,8 +167,8 @@ OUTPUT FORMAT — respond with ONLY this JSON, no markdown fencing:
 META_ANALYST_PROMPT = _build_meta_prompt()
 
 
-def _prepare_analysis_data(outputs: list[dict], current_strategy: str | None) -> str:
-    """Format scored outputs for the meta-analyst to analyze."""
+def _prepare_analysis_data(outputs: list[dict], current_strategy: str | None, evolution_history: str = "") -> str:
+    """Format scored outputs + evolution history for the meta-analyst to analyze."""
     summaries = []
     for i, out in enumerate(outputs):
         critique_data = out.get("critique", {})
@@ -118,6 +201,7 @@ def _prepare_analysis_data(outputs: list[dict], current_strategy: str | None) ->
         },
         "outputs": summaries,
         "current_strategy": current_strategy or "(default strategy — no custom strategy yet)",
+        "evolution_history": evolution_history,
     }
 
     return json.dumps(data, indent=2)
@@ -147,8 +231,13 @@ def analyze_and_evolve(domain: str) -> dict | None:
     print(f"[META-ANALYST] Analyzing {len(recent_outputs)} outputs for domain '{domain}'...")
     print(f"[META-ANALYST] Current strategy version: {current_version}")
 
+    # Load evolution history for context
+    evolution_history = _format_evolution_history(domain)
+    if evolution_history and not evolution_history.startswith("(No"):
+        print(f"[META-ANALYST] Injecting evolution history ({len(load_evolution_log(domain))} past entries)")
+
     # Prepare analysis data
-    analysis_data = _prepare_analysis_data(recent_outputs, current_strategy)
+    analysis_data = _prepare_analysis_data(recent_outputs, current_strategy, evolution_history)
 
     user_message = (
         f"Analyze these scored research outputs and generate an improved strategy.\n\n"
@@ -224,6 +313,30 @@ def analyze_and_evolve(domain: str) -> dict | None:
     print(f"[META-ANALYST]   Changes made:")
     for change in changes:
         print(f"                  → {change}")
+
+    # Log this evolution decision
+    current_perf = get_strategy_performance(domain, current_version)
+    save_evolution_entry(domain, {
+        "version": new_version,
+        "previous_version": current_version,
+        "date": date.today().isoformat(),
+        "changes": changes,
+        "reasoning": reasoning,
+        "weakest_dimension": analysis.get("weakest_dimension", ""),
+        "score_before": round(current_perf.get("avg_score", 0), 1) if current_perf.get("count", 0) > 0 else None,
+        "score_after": None,  # Updated after trial evaluation
+        "outcome": "pending",  # Updated after trial evaluation
+    })
+
+    # Handle rubric recommendation
+    rubric_rec = result.get("rubric_recommendation", {})
+    if rubric_rec and rubric_rec.get("adjust"):
+        rec_weights = rubric_rec.get("weights", {})
+        rec_reason = rubric_rec.get("reason", "Meta-analyst recommendation")
+        if rec_weights and all(k in rec_weights for k in ["accuracy", "depth", "completeness", "specificity", "intellectual_honesty"]):
+            from agents.critic import save_rubric
+            save_rubric(domain, rec_weights, rec_reason)
+            print(f"[META-ANALYST]   📊 Rubric weights adjusted: {rec_reason}")
 
     return {
         "analysis": analysis,

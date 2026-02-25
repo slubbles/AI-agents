@@ -14,6 +14,7 @@ Supports:
 import json
 import os
 from datetime import datetime, timezone
+from scipy.stats import ttest_ind
 from config import STRATEGY_DIR, SAFETY_DROP_THRESHOLD, TRIAL_PERIOD
 
 
@@ -253,19 +254,28 @@ def get_strategy_performance(domain: str, strategy_version: str) -> dict:
 
 def evaluate_trial(agent_role: str, domain: str) -> dict:
     """
-    Evaluate a trial strategy against the previous one.
+    Evaluate a trial strategy against the previous one using Welch's t-test.
+    
+    Decision logic:
+    - If trial scores are significantly WORSE (p < threshold, drop > SAFETY_DROP_THRESHOLD) → rollback
+    - If trial scores are significantly BETTER or neutral (p < threshold) → confirm
+    - If evidence is inconclusive (p >= threshold, few samples) → extend trial
+    - After TRIAL_EXTEND_LIMIT extensions, decide on mean comparison
     
     Returns:
         {
-            "action": "confirm" | "rollback" | "continue_trial",
+            "action": "confirm" | "rollback" | "continue_trial" | "extend_trial",
             "trial_version": str,
             "trial_performance": dict,
             "previous_version": str,
             "previous_performance": dict,
             "drop_pct": float | None,
+            "p_value": float | None,
             "reason": str,
         }
     """
+    from config import TRIAL_EXTEND_LIMIT, TRIAL_P_VALUE_THRESHOLD
+    
     status = get_strategy_status(agent_role, domain)
     current = get_active_version(agent_role, domain)
 
@@ -298,6 +308,7 @@ def evaluate_trial(agent_role: str, domain: str) -> dict:
         "previous_version": prev_version,
         "previous_performance": prev_perf,
         "drop_pct": None,
+        "p_value": None,
     }
 
     # If no previous data, confirm the trial (nothing to compare against)
@@ -305,11 +316,14 @@ def evaluate_trial(agent_role: str, domain: str) -> dict:
         set_active_version(agent_role, domain, current, "active")
         result["action"] = "confirm"
         result["reason"] = "No previous strategy data — confirming trial as active"
+        _update_evolution_outcome(domain, current, "confirmed", trial_perf.get("avg_score", 0))
         return result
 
     # Compare performance
     prev_avg = prev_perf["avg_score"]
     trial_avg = trial_perf["avg_score"]
+    prev_scores = prev_perf.get("scores", [])
+    trial_scores = trial_perf.get("scores", [])
 
     if prev_avg > 0:
         drop_pct = (prev_avg - trial_avg) / prev_avg
@@ -318,31 +332,97 @@ def evaluate_trial(agent_role: str, domain: str) -> dict:
 
     result["drop_pct"] = drop_pct
 
+    # Welch's t-test (unequal variance, unequal sample size)
+    p_value = None
+    if len(prev_scores) >= 2 and len(trial_scores) >= 2:
+        try:
+            _, p_value = ttest_ind(trial_scores, prev_scores, equal_var=False)
+            result["p_value"] = round(p_value, 4)
+        except Exception:
+            p_value = None
+
+    # Check how many times this trial has been extended
+    trial_data = _load_strategy_file(agent_role, domain, current)
+    extensions = trial_data.get("_extensions", 0) if trial_data else 0
+
     if drop_pct > SAFETY_DROP_THRESHOLD:
-        # SAFETY: strategy is performing significantly worse → rollback
-        rolled_to = rollback(agent_role, domain)
-        result["action"] = "rollback"
-        result["reason"] = (
-            f"SAFETY ROLLBACK: Trial {current} avg {trial_avg:.1f} is {drop_pct:.0%} below "
-            f"previous {prev_version} avg {prev_avg:.1f} (threshold: {SAFETY_DROP_THRESHOLD:.0%}). "
-            f"Rolled back to {rolled_to}."
-        )
-    else:
-        # Strategy is performing OK → confirm
-        set_active_version(agent_role, domain, current, "active")
-        result["action"] = "confirm"
-        if drop_pct <= 0:
+        if p_value is not None and p_value < TRIAL_P_VALUE_THRESHOLD:
+            # Statistically significant drop → rollback
+            rolled_to = rollback(agent_role, domain)
+            result["action"] = "rollback"
             result["reason"] = (
-                f"Trial {current} avg {trial_avg:.1f} ≥ previous {prev_version} avg {prev_avg:.1f}. "
-                f"Improvement: {abs(drop_pct):.0%}. Confirmed as active."
+                f"SAFETY ROLLBACK: Trial {current} avg {trial_avg:.1f} is {drop_pct:.0%} below "
+                f"previous {prev_version} avg {prev_avg:.1f} (p={p_value:.3f}, threshold: {SAFETY_DROP_THRESHOLD:.0%}). "
+                f"Rolled back to {rolled_to}."
+            )
+            _update_evolution_outcome(domain, current, "rolled_back", trial_avg)
+        elif extensions < TRIAL_EXTEND_LIMIT:
+            # Drop looks bad but not statistically significant yet — extend
+            _extend_trial(agent_role, domain, current, extensions)
+            result["action"] = "extend_trial"
+            result["reason"] = (
+                f"Trial {current} avg {trial_avg:.1f} is {drop_pct:.0%} below previous {prev_version} avg {prev_avg:.1f}, "
+                f"but evidence is inconclusive (p={p_value:.3f} if p_value else 'N/A', need p<{TRIAL_P_VALUE_THRESHOLD}). "
+                f"Extended trial (extension {extensions + 1}/{TRIAL_EXTEND_LIMIT})."
             )
         else:
+            # Out of extensions, drop looks real → rollback
+            rolled_to = rollback(agent_role, domain)
+            result["action"] = "rollback"
             result["reason"] = (
-                f"Trial {current} avg {trial_avg:.1f} is {drop_pct:.0%} below "
-                f"previous {prev_version} avg {prev_avg:.1f} — within safety threshold. Confirmed."
+                f"ROLLBACK after {TRIAL_EXTEND_LIMIT} extensions: Trial {current} avg {trial_avg:.1f} "
+                f"still {drop_pct:.0%} below previous {prev_version} avg {prev_avg:.1f}. "
+                f"Rolled back to {rolled_to}."
             )
+            _update_evolution_outcome(domain, current, "rolled_back", trial_avg)
+    else:
+        # Strategy is performing OK or better → confirm
+        if p_value is not None and p_value >= TRIAL_P_VALUE_THRESHOLD and drop_pct > 0 and extensions < TRIAL_EXTEND_LIMIT:
+            # Small drop, not significant — extend to be sure
+            _extend_trial(agent_role, domain, current, extensions)
+            result["action"] = "extend_trial"
+            result["reason"] = (
+                f"Trial {current} avg {trial_avg:.1f} is {drop_pct:.0%} below previous {prev_version} avg {prev_avg:.1f}. "
+                f"Within safety threshold but not statistically significant (p={p_value:.3f}). "
+                f"Extended trial (extension {extensions + 1}/{TRIAL_EXTEND_LIMIT})."
+            )
+        else:
+            set_active_version(agent_role, domain, current, "active")
+            result["action"] = "confirm"
+            if drop_pct <= 0:
+                p_str = f", p={p_value:.3f}" if p_value is not None else ""
+                result["reason"] = (
+                    f"Trial {current} avg {trial_avg:.1f} ≥ previous {prev_version} avg {prev_avg:.1f}. "
+                    f"Improvement: {abs(drop_pct):.0%}{p_str}. Confirmed as active."
+                )
+            else:
+                p_str = f", p={p_value:.3f}" if p_value is not None else ""
+                result["reason"] = (
+                    f"Trial {current} avg {trial_avg:.1f} is {drop_pct:.0%} below "
+                    f"previous {prev_version} avg {prev_avg:.1f} — within safety threshold{p_str}. Confirmed."
+                )
+            _update_evolution_outcome(domain, current, "confirmed", trial_avg)
 
     return result
+
+
+def _extend_trial(agent_role: str, domain: str, version: str, current_extensions: int) -> None:
+    """Extend a trial by incrementing the extension counter on its strategy file."""
+    data = _load_strategy_file(agent_role, domain, version)
+    if data:
+        data["_extensions"] = current_extensions + 1
+        filepath = os.path.join(STRATEGY_DIR, domain, f"{agent_role}_{version}.json")
+        with open(filepath, "w") as f:
+            json.dump(data, f, indent=2)
+
+
+def _update_evolution_outcome(domain: str, version: str, outcome: str, score_after: float) -> None:
+    """Update the meta-analyst's evolution log with trial outcome."""
+    try:
+        from agents.meta_analyst import update_evolution_outcome
+        update_evolution_outcome(domain, version, outcome, score_after)
+    except ImportError:
+        pass  # Graceful fallback if meta_analyst not available
 
 
 def get_version_history(agent_role: str, domain: str) -> list[dict]:
