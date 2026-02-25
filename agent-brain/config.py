@@ -97,3 +97,46 @@ CONSENSUS_RESEARCHERS = 3       # number of parallel researchers (max 5)
 MAX_OUTPUTS_PER_DOMAIN = 100          # archive overflow beyond this
 ARCHIVE_REJECTED_AFTER_DAYS = 7       # archive rejected outputs after N days
 ARCHIVE_SCORE_THRESHOLD = 5           # archive outputs below this score after N days
+
+# ============================================================
+# Agent Hands — Execution Layer
+# ============================================================
+
+# Model assignments for execution agents
+MODELS.update({
+    "planner": "claude-sonnet-4-20250514",       # strong — plan decomposition needs reasoning
+    "executor": "claude-haiku-4-5-20251001",     # cheap — follows plans, uses tools
+    "exec_validator": "claude-sonnet-4-20250514",# strong — quality judgment is sacred
+    "exec_meta_analyst": "claude-sonnet-4-20250514",  # strong — pattern extraction
+})
+
+# --- Execution Quality Gate ---
+EXEC_QUALITY_THRESHOLD = 7      # higher bar than research — execution must be reliable
+EXEC_MAX_RETRIES = 2            # retries with validator feedback before giving up
+EXEC_MAX_STEPS = 20             # max steps in a single execution plan
+EXEC_STEP_TIMEOUT = 120         # seconds before a single execution step times out
+
+# --- Execution Memory ---
+EXEC_MEMORY_DIR = os.path.join(os.path.dirname(__file__), "exec_memory")
+
+# --- Execution Strategy Evolution ---
+EXEC_EVOLVE_EVERY_N = 3        # evolve execution strategy every N completed tasks
+EXEC_TRIAL_PERIOD = 3          # execution outputs under trial before evaluation
+EXEC_SAFETY_DROP = 0.20        # block if exec strategy drops >20%
+
+# --- Execution Safety ---
+EXEC_SANDBOX_MODE = True        # run commands in restricted mode by default
+EXEC_ALLOWED_COMMANDS = [       # whitelist of allowed shell commands
+    "python", "python3", "pip", "pip3", "node", "npm", "npx",
+    "git", "curl", "wget", "cat", "ls", "mkdir", "cp", "mv", "rm",
+    "echo", "touch", "head", "tail", "grep", "find", "wc",
+    "pytest", "eslint", "prettier", "tsc", "docker",
+]
+EXEC_BLOCKED_PATTERNS = [       # patterns that are NEVER allowed in commands
+    "rm -rf /", "rm -rf /*", ":(){ :|:& };:",  # fork bomb
+    "dd if=", "mkfs", "fdisk",                   # disk destruction
+    "sudo", "su ",                                # privilege escalation
+    "> /dev/sd", "chmod 777",                     # dangerous ops
+]
+EXEC_MAX_FILE_SIZE = 100_000    # max bytes for a single file write (100KB)
+EXEC_ALLOWED_DIRS = None        # if set, restrict file writes to these dirs only (list of paths)
