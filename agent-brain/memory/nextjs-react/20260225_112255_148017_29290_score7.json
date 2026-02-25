@@ -1,0 +1,118 @@
+{
+  "timestamp": "2026-02-25T11:22:55.148017+00:00",
+  "domain": "nextjs-react",
+  "question": "What are the official technical specifications and implementation details of the React Flight protocol, including serialization format, chunk boundary mechanics, and documented performance characteristics when compared to traditional HTML streaming?",
+  "attempt": 2,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the official technical specifications and implementation details of the React Flight protocol, including serialization format, chunk boundary mechanics, and documented performance characteristics when compared to traditional HTML streaming?",
+    "findings": [
+      {
+        "claim": "React Flight is a compact, streaming, JSON-like serialization format specifically designed to represent a React component tree",
+        "confidence": "high",
+        "reasoning": "Multiple authoritative sources confirm Flight is a JSON-like wire format for serializing React component trees. The format is compact and streamable, distinct from actual JSON but resembling it in structure.",
+        "source": "https://www.linkedin.com/pulse/react-flight-protocol-nidhin-kumar-dhzpc"
+      },
+      {
+        "claim": "React Flight serializes React Server Components into a streamable format that differs fundamentally from Fizz, which produces HTML; Flight produces a representation of the React tree itself",
+        "confidence": "high",
+        "reasoning": "Official React documentation and multiple technical sources distinguish Flight (React tree serialization) from Fizz (HTML streaming). This is a core architectural difference.",
+        "source": "https://deepwiki.com/facebook/react/5-server-side-rendering"
+      },
+      {
+        "claim": "Each chunk in a Flight stream corresponds to a resolved server component",
+        "confidence": "high",
+        "reasoning": "Multiple recent sources confirm chunk boundaries align with resolved server components in the streaming response.",
+        "source": "https://www.sitepoint.com/react-server-components-streaming-performance-2026/"
+      },
+      {
+        "claim": "Flight streams serialized component data that the client React runtime interprets, whereas HTML streaming sends progressively rendered markup",
+        "confidence": "high",
+        "reasoning": "Clear distinction documented: Flight is protocol for React tree serialization, not visual rendering. HTML streaming (Fizz) sends browser-paintable markup.",
+        "source": "https://www.sitepoint.com/react-server-components-streaming-performance-2026/"
+      },
+      {
+        "claim": "React Flight does not transmit plain JSON but uses a specialized serialization format capable of encoding complex JavaScript constructs such as references, deferred values, and asynchronous boundaries",
+        "confidence": "high",
+        "reasoning": "Technical analysis confirms Flight handles complex JS constructs beyond plain JSON capability, including function references and async operations.",
+        "source": "https://dev.to/shibly_noman_b3dcb93c0227/how-a-serialization-flaw-in-react-19-server-components-led-to-remote-code-execution-3h0e"
+      },
+      {
+        "claim": "React Flight is the wire protocol behind React Server Components in React 19",
+        "confidence": "high",
+        "reasoning": "Confirmed in multiple sources as the official protocol for RSC serialization and transmission.",
+        "source": "https://blog.logrocket.com/react2shell-exploit/"
+      },
+      {
+        "claim": "Flight streaming sends serialized component data over HTTP chunked encoding responses",
+        "confidence": "medium",
+        "reasoning": "Implied in multiple sources describing 'streaming HTTP response' and 'chunked transfer', but explicit protocol details on chunked encoding boundaries are not thoroughly documented in available sources.",
+        "source": "https://www.sitepoint.com/react-server-components-streaming-performance-2026/"
+      },
+      {
+        "claim": "Server costs from Flight serialization are higher due to complex serialization and streaming overhead",
+        "confidence": "medium",
+        "reasoning": "Recent article mentions 'higher server costs from complex serialization' but lacks specific benchmarks quantifying this overhead.",
+        "source": "https://chyshkala.com/blog/react-server-components-are-failing-your-performance-because-you-re-using-them-wrong"
+      }
+    ],
+    "key_insights": [
+      "React Flight is fundamentally different from HTML streaming\u2014it serializes React component trees for client-side hydration, not browser-renderable markup",
+      "Flight uses a JSON-like (but not actual JSON) wire format capable of encoding complex JavaScript constructs like function references and async boundaries",
+      "Chunk boundaries in Flight streams correspond to resolved server components, enabling incremental client-side hydration",
+      "Flight is the official wire protocol for React Server Components in React 19 and is the backbone of Next.js App Router RSC implementation",
+      "Performance benefits come from eliminated client-side data fetching round trips and early client hydration from streamed chunks, but specific TTFB/FCP improvements are not quantitatively documented in official sources"
+    ],
+    "knowledge_gaps": [
+      "No detailed technical specification of Flight serialization format is publicly available\u2014format internals remain largely undocumented by React team",
+      "Specific chunk boundary mechanics (size limits, fragmentation rules, async resolution behavior) are not formally documented",
+      "Quantitative performance benchmarks comparing Flight streaming vs traditional HTML streaming (Fizz) with specific TTFB, FCP, or LCP metrics are absent from official documentation",
+      "Exact overhead costs of Flight serialization relative to Fizz HTML serialization are not benchmarked",
+      "Protocol version specifications, backward compatibility, and evolution roadmap are not publicly detailed",
+      "Detailed waterfall diagrams showing browser rendering timeline differences between Flight and HTML streaming are not provided in official sources"
+    ],
+    "sources_used": [
+      "https://deepwiki.com/facebook/react/5-server-side-rendering",
+      "https://www.sitepoint.com/react-server-components-streaming-performance-2026/",
+      "https://blog.nidhin.dev/react-flight-protocol",
+      "https://www.linkedin.com/pulse/react-flight-protocol-nidhin-kumar-dhzpc",
+      "https://dev.to/shibly_noman_b3dcb93c0227/how-a-serialization-flaw-in-react-19-server-components-led-to-remote-code-execution-3h0e",
+      "https://blog.logrocket.com/react2shell-exploit/",
+      "https://chyshkala.com/blog/react-server-components-are-failing-your-performance-because-you-re-using-them-wrong",
+      "https://gitnation.com/contents/meet-react-flight-and-become-a-rsc-expert",
+      "https://react.dev/reference/rsc/server-components"
+    ],
+    "summary": "React Flight is a JSON-like wire protocol for serializing React Server Component trees (distinct from HTML streaming) with chunks aligning to resolved server components. The protocol handles complex JavaScript constructs like function references and async boundaries, but official technical specifications for serialization format, chunk mechanics, and performance characteristics remain largely undocumented. Quantitative performance comparisons with traditional HTML streaming are absent from official sources; improvements are described architecturally rather than with measured TTFB/FCP metrics.",
+    "_searches_made": 9,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 6,
+      "completeness": 7,
+      "specificity": 5,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.0,
+    "strengths": [
+      "Accurately distinguishes React Flight from HTML streaming (Fizz) - a crucial technical distinction",
+      "Correctly identifies Flight as the wire protocol for React Server Components in React 19",
+      "Excellent intellectual honesty - clearly flags knowledge gaps and limitations in available documentation",
+      "Properly distinguishes between high-confidence architectural facts and medium-confidence implementation details",
+      "Uses diverse sources including technical blogs, official documentation, and security analysis"
+    ],
+    "weaknesses": [
+      "Lacks concrete technical details about serialization format beyond 'JSON-like'",
+      "Missing specific performance metrics despite this being explicitly requested in the question",
+      "No actual code examples or protocol message samples",
+      "Sources include some non-authoritative venues (LinkedIn, dev.to) mixed with more credible technical sources",
+      "Chunk boundary mechanics described vaguely without technical implementation details"
+    ],
+    "actionable_feedback": "To improve this research: 1) Dig deeper into React's source code or RFC documents for actual serialization format specifications, 2) Find or conduct performance benchmarks comparing Flight vs HTML streaming with specific TTFB/FCP metrics, 3) Include concrete examples of Flight protocol messages or chunk structures, 4) Prioritize more authoritative sources over blog posts when available, 5) Investigate if any official React team presentations or conference talks provide missing technical details",
+    "verdict": "accept"
+  },
+  "overall_score": 7.0,
+  "accepted": true,
+  "verdict": "accept"
+}

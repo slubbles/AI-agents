@@ -1,0 +1,125 @@
+{
+  "timestamp": "2026-02-25T11:18:57.457979+00:00",
+  "domain": "nextjs-react",
+  "question": "What are the current best practices for Next.js App Router architecture, including when to use Server Components vs Client Components and how to structure layouts and routes?",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the current best practices for Next.js App Router architecture, including when to use Server Components vs Client Components and how to structure layouts and routes?",
+    "findings": [
+      {
+        "claim": "Next.js App Router uses file-based routing where the directory structure mirrors the URL structure",
+        "confidence": "high",
+        "reasoning": "Confirmed across multiple official Next.js documentation sources and recent guides (2024-2025). Folders map to URL segments automatically.",
+        "source": "https://nextjs.org/docs/app/getting-started/project-structure"
+      },
+      {
+        "claim": "React Server Components are the default in Next.js App Router for better performance and security",
+        "confidence": "high",
+        "reasoning": "Stated in official Next.js learning resources and confirmed in multiple 2024-2025 sources. Server components reduce client-side JavaScript and enable secure data access.",
+        "source": "https://nextjs.org/learn/react-foundations/server-and-client-components"
+      },
+      {
+        "claim": "Server Components should be used for data fetching, accessing APIs, and protecting sensitive operations from the client",
+        "confidence": "high",
+        "reasoning": "Consistently mentioned across official docs and multiple third-party sources from Sept-Dec 2024 as primary use case for server components.",
+        "source": "https://prateekbadjatya.medium.com/react-server-component-vs-client-component-when-to-use-what-in-next-js-e924a39965c3"
+      },
+      {
+        "claim": "Client Components should be used for interactive features requiring hooks (useState, useEffect) and event listeners",
+        "confidence": "high",
+        "reasoning": "Implicit in official Next.js documentation emphasizing opting into Client Components 'for smaller parts of UI' that need interactivity.",
+        "source": "https://nextjs.org/learn/react-foundations/server-and-client-components"
+      },
+      {
+        "claim": "Nested routing creates hierarchical layouts through folder nesting in the app/ directory",
+        "confidence": "high",
+        "reasoning": "Official Next.js docs and medium articles (Sept 2024) demonstrate using nested folders to create route hierarchies and shared layouts.",
+        "source": "https://thiraphat-ps-dev.medium.com/mastering-next-js-app-router-best-practices-for-structuring-your-application-3f8cf0c76580"
+      },
+      {
+        "claim": "Route groups using parentheses notation (e.g., (marketing)/) allow organizing routes without affecting URL structure",
+        "confidence": "high",
+        "reasoning": "Documented in official Next.js resources and Makerkit best practices guide (Dec 2024) for logically grouping related routes.",
+        "source": "https://makerkit.dev/blog/tutorials/nextjs-app-router-project-structure"
+      },
+      {
+        "claim": "Parallel routes (@modal/, @slot/) enable rendering multiple segments within the same layout without changing URL",
+        "confidence": "medium",
+        "reasoning": "Mentioned in official Next.js docs with @slot naming convention, but less commonly seen in practical guides.",
+        "source": "https://nextjs.org/docs/app/getting-started/project-structure"
+      },
+      {
+        "claim": "layout.tsx files apply to all routes within their directory and nested subdirectories",
+        "confidence": "high",
+        "reasoning": "Standard Next.js architecture pattern shown in multiple 2024-2025 sources for creating shared layouts across route segments.",
+        "source": "https://nextjs.org/docs/app/getting-started/layouts-and-pages"
+      },
+      {
+        "claim": "Server Actions are recommended for handling mutations and form submissions instead of client-side logic",
+        "confidence": "medium",
+        "reasoning": "Mentioned in Reddit discussion (Dec 2024) and Oct 2024 sources as evolving best practice, though not detailed in all official docs.",
+        "source": "https://www.reddit.com/r/nextjs/comments/1h6o0ci/when_to_use_server_vs_client_components_in_nextjs/"
+      },
+      {
+        "claim": "Data security features should be built into server components to protect sensitive API keys and database credentials",
+        "confidence": "high",
+        "reasoning": "Official Next.js documentation emphasizes data security as key advantage of server components for modern applications.",
+        "source": "https://nextjs.org/docs/app/guides"
+      }
+    ],
+    "key_insights": [
+      "Server Components are the default and preferred approach in App Router; only opt into Client Components for interactive UI elements",
+      "File-based routing mirrors URL structure automatically\u2014folder names become route segments, reducing configuration overhead",
+      "Route groups and parallel routes enable sophisticated UI patterns while keeping URLs clean and maintainable",
+      "Server-first architecture improves both performance and security by keeping sensitive operations server-side",
+      "Nested layouts enable DRY principle with shared UI across route hierarchies, reducing duplication"
+    ],
+    "knowledge_gaps": [
+      "Specific performance benchmarks comparing Server vs Client component approaches in different scenarios",
+      "Detailed patterns for complex data fetching and caching strategies with App Router",
+      "Advanced error handling and boundary patterns beyond basic error.tsx usage",
+      "Real-world recommendations for structuring large applications with hundreds of routes"
+    ],
+    "sources_used": [
+      "https://nextjs.org/docs/app/getting-started/project-structure",
+      "https://nextjs.org/learn/react-foundations/server-and-client-components",
+      "https://nextjs.org/docs/app/getting-started/layouts-and-pages",
+      "https://makerkit.dev/blog/tutorials/nextjs-app-router-project-structure",
+      "https://thiraphat-ps-dev.medium.com/mastering-next-js-app-router-best-practices-for-structuring-your-application-3f8cf0c76580",
+      "https://prateekbadjatya.medium.com/react-server-component-vs-client-component-when-to-use-what-in-next-js-e924a39965c3"
+    ],
+    "summary": "Next.js App Router best practices emphasize a server-first architecture using React Server Components by default for data fetching, security, and performance, with Client Components reserved for interactive UI elements. File-based routing with nested directories creates hierarchical layouts, while route groups allow logical organization without URL changes. The architecture prioritizes keeping sensitive operations server-side and leveraging automatic caching/revalidation mechanisms over client-side state management.",
+    "_searches_made": 3,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 6,
+      "completeness": 7,
+      "specificity": 6,
+      "intellectual_honesty": 8
+    },
+    "overall_score": 7.0,
+    "strengths": [
+      "Strong accuracy with claims well-supported by official Next.js documentation",
+      "Good use of confidence levels to distinguish well-established vs emerging practices",
+      "Honest acknowledgment of knowledge gaps and areas needing more research",
+      "Comprehensive coverage of core App Router concepts from routing to component architecture",
+      "Clear distinction between server and client component use cases"
+    ],
+    "weaknesses": [
+      "Limited depth in explaining mechanisms - mostly states what to do without explaining why or how it works internally",
+      "Missing concrete examples or code snippets that would make guidance actionable",
+      "Lacks performance benchmarks or quantitative comparisons mentioned in knowledge gaps",
+      "Some claims rely on Medium articles and Reddit rather than authoritative sources",
+      "Limited coverage of advanced patterns like streaming, error boundaries, or complex data fetching strategies"
+    ],
+    "actionable_feedback": "To improve this research: (1) Include specific code examples demonstrating server vs client component patterns, (2) Add performance metrics or benchmarks where available, (3) Explain the underlying mechanisms (why server components improve performance, how file-based routing works internally), (4) Focus more on official documentation over blog posts for architectural guidance, (5) Expand coverage of error handling, loading states, and advanced routing patterns that production apps commonly need",
+    "verdict": "accept"
+  },
+  "overall_score": 7.0,
+  "accepted": true,
+  "verdict": "accept"
+}

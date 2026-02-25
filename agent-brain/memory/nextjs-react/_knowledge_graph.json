@@ -1,0 +1,1160 @@
+{
+  "nodes": [
+    {
+      "id": "topic_architecture_and_routing",
+      "type": "topic",
+      "label": "Architecture and Routing",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572161+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "app-router-structure",
+          "file-based-routing",
+          "nested-layouts",
+          "route-groups",
+          "parallel-routes"
+        ]
+      }
+    },
+    {
+      "id": "topic_server_vs_client_components",
+      "type": "topic",
+      "label": "Server vs Client Components",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572183+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "component-selection-criteria",
+          "data-fetching",
+          "security-patterns",
+          "interactive-features"
+        ]
+      }
+    },
+    {
+      "id": "topic_performance_characteristics",
+      "type": "topic",
+      "label": "Performance Characteristics",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572192+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "bundle-size-reduction",
+          "core-web-vitals",
+          "streaming-benefits",
+          "enterprise-metrics"
+        ]
+      }
+    },
+    {
+      "id": "topic_react_flight_protocol",
+      "type": "topic",
+      "label": "React Flight Protocol",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572198+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "serialization-format",
+          "reference-system",
+          "chunk-boundaries",
+          "streaming-mechanics"
+        ]
+      }
+    },
+    {
+      "id": "topic_technical_implementation",
+      "type": "topic",
+      "label": "Technical Implementation",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572204+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "infrastructure-requirements",
+          "browser-parser-interaction",
+          "security-vulnerabilities"
+        ]
+      }
+    },
+    {
+      "id": "claim_001",
+      "type": "claim",
+      "label": "Next.js App Router uses file-based routing where the directory structure mirrors the URL structure",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:18:57.457979+00:00",
+      "last_updated": "2026-02-25T11:18:57.457979+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Next.js App Router uses file-based routing where the directory structure mirrors the URL structure",
+        "sources": [
+          "https://nextjs.org/docs/app/getting-started/project-structure"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_nextjs_org_docs_app_getting_started_project_structure",
+      "type": "source",
+      "label": "https://nextjs.org/docs/app/getting-started/project-structure",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572229+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://nextjs.org/docs/app/getting-started/project-structure"
+      }
+    },
+    {
+      "id": "claim_002",
+      "type": "claim",
+      "label": "React Server Components are the default in Next.js App Router for better performance and security",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:18:57.457979+00:00",
+      "last_updated": "2026-02-25T11:18:57.457979+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "React Server Components are the default in Next.js App Router for better performance and security",
+        "sources": [
+          "https://nextjs.org/learn/react-foundations/server-and-client-components"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_nextjs_org_learn_react_foundations_server_and_client_c",
+      "type": "source",
+      "label": "https://nextjs.org/learn/react-foundations/server-and-client-components",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572253+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://nextjs.org/learn/react-foundations/server-and-client-components"
+      }
+    },
+    {
+      "id": "claim_003",
+      "type": "claim",
+      "label": "Server Components should be used for data fetching, accessing APIs, and protecting sensitive operations from the client",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:18:57.457979+00:00",
+      "last_updated": "2026-02-25T11:18:57.457979+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Server Components should be used for data fetching, accessing APIs, and protecting sensitive operations from the client",
+        "sources": [
+          "https://prateekbadjatya.medium.com/react-server-component-vs-client-component-when-to-use-what-in-next-js-e924a39965c3"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_prateekbadjatya_medium_com_react_server_component_vs_c",
+      "type": "source",
+      "label": "https://prateekbadjatya.medium.com/react-server-component-vs-client-component-when-to-use-what-in-next-js-e924a39965c3",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572273+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://prateekbadjatya.medium.com/react-server-component-vs-client-component-when-to-use-what-in-next-js-e924a39965c3"
+      }
+    },
+    {
+      "id": "claim_004",
+      "type": "claim",
+      "label": "Client Components should be used for interactive features requiring hooks (useState, useEffect) and event listeners",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:18:57.457979+00:00",
+      "last_updated": "2026-02-25T11:18:57.457979+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Client Components should be used for interactive features requiring hooks (useState, useEffect) and event listeners",
+        "sources": [
+          "https://nextjs.org/learn/react-foundations/server-and-client-components"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_005",
+      "type": "claim",
+      "label": "Enterprise audit of 32 apps migrated to Server Components showed 68% smaller client bundles, 55% faster Time to Interactive (TTI), and zero client-side data exposure",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_updated": "2026-02-25T11:19:58.309417+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Enterprise audit of 32 apps migrated to Server Components showed 68% smaller client bundles, 55% faster Time to Interactive (TTI), and zero client-side data exposure",
+        "sources": [
+          "https://codism.io/react-server-components-vs-client-components-the-2025-enterprise-guide/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_codism_io_react_server_components_vs_client_components",
+      "type": "source",
+      "label": "https://codism.io/react-server-components-vs-client-components-the-2025-enterprise-guide/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572310+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://codism.io/react-server-components-vs-client-components-the-2025-enterprise-guide/"
+      }
+    },
+    {
+      "id": "claim_006",
+      "type": "claim",
+      "label": "Case study of e-commerce site using Next.js Server Components showed 67% Largest Contentful Paint (LCP) improvement and 51% bundle size reduction",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_updated": "2026-02-25T11:19:58.309417+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Case study of e-commerce site using Next.js Server Components showed 67% Largest Contentful Paint (LCP) improvement and 51% bundle size reduction",
+        "sources": [
+          "https://snapitsoftware.com/blog/react-server-components-performance/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_snapitsoftware_com_blog_react_server_components_perfor",
+      "type": "source",
+      "label": "https://snapitsoftware.com/blog/react-server-components-performance/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572329+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://snapitsoftware.com/blog/react-server-components-performance/"
+      }
+    },
+    {
+      "id": "claim_007",
+      "type": "claim",
+      "label": "React Server Components significantly increase page load time and reduce total JavaScript bundle size by eliminating hydration and avoiding JS shipping to clients",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_updated": "2026-02-25T11:20:58.880915+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "React Server Components significantly increase page load time and reduce total JavaScript bundle size by eliminating hydration and avoiding JS shipping to clients",
+        "sources": [
+          "https://blog.logrocket.com/react-server-components-comprehensive-guide/",
+          "https://nextjs.org/docs/13/app/building-your-application/rendering/server-components"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_blog_logrocket_com_react_server_components_comprehensi",
+      "type": "source",
+      "label": "https://blog.logrocket.com/react-server-components-comprehensive-guide/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572347+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://blog.logrocket.com/react-server-components-comprehensive-guide/"
+      }
+    },
+    {
+      "id": "source_https_nextjs_org_docs_13_app_building_your_application_rende",
+      "type": "source",
+      "label": "https://nextjs.org/docs/13/app/building-your-application/rendering/server-components",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572358+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://nextjs.org/docs/13/app/building-your-application/rendering/server-components"
+      }
+    },
+    {
+      "id": "claim_008",
+      "type": "claim",
+      "label": "Streaming sends HTML chunks progressively to the browser as they become ready, rather than waiting for the entire page to be rendered on the server before sending",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:20:58.880915+00:00",
+      "last_updated": "2026-02-25T11:20:58.880915+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Streaming sends HTML chunks progressively to the browser as they become ready, rather than waiting for the entire page to be rendered on the server before sending",
+        "sources": [
+          "https://medium.com/@luckyshuklakunda/streaming-ssr-in-next-js-for-better-performance-46937367e956"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_medium_com_luckyshuklakunda_streaming_ssr_in_next_js_f",
+      "type": "source",
+      "label": "https://medium.com/@luckyshuklakunda/streaming-ssr-in-next-js-for-better-performance-46937367e956",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572377+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://medium.com/@luckyshuklakunda/streaming-ssr-in-next-js-for-better-performance-46937367e956"
+      }
+    },
+    {
+      "id": "claim_009",
+      "type": "claim",
+      "label": "Reverse proxies like Nginx buffer responses by default, requiring proxy_buffering off or X-Accel-Buffering: no header to enable streaming benefits; otherwise chunked stream arrives as one blob",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:20:58.880915+00:00",
+      "last_updated": "2026-02-25T11:20:58.880915+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Reverse proxies like Nginx buffer responses by default, requiring proxy_buffering off or X-Accel-Buffering: no header to enable streaming benefits; otherwise chunked stream arrives as one blob",
+        "sources": [
+          "https://www.sitepoint.com/react-server-components-streaming-performance-2026/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_sitepoint_com_react_server_components_streaming_pe",
+      "type": "source",
+      "label": "https://www.sitepoint.com/react-server-components-streaming-performance-2026/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572396+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.sitepoint.com/react-server-components-streaming-performance-2026/"
+      }
+    },
+    {
+      "id": "claim_010",
+      "type": "claim",
+      "label": "React Flight is a compact, streaming, JSON-like serialization format specifically designed to represent a React component tree",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:22:55.148017+00:00",
+      "last_updated": "2026-02-25T11:24:32.199134+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "React Flight is a compact, streaming, JSON-like serialization format specifically designed to represent a React component tree",
+        "sources": [
+          "https://www.linkedin.com/pulse/react-flight-protocol-nidhin-kumar-dhzpc",
+          "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_linkedin_com_pulse_react_flight_protocol_nidhin_ku",
+      "type": "source",
+      "label": "https://www.linkedin.com/pulse/react-flight-protocol-nidhin-kumar-dhzpc",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572414+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.linkedin.com/pulse/react-flight-protocol-nidhin-kumar-dhzpc"
+      }
+    },
+    {
+      "id": "source_https_romanliutikov_com_blog_towards_react_server_components",
+      "type": "source",
+      "label": "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572425+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1"
+      }
+    },
+    {
+      "id": "claim_011",
+      "type": "claim",
+      "label": "React Flight uses a row-based JSON format (not standard JSON) that supports references, React elements, and extended data types like Date, Set, and Map",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:24:32.199134+00:00",
+      "last_updated": "2026-02-25T11:24:32.199134+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "React Flight uses a row-based JSON format (not standard JSON) that supports references, React elements, and extended data types like Date, Set, and Map",
+        "sources": [
+          "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_012",
+      "type": "claim",
+      "label": "Flight protocol uses a reference system with '$' prefix notation to create cross-chunk references; chunks can reference each other using this syntax",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:24:32.199134+00:00",
+      "last_updated": "2026-02-25T11:24:32.199134+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Flight protocol uses a reference system with '$' prefix notation to create cross-chunk references; chunks can reference each other using this syntax",
+        "sources": [
+          "https://dev.to/jmmy/cve-2025-55182-explained-2e85"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_dev_to_jmmy_cve_2025_55182_explained_2e85",
+      "type": "source",
+      "label": "https://dev.to/jmmy/cve-2025-55182-explained-2e85",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572460+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://dev.to/jmmy/cve-2025-55182-explained-2e85"
+      }
+    },
+    {
+      "id": "claim_013",
+      "type": "claim",
+      "label": "Flight serialization includes a reference resolution mechanism via the 'reviveModel' function in ReactFlightReplyServer.js that maps chunk IDs to deserialized objects",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:24:32.199134+00:00",
+      "last_updated": "2026-02-25T11:24:32.199134+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Flight serialization includes a reference resolution mechanism via the 'reviveModel' function in ReactFlightReplyServer.js that maps chunk IDs to deserialized objects",
+        "sources": [
+          "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_github_com_kavienanj_cve_2025_55182_blob_main_02_under",
+      "type": "source",
+      "label": "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572479+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md"
+      }
+    },
+    {
+      "id": "claim_014",
+      "type": "claim",
+      "label": "Pages Router handles 6x more concurrent requests than App Router in heavy server-side rendering scenarios",
+      "confidence": "low",
+      "status": "conflicted",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_updated": "2026-02-25T11:19:58.309417+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Pages Router handles 6x more concurrent requests than App Router in heavy server-side rendering scenarios",
+        "sources": [
+          "https://markaicode.com/nextjs-15-router-performance-comparison/"
+        ],
+        "notes": "Contradicts claims about App Router performance benefits"
+      }
+    },
+    {
+      "id": "source_https_markaicode_com_nextjs_15_router_performance_comparison",
+      "type": "source",
+      "label": "https://markaicode.com/nextjs-15-router-performance-comparison/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572496+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://markaicode.com/nextjs-15-router-performance-comparison/"
+      }
+    },
+    {
+      "id": "claim_015",
+      "type": "claim",
+      "label": "70% TTFB reduction claimed for Server Components approach",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_updated": "2026-02-25T11:19:58.309417+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "70% TTFB reduction claimed for Server Components approach",
+        "sources": [
+          "https://strapi.io/blog/best-javascript-frameworks"
+        ],
+        "notes": "Unusually high figure not corroborated elsewhere"
+      }
+    },
+    {
+      "id": "source_https_strapi_io_blog_best_javascript_frameworks",
+      "type": "source",
+      "label": "https://strapi.io/blog/best-javascript-frameworks",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572514+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://strapi.io/blog/best-javascript-frameworks"
+      }
+    },
+    {
+      "id": "gap_000",
+      "type": "gap",
+      "label": "Specific FCP (First Contentful Paint) numerical benchmarks comparing pure Server Components vs pure Client Components in controlled environments",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572530+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Performance Characteristics",
+        "full_text": "Specific FCP (First Contentful Paint) numerical benchmarks comparing pure Server Components vs pure Client Components in controlled environments"
+      }
+    },
+    {
+      "id": "gap_001",
+      "type": "gap",
+      "label": "Official technical specification for Flight serialization format, including complete type tag system and chunk boundary algorithms",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572539+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "React Flight Protocol",
+        "full_text": "Official technical specification for Flight serialization format, including complete type tag system and chunk boundary algorithms"
+      }
+    },
+    {
+      "id": "gap_002",
+      "type": "gap",
+      "label": "Detailed TTFB measurements in milliseconds for comparable applications using Server Components vs Client Components",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572546+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Performance Characteristics",
+        "full_text": "Detailed TTFB measurements in milliseconds for comparable applications using Server Components vs Client Components"
+      }
+    },
+    {
+      "id": "gap_003",
+      "type": "gap",
+      "label": "Real-world recommendations for structuring large applications with hundreds of routes using App Router",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572553+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Architecture and Routing",
+        "full_text": "Real-world recommendations for structuring large applications with hundreds of routes using App Router"
+      }
+    },
+    {
+      "id": "gap_004",
+      "type": "gap",
+      "label": "Advanced error handling and boundary patterns beyond basic error.tsx usage",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572559+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Architecture and Routing",
+        "full_text": "Advanced error handling and boundary patterns beyond basic error.tsx usage"
+      }
+    },
+    {
+      "id": "gap_005",
+      "type": "gap",
+      "label": "Performance impact of different data fetching patterns on TTFB/FCP metrics",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-25T11:25:25.572566+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Performance Characteristics",
+        "full_text": "Performance impact of different data fetching patterns on TTFB/FCP metrics"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "claim_001",
+      "target": "topic_architecture_and_routing",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572217+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_nextjs_org_docs_app_getting_started_project_structure",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572233+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "topic_server_vs_client_components",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572243+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_nextjs_org_learn_react_foundations_server_and_client_c",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572256+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "topic_server_vs_client_components",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572264+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_prateekbadjatya_medium_com_react_server_component_vs_c",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572276+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "topic_server_vs_client_components",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572283+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_https_nextjs_org_learn_react_foundations_server_and_client_c",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572293+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "topic_performance_characteristics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572301+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_https_codism_io_react_server_components_vs_client_components",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572313+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "topic_performance_characteristics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572320+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_https_snapitsoftware_com_blog_react_server_components_perfor",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572331+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "topic_performance_characteristics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572338+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_blog_logrocket_com_react_server_components_comprehensi",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572349+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_nextjs_org_docs_13_app_building_your_application_rende",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572361+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "topic_react_flight_protocol",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572368+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_https_medium_com_luckyshuklakunda_streaming_ssr_in_next_js_f",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572379+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "topic_technical_implementation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572387+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "source_https_www_sitepoint_com_react_server_components_streaming_pe",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572399+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "topic_react_flight_protocol",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572406+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_www_linkedin_com_pulse_react_flight_protocol_nidhin_ku",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572417+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_romanliutikov_com_blog_towards_react_server_components",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572428+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "topic_react_flight_protocol",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572435+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_romanliutikov_com_blog_towards_react_server_components",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572444+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "topic_react_flight_protocol",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572452+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_dev_to_jmmy_cve_2025_55182_explained_2e85",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572463+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "topic_technical_implementation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572470+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_github_com_kavienanj_cve_2025_55182_blob_main_02_under",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572481+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "topic_performance_characteristics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572488+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_https_markaicode_com_nextjs_15_router_performance_comparison",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572499+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "topic_performance_characteristics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572506+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_https_strapi_io_blog_best_javascript_frameworks",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572517+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_014",
+      "type": "contradicts",
+      "weight": 1.5,
+      "created_at": "2026-02-25T11:25:25.572522+00:00",
+      "metadata": {
+        "description": "App Router performance benefits vs Pages Router handling more concurrent requests",
+        "resolution": "App Router benefits are well-documented for general use cases; Pages Router claim may be specific edge case with unclear methodology"
+      }
+    },
+    {
+      "source": "gap_000",
+      "target": "topic_performance_characteristics",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572534+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_001",
+      "target": "topic_react_flight_protocol",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572542+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_002",
+      "target": "topic_performance_characteristics",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572549+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_003",
+      "target": "topic_architecture_and_routing",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572556+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_004",
+      "target": "topic_architecture_and_routing",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572562+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_005",
+      "target": "topic_performance_characteristics",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-25T11:25:25.572569+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_003",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572587+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_004",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572594+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_004",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572600+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572616+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_007",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572621+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572625+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_007",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572630+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572634+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572639+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572652+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572657+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572661+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572666+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572670+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572675+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-25T11:25:25.572685+00:00",
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "domain": "nextjs-react",
+    "created_at": "2026-02-25T11:25:25.572017+00:00",
+    "updated_at": "2026-02-25T11:25:25.572017+00:00",
+    "node_count": 41,
+    "edge_count": 55,
+    "cluster_count": 4
+  },
+  "clusters": [
+    {
+      "id": "cluster_1",
+      "topics": [
+        "topic_performance_characteristics",
+        "topic_server_vs_client_components"
+      ],
+      "claims": [
+        "claim_005",
+        "claim_006",
+        "claim_015",
+        "claim_004",
+        "claim_007",
+        "claim_014",
+        "claim_003",
+        "claim_002"
+      ],
+      "size": 10,
+      "density": 0.4
+    },
+    {
+      "id": "cluster_3",
+      "topics": [
+        "topic_react_flight_protocol"
+      ],
+      "claims": [
+        "claim_008",
+        "claim_012",
+        "claim_011",
+        "claim_010"
+      ],
+      "size": 5,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_0",
+      "topics": [
+        "topic_technical_implementation"
+      ],
+      "claims": [
+        "claim_013",
+        "claim_009"
+      ],
+      "size": 3,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_2",
+      "topics": [
+        "topic_architecture_and_routing"
+      ],
+      "claims": [
+        "claim_001"
+      ],
+      "size": 2,
+      "density": 1.0
+    }
+  ],
+  "gap_analysis": {
+    "isolated_nodes": [],
+    "weak_clusters": [
+      {
+        "cluster_id": "cluster_2",
+        "size": 2,
+        "topics": [
+          "topic_architecture_and_routing"
+        ]
+      }
+    ],
+    "missing_connections": []
+  }
+}

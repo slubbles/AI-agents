@@ -1,0 +1,349 @@
+{
+  "domain_summary": "Next.js React Server Components represent a server-first architecture that uses a custom React Flight protocol to stream serialized component trees to clients, achieving 32-68% bundle size reductions and significant performance improvements in real-world applications. The App Router implements file-based routing with nested layouts, prioritizing Server Components by default for data fetching and security while reserving Client Components for interactive features. React Flight uses a row-based, JSON-like serialization format with '$' prefix reference notation to enable cross-chunk references and streaming of async boundaries, though official technical specifications remain largely undocumented by the React team.",
+  "topics": [
+    {
+      "name": "Architecture and Routing",
+      "subtopics": [
+        "app-router-structure",
+        "file-based-routing",
+        "nested-layouts",
+        "route-groups",
+        "parallel-routes"
+      ]
+    },
+    {
+      "name": "Server vs Client Components",
+      "subtopics": [
+        "component-selection-criteria",
+        "data-fetching",
+        "security-patterns",
+        "interactive-features"
+      ]
+    },
+    {
+      "name": "Performance Characteristics",
+      "subtopics": [
+        "bundle-size-reduction",
+        "core-web-vitals",
+        "streaming-benefits",
+        "enterprise-metrics"
+      ]
+    },
+    {
+      "name": "React Flight Protocol",
+      "subtopics": [
+        "serialization-format",
+        "reference-system",
+        "chunk-boundaries",
+        "streaming-mechanics"
+      ]
+    },
+    {
+      "name": "Technical Implementation",
+      "subtopics": [
+        "infrastructure-requirements",
+        "browser-parser-interaction",
+        "security-vulnerabilities"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_001",
+      "claim": "Next.js App Router uses file-based routing where the directory structure mirrors the URL structure",
+      "topic": "Architecture and Routing",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:18:57.457979+00:00",
+      "last_confirmed": "2026-02-25T11:18:57.457979+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://nextjs.org/docs/app/getting-started/project-structure"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_002",
+      "claim": "React Server Components are the default in Next.js App Router for better performance and security",
+      "topic": "Server vs Client Components",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:18:57.457979+00:00",
+      "last_confirmed": "2026-02-25T11:18:57.457979+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://nextjs.org/learn/react-foundations/server-and-client-components"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_003",
+      "claim": "Server Components should be used for data fetching, accessing APIs, and protecting sensitive operations from the client",
+      "topic": "Server vs Client Components",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:18:57.457979+00:00",
+      "last_confirmed": "2026-02-25T11:18:57.457979+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://prateekbadjatya.medium.com/react-server-component-vs-client-component-when-to-use-what-in-next-js-e924a39965c3"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_004",
+      "claim": "Client Components should be used for interactive features requiring hooks (useState, useEffect) and event listeners",
+      "topic": "Server vs Client Components",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:18:57.457979+00:00",
+      "last_confirmed": "2026-02-25T11:18:57.457979+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://nextjs.org/learn/react-foundations/server-and-client-components"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_005",
+      "claim": "Enterprise audit of 32 apps migrated to Server Components showed 68% smaller client bundles, 55% faster Time to Interactive (TTI), and zero client-side data exposure",
+      "topic": "Performance Characteristics",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_confirmed": "2026-02-25T11:19:58.309417+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://codism.io/react-server-components-vs-client-components-the-2025-enterprise-guide/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_006",
+      "claim": "Case study of e-commerce site using Next.js Server Components showed 67% Largest Contentful Paint (LCP) improvement and 51% bundle size reduction",
+      "topic": "Performance Characteristics",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_confirmed": "2026-02-25T11:19:58.309417+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://snapitsoftware.com/blog/react-server-components-performance/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_007",
+      "claim": "React Server Components significantly increase page load time and reduce total JavaScript bundle size by eliminating hydration and avoiding JS shipping to clients",
+      "topic": "Performance Characteristics",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_confirmed": "2026-02-25T11:20:58.880915+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://blog.logrocket.com/react-server-components-comprehensive-guide/",
+        "https://nextjs.org/docs/13/app/building-your-application/rendering/server-components"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_008",
+      "claim": "Streaming sends HTML chunks progressively to the browser as they become ready, rather than waiting for the entire page to be rendered on the server before sending",
+      "topic": "React Flight Protocol",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:20:58.880915+00:00",
+      "last_confirmed": "2026-02-25T11:20:58.880915+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://medium.com/@luckyshuklakunda/streaming-ssr-in-next-js-for-better-performance-46937367e956"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_009",
+      "claim": "Reverse proxies like Nginx buffer responses by default, requiring proxy_buffering off or X-Accel-Buffering: no header to enable streaming benefits; otherwise chunked stream arrives as one blob",
+      "topic": "Technical Implementation",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:20:58.880915+00:00",
+      "last_confirmed": "2026-02-25T11:20:58.880915+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.sitepoint.com/react-server-components-streaming-performance-2026/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_010",
+      "claim": "React Flight is a compact, streaming, JSON-like serialization format specifically designed to represent a React component tree",
+      "topic": "React Flight Protocol",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-25T11:22:55.148017+00:00",
+      "last_confirmed": "2026-02-25T11:24:32.199134+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://www.linkedin.com/pulse/react-flight-protocol-nidhin-kumar-dhzpc",
+        "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_011",
+      "claim": "React Flight uses a row-based JSON format (not standard JSON) that supports references, React elements, and extended data types like Date, Set, and Map",
+      "topic": "React Flight Protocol",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:24:32.199134+00:00",
+      "last_confirmed": "2026-02-25T11:24:32.199134+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_012",
+      "claim": "Flight protocol uses a reference system with '$' prefix notation to create cross-chunk references; chunks can reference each other using this syntax",
+      "topic": "React Flight Protocol",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:24:32.199134+00:00",
+      "last_confirmed": "2026-02-25T11:24:32.199134+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://dev.to/jmmy/cve-2025-55182-explained-2e85"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_013",
+      "claim": "Flight serialization includes a reference resolution mechanism via the 'reviveModel' function in ReactFlightReplyServer.js that maps chunk IDs to deserialized objects",
+      "topic": "Technical Implementation",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-25T11:24:32.199134+00:00",
+      "last_confirmed": "2026-02-25T11:24:32.199134+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_014",
+      "claim": "Pages Router handles 6x more concurrent requests than App Router in heavy server-side rendering scenarios",
+      "topic": "Performance Characteristics",
+      "confidence": "low",
+      "status": "conflicted",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_confirmed": "2026-02-25T11:19:58.309417+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://markaicode.com/nextjs-15-router-performance-comparison/"
+      ],
+      "supersedes": null,
+      "conflicted_by": "claim_002",
+      "notes": "Contradicts claims about App Router performance benefits"
+    },
+    {
+      "id": "claim_015",
+      "claim": "70% TTFB reduction claimed for Server Components approach",
+      "topic": "Performance Characteristics",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "2026-02-25T11:19:58.309417+00:00",
+      "last_confirmed": "2026-02-25T11:19:58.309417+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://strapi.io/blog/best-javascript-frameworks"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Unusually high figure not corroborated elsewhere"
+    }
+  ],
+  "contradictions": [
+    {
+      "claim_a": "claim_002",
+      "claim_b": "claim_014",
+      "description": "App Router performance benefits vs Pages Router handling more concurrent requests",
+      "resolution": "App Router benefits are well-documented for general use cases; Pages Router claim may be specific edge case with unclear methodology"
+    }
+  ],
+  "knowledge_gaps": [
+    {
+      "gap": "Specific FCP (First Contentful Paint) numerical benchmarks comparing pure Server Components vs pure Client Components in controlled environments",
+      "priority": "high",
+      "related_topic": "Performance Characteristics"
+    },
+    {
+      "gap": "Official technical specification for Flight serialization format, including complete type tag system and chunk boundary algorithms",
+      "priority": "high",
+      "related_topic": "React Flight Protocol"
+    },
+    {
+      "gap": "Detailed TTFB measurements in milliseconds for comparable applications using Server Components vs Client Components",
+      "priority": "high",
+      "related_topic": "Performance Characteristics"
+    },
+    {
+      "gap": "Real-world recommendations for structuring large applications with hundreds of routes using App Router",
+      "priority": "medium",
+      "related_topic": "Architecture and Routing"
+    },
+    {
+      "gap": "Advanced error handling and boundary patterns beyond basic error.tsx usage",
+      "priority": "medium",
+      "related_topic": "Architecture and Routing"
+    },
+    {
+      "gap": "Performance impact of different data fetching patterns on TTFB/FCP metrics",
+      "priority": "medium",
+      "related_topic": "Performance Characteristics"
+    }
+  ],
+  "synthesis_stats": {
+    "total_claims": 15,
+    "active_claims": 14,
+    "superseded_claims": 0,
+    "disputed_claims": 1,
+    "contradictions_found": 1,
+    "topics_covered": 5,
+    "outputs_synthesized": 5,
+    "synthesis_date": "2026-02-25",
+    "incremental": false
+  },
+  "_synthesized_at": "2026-02-25T11:25:25.571164+00:00",
+  "_domain": "nextjs-react",
+  "_outputs_count": 5,
+  "_incremental": false
+}

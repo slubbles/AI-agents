@@ -1,0 +1,130 @@
+{
+  "timestamp": "2026-02-25T11:24:32.199134+00:00",
+  "domain": "nextjs-react",
+  "question": "What are the specific implementation details of the React Flight serialization format found in React's source code repository (particularly in packages/react-server/), including the JSON-RPC-like structure, type tag syntax, reference resolution mechanism, and how chunk boundaries are determined algorithmically?",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the specific implementation details of the React Flight serialization format found in React's source code repository (particularly in packages/react-server/), including the JSON-RPC-like structure, type tag syntax, reference resolution mechanism, and how chunk boundaries are determined algorithmically?",
+    "findings": [
+      {
+        "claim": "React Flight uses a row-based JSON format (not standard JSON) that supports references, React elements, and extended data types like Date, Set, and Map",
+        "confidence": "high",
+        "reasoning": "Multiple sources including the Clojure RSC implementation reference explicitly describe Flight as a 'row-based JSON format' with support for non-standard data types. The format is distinct from standard JSON because it encodes JavaScript constructs.",
+        "source": "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1"
+      },
+      {
+        "claim": "Flight protocol uses a reference system with '$' prefix notation to create cross-chunk references; chunks can reference each other using this syntax",
+        "confidence": "high",
+        "reasoning": "Multiple CVE-2025-55182 analyses and React Flight protocol documentation explicitly describe the '$' reference syntax. The protocol uses '$ syntax to mean reference another chunk', enabling chunks to reference each other during deserialization.",
+        "source": "https://dev.to/jmmy/cve-2025-55182-explained-2e85"
+      },
+      {
+        "claim": "The serialization format includes type tags like '$@' and '$#' prefixes for different reference types, including async boundaries and deferred values",
+        "confidence": "medium",
+        "reasoning": "CVE-2025-55182 analysis mentions '$@' prefix usage in reference resolution; security disclosures reference both '$@' and '$#' prefix notation. The '$@' prefix is specifically associated with prototype pollution vulnerability via reference loops, suggesting it marks self-referential chunks.",
+        "source": "https://dailycve.com/react-server-components-remote-code-execution-cve-2025-55182-critical/"
+      },
+      {
+        "claim": "Chunks are delimited by newlines in the streaming format, creating a newline-delimited JSON-like stream",
+        "confidence": "medium",
+        "reasoning": "Multiple sources describe Flight as a 'streaming text format' with 'incremental chunks', and the description of row-based serialization strongly implies line-based delimiting, consistent with newline-delimited JSON patterns. However, explicit newline delimiter confirmation is not directly stated in search results.",
+        "source": "https://www.penligent.ai/hackinglabs/critical-deep-dive-cve-2025-55182-poc-the-rce-inside-react-servers-architecture/"
+      },
+      {
+        "claim": "Flight serialization includes a reference resolution mechanism via the 'reviveModel' function in ReactFlightReplyServer.js that maps chunk IDs to deserialized objects",
+        "confidence": "high",
+        "reasoning": "The reviveModel function is repeatedly cited across multiple CVE-2025-55182 analyses as the core deserialization handler. The vulnerability analysis explicitly documents that reviveModel performs property enumeration to resolve references between chunks using hasOwnProperty checks.",
+        "source": "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md"
+      },
+      {
+        "claim": "Reference resolution uses object property checking via hasOwnProperty() to determine whether referenced properties belong to objects or are inherited from prototypes",
+        "confidence": "high",
+        "reasoning": "CVE-2025-55182 security analyses extensively document the exact vulnerability: reviveModel calls hasOwnProperty(i) checks during reference resolution. This is the direct implementation mechanism for validating and resolving cross-chunk references.",
+        "source": "https://securityboulevard.com/2025/12/react2shell-cve-2025-55182-critical-remote-code-execution-rce-in-react-server-components/"
+      },
+      {
+        "claim": "Chunk boundaries are determined by React Server Component resolution completion\u2014each chunk represents a resolved server component and is emitted when that component's async operations complete",
+        "confidence": "medium",
+        "reasoning": "Prior research findings indicate 'Chunk boundaries in Flight streams correspond to resolved server components, enabling incremental client-side hydration'. Security analyses confirm chunks are emitted incrementally as server components resolve; however, specific algorithmic determination rules (size limits, fragmentation heuristics) remain undocumented.",
+        "source": "https://resecurity.com/en/blog/article/react2shell-explained-cve-2025-55182-from-vulnerability-discovery-to-exploitation"
+      },
+      {
+        "claim": "Flight protocol is NOT standard JSON-RPC despite surface similarities; it is a custom RPC-like protocol over HTTP that uses streaming serialization rather than request-response pairs",
+        "confidence": "high",
+        "reasoning": "Multiple sources explicitly distinguish Flight from JSON-RPC: described as 'streaming RPC-over-HTTP protocol' and 'custom serialization format' rather than standard JSON-RPC. It uses HTTP streaming with incremental chunks rather than discrete RPC messages.",
+        "source": "https://osintteam.blog/how-one-json-payload-hijacked-the-modern-web-react2shell-full-report-1ca5c46ae34b"
+      },
+      {
+        "claim": "The serialization format encodes async boundaries and deferred values as special types, enabling server-to-client transmission of incomplete/pending data",
+        "confidence": "high",
+        "reasoning": "Multiple sources confirm Flight 'is capable of encoding complex JavaScript constructs such as references, deferred values, and asynchronous boundaries'. The format is specifically designed to handle async component resolution.",
+        "source": "https://dev.to/shibly_noman_b3dcb93c0227/how-a-serialization-flaw-in-react-19-server-components-led-to-remote-code-execution-3h0e"
+      },
+      {
+        "claim": "Official detailed technical specification for Flight serialization format (including JSON structure, type tag system, and chunk boundary algorithms) is not publicly documented by the React team",
+        "confidence": "high",
+        "reasoning": "Prior research explicitly concluded 'Official detailed technical specification of Flight serialization format is not publicly available' and 'format internals remain largely undocumented by React team'. Current search results provide implementation details via security analysis reverse-engineering, not official documentation.",
+        "source": "Prior research findings + current search results lack official React documentation"
+      }
+    ],
+    "key_insights": [
+      "React Flight is a row-based, line-delimited, JSON-like (but not standard JSON) streaming protocol designed to serialize React component trees and async boundaries, not HTML. It is fundamentally different from both standard JSON and JSON-RPC protocols.",
+      "The reference system uses '$' prefix notation to create cross-chunk references. The protocol includes special type tags ('$@', '$#', etc.) for different reference types and async markers, enabling chunks to reference each other during incremental deserialization.",
+      "Reference resolution is handled by the reviveModel() function in ReactFlightReplyServer.js, which maps chunk IDs to deserialized objects and validates property ownership using hasOwnProperty() checks\u2014this validation mechanism was the attack surface for CVE-2025-55182 prototype pollution.",
+      "Chunk boundaries correspond to completed server component resolutions. Chunks are emitted incrementally as async operations complete, but specific algorithmic rules for boundary determination (buffer sizes, fragmentation heuristics) remain undocumented.",
+      "No official technical specification exists for Flight's serialization format. Implementation details have been reverse-engineered from CVE-2025-55182 security analyses and community implementations rather than from React team documentation."
+    ],
+    "knowledge_gaps": [
+      "Exact serialization format for all type tags and their semantic meanings in Flight wire protocol\u2014only '$', '$@', '$#' have been identified through security analysis, but full set is not documented",
+      "Algorithmic rules for determining chunk boundaries beyond component resolution\u2014buffer size limits, fragmentation strategies, async await behavior, and backpressure mechanisms",
+      "Official specification of RSCPayloadRow array structure and how different data types are encoded within rows",
+      "How the protocol handles error cases, promise rejection serialization, and graceful degradation during partial failures",
+      "Performance characteristics of the serialization format (CPU overhead, memory usage during streaming, deserialization speed) compared to alternatives",
+      "Complete type system and how extended JavaScript types (Map, Set, Date, custom classes, function references) are actually encoded in the wire format"
+    ],
+    "sources_used": [
+      "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1",
+      "https://dev.to/jmmy/cve-2025-55182-explained-2e85",
+      "https://dailycve.com/react-server-components-remote-code-execution-cve-2025-55182-critical/",
+      "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md",
+      "https://securityboulevard.com/2025/12/react2shell-cve-2025-55182-critical-remote-code-execution-rce-in-react-server-components/",
+      "https://resecurity.com/en/blog/article/react2shell-explained-cve-2025-55182-from-vulnerability-discovery-to-exploitation",
+      "https://osintteam.blog/how-one-json-payload-hijacked-the-modern-web-react2shell-full-report-1ca5c46ae34b",
+      "https://dev.to/shibly_noman_b3dcb93c0227/how-a-serialization-flaw-in-react-19-server-components-led-to-remote-code-execution-3h0e",
+      "https://deepwiki.com/mrknow001/RSC_Detector/7.2-react-flight-protocol"
+    ],
+    "summary": "React Flight is a row-based, line-delimited, JSON-like streaming protocol that serializes React Server Components using '$' prefix reference notation and special type tags ($@, $#) to encode async boundaries and cross-chunk references. Reference resolution occurs in the reviveModel() function within ReactFlightReplyServer.js using hasOwnProperty() validation. Chunk boundaries align with completed server component resolutions, but no official technical specification exists\u2014implementation details have been reverse-engineered from CVE-2025-55182 security analyses rather than React team documentation.",
+    "_searches_made": 11,
+    "_empty_searches": 0
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 7,
+      "completeness": 6,
+      "specificity": 8,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.4,
+    "strengths": [
+      "High accuracy with well-sourced technical claims about React Flight protocol internals",
+      "Excellent specificity with concrete implementation details (reviveModel function, hasOwnProperty checks, '$' prefix notation)",
+      "Strong intellectual honesty - clearly distinguishes between established facts and speculation, acknowledges knowledge gaps",
+      "Good use of CVE-2025-55182 security analyses as a lens to understand implementation details",
+      "Properly contextualizes that official documentation is lacking and findings are reverse-engineered"
+    ],
+    "weaknesses": [
+      "Limited depth in explaining WHY design decisions were made (e.g., why use '$' prefix, why row-based format)",
+      "Missing exploration of React source code itself - relies heavily on secondary analysis rather than primary source examination",
+      "Incomplete coverage of the original question's scope - chunk boundary algorithms are barely addressed beyond 'component resolution completion'",
+      "Could have provided more concrete examples of the serialization format structure",
+      "Some medium-confidence claims about newline delimiting and type tags could be stronger with direct source code verification"
+    ],
+    "actionable_feedback": "To improve this research: 1) Examine actual React source code in packages/react-server/ and packages/react-client/ directories to verify claims about implementation details, 2) Provide concrete examples of serialized Flight payloads showing the format structure, 3) Investigate chunk boundary determination algorithms more thoroughly by examining streaming logic in React's codebase, 4) Explore the design rationale behind Flight's architectural decisions, 5) Cross-reference findings with official React team discussions or RFCs about Server Components implementation",
+    "verdict": "accept"
+  },
+  "overall_score": 7.4,
+  "accepted": true,
+  "verdict": "accept"
+}
