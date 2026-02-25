@@ -127,7 +127,53 @@ OUTPUT FORMAT — respond with ONLY this JSON, no markdown fencing:
 """
 
 
+def _build_incremental_prompt() -> str:
+    today = date.today().isoformat()
+    return f"""\
+You are a knowledge synthesizer performing an INCREMENTAL UPDATE. TODAY'S DATE: {today}.
+
+You receive:
+1. The EXISTING knowledge base (claims, topics, contradictions, gaps)
+2. A small set of NEW research outputs that weren't included in the last synthesis
+
+Your job: MERGE the new findings into the existing knowledge base EFFICIENTLY.
+
+Rules:
+- DO NOT rewrite everything. Start from the existing KB structure.
+- ADD new claims from the new outputs
+- UPDATE existing claims if new evidence confirms or contradicts them
+- SUPERSEDE old claims if new data replaces them
+- DETECT new contradictions between new and existing claims
+- UPDATE confidence levels based on new evidence (e.g., claim now corroborated by 2+ outputs)
+- UPDATE the domain summary only if new findings materially change understanding
+- REMOVE gaps that the new outputs have addressed
+- ADD new gaps discovered in the new outputs
+
+OUTPUT FORMAT: Same as full synthesis — respond with ONLY this JSON, no markdown fencing:
+{{
+    "domain_summary": "Updated 3-5 sentence summary",
+    "topics": [existing + new topics],
+    "claims": [all claims — existing updated + new],
+    "contradictions": [all contradictions — existing + new],
+    "knowledge_gaps": [remaining + new gaps],
+    "synthesis_stats": {{
+        "total_claims": 0,
+        "active_claims": 0,
+        "superseded_claims": 0,
+        "disputed_claims": 0,
+        "contradictions_found": 0,
+        "topics_covered": 0,
+        "outputs_synthesized": 0,
+        "synthesis_date": "{today}",
+        "incremental": true,
+        "new_outputs_merged": 0
+    }}
+}}
+"""
+
+
 SYNTHESIS_PROMPT = _build_synthesis_prompt()
+INCREMENTAL_PROMPT = _build_incremental_prompt()
 
 
 def _prepare_synthesis_data(outputs: list[dict], existing_kb: dict | None) -> str:
@@ -159,9 +205,12 @@ def synthesize(domain: str, force: bool = False) -> dict | None:
     """
     Synthesize all accepted outputs for a domain into a unified knowledge base.
     
+    Uses INCREMENTAL mode when an existing KB exists and only a few new outputs
+    need to be merged. Uses FULL mode for first synthesis or when forced.
+    
     Args:
         domain: The domain to synthesize
-        force: If True, synthesize even if not enough new outputs
+        force: If True, do full synthesis even if incremental would work
     
     Returns:
         The synthesized knowledge base dict, or None if not enough data.
@@ -184,25 +233,50 @@ def synthesize(domain: str, force: bool = False) -> dict | None:
             print(f"[SYNTHESIZER] Only {new_since} new outputs since last synthesis "
                   f"(need {SYNTHESIZE_EVERY_N}). Use --synthesize --domain {domain} to force.")
             return existing_kb
+    
+    # Decide: incremental vs full synthesis
+    use_incremental = False
+    new_outputs = accepted  # Default: all outputs (full mode)
+    
+    if existing_kb and not force:
+        last_count = existing_kb.get("synthesis_stats", {}).get("outputs_synthesized", 0)
+        new_since = len(accepted) - last_count
+        if new_since > 0 and new_since <= 10 and last_count >= MIN_OUTPUTS_FOR_SYNTHESIS:
+            # Incremental: only send new outputs + existing KB
+            use_incremental = True
+            new_outputs = accepted[-new_since:]
+            print(f"[SYNTHESIZER] Incremental mode: merging {new_since} new outputs into existing KB ({last_count} outputs)")
+    
+    if not use_incremental:
+        # Full synthesis: take recent outputs (respect context limits)
+        new_outputs = accepted[-MAX_OUTPUTS_TO_SYNTHESIZE:]
 
-    # Take recent outputs (respect context limits)
-    recent = accepted[-MAX_OUTPUTS_TO_SYNTHESIZE:]
     stats = get_stats(domain)
 
-    print(f"[SYNTHESIZER] Synthesizing {len(recent)} accepted outputs for domain '{domain}'...")
+    if use_incremental:
+        print(f"[SYNTHESIZER] Incrementally synthesizing {len(new_outputs)} new outputs for domain '{domain}'...")
+    else:
+        print(f"[SYNTHESIZER] Full synthesis of {len(new_outputs)} accepted outputs for domain '{domain}'...")
     print(f"  Domain stats: {stats['count']} total, {stats['accepted']} accepted, avg {stats['avg_score']:.1f}")
 
     if existing_kb:
         existing_claims = len(existing_kb.get("claims", []))
-        print(f"  Existing KB: {existing_claims} claims, updating...")
+        print(f"  Existing KB: {existing_claims} claims, {'updating' if use_incremental else 'rebuilding'}...")
     else:
         print(f"  No existing KB — creating first synthesis")
 
     # Prepare data
-    synthesis_data = _prepare_synthesis_data(recent, existing_kb)
+    if use_incremental:
+        synthesis_data = _prepare_synthesis_data(new_outputs, existing_kb)
+        system_prompt = INCREMENTAL_PROMPT
+        context_label = f"{len(new_outputs)} new"
+    else:
+        synthesis_data = _prepare_synthesis_data(new_outputs, existing_kb)
+        system_prompt = SYNTHESIS_PROMPT
+        context_label = f"{len(new_outputs)}"
 
     user_message = (
-        f"Synthesize these {len(recent)} research outputs for domain '{domain}' "
+        f"Synthesize these {context_label} research outputs for domain '{domain}' "
         f"into a unified knowledge base.\n\n"
         f"DATA:\n{synthesis_data}"
     )
@@ -212,7 +286,7 @@ def synthesize(domain: str, force: bool = False) -> dict | None:
         client,
         model=MODELS["synthesizer"],  # Sonnet — needs strong reasoning for contradictions
         max_tokens=8192,
-        system=SYNTHESIS_PROMPT,
+        system=system_prompt,
         messages=[{"role": "user", "content": user_message}],
     )
 
@@ -240,12 +314,16 @@ def synthesize(domain: str, force: bool = False) -> dict | None:
     # Enrich with metadata
     result["_synthesized_at"] = datetime.now(timezone.utc).isoformat()
     result["_domain"] = domain
-    result["_outputs_count"] = len(recent)
+    result["_outputs_count"] = len(new_outputs)
+    result["_incremental"] = use_incremental
 
     # Update synthesis stats
     synth_stats = result.get("synthesis_stats", {})
     synth_stats["outputs_synthesized"] = len(accepted)  # Total accepted, not just recent
     synth_stats["synthesis_date"] = date.today().isoformat()
+    synth_stats["incremental"] = use_incremental
+    if use_incremental:
+        synth_stats["new_outputs_merged"] = len(new_outputs)
     result["synthesis_stats"] = synth_stats
 
     # Save to disk

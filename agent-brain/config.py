@@ -23,6 +23,7 @@ MODELS = {
     "synthesizer": "claude-sonnet-4-20250514",    # strong — contradiction detection + integration
     "cross_domain": "claude-sonnet-4-20250514",   # strong — principle abstraction
     "question_generator": "claude-haiku-4-5-20251001",  # cheap — routing/synthesis task
+    "verifier": "claude-haiku-4-5-20251001",      # cheap — web search + fact checking
 }
 
 # --- Quality Gate ---
@@ -33,6 +34,7 @@ MAX_RETRIES = 2  # how many times researcher retries after rejection
 MEMORY_DIR = os.path.join(os.path.dirname(__file__), "memory")
 STRATEGY_DIR = os.path.join(os.path.dirname(__file__), "strategies")
 LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
+DB_PATH = os.path.join(os.path.dirname(__file__), "logs", "agent_brain.db")
 
 # --- Budget ---
 # Estimated cost per 1K tokens (input/output) for tracking
@@ -52,7 +54,9 @@ MAX_SEARCHES = 10     # hard cap on total web searches per run
 
 # --- Strategy Evolution ---
 SAFETY_DROP_THRESHOLD = 0.20  # block if new strategy avg drops >20%
-TRIAL_PERIOD = 3              # outputs under trial before evaluation
+TRIAL_PERIOD = 5              # outputs under trial before evaluation
+TRIAL_EXTEND_LIMIT = 3        # max extensions when evidence is inconclusive
+TRIAL_P_VALUE_THRESHOLD = 0.10  # p-value threshold for t-test significance
 
 # --- Meta-Analysis ---
 MIN_OUTPUTS_FOR_ANALYSIS = 3   # min outputs before meta-analysis runs

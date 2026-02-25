@@ -38,6 +38,9 @@ client = Anthropic(api_key=ANTHROPIC_API_KEY)
 # Principles file
 PRINCIPLES_FILE = os.path.join(STRATEGY_DIR, "_principles.json")
 
+# Transfer tracking file
+TRANSFER_LOG_FILE = os.path.join(STRATEGY_DIR, "_transfer_log.json")
+
 
 def _build_extraction_prompt() -> str:
     today = date.today().isoformat()
@@ -434,6 +437,14 @@ def generate_seed_strategy(target_domain: str, question_hint: str = "") -> dict 
         print(f"    → {a}")
     print(f"  ⚠ Run: python main.py --domain {target_domain} --approve {new_version}")
 
+    # Log this transfer for tracking
+    _log_transfer(
+        target_domain=target_domain,
+        source_domains=principles.get("source_domains", []),
+        version=new_version,
+        principles_applied=principles_applied,
+    )
+
     return {
         "version": new_version,
         "strategy_filepath": filepath,
@@ -441,3 +452,180 @@ def generate_seed_strategy(target_domain: str, question_hint: str = "") -> dict 
         "domain_adaptations": domain_adaptations,
         "expected_improvement": result.get("expected_improvement", ""),
     }
+
+
+# ============================================================
+# Transfer Tracking — measure if transfers actually help
+# ============================================================
+
+def _load_transfer_log() -> list[dict]:
+    """Load the transfer log."""
+    if not os.path.exists(TRANSFER_LOG_FILE):
+        return []
+    try:
+        with open(TRANSFER_LOG_FILE) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return []
+
+
+def _save_transfer_log(log: list[dict]) -> None:
+    """Save the transfer log."""
+    os.makedirs(os.path.dirname(TRANSFER_LOG_FILE), exist_ok=True)
+    with open(TRANSFER_LOG_FILE, "w") as f:
+        json.dump(log, f, indent=2)
+
+
+def _log_transfer(target_domain: str, source_domains: list[str], version: str, principles_applied: list[str]) -> None:
+    """Record a transfer event for later tracking."""
+    log = _load_transfer_log()
+    log.append({
+        "target_domain": target_domain,
+        "source_domains": source_domains,
+        "strategy_version": version,
+        "principles_applied": principles_applied,
+        "transferred_at": datetime.now(timezone.utc).isoformat(),
+        "status": "pending",  # pending → active → measured
+        "baseline_avg": None,  # Score avg before transfer strategy
+        "transfer_avg": None,  # Score avg under transfer strategy
+        "lift": None,          # transfer_avg - baseline_avg
+    })
+    _save_transfer_log(log)
+
+
+def measure_transfer_lift(target_domain: str) -> dict | None:
+    """
+    Measure the performance lift from a cross-domain transfer.
+    
+    Compares scores before the transfer strategy vs scores under it.
+    Updates the transfer log and principle confidence.
+    
+    Returns:
+        Dict with lift details, or None if no transfer to measure.
+    """
+    log = _load_transfer_log()
+    
+    # Find the most recent pending/active transfer for this domain
+    transfer = None
+    for entry in reversed(log):
+        if entry.get("target_domain") == target_domain and entry.get("status") in ("pending", "active"):
+            transfer = entry
+            break
+    
+    if not transfer:
+        print(f"[CROSS-DOMAIN] No pending transfer to measure for domain '{target_domain}'")
+        return None
+    
+    version = transfer.get("strategy_version", "")
+    
+    # Get performance data
+    perf = get_strategy_performance(target_domain, version)
+    if perf["count"] < 3:
+        print(f"[CROSS-DOMAIN] Transfer strategy {version} has only {perf['count']} outputs (need 3+)")
+        transfer["status"] = "active"
+        _save_transfer_log(log)
+        return None
+    
+    # Get baseline (performance before the transfer strategy)
+    all_outputs = load_outputs(target_domain, min_score=0)
+    baseline_scores = []
+    for o in all_outputs:
+        sv = o.get("_strategy_version", "default")
+        if sv != version and sv != "":
+            baseline_scores.append(o.get("overall_score", 0))
+    
+    transfer_avg = perf["avg_score"]
+    
+    if baseline_scores:
+        baseline_avg = sum(baseline_scores) / len(baseline_scores)
+        lift = transfer_avg - baseline_avg
+    else:
+        baseline_avg = None
+        lift = None
+    
+    # Update transfer log
+    transfer["status"] = "measured"
+    transfer["baseline_avg"] = round(baseline_avg, 2) if baseline_avg is not None else None
+    transfer["transfer_avg"] = round(transfer_avg, 2)
+    transfer["lift"] = round(lift, 2) if lift is not None else None
+    transfer["measured_at"] = datetime.now(timezone.utc).isoformat()
+    transfer["outputs_measured"] = perf["count"]
+    _save_transfer_log(log)
+    
+    # Update principle confidence based on lift
+    if lift is not None:
+        _update_principle_confidence(transfer.get("principles_applied", []), lift)
+    
+    # Report
+    if lift is not None:
+        direction = "↑" if lift > 0 else "↓" if lift < 0 else "→"
+        print(f"[CROSS-DOMAIN] Transfer lift measured for '{target_domain}': "
+              f"baseline {baseline_avg:.1f} → transfer {transfer_avg:.1f} ({direction}{abs(lift):.1f})")
+    else:
+        print(f"[CROSS-DOMAIN] Transfer avg for '{target_domain}': {transfer_avg:.1f} (no baseline to compare)")
+    
+    return {
+        "domain": target_domain,
+        "version": version,
+        "baseline_avg": baseline_avg,
+        "transfer_avg": transfer_avg,
+        "lift": lift,
+        "outputs_measured": perf["count"],
+    }
+
+
+def _update_principle_confidence(principles_applied: list[str], lift: float) -> None:
+    """
+    Update principle confidence based on measured transfer lift.
+    
+    Positive lift → increase confidence of applied principles.
+    Negative lift → decrease confidence.
+    """
+    principles_data = load_principles()
+    if not principles_data or not principles_data.get("principles"):
+        return
+    
+    updated = False
+    for principle in principles_data["principles"]:
+        p_text = principle.get("principle", "")
+        if p_text in principles_applied:
+            # Track transfer results
+            if "transfer_results" not in principle:
+                principle["transfer_results"] = []
+            principle["transfer_results"].append({
+                "lift": lift,
+                "measured_at": datetime.now(timezone.utc).isoformat(),
+            })
+            
+            # Adjust confidence based on accumulated evidence
+            results = principle["transfer_results"]
+            avg_lift = sum(r["lift"] for r in results) / len(results)
+            
+            if avg_lift > 0.5 and len(results) >= 2:
+                principle["confidence"] = "high"
+            elif avg_lift > 0 and len(results) >= 1:
+                principle["confidence"] = "medium"
+            elif avg_lift < -0.5:
+                principle["confidence"] = "low"
+            
+            updated = True
+    
+    if updated:
+        with open(PRINCIPLES_FILE, "w") as f:
+            json.dump(principles_data, f, indent=2)
+
+
+def get_transfer_stats() -> list[dict]:
+    """Get summary of all transfer events and their outcomes."""
+    log = _load_transfer_log()
+    return [
+        {
+            "target_domain": t.get("target_domain"),
+            "source_domains": t.get("source_domains"),
+            "version": t.get("strategy_version"),
+            "status": t.get("status"),
+            "lift": t.get("lift"),
+            "transferred_at": t.get("transferred_at"),
+        }
+        for t in log
+    ]
