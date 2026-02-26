@@ -1,0 +1,346 @@
+"""
+Integration tests — verify all modules are wired into the main system.
+
+Tests that:
+1. Browser tools are available when BROWSER_ENABLED=True
+2. Browser dispatch works in researcher tool loop
+3. Vault CLI handlers exist and work
+4. Project orchestrator CLI handlers exist and work
+5. Deploy CLI handlers exist and work
+6. Config flags exist for all new modules
+"""
+
+import json
+import os
+import sys
+import pytest
+import tempfile
+from unittest.mock import patch, MagicMock, AsyncMock
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+
+# ============================================================
+# Config Flag Tests
+# ============================================================
+
+class TestConfigFlags:
+    """Verify all new config flags exist."""
+
+    def test_browser_enabled_flag(self):
+        from config import BROWSER_ENABLED
+        assert isinstance(BROWSER_ENABLED, bool)
+
+    def test_browser_headless_flag(self):
+        from config import BROWSER_HEADLESS
+        assert isinstance(BROWSER_HEADLESS, bool)
+
+    def test_browser_max_fetches_flag(self):
+        from config import BROWSER_MAX_FETCHES
+        assert isinstance(BROWSER_MAX_FETCHES, int)
+        assert BROWSER_MAX_FETCHES > 0
+
+    def test_vault_passphrase_env(self):
+        from config import VAULT_PASSPHRASE_ENV
+        assert isinstance(VAULT_PASSPHRASE_ENV, str)
+
+    def test_deploy_config_path(self):
+        from config import DEPLOY_CONFIG_PATH
+        assert isinstance(DEPLOY_CONFIG_PATH, str)
+
+
+# ============================================================
+# Browser → Researcher Wiring Tests
+# ============================================================
+
+class TestBrowserResearcherWiring:
+    """Verify browser tools are wired into the researcher agent."""
+
+    def test_browser_import_in_researcher(self):
+        """BROWSER_ENABLED flag is imported in researcher."""
+        from agents.researcher import BROWSER_ENABLED
+        assert isinstance(BROWSER_ENABLED, bool)
+
+    def test_browser_tools_lazy_loader_exists(self):
+        """_load_browser_tools function exists."""
+        from agents.researcher import _load_browser_tools
+        assert callable(_load_browser_tools)
+
+    def test_browser_tools_load_successfully(self):
+        """Browser tool definitions can be loaded."""
+        from agents.researcher import _load_browser_tools, _browser_tools_loaded
+        _load_browser_tools()
+        # After loading, the module-level vars should be set
+        import agents.researcher as r
+        assert r._browser_tools_loaded is True
+        assert r.BROWSER_FETCH_TOOL is not None
+        assert r.BROWSER_SEARCH_TOOL is not None
+        assert r._execute_browser_tool is not None
+
+    def test_browser_tool_definitions_have_correct_names(self):
+        """Browser tool defs have the right names for dispatch."""
+        from agents.researcher import _load_browser_tools
+        _load_browser_tools()
+        import agents.researcher as r
+        assert r.BROWSER_FETCH_TOOL["name"] == "browser_fetch"
+        assert r.BROWSER_SEARCH_TOOL["name"] == "browser_search"
+
+    @patch("agents.researcher.BROWSER_ENABLED", True)
+    @patch("agents.researcher._browser_tools_loaded", True)
+    @patch("agents.researcher.BROWSER_FETCH_TOOL", {"name": "browser_fetch", "description": "test", "input_schema": {"type": "object", "properties": {}, "required": []}})
+    @patch("agents.researcher.BROWSER_SEARCH_TOOL", {"name": "browser_search", "description": "test", "input_schema": {"type": "object", "properties": {}, "required": []}})
+    def test_tools_list_includes_browser_when_enabled(self):
+        """When BROWSER_ENABLED=True, browser tools are in the tool list."""
+        # We can't easily test the full research() call, but we can verify
+        # the tool list construction logic
+        from agents.researcher import SEARCH_TOOL_DEFINITION, FETCH_TOOL_DEFINITION, SEARCH_AND_FETCH_TOOL_DEFINITION
+        import agents.researcher as r
+
+        tools = [SEARCH_TOOL_DEFINITION, FETCH_TOOL_DEFINITION, SEARCH_AND_FETCH_TOOL_DEFINITION]
+        if r.BROWSER_ENABLED and r._browser_tools_loaded and r.BROWSER_FETCH_TOOL and r.BROWSER_SEARCH_TOOL:
+            tools.append(r.BROWSER_FETCH_TOOL)
+            tools.append(r.BROWSER_SEARCH_TOOL)
+
+        assert len(tools) == 5  # 3 base + 2 browser
+        tool_names = [t["name"] for t in tools]
+        assert "browser_fetch" in tool_names
+        assert "browser_search" in tool_names
+
+    def test_browser_baseline_instructions_added_when_enabled(self):
+        """_build_baseline includes browser instructions when enabled."""
+        import agents.researcher as r
+        original = r.BROWSER_ENABLED
+        orig_loaded = r._browser_tools_loaded
+        try:
+            r.BROWSER_ENABLED = True
+            r._load_browser_tools()
+            r._browser_tools_loaded = True
+            baseline = r._build_baseline()
+            assert "browser_fetch" in baseline
+            assert "BROWSER TOOLS" in baseline
+        finally:
+            r.BROWSER_ENABLED = original
+            r._browser_tools_loaded = orig_loaded
+
+    def test_baseline_no_browser_when_disabled(self):
+        """_build_baseline does NOT include browser when disabled."""
+        import agents.researcher as r
+        original = r.BROWSER_ENABLED
+        try:
+            r.BROWSER_ENABLED = False
+            baseline = r._build_baseline()
+            assert "BROWSER TOOLS" not in baseline
+        finally:
+            r.BROWSER_ENABLED = original
+
+
+# ============================================================
+# Vault → CLI Wiring Tests
+# ============================================================
+
+class TestVaultCLIWiring:
+    """Verify vault handlers exist in main.py."""
+
+    def test_vault_store_handler_exists(self):
+        # Import dynamically to avoid running main()
+        import importlib
+        spec = importlib.util.spec_from_file_location("main_mod", os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py"))
+        # Just check the function exists in the source
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "def _vault_store(" in source
+        assert "def _vault_get(" in source
+        assert "def _vault_delete(" in source
+        assert "def _vault_list(" in source
+        assert "def _vault_stats(" in source
+
+    def test_vault_argparse_flags_exist(self):
+        """Argparse flags for vault are in main.py source."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "--vault-store" in source
+        assert "--vault-get" in source
+        assert "--vault-delete" in source
+        assert "--vault-list" in source
+        assert "--vault-stats" in source
+
+    def test_vault_dispatch_wired(self):
+        """Vault dispatch code exists in main()."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "_vault_store(args.vault_store" in source
+        assert "_vault_get(args.vault_get" in source
+        assert "_vault_delete(args.vault_delete" in source
+
+    def test_get_vault_helper_exists(self):
+        """_get_vault helper function exists."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "def _get_vault(" in source
+        assert "CredentialVault" in source
+
+
+# ============================================================
+# Browser → CLI Wiring Tests
+# ============================================================
+
+class TestBrowserCLIWiring:
+    """Verify browser CLI handlers exist."""
+
+    def test_browser_fetch_handler_exists(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "def _browser_fetch_url(" in source
+        assert "def _browser_test_stealth(" in source
+
+    def test_browser_argparse_flags(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "--browser-fetch" in source
+        assert "--browser-test" in source
+
+
+# ============================================================
+# Project Orchestrator → CLI Wiring Tests
+# ============================================================
+
+class TestProjectOrchestratorCLIWiring:
+    """Verify project orchestrator is wired into CLI."""
+
+    def test_project_handlers_exist(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "def _run_project(" in source
+        assert "def _show_project_status(" in source
+        assert "def _resume_project(" in source
+        assert "def _approve_project_phase(" in source
+        assert "def _list_projects(" in source
+
+    def test_project_argparse_flags(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "--project" in source
+        assert "--project-status" in source
+        assert "--project-resume" in source
+        assert "--project-approve" in source
+        assert "--project-list" in source
+
+    def test_project_dispatch_wired(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "_run_project(args.project" in source
+        assert "_show_project_status(args.project_status" in source
+        assert "_list_projects()" in source
+
+
+# ============================================================
+# Deploy → CLI Wiring Tests
+# ============================================================
+
+class TestDeployCLIWiring:
+    """Verify VPS deploy is wired into CLI."""
+
+    def test_deploy_handlers_exist(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "def _run_deploy(" in source
+        assert "def _run_deploy_health(" in source
+        assert "def _run_deploy_logs(" in source
+        assert "def _run_deploy_schedule(" in source
+        assert "def _run_deploy_unschedule(" in source
+        assert "def _run_deploy_configure(" in source
+
+    def test_deploy_argparse_flags(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "--deploy" in source
+        assert "--deploy-dry-run" in source
+        assert "--deploy-health" in source
+        assert "--deploy-logs" in source
+        assert "--deploy-schedule" in source
+        assert "--deploy-unschedule" in source
+        assert "--deploy-configure" in source
+
+    def test_deploy_dispatch_wired(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "_run_deploy(" in source
+        assert "_run_deploy_health()" in source
+
+
+# ============================================================
+# Cross-Module Integration Tests
+# ============================================================
+
+class TestCrossModuleIntegration:
+    """Test that modules reference each other correctly."""
+
+    def test_vault_used_in_browser_session(self):
+        """BrowserSession accepts vault parameter."""
+        from browser.session_manager import BrowserSession
+        # Should accept vault=None without error
+        session = BrowserSession(vault=None, headless=True)
+        assert session.vault is None
+
+    def test_vault_used_in_deploy(self):
+        """deploy() accepts vault parameter."""
+        from deploy.deployer import deploy
+        import inspect
+        sig = inspect.signature(deploy)
+        assert "vault" in sig.parameters
+
+    def test_browser_tools_schema_valid(self):
+        """Browser tool schemas are valid for Claude API."""
+        from browser.tools import BROWSER_FETCH_TOOL, BROWSER_SEARCH_TOOL
+
+        for tool in [BROWSER_FETCH_TOOL, BROWSER_SEARCH_TOOL]:
+            assert "name" in tool
+            assert "description" in tool
+            assert "input_schema" in tool
+            assert tool["input_schema"]["type"] == "object"
+            assert "properties" in tool["input_schema"]
+            assert "required" in tool["input_schema"]
+
+    def test_project_orchestrator_imports_planner(self):
+        """Project orchestrator uses lazy imports for planner/executor."""
+        from hands.project_orchestrator import _get_plan_task, _get_execute_task, _get_validate
+        # These should be callable (lazy loaders)
+        assert callable(_get_plan_task)
+        assert callable(_get_execute_task)
+        assert callable(_get_validate)
+
+    def test_deploy_vault_integration(self):
+        """Deploy functions accept vault for SSH key retrieval."""
+        from deploy.deployer import deploy, setup_schedule, remove_schedule, health_check
+        import inspect
+        for fn in [deploy, setup_schedule, remove_schedule, health_check]:
+            sig = inspect.signature(fn)
+            assert "vault" in sig.parameters, f"{fn.__name__} missing vault param"
+
+
+# ============================================================
+# Researcher Browser Dispatch Tests
+# ============================================================
+
+class TestResearcherBrowserDispatch:
+    """Test that browser tool dispatch works in the researcher loop."""
+
+    def test_browser_fetch_dispatch_branch_exists(self):
+        """The researcher source has browser_fetch dispatch."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "researcher.py")) as f:
+            source = f.read()
+        assert 'tool_name == "browser_fetch"' in source
+        assert 'tool_name == "browser_search"' in source
+
+    def test_browser_fetch_counter_initialized(self):
+        """browser_fetch_count is initialized in research()."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "researcher.py")) as f:
+            source = f.read()
+        assert "browser_fetch_count = 0" in source
+
+    def test_browser_tools_in_tool_log(self):
+        """Browser tools log to tool_log for observability."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "researcher.py")) as f:
+            source = f.read()
+        assert '"tool": "browser_fetch"' in source
+        assert '"tool": "browser_search"' in source

@@ -13,7 +13,7 @@ from datetime import date
 from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import ANTHROPIC_API_KEY, MODELS, MAX_TOOL_ROUNDS, MAX_SEARCHES, MAX_FETCHES
+from config import ANTHROPIC_API_KEY, MODELS, MAX_TOOL_ROUNDS, MAX_SEARCHES, MAX_FETCHES, BROWSER_ENABLED
 from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 from tools.web_fetcher import fetch_page, search_and_fetch, FETCH_TOOL_DEFINITION, SEARCH_AND_FETCH_TOOL_DEFINITION
 from cost_tracker import log_cost
@@ -21,13 +21,34 @@ from memory_store import retrieve_relevant, load_knowledge_base
 from utils.retry import create_message
 from utils.json_parser import extract_json
 
+# Browser tools — optional, only loaded when BROWSER_ENABLED is True
+_browser_tools_loaded = False
+BROWSER_FETCH_TOOL = None
+BROWSER_SEARCH_TOOL = None
+_execute_browser_tool = None
+
+def _load_browser_tools():
+    """Lazily load browser tool definitions and executor."""
+    global _browser_tools_loaded, BROWSER_FETCH_TOOL, BROWSER_SEARCH_TOOL, _execute_browser_tool
+    if _browser_tools_loaded:
+        return
+    try:
+        from browser.tools import BROWSER_FETCH_TOOL as _bft, BROWSER_SEARCH_TOOL as _bst, execute_browser_tool
+        BROWSER_FETCH_TOOL = _bft
+        BROWSER_SEARCH_TOOL = _bst
+        _execute_browser_tool = execute_browser_tool
+        _browser_tools_loaded = True
+    except ImportError as e:
+        print(f"  [BROWSER] Import failed: {e}")
+        _browser_tools_loaded = False
+
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 def _build_baseline() -> str:
     """Baseline instructions that ALWAYS apply, regardless of domain strategy."""
     today = date.today().isoformat()  # e.g. "2026-02-23"
-    return f"""\
+    baseline = f"""\
 You are a research agent with web search AND page reading capability.
 
 TODAY'S DATE: {today}
@@ -57,7 +78,18 @@ WORKFLOW:
 
 IMPORTANT: ALWAYS fetch pages when possible. Search snippets are 100 words; full pages are 3000-8000 words.
 The quality difference is enormous. Prioritize fetch_page over multiple web_search calls.
-
+"""
+    # Add browser instructions when browser tools are available
+    if BROWSER_ENABLED and _browser_tools_loaded:
+        baseline += """
+BROWSER TOOLS (for sites that need JavaScript or authentication):
+- browser_fetch: Use for sites like LinkedIn, Indeed, Glassdoor, Cloudflare-protected, or JS-heavy pages.
+  SLOWER than fetch_page — only use when regular fetch_page fails or the site is known to require JS.
+- browser_search: Search within a specific site using Google + browser rendering.
+  Use for site-specific searches like finding profiles on LinkedIn or jobs on Indeed.
+Prefer fetch_page first. Only escalate to browser_fetch if fetch_page returns empty/blocked content.
+"""
+    baseline += """
 RULES:
 - Cite concrete facts, numbers, dates, URLs from search results
 - Mark confidence: high (verified in multiple sources), medium (single source), low (inferred)
@@ -78,6 +110,7 @@ Search for explanatory content, not just confirmatory content.
 RESPOND WITH ONLY THIS JSON STRUCTURE:
 {{"question": "...", "findings": [{{"claim": "...", "confidence": "high|medium|low", "reasoning": "...", "source": "URL"}}], "key_insights": ["..."], "knowledge_gaps": ["..."], "sources_used": ["url1"], "summary": "2-3 sentences"}}
 """
+    return baseline
 
 
 def _build_system_prompt(domain_strategy: str | None = None) -> str:
@@ -232,6 +265,15 @@ Research question: {question}"""
 
     messages = [{"role": "user", "content": user_message}]
     tools = [SEARCH_TOOL_DEFINITION, FETCH_TOOL_DEFINITION, SEARCH_AND_FETCH_TOOL_DEFINITION]
+    
+    # Add browser tools when enabled (for JS-rendered / auth-required sites)
+    browser_fetch_count = 0
+    if BROWSER_ENABLED:
+        _load_browser_tools()
+        if _browser_tools_loaded and BROWSER_FETCH_TOOL and BROWSER_SEARCH_TOOL:
+            tools.append(BROWSER_FETCH_TOOL)
+            tools.append(BROWSER_SEARCH_TOOL)
+    
     search_count = 0
     fetch_count = 0
     empty_search_count = 0  # Track searches that returned 0 results
@@ -332,6 +374,69 @@ Research question: {question}"""
                         })
                         continue
                     
+                    # Handle browser_fetch tool (Playwright stealth)
+                    if tool_name == "browser_fetch" and _browser_tools_loaded and _execute_browser_tool:
+                        from config import BROWSER_MAX_FETCHES
+                        browser_fetch_count += 1
+                        if browser_fetch_count > BROWSER_MAX_FETCHES:
+                            print(f"  [BROWSER #{browser_fetch_count}] SKIPPED — hit max browser fetches ({BROWSER_MAX_FETCHES})")
+                            tool_results.append({
+                                "type": "tool_result",
+                                "tool_use_id": block.id,
+                                "content": '{"error": "Browser fetch limit reached. Use regular fetch_page or compile findings."}',
+                            })
+                            continue
+                        url = block.input.get("url", "")
+                        mode = block.input.get("extract_mode", "text")
+                        print(f"  [BROWSER #{browser_fetch_count}] {url[:80]} (mode={mode})")
+                        import asyncio
+                        try:
+                            content = asyncio.run(_execute_browser_tool(tool_name, block.input))
+                            print(f"  [BROWSER #{browser_fetch_count}] Got content ({len(content)} chars)")
+                            tool_log.append({"tool": "browser_fetch", "url": url, "success": True, "chars": len(content)})
+                        except Exception as e:
+                            content = f'{{"error": "Browser fetch failed: {e}"}}'
+                            print(f"  [BROWSER #{browser_fetch_count}] FAILED: {e}")
+                            tool_log.append({"tool": "browser_fetch", "url": url, "success": False, "error": str(e)})
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": content[:15000],
+                        })
+                        continue
+
+                    # Handle browser_search tool (Playwright stealth + Google)
+                    if tool_name == "browser_search" and _browser_tools_loaded and _execute_browser_tool:
+                        from config import BROWSER_MAX_FETCHES
+                        browser_fetch_count += 1
+                        search_count += 1
+                        if browser_fetch_count > BROWSER_MAX_FETCHES or search_count > MAX_SEARCHES:
+                            print(f"  [BROWSER SEARCH] SKIPPED — hit limits")
+                            tool_results.append({
+                                "type": "tool_result",
+                                "tool_use_id": block.id,
+                                "content": '{"error": "Browser/search limit reached. Compile findings now."}',
+                            })
+                            continue
+                        query = block.input.get("query", "")
+                        site = block.input.get("site", "")
+                        print(f"  [BROWSER SEARCH] \"{query}\" site={site}")
+                        import asyncio
+                        try:
+                            content = asyncio.run(_execute_browser_tool(tool_name, block.input))
+                            print(f"  [BROWSER SEARCH] Got results ({len(content)} chars)")
+                            tool_log.append({"tool": "browser_search", "query": query, "site": site, "success": True, "chars": len(content)})
+                        except Exception as e:
+                            content = f'{{"error": "Browser search failed: {e}"}}'
+                            print(f"  [BROWSER SEARCH] FAILED: {e}")
+                            tool_log.append({"tool": "browser_search", "query": query, "success": False, "error": str(e)})
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": content[:12000],
+                        })
+                        continue
+
                     # Handle web_search tool (original)
                     search_count += 1
                     if search_count > MAX_SEARCHES:

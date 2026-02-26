@@ -64,6 +64,17 @@ RAG_ENABLED = True                # use vector embeddings for semantic retrieval
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # local, free, 384 dimensions
 VECTORDB_DIR = os.path.join(os.path.dirname(__file__), "memory", "_vectordb")
 
+# --- Browser (Playwright Stealth) ---
+BROWSER_ENABLED = False           # enable stealth browser for JS-rendered/auth-required sites
+BROWSER_HEADLESS = True           # run browser headless (True for server, False for debugging)
+BROWSER_MAX_FETCHES = 3           # max browser fetches per research run (browser is slower)
+
+# --- Credential Vault ---
+VAULT_PASSPHRASE_ENV = "VAULT_PASSPHRASE"  # env var name for vault master passphrase
+
+# --- VPS Deploy ---
+DEPLOY_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "deploy", "vps_config.json")
+
 # --- MCP (Model Context Protocol) Gateway ---
 MCP_ENABLED = False               # enable Docker MCP server integration
 MCP_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "mcp_servers.json")
