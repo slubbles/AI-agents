@@ -27,6 +27,15 @@ Control commands:
     python main.py --orchestrate                  Smart multi-domain auto: prioritize + run across all domains
     python main.py --orchestrate --rounds 10      Orchestrate 10 rounds across domains
     python main.py --orchestrate --target-domains crypto,ai  Orchestrate specific domains only
+
+Agent Hands (Execution Layer):
+    python main.py --execute --goal 'Build X'    Execute a coding task with Agent Hands
+    python main.py --exec-status                  Show execution memory stats
+    python main.py --exec-evolve                  Force execution strategy evolution
+    python main.py --next-task                    Show next AI-generated coding task
+    python main.py --auto-build                   Brain→Hands: generate task from KB + execute
+    python main.py --auto-build --build-rounds 3  Run 3 rounds of auto-build
+    python main.py --execute --workspace /path    Execute in a specific directory
 """
 
 import argparse
@@ -468,6 +477,9 @@ def main():
     parser.add_argument("--exec-status", action="store_true", help="Show execution memory stats")
     parser.add_argument("--exec-evolve", action="store_true", help="Force execution strategy evolution")
     parser.add_argument("--workspace", default="", help="Workspace directory for execution output")
+    parser.add_argument("--auto-build", action="store_true", help="Brain→Hands pipeline: generate coding task from KB and execute it")
+    parser.add_argument("--build-rounds", type=int, default=1, help="Number of auto-build rounds (default: 1)")
+    parser.add_argument("--next-task", action="store_true", help="Show next AI-generated coding task for a domain")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -610,6 +622,12 @@ def main():
         return
     if getattr(args, 'exec_evolve', False):
         _run_exec_evolve(args.domain)
+        return
+    if getattr(args, 'auto_build', False):
+        _run_auto_build(args.domain, getattr(args, 'build_rounds', 1), workspace_dir=args.workspace)
+        return
+    if getattr(args, 'next_task', False):
+        _show_next_task(args.domain)
         return
 
     if args.evolve:
@@ -2081,6 +2099,153 @@ def _run_health_check():
 # Agent Hands — Execution Functions
 # ============================================================
 
+def _show_next_task(domain: str):
+    """Show the next AI-generated coding task for a domain."""
+    from hands.task_generator import generate_tasks
+
+    print(f"\n{'='*60}")
+    print(f"  NEXT CODING TASKS — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    tasks = generate_tasks(domain)
+    if not tasks:
+        print("  Failed to generate tasks. Need more KB data?")
+        print(f"  Run some research first: python main.py --auto --domain {domain}")
+        return
+
+    for i, task in enumerate(tasks):
+        priority = task.get("priority", i + 1)
+        complexity = task.get("expected_complexity", "?")
+        print(f"  [{priority}] ({complexity}) {task.get('task', '?')}")
+        print(f"      Reasoning: {task.get('reasoning', '?')[:100]}")
+        if task.get("applies_claims"):
+            print(f"      Applies KB: {', '.join(str(c)[:50] for c in task['applies_claims'][:3])}")
+        if task.get("builds_on"):
+            print(f"      Builds on: {task['builds_on'][:80]}")
+        print()
+
+    print(f"  Execute the top task:")
+    top = tasks[0].get("task", "")
+    print(f"    python main.py --domain {domain} --execute --goal \"{top[:80]}\"")
+    print(f"\n  Or run auto-build to generate + execute automatically:")
+    print(f"    python main.py --domain {domain} --auto-build")
+
+
+def _run_auto_build(domain: str, rounds: int = 1, workspace_dir: str = ""):
+    """
+    Brain→Hands automated pipeline.
+    
+    The system:
+    1. Reads domain KB + execution history
+    2. Generates the best next coding task (from task_generator)
+    3. Executes it via Hands (plan → execute → validate → store)
+    4. Feeds results back into the learning loop
+    5. Repeats for N rounds
+
+    This is the full research→build cycle. The system compounds knowledge
+    into working software.
+    """
+    from hands.task_generator import get_next_task
+    from hands.exec_memory import get_exec_stats
+
+    print(f"\n{'='*60}")
+    print(f"  BRAIN→HANDS AUTO-BUILD PIPELINE")
+    print(f"  Domain: {domain}")
+    print(f"  Rounds: {rounds}")
+    print(f"{'='*60}\n")
+
+    round_results = []
+
+    for round_num in range(1, rounds + 1):
+        print(f"\n{'─'*50}")
+        print(f"  BUILD ROUND {round_num}/{rounds}")
+        print(f"{'─'*50}\n")
+
+        # Budget check
+        budget = check_budget()
+        if not budget["within_budget"]:
+            print(f"[BUDGET] ✗ BLOCKED — daily limit reached after {round_num - 1} rounds")
+            break
+        print(f"[BUDGET] ${budget['remaining']:.4f} remaining")
+
+        # Step 1: Generate coding task from KB
+        print(f"\n[TASK-GEN] Generating coding task from domain knowledge...")
+        task = get_next_task(domain)
+
+        if not task:
+            # Fallback: if no KB, use a domain-appropriate seed task
+            stats = get_exec_stats(domain)
+            if stats["count"] == 0:
+                task = _get_seed_build_task(domain)
+                print(f"[TASK-GEN] Using seed task for new domain")
+            else:
+                print(f"[TASK-GEN] Failed to generate task. Stopping.")
+                break
+
+        print(f"\n[TASK] → {task}")
+
+        # Step 2: Execute via Hands
+        print(f"\n[EXECUTE] Running Hands pipeline...")
+        _run_execute(domain, task, workspace_dir=workspace_dir)
+
+        # Track result
+        stats = get_exec_stats(domain)
+        round_results.append({
+            "round": round_num,
+            "task": task[:200],
+            "total_executions": stats["count"],
+            "avg_score": stats["avg_score"],
+        })
+
+        print(f"\n[ROUND {round_num}] Complete — {stats['count']} total executions, avg {stats['avg_score']:.1f}")
+
+    # Summary
+    print(f"\n{'='*60}")
+    print(f"  AUTO-BUILD COMPLETE")
+    print(f"  Rounds completed: {len(round_results)}/{rounds}")
+    if round_results:
+        final_stats = get_exec_stats(domain)
+        print(f"  Total executions: {final_stats['count']}")
+        print(f"  Average score: {final_stats['avg_score']:.1f}")
+        print(f"  Accepted: {final_stats['accepted']}, Rejected: {final_stats['rejected']}")
+    daily = get_daily_spend()
+    print(f"  Daily spend: ${daily:.4f}")
+    print(f"{'='*60}\n")
+
+
+def _get_seed_build_task(domain: str) -> str:
+    """Generate a reasonable seed task for a domain with no history."""
+    seed_tasks = {
+        "nextjs-react": (
+            "Build a TypeScript React component library with: a reusable Button component "
+            "with variants (primary, secondary, outline), a Card component with header/body/footer slots, "
+            "and a Modal component with open/close animation. Include comprehensive unit tests with Jest "
+            "and React Testing Library. Export all components with proper TypeScript types."
+        ),
+        "saas-building": (
+            "Build a TypeScript REST API authentication module with: user registration with email validation, "
+            "login with JWT token generation, token refresh endpoint, and middleware for protected routes. "
+            "Include comprehensive tests. Use proper error handling and input validation."
+        ),
+        "python-backend": (
+            "Build a Python async task queue library with: task registration decorators, "
+            "priority-based scheduling, retry with exponential backoff, dead letter queue for failed tasks, "
+            "and a simple in-memory broker. Include comprehensive pytest tests."
+        ),
+        "growth-hacking": (
+            "Build a TypeScript analytics event tracking library with: typed event definitions, "
+            "batch processing for network efficiency, local storage queue for offline support, "
+            "automatic page view and click tracking, and a debug mode. Include comprehensive tests."
+        ),
+    }
+
+    return seed_tasks.get(domain, (
+        f"Build a well-structured TypeScript utility library for the {domain} domain "
+        f"with clean exports, comprehensive error handling, full unit tests, "
+        f"and proper TypeScript types. Include at least 3 core functions and 20+ test cases."
+    ))
+
+
 def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     """
     Execute a task using Agent Hands.
@@ -2092,6 +2257,7 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     from hands.validator import validate_execution
     from hands.exec_memory import save_exec_output, get_exec_stats
     from hands.tools.registry import create_default_registry
+    import config as _cfg
 
     # Budget check
     budget = check_budget()
@@ -2109,8 +2275,20 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     # Set up workspace
     if not workspace_dir:
         workspace_dir = os.path.join(os.path.dirname(__file__), "output", domain)
+    workspace_dir = os.path.realpath(workspace_dir)
     os.makedirs(workspace_dir, exist_ok=True)
     print(f"[WORKSPACE] {workspace_dir}")
+
+    # Dynamically allow the workspace dir for file operations
+    if _cfg.EXEC_ALLOWED_DIRS is None:
+        _cfg.EXEC_ALLOWED_DIRS = [workspace_dir]
+    elif workspace_dir not in _cfg.EXEC_ALLOWED_DIRS:
+        _cfg.EXEC_ALLOWED_DIRS = list(_cfg.EXEC_ALLOWED_DIRS) + [workspace_dir]
+
+    # Detect if workspace is an existing repo
+    is_repo = os.path.isdir(os.path.join(workspace_dir, ".git"))
+    if is_repo:
+        print(f"[WORKSPACE] Detected existing git repository")
 
     # Create tool registry
     registry = create_default_registry()

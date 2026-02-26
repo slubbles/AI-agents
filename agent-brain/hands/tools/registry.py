@@ -193,8 +193,14 @@ def create_default_registry() -> ToolRegistry:
     # Import tools (lazy — only when registry is created)
     from hands.tools.code import CodeTool
     from hands.tools.terminal import TerminalTool
+    from hands.tools.git import GitTool
+    from hands.tools.http import HttpTool
+    from hands.tools.search import SearchTool
 
     registry.register(CodeTool())
     registry.register(TerminalTool())
+    registry.register(GitTool())
+    registry.register(HttpTool())
+    registry.register(SearchTool())
 
     return registry

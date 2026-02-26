@@ -11,6 +11,12 @@ Produces:
 
 Uses Claude Haiku for cheap execution — the plan has already been made by Sonnet.
 The executor just follows instructions and uses tools.
+
+Features:
+- Multi-turn conversational loop with tool feedback
+- Step-level retry on failures (up to 2 retries per step)
+- Context window management (summarizes old steps to stay within limits)
+- Tracks cost, artifacts, and execution timeline
 """
 
 import json
@@ -30,6 +36,57 @@ from hands.tools.registry import ToolRegistry, ToolResult
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
+
+# Context window management
+MAX_CONVERSATION_TOKENS_ESTIMATE = 150_000  # Stay well under limit
+CHARS_PER_TOKEN_ESTIMATE = 4
+MAX_CONVERSATION_CHARS = MAX_CONVERSATION_TOKENS_ESTIMATE * CHARS_PER_TOKEN_ESTIMATE
+STEP_RETRY_LIMIT = 2  # Retries per individual step
+
+
+def _estimate_conversation_size(conversation: list[dict]) -> int:
+    """Estimate the total character count of a conversation."""
+    return sum(len(msg.get("content", "")) for msg in conversation)
+
+
+def _summarize_old_steps(conversation: list[dict], keep_recent: int = 6) -> list[dict]:
+    """
+    Compress old conversation turns into a summary to manage context window.
+    Keeps the first message (plan) and the last N messages.
+    """
+    if len(conversation) <= keep_recent + 1:
+        return conversation
+
+    # Keep first (plan) and last N messages
+    first = conversation[0]
+    recent = conversation[-keep_recent:]
+    middle = conversation[1:-keep_recent]
+
+    # Summarize middle messages
+    summary_parts = []
+    step_num = 0
+    for msg in middle:
+        content = msg.get("content", "")
+        if msg["role"] == "user" and "TOOL RESULT" in content:
+            step_num += 1
+            # Extract just success/failure and truncated output
+            if "SUCCESS:" in content:
+                brief = content[content.index("SUCCESS:"):content.index("SUCCESS:") + 200]
+                summary_parts.append(f"Step {step_num}: ✓ {brief[:150]}")
+            elif "FAILED:" in content:
+                brief = content[content.index("FAILED:"):content.index("FAILED:") + 200]
+                summary_parts.append(f"Step {step_num}: ✗ {brief[:150]}")
+
+    summary = {
+        "role": "user",
+        "content": (
+            f"[CONTEXT SUMMARY — {len(middle)} messages compressed]\n"
+            f"Previous step results:\n" + "\n".join(summary_parts) +
+            f"\n\nContinue with the current step."
+        ),
+    }
+
+    return [first, summary] + recent
 
 
 def _build_system_prompt(tools_description: str, execution_strategy: str = "") -> str:
@@ -57,6 +114,8 @@ EXECUTION RULES:
 6. Write COMPLETE file contents — never use placeholders like "// rest of code here".
 7. Include proper error handling, imports, and types in all generated code.
 8. For config files (package.json, tsconfig.json, etc.) use the right format for the ecosystem.
+9. IMPORTANT: You MUST execute tools one at a time. Do NOT describe what you would do — actually DO it by outputting the JSON action.
+10. You are NOT allowed to use the "complete" action until you have executed at least one tool.
 
 When you need to execute a tool, respond with ONLY this JSON:
 {{
@@ -146,8 +205,15 @@ def execute_plan(
     total_input_tokens = 0
     total_output_tokens = 0
     max_turns = EXEC_MAX_STEPS * 3  # Allow some retries per step
+    step_failures = {}  # Track retries per step: {step_num: retry_count}
 
     for turn in range(max_turns):
+        # Context window management — compress old turns if conversation grows large
+        conv_size = _estimate_conversation_size(conversation)
+        if conv_size > MAX_CONVERSATION_CHARS * 0.7:
+            conversation = _summarize_old_steps(conversation)
+            print(f"  [EXECUTOR] Context compressed ({conv_size // 1000}K chars → {_estimate_conversation_size(conversation) // 1000}K)")
+
         # Call the model
         response = create_message(
             client,
@@ -184,6 +250,19 @@ def execute_plan(
         action = action_data.get("action", "")
 
         if action == "complete":
+            # Prevent premature completion without any tool use
+            if not step_results:
+                conversation.append({"role": "assistant", "content": text})
+                conversation.append({
+                    "role": "user",
+                    "content": (
+                        "You cannot mark as complete without executing any tools. "
+                        "You MUST use the tools to create files, run commands, etc. "
+                        "Start with Step 1 from the plan."
+                    ),
+                })
+                continue
+
             # Execution finished
             print(f"  [EXECUTOR] ✓ Complete: {action_data.get('summary', 'done')}")
             all_artifacts.extend(action_data.get("artifacts", []))
@@ -238,6 +317,24 @@ def execute_plan(
             status = "✓" if result.success else "✗"
             print(f"           {status} {result.output[:100] if result.success else result.error[:100]}")
 
+            # Step-level retry tracking
+            retry_msg = ""
+            if not result.success:
+                step_failures[step_num] = step_failures.get(step_num, 0) + 1
+                retries_left = STEP_RETRY_LIMIT - step_failures[step_num]
+                if retries_left > 0:
+                    retry_msg = (
+                        f"\nThis step failed. You have {retries_left} retries left for this step. "
+                        f"Analyze the error and try again with corrected parameters, "
+                        f"or skip to the next step if the error is not recoverable."
+                    )
+                    print(f"           [RETRY] {retries_left} retries remaining for step {step_num}")
+                else:
+                    retry_msg = (
+                        f"\nThis step has failed {STEP_RETRY_LIMIT} times. "
+                        f"Move on to the next step or abort if this blocks progress."
+                    )
+
             # Feed result back into conversation
             conversation.append({"role": "assistant", "content": text})
             result_msg = f"TOOL RESULT (step {step_num}):\n"
@@ -249,6 +346,7 @@ def execute_plan(
             if result.artifacts:
                 result_msg += f"\nArtifacts: {result.artifacts}"
 
+            result_msg += retry_msg
             result_msg += "\n\nProceed to the next step (or 'complete' if all steps are done)."
             conversation.append({"role": "user", "content": result_msg})
 
@@ -272,6 +370,7 @@ def execute_plan(
     # Build execution report
     successful_steps = sum(1 for s in step_results if s["success"])
     failed_steps = sum(1 for s in step_results if not s["success"])
+    retried_steps = sum(1 for v in step_failures.values() if v > 0)
 
     report = {
         "success": failed_steps == 0 and successful_steps > 0,
@@ -280,7 +379,9 @@ def execute_plan(
         "artifacts": list(set(all_artifacts)),  # deduplicate
         "completed_steps": successful_steps,
         "failed_steps": failed_steps,
+        "retried_steps": retried_steps,
         "total_steps": len(steps),
+        "total_turns": turn + 1 if 'turn' in dir() else 0,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
