@@ -126,13 +126,15 @@ Do NOT inflate scores to be nice. The system depends on honest evaluation.
 """
 
 
-def critique(research_output: dict, domain: str = "") -> dict:
+def critique(research_output: dict, domain: str = "", sources_summary: list[dict] | None = None) -> dict:
     """
     Evaluate research findings and produce a structured score.
     
     Args:
         research_output: The researcher's structured findings dict
         domain: Optional domain name — loads per-domain rubric weights if available
+        sources_summary: Optional list of {url, title, success, chars} from researcher's tool log.
+            Allows the critic to verify accuracy by checking whether cited sources were actually fetched.
     
     Returns:
         Parsed JSON dict with scores, feedback, and verdict
@@ -142,6 +144,30 @@ def critique(research_output: dict, domain: str = "") -> dict:
     system_prompt = _build_critic_prompt(weights)
     
     user_message = f"Evaluate this research output:\n\n{json.dumps(research_output, indent=2)}"
+    
+    # If we have source data, append it so the critic can verify accuracy
+    if sources_summary:
+        fetched_urls = [s for s in sources_summary if s.get("tool") in ("fetch_page", "search_and_fetch")]
+        searched_queries = [s for s in sources_summary if s.get("tool") == "web_search"]
+        source_block = "\n\n=== SOURCE VERIFICATION DATA ===\n"
+        source_block += "The researcher used these tools during research:\n"
+        if searched_queries:
+            source_block += f"\nSearches ({len(searched_queries)}):\n"
+            for s in searched_queries:
+                status = "OK" if s.get("success") else "FAILED"
+                source_block += f"  [{status}] \"{s.get('query', '?')}\" → {s.get('results', 0)} results\n"
+        if fetched_urls:
+            source_block += f"\nPages fetched ({len(fetched_urls)}):\n"
+            for s in fetched_urls:
+                status = "OK" if s.get("success") else "FAILED"
+                chars = s.get("chars", 0)
+                source_block += f"  [{status}] {s.get('url', s.get('query', '?'))} ({chars} chars)\n"
+        source_block += ("\nACCURACY CHECK: Compare the researcher's cited sources against the "
+                         "pages actually fetched above. If the researcher cites a URL that was NOT "
+                         "fetched, that's a potential hallucination — penalize accuracy. "
+                         "If findings include specific data not traceable to any fetched page, flag it.\n"
+                         "=== END SOURCE VERIFICATION ===")
+        user_message += source_block
 
     response = create_message(
         client,

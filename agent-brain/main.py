@@ -226,7 +226,7 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
         # Step 2: Critique
         print("[CRITIC] Evaluating findings...")
         try:
-            critique_output = critique(research_output, domain=domain)
+            critique_output = critique(research_output, domain=domain, sources_summary=research_output.get("_tool_log"))
         except Exception as e:
             print(f"[CRITIC] ✗ Agent error: {type(e).__name__}: {e}")
             # Use a minimal critique so we can still store the output
