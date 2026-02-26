@@ -58,6 +58,13 @@ RAG_ENABLED = True                # use vector embeddings for semantic retrieval
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # local, free, 384 dimensions
 VECTORDB_DIR = os.path.join(os.path.dirname(__file__), "memory", "_vectordb")
 
+# --- MCP (Model Context Protocol) Gateway ---
+MCP_ENABLED = False               # enable Docker MCP server integration
+MCP_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "mcp_servers.json")
+MCP_MAX_TOOLS_PER_CALL = 15      # max MCP tools surfaced in a single Claude call
+MCP_DEFAULT_TIMEOUT = 30.0       # seconds before MCP request times out
+MCP_AUTO_START = False            # start MCP servers on agent-brain boot
+
 # --- Strategy Evolution ---
 SAFETY_DROP_THRESHOLD = 0.20  # block if new strategy avg drops >20%
 TRIAL_PERIOD = 5              # outputs under trial before evaluation

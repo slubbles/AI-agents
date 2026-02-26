@@ -1,0 +1,44 @@
+{
+  "servers": {
+    "filesystem": {
+      "image": "mcp/filesystem-server:latest",
+      "command": ["/workspace"],
+      "volumes": {
+        "/workspaces": "/workspace"
+      },
+      "categories": ["filesystem", "code"],
+      "description": "Read, write, and manage files in the workspace",
+      "enabled": false
+    },
+    "github": {
+      "image": "ghcr.io/modelcontextprotocol/server-github:latest",
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "categories": ["git", "github", "code"],
+      "description": "GitHub API — repos, issues, PRs, search",
+      "enabled": false
+    },
+    "fetch": {
+      "image": "mcp/fetch-server:latest",
+      "categories": ["web", "api"],
+      "description": "Fetch URLs and extract content",
+      "enabled": false
+    },
+    "postgres": {
+      "image": "ghcr.io/modelcontextprotocol/server-postgres:latest",
+      "env": {
+        "POSTGRES_CONNECTION_STRING": "${POSTGRES_URL}"
+      },
+      "categories": ["database"],
+      "description": "Query PostgreSQL databases",
+      "enabled": false
+    },
+    "puppeteer": {
+      "image": "ghcr.io/modelcontextprotocol/server-puppeteer:latest",
+      "categories": ["web", "testing"],
+      "description": "Browser automation and page screenshots",
+      "enabled": false
+    }
+  }
+}
