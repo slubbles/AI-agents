@@ -2342,6 +2342,7 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
             domain_knowledge=domain_knowledge,
             execution_strategy=strategy or "",
             context=context,
+            workspace_dir=workspace_dir,
         )
 
         if not plan_data:
@@ -2355,7 +2356,8 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
         complexity = plan_data.get("estimated_complexity", "?")
         print(f"[PLANNER] Generated {steps_count}-step plan (complexity: {complexity})")
         for step in plan_data.get("steps", []):
-            print(f"  {step.get('step_number', '?')}. [{step.get('tool', '?')}] {step.get('description', '')[:80]}")
+            crit = "!" if step.get("criticality", "required") == "required" else "?"
+            print(f"  {step.get('step_number', '?')}{crit} [{step.get('tool', '?')}] {step.get('description', '')[:80]}")
 
         final_plan = plan_data
 

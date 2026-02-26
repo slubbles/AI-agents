@@ -61,12 +61,27 @@ def _check_url_safety(url: str) -> str | None:
     return None
 
 
+class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Custom redirect handler that validates redirect targets against SSRF."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        """Check redirect target for safety before following."""
+        safety_error = _check_url_safety(newurl)
+        if safety_error:
+            raise urllib.error.URLError(
+                f"Redirect blocked: {safety_error} (redirected from {req.full_url})"
+            )
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 class HttpTool(BaseTool):
     """HTTP request tool for testing APIs, fetching docs, and verifying services."""
 
     name = "http"
     description = (
-        "Make HTTP requests. Actions: get (fetch URL), post (submit data), head (check headers). "
+        "Make HTTP requests. Actions: get (fetch URL), post (submit data), "
+        "put (update resource), patch (partial update), delete (remove resource), "
+        "head (check headers). "
         "Use for testing APIs, fetching documentation, verifying deployed services, "
         "or downloading data files. Returns status code, headers, and body."
     )
@@ -75,7 +90,7 @@ class HttpTool(BaseTool):
         "properties": {
             "action": {
                 "type": "string",
-                "enum": ["get", "post", "head"],
+                "enum": ["get", "post", "put", "patch", "delete", "head"],
                 "description": "HTTP method to use.",
             },
             "url": {
@@ -123,7 +138,7 @@ class HttpTool(BaseTool):
         req_headers.setdefault("User-Agent", "AgentHands/1.0")
 
         data = None
-        if method == "POST" and body:
+        if method in ("POST", "PUT", "PATCH") and body:
             if isinstance(body, dict):
                 data = json.dumps(body).encode("utf-8")
                 req_headers.setdefault("Content-Type", content_type or "application/json")
@@ -141,7 +156,9 @@ class HttpTool(BaseTool):
 
             timeout = min(EXEC_STEP_TIMEOUT, 30)  # Cap at 30s for HTTP
 
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
+            # Use safe opener that validates redirect targets
+            opener = urllib.request.build_opener(_SafeRedirectHandler)
+            with opener.open(req, timeout=timeout) as resp:
                 status = resp.status
                 resp_headers = dict(resp.headers)
 

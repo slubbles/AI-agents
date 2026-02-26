@@ -42,6 +42,7 @@ MAX_CONVERSATION_TOKENS_ESTIMATE = 150_000  # Stay well under limit
 CHARS_PER_TOKEN_ESTIMATE = 4
 MAX_CONVERSATION_CHARS = MAX_CONVERSATION_TOKENS_ESTIMATE * CHARS_PER_TOKEN_ESTIMATE
 STEP_RETRY_LIMIT = 2  # Retries per individual step
+MAX_EXECUTION_COST = 0.50  # Hard cost ceiling per execution ($0.50)
 
 
 def _estimate_conversation_size(conversation: list[dict]) -> int:
@@ -70,12 +71,16 @@ def _summarize_old_steps(conversation: list[dict], keep_recent: int = 6) -> list
         if msg["role"] == "user" and "TOOL RESULT" in content:
             step_num += 1
             # Extract just success/failure and truncated output
-            if "SUCCESS:" in content:
-                brief = content[content.index("SUCCESS:"):content.index("SUCCESS:") + 200]
+            success_idx = content.find("SUCCESS:")
+            failed_idx = content.find("FAILED:")
+            if success_idx >= 0:
+                brief = content[success_idx:success_idx + 200]
                 summary_parts.append(f"Step {step_num}: ✓ {brief[:150]}")
-            elif "FAILED:" in content:
-                brief = content[content.index("FAILED:"):content.index("FAILED:") + 200]
+            elif failed_idx >= 0:
+                brief = content[failed_idx:failed_idx + 200]
                 summary_parts.append(f"Step {step_num}: ✗ {brief[:150]}")
+            else:
+                summary_parts.append(f"Step {step_num}: {content[:150]}")
 
     summary = {
         "role": "user",
@@ -206,8 +211,16 @@ def execute_plan(
     total_output_tokens = 0
     max_turns = EXEC_MAX_STEPS * 3  # Allow some retries per step
     step_failures = {}  # Track retries per step: {step_num: retry_count}
+    last_turn = 0  # Track the last turn for reporting
 
     for turn in range(max_turns):
+        last_turn = turn
+        # Cost ceiling check — prevent runaway spending
+        estimated_cost = (total_input_tokens * 0.25 + total_output_tokens * 1.25) / 1_000_000  # Haiku pricing
+        if estimated_cost > MAX_EXECUTION_COST:
+            print(f"  [EXECUTOR] ⚠ Cost ceiling reached (${estimated_cost:.4f} > ${MAX_EXECUTION_COST})")
+            break
+
         # Context window management — compress old turns if conversation grows large
         conv_size = _estimate_conversation_size(conversation)
         if conv_size > MAX_CONVERSATION_CHARS * 0.7:
@@ -296,6 +309,11 @@ def execute_plan(
             reasoning = action_data.get("reasoning", "")
             step_num = len(step_results) + 1
 
+            # Look up step criticality from the plan
+            criticality = "required"  # default
+            if step_num <= len(steps):
+                criticality = steps[step_num - 1].get("criticality", "required")
+
             print(f"  [STEP {step_num}] {tool_name}: {reasoning[:80]}")
 
             # Execute the tool through the registry
@@ -310,6 +328,7 @@ def execute_plan(
                 "output": result.output[:2000],
                 "error": result.error,
                 "artifacts": result.artifacts,
+                "criticality": criticality,
             }
             step_results.append(step_result)
             all_artifacts.extend(result.artifacts)
@@ -322,7 +341,13 @@ def execute_plan(
             if not result.success:
                 step_failures[step_num] = step_failures.get(step_num, 0) + 1
                 retries_left = STEP_RETRY_LIMIT - step_failures[step_num]
-                if retries_left > 0:
+                if criticality == "optional":
+                    retry_msg = (
+                        f"\nThis optional step failed. You may retry once or skip to the next step. "
+                        f"Optional step failures do not block execution."
+                    )
+                    print(f"           [OPTIONAL] Step failed — non-blocking")
+                elif retries_left > 0:
                     retry_msg = (
                         f"\nThis step failed. You have {retries_left} retries left for this step. "
                         f"Analyze the error and try again with corrected parameters, "
@@ -370,18 +395,22 @@ def execute_plan(
     # Build execution report
     successful_steps = sum(1 for s in step_results if s["success"])
     failed_steps = sum(1 for s in step_results if not s["success"])
+    failed_required = sum(1 for s in step_results if not s["success"] and s.get("criticality") == "required")
+    failed_optional = sum(1 for s in step_results if not s["success"] and s.get("criticality") == "optional")
     retried_steps = sum(1 for v in step_failures.values() if v > 0)
 
     report = {
-        "success": failed_steps == 0 and successful_steps > 0,
+        "success": failed_required == 0 and successful_steps > 0,
         "task_summary": plan.get("task_summary", ""),
         "step_results": step_results,
         "artifacts": list(set(all_artifacts)),  # deduplicate
         "completed_steps": successful_steps,
         "failed_steps": failed_steps,
+        "failed_required": failed_required,
+        "failed_optional": failed_optional,
         "retried_steps": retried_steps,
         "total_steps": len(steps),
-        "total_turns": turn + 1 if 'turn' in dir() else 0,
+        "total_turns": last_turn + 1,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
