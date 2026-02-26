@@ -600,6 +600,9 @@ def execute_plan(
         # Execute the tool through the registry (with timeout for terminal)
         if tool_name == "terminal":
             params["timeout"] = step_timeout
+            # Auto-inject workspace_dir as cwd if not specified
+            if workspace_dir and not params.get("cwd"):
+                params["cwd"] = workspace_dir
         result = registry.execute(tool_name, **params)
 
         # Record duration in timeout adapter for future improvement
@@ -626,6 +629,26 @@ def execute_plan(
 
         status = "✓" if result.success else "✗"
         print(f"           {status} {result.output[:100] if result.success else result.error[:100]}")
+
+        # Always-on file validation: check written files immediately
+        write_check_msg = ""
+        if result.success and result.artifacts:
+            try:
+                from hands.validator import _run_static_checks
+                check_result = _run_static_checks(result.artifacts)
+                if check_result.get("issues"):
+                    issue_details = []
+                    for iss in check_result["issues"][:3]:
+                        detail = f"{os.path.basename(iss['file'])}: {iss['check']} — {iss['detail'][:80]}"
+                        issue_details.append(detail)
+                    write_check_msg = (
+                        "\n⚠ STATIC CHECK ISSUES (fix before proceeding):\n"
+                        + "\n".join(f"  • {d}" for d in issue_details)
+                    )
+                    print(f"           [WRITE-CHECK] {len(check_result['issues'])} issue(s): "
+                          + "; ".join(d[:60] for d in issue_details[:2]))
+            except Exception:
+                pass  # Don't let validation errors break execution
 
         # Mid-execution quality gate check
         gate_correction = ""
@@ -680,10 +703,32 @@ def execute_plan(
 
         if result.artifacts:
             result_text += f"\nArtifacts: {result.artifacts}"
+        if write_check_msg:
+            result_text += write_check_msg
         result_text += retry_msg
         if gate_correction:
             result_text += f"\n\n{gate_correction}"
-        result_text += "\n\nProceed to the next step (or call _complete if all steps are done)."
+
+        # Step-directed prompt: tell the LLM exactly what comes next
+        next_step_num = step_num + 1
+        if next_step_num <= len(steps):
+            ns = steps[next_step_num - 1]
+            ns_tool = ns.get("tool", "?")
+            ns_desc = ns.get("description", "")[:100]
+            result_text += (
+                f"\n\nNEXT: Step {next_step_num} — {ns_desc}. "
+                f"Use tool '{ns_tool}'."
+            )
+            # Include key params hint if available
+            ns_params = ns.get("params", {})
+            if ns_params:
+                param_hints = []
+                for k, v in list(ns_params.items())[:3]:
+                    val_str = str(v)[:60]
+                    param_hints.append(f"{k}={val_str}")
+                result_text += f" Params: {', '.join(param_hints)}"
+        else:
+            result_text += "\n\nAll planned steps complete. Call _complete with a summary."
 
         # Append assistant response + tool result in proper format
         conversation.append({"role": "assistant", "content": response.content})
