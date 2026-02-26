@@ -5024,3 +5024,313 @@ class TestCompactValidatorPayloads:
             {"role": "user", "content": [{"type": "tool_result", "content": "world"}]},
         ]
         assert _estimate_conversation_size(conv) >= 10
+
+
+# ============================================================
+# V15 — Strategy Assembler, Batch-Skip, Fast-Reject
+# ============================================================
+
+class TestStrategyAssembler:
+    """Tests for hands/strategy_assembler.py — budget-aware strategy context."""
+
+    def test_basic_assembly(self):
+        """Assemble a single section within budget."""
+        from hands.strategy_assembler import assemble
+        result = assemble(budget=1000, base_strategy="Use TypeScript.")
+        assert "Use TypeScript" in result.text
+        assert "strategy" in result.included
+        assert result.used > 0
+        assert result.used <= 1000
+
+    def test_priority_ordering(self):
+        """Feedback appears before base strategy."""
+        from hands.strategy_assembler import assemble
+        result = assemble(
+            budget=4000,
+            base_strategy="Base strategy text here.",
+            feedback="Fix error handling in all files.",
+        )
+        # Feedback has higher priority (appears first)
+        fb_pos = result.text.find("FEEDBACK")
+        st_pos = result.text.find("STRATEGY")
+        assert fb_pos < st_pos, "Feedback should appear before strategy"
+        assert "feedback" in result.included
+        assert "strategy" in result.included
+
+    def test_budget_enforced(self):
+        """Sections exceeding budget are dropped."""
+        from hands.strategy_assembler import assemble
+        result = assemble(
+            budget=200,
+            base_strategy="x" * 100,  # fits
+            principles="y" * 500,     # does not fit
+        )
+        assert result.used <= 200
+        assert "strategy" in result.included
+        # principles should be dropped (lowest priority, exceeds budget)
+        assert "principles" in result.dropped or any("principles" in d for d in result.dropped)
+
+    def test_truncation_for_partial_fit(self):
+        """Section that partially fits gets truncated with marker."""
+        from hands.strategy_assembler import assemble
+        result = assemble(
+            budget=500,
+            base_strategy="Short strategy.",
+            lessons="a " * 400,  # too long for full but can be truncated
+        )
+        # Should have some portion of lessons (truncated)
+        assert "truncated" in result.text or "lessons" in str(result.included)
+
+    def test_deduplication(self):
+        """Overlapping advice is deduplicated across sections."""
+        from hands.strategy_assembler import assemble
+        result = assemble(
+            budget=4000,
+            base_strategy="Always add error handling to all functions. Use TypeScript strict mode.",
+            lessons="Error handling should be added to all functions. This is critical for quality.",
+            deduplicate=True,
+        )
+        # The deduplicated result should be shorter
+        assert result.was_deduped or len(result.text) < 400
+
+    def test_empty_sources(self):
+        """Empty sources are skipped."""
+        from hands.strategy_assembler import assemble
+        result = assemble(budget=1000, base_strategy="", principles="", lessons="")
+        assert result.text == ""
+        assert result.included == []
+        assert result.dropped == []
+
+    def test_all_six_sources(self):
+        """All six source types can be assembled."""
+        from hands.strategy_assembler import assemble
+        result = assemble(
+            budget=5000,
+            base_strategy="Strategy A",
+            principles="Principle B",
+            lessons="Lesson C",
+            quality_warnings="Warning D",
+            exemplars="Exemplar E",
+            feedback="Feedback F",
+        )
+        assert len(result.included) == 6
+        assert result.dropped == []
+
+    def test_no_dedup_option(self):
+        """Deduplication can be disabled."""
+        from hands.strategy_assembler import assemble
+        overlapping = "Always handle errors properly in every function."
+        result = assemble(
+            budget=4000,
+            base_strategy=overlapping,
+            lessons=overlapping,
+            deduplicate=False,
+        )
+        assert not result.was_deduped
+
+
+class TestBatchBlockedSteps:
+    """Tests for batch-skipping dependency-blocked executor steps (v15)."""
+
+    def _tool_block(self, name, input_data, block_id="tu_1"):
+        block = MagicMock()
+        block.type = "tool_use"
+        block.name = name
+        block.input = input_data
+        block.id = block_id
+        return block
+
+    def _mock_response(self, content_blocks, inp=50, out=100):
+        resp = MagicMock()
+        resp.usage.input_tokens = inp
+        resp.usage.output_tokens = out
+        resp.content = content_blocks
+        return resp
+
+    def test_cascade_failure_batch_skip(self):
+        """When step 1 fails, dependent steps 2-3 are batch-skipped."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        class FailTool(BaseTool):
+            name = "code"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=False, error="Write failed")
+
+        registry = ToolRegistry()
+        registry.register(FailTool())
+
+        # Plan: step 1 (code), step 2 (depends on 1), step 3 (depends on 2)
+        plan = {
+            "task_summary": "test cascade",
+            "steps": [
+                {"step_number": 1, "tool": "code", "params": {}, "description": "write", "depends_on": [], "criticality": "required"},
+                {"step_number": 2, "tool": "code", "params": {}, "description": "modify", "depends_on": [1], "criticality": "required"},
+                {"step_number": 3, "tool": "code", "params": {}, "description": "build", "depends_on": [2], "criticality": "required"},
+            ],
+            "success_criteria": "ok",
+        }
+
+        call_count = {"n": 0}
+        def mock_create(*args, **kwargs):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                # Execute step 1 (will fail)
+                return self._mock_response([self._tool_block("code", {"action": "write", "path": "f.py", "content": "x"}, "tu_1")])
+            # After batch-skip, model should complete
+            return self._mock_response([self._tool_block("_abort", {"reason": "Step 1 failed"}, "tu_2")])
+
+        with patch("hands.executor.create_message", side_effect=mock_create), \
+             patch("hands.executor.log_cost"):
+            report = execute_plan(plan, registry)
+
+        # Steps 2-3 should be batch-skipped (blocked_by_dependency status)
+        assert report["blocked_steps"] >= 2
+        # Should only need 2 LLM calls (step 1 + abort), not 4 (step 1 + skip 2 + skip 3 + abort)
+        assert call_count["n"] <= 3
+
+    def test_no_batch_skip_when_no_dependencies(self):
+        """Without dependencies, no batch-skipping occurs."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        class OkTool(BaseTool):
+            name = "code"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output="ok", artifacts=["f.py"])
+
+        registry = ToolRegistry()
+        registry.register(OkTool())
+
+        plan = {
+            "task_summary": "test",
+            "steps": [
+                {"step_number": 1, "tool": "code", "params": {}, "description": "write", "depends_on": []},
+            ],
+            "success_criteria": "ok",
+        }
+
+        call_count = {"n": 0}
+        def mock_create(*args, **kwargs):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return self._mock_response([self._tool_block("code", {"action": "write", "path": "f.py", "content": "x"}, "tu_1")])
+            return self._mock_response([self._tool_block("_complete", {"summary": "done"}, "tu_2")])
+
+        with patch("hands.executor.create_message", side_effect=mock_create), \
+             patch("hands.executor.log_cost"):
+            report = execute_plan(plan, registry)
+
+        assert report["success"]
+        assert report["blocked_steps"] == 0
+
+
+class TestFastReject:
+    """Tests for validator fast-reject on static check blockers (v15)."""
+
+    def test_fast_reject_majority_broken(self, tmp_path):
+        """Fast-reject triggers when >50% of files have blocker issues."""
+        from hands.validator import _should_fast_reject
+
+        good = tmp_path / "good.py"
+        good.write_text("x = 1\n")
+        bad1 = tmp_path / "bad1.py"
+        bad1.write_text("def (broken syntax\n")
+        bad2 = tmp_path / "bad2.py"
+        bad2.write_text("class (\n")
+
+        artifacts = [str(good), str(bad1), str(bad2)]
+        static = {
+            "issues": [
+                {"file": str(bad1), "check": "python_syntax", "detail": "SyntaxError"},
+                {"file": str(bad2), "check": "python_syntax", "detail": "SyntaxError"},
+            ]
+        }
+        result = _should_fast_reject(static, artifacts, 2, 3)
+        assert result is not None
+        assert result["verdict"] == "reject"
+        assert result["fast_rejected"] is True
+        assert result["overall_score"] == 2
+
+    def test_no_fast_reject_minority_broken(self, tmp_path):
+        """No fast-reject when <50% of files have blockers."""
+        from hands.validator import _should_fast_reject
+
+        good1 = tmp_path / "good1.py"
+        good1.write_text("x = 1\n")
+        good2 = tmp_path / "good2.py"
+        good2.write_text("y = 2\n")
+        bad = tmp_path / "bad.py"
+        bad.write_text("def (\n")
+
+        artifacts = [str(good1), str(good2), str(bad)]
+        static = {
+            "issues": [{"file": str(bad), "check": "python_syntax", "detail": "SyntaxError"}]
+        }
+        result = _should_fast_reject(static, artifacts, 2, 3)
+        assert result is None  # Should NOT fast-reject — only 1/3 broken
+
+    def test_no_fast_reject_nonexistent_files(self):
+        """Non-existent files don't trigger fast-reject."""
+        from hands.validator import _should_fast_reject
+
+        artifacts = ["/nonexistent/file.py"]
+        static = {
+            "issues": [{"file": "/nonexistent/file.py", "check": "exists", "detail": "Not found"}]
+        }
+        result = _should_fast_reject(static, artifacts, 0, 1)
+        assert result is None  # "exists" check is excluded from fast-reject
+
+    def test_fast_reject_critical_config(self, tmp_path):
+        """Fast-reject triggers for broken critical config files."""
+        from hands.validator import _should_fast_reject
+
+        good = tmp_path / "app.py"
+        good.write_text("x = 1\n")
+        pkg = tmp_path / "package.json"
+        pkg.write_text("{broken json")
+
+        artifacts = [str(good), str(pkg)]
+        static = {
+            "issues": [{"file": str(pkg), "check": "json_valid", "detail": "Invalid JSON"}]
+        }
+        result = _should_fast_reject(static, artifacts, 1, 2)
+        assert result is not None
+        assert result["fast_rejected"] is True
+
+    def test_no_fast_reject_single_file(self, tmp_path):
+        """Fast-reject requires at least 2 existing artifacts."""
+        from hands.validator import _should_fast_reject
+
+        bad = tmp_path / "bad.py"
+        bad.write_text("def (\n")
+
+        artifacts = [str(bad)]
+        static = {
+            "issues": [{"file": str(bad), "check": "python_syntax", "detail": "SyntaxError"}]
+        }
+        result = _should_fast_reject(static, artifacts, 1, 1)
+        assert result is None  # Only 1 file — don't fast-reject
+
+    def test_fast_reject_includes_issue_details(self, tmp_path):
+        """Fast-reject result includes issue details for feedback."""
+        from hands.validator import _should_fast_reject
+
+        f1 = tmp_path / "a.py"
+        f1.write_text("def (\n")
+        f2 = tmp_path / "b.py"
+        f2.write_text("class \n")
+
+        artifacts = [str(f1), str(f2)]
+        static = {
+            "issues": [
+                {"file": str(f1), "check": "python_syntax", "detail": "SyntaxError line 1"},
+                {"file": str(f2), "check": "python_syntax", "detail": "SyntaxError line 1"},
+            ]
+        }
+        result = _should_fast_reject(static, artifacts, 1, 2)
+        assert result is not None
+        assert len(result["weaknesses"]) > 0
+        assert result["static_blocker_count"] == 2

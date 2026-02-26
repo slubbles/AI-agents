@@ -2325,22 +2325,26 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
         strategy_version = "template"
         print(f"[EXEC-STRATEGY] Using template for '{domain}' (no evolved strategy yet)")
 
-    # Inject cross-domain execution principles (if available)
+    # Collect strategy context sources (assembled with budget later)
+    _raw_base_strategy = strategy or ""
+    _raw_principles = ""
+    _raw_lessons = ""
+    _raw_quality_warnings = ""
+
+    # Cross-domain execution principles (if available)
     try:
         from hands.exec_cross_domain import get_principles_for_domain
-        principles_text = get_principles_for_domain(domain)
-        if principles_text:
-            strategy = f"{strategy}\n\n{principles_text}\n"
-            print(f"[EXEC-PRINCIPLES] Injected learned execution principles")
+        _raw_principles = get_principles_for_domain(domain) or ""
+        if _raw_principles:
+            print(f"[EXEC-PRINCIPLES] Loaded cross-domain execution principles")
     except Exception:
         pass  # Cross-domain learning is optional
 
-    # Inject learned execution lessons (from pattern_learner)
-    lessons_text = pattern_learner.format_lessons_for_prompt(domain=domain)
-    if lessons_text:
-        strategy = f"{strategy}\n\n{lessons_text}\n"
+    # Learned execution lessons (from pattern_learner)
+    _raw_lessons = pattern_learner.format_lessons_for_prompt(domain=domain) or ""
+    if _raw_lessons:
         lesson_count = len(pattern_learner.get_lessons(domain=domain))
-        print(f"[LESSONS] Injected {lesson_count} learned execution lessons")
+        print(f"[LESSONS] Loaded {lesson_count} learned execution lessons")
 
     # Load domain knowledge from Brain (if available)
     domain_knowledge = ""
@@ -2376,11 +2380,10 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     feedback_cache_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_feedback_cache.json")
     feedback_cache = FeedbackCache(feedback_cache_path)
 
-    # Inject artifact quality warnings into strategy
-    quality_warnings = artifact_quality_db.format_for_prompt(domain)
-    if quality_warnings:
-        strategy = f"{strategy}\n\n{quality_warnings}\n"
-        print(f"[ARTIFACT-QUALITY] Injected quality warnings for weak archetypes")
+    # Artifact quality warnings (collected for assembler)
+    _raw_quality_warnings = artifact_quality_db.format_for_prompt(domain) or ""
+    if _raw_quality_warnings:
+        print(f"[ARTIFACT-QUALITY] Loaded quality warnings for weak archetypes")
 
     # Check for resumable checkpoint
     resume_info = checkpoint.get_resume_info(domain)
@@ -2418,17 +2421,31 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
                 context = f"PREVIOUS ATTEMPT FEEDBACK (fix these issues):\n{previous_feedback}"
 
             # Inject persistent feedback from previous executions
-            feedback_text = feedback_cache.get_for_planner(domain)
+            feedback_text = feedback_cache.get_for_planner(domain) or ""
             if feedback_text:
-                context = f"{feedback_text}\n\n{context}" if context else feedback_text
                 print(f"[FEEDBACK] Injected recurring quality issue warnings")
+
+            # Assemble strategy with budget-aware deduplication (planner gets 4000 chars)
+            from hands.strategy_assembler import assemble as assemble_strategy, PLANNER_BUDGET
+            planner_assembly = assemble_strategy(
+                budget=PLANNER_BUDGET,
+                base_strategy=_raw_base_strategy,
+                principles=_raw_principles,
+                lessons=_raw_lessons,
+                quality_warnings=_raw_quality_warnings,
+                feedback=feedback_text,
+            )
+            if planner_assembly.dropped:
+                print(f"[STRATEGY] Budget: {planner_assembly.used}/{planner_assembly.budget} chars, dropped: {', '.join(planner_assembly.dropped)}")
+            if planner_assembly.was_deduped:
+                print(f"[STRATEGY] Deduplicated overlapping advice across sources")
 
             plan_data = create_plan_hands(
                 goal=goal,
                 tools_description=tools_desc,
                 domain=domain,
                 domain_knowledge=domain_knowledge,
-                execution_strategy=strategy or "",
+                execution_strategy=planner_assembly.text,
                 context=context,
                 workspace_dir=workspace_dir,
                 available_tools=registry.list_tools(),
@@ -2475,21 +2492,28 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
         else:
             print(f"  [PREFLIGHT] All checks passed")
 
-        # Inject code exemplars matching this plan's expected outputs
+        # Assemble executor strategy with exemplars (3000 char budget)
+        from hands.strategy_assembler import assemble as assemble_strategy, EXECUTOR_BUDGET
+        _raw_exemplars = ""
         predicted_archetypes = exemplar_store.predict_archetypes(plan_data)
         if predicted_archetypes:
             exemplars = exemplar_store.get_exemplars(domain, archetypes=predicted_archetypes)
             if exemplars:
-                exemplar_text = exemplar_store.format_for_prompt(exemplars)
-                if exemplar_text:
-                    strategy_with_exemplars = (strategy or "") + "\n\n" + exemplar_text
-                    print(f"[EXEMPLARS] Injected {len(exemplars)} code examples for archetypes: {', '.join(e['archetype'] for e in exemplars)}")
-                else:
-                    strategy_with_exemplars = strategy or ""
-            else:
-                strategy_with_exemplars = strategy or ""
-        else:
-            strategy_with_exemplars = strategy or ""
+                _raw_exemplars = exemplar_store.format_for_prompt(exemplars) or ""
+                if _raw_exemplars:
+                    print(f"[EXEMPLARS] {len(exemplars)} code examples for archetypes: {', '.join(e['archetype'] for e in exemplars)}")
+
+        executor_assembly = assemble_strategy(
+            budget=EXECUTOR_BUDGET,
+            base_strategy=_raw_base_strategy,
+            principles=_raw_principles,
+            lessons=_raw_lessons,
+            quality_warnings=_raw_quality_warnings,
+            exemplars=_raw_exemplars,
+        )
+        strategy_with_exemplars = executor_assembly.text
+        if executor_assembly.dropped:
+            print(f"[EXEC-STRATEGY] Budget: {executor_assembly.used}/{executor_assembly.budget} chars, dropped: {', '.join(executor_assembly.dropped)}")
 
         # Snapshot workspace before execution
         ws_before = snapshot_workspace(workspace_dir) if workspace_dir else {}

@@ -413,6 +413,88 @@ def identify_failing_steps(
     return sorted(failing_steps)
 
 
+# ---- Fast-Reject for Blocker-Level Static Issues ----
+
+# Checks that indicate definitively broken output (no need for LLM eval)
+_BLOCKER_CHECKS = {"python_syntax", "json_valid", "exists", "not_empty"}
+
+
+def _should_fast_reject(
+    static_results: dict,
+    artifacts: list[str],
+    completed_steps: int,
+    total_steps: int,
+) -> dict | None:
+    """
+    Check whether static analysis results are bad enough to skip the LLM validator.
+
+    Returns a synthetic validation result if fast-reject applies, None otherwise.
+    This saves one Sonnet call (~$0.03) when artifacts are definitively broken.
+
+    Criteria for fast-reject:
+    - >=50% of EXISTING artifacts have blocker-level issues, OR
+    - Any required config file (package.json, etc.) has a blocker
+    - AND at least 2 artifacts exist (no fast-rejecting single-file tasks)
+    - Only counts files that exist on disk (non-existent files are a separate concern)
+    """
+    if not artifacts or not static_results.get("issues"):
+        return None
+
+    # Only consider blocker issues on files that actually exist
+    # (non-existent files are a planning/execution issue, not a content quality issue)
+    blocker_issues = [
+        i for i in static_results["issues"]
+        if i.get("check") in _BLOCKER_CHECKS and i.get("check") != "exists"
+    ]
+
+    if not blocker_issues:
+        return None
+
+    # Count existing artifacts (only those we can actually evaluate)
+    existing_artifacts = [a for a in artifacts if os.path.isfile(a)]
+    if len(existing_artifacts) < 2:
+        return None  # Too few files to confidently fast-reject
+
+    # Count unique files with blockers
+    blocker_files = set(i["file"] for i in blocker_issues)
+    blocker_ratio = len(blocker_files) / max(len(existing_artifacts), 1)
+
+    # Check for critical config file failures
+    critical_configs = {"package.json", "tsconfig.json", "pyproject.toml"}
+    has_critical_config_failure = any(
+        os.path.basename(f).lower() in critical_configs for f in blocker_files
+    )
+
+    # Trigger fast-reject if >50% of files broken OR critical config broken
+    if blocker_ratio <= 0.5 and not has_critical_config_failure:
+        return None
+
+    # Build synthetic validation result
+    issue_details = [
+        f"{os.path.basename(i['file'])}: {i['detail']}"
+        for i in blocker_issues[:10]
+    ]
+
+    return {
+        "overall_score": 2,
+        "dimensions": {
+            "correctness": 2,
+            "completeness": 3,
+            "code_quality": 2,
+            "best_practices": 3,
+            "goal_alignment": 4,
+        },
+        "verdict": "reject",
+        "strengths": [f"{completed_steps}/{total_steps} steps completed"],
+        "weaknesses": issue_details,
+        "critical_issues": [f"Static analysis found {len(blocker_issues)} blocker(s): " +
+                           "; ".join(issue_details[:3])],
+        "fast_rejected": True,
+        "static_blocker_count": len(blocker_issues),
+        "static_blocker_ratio": round(blocker_ratio, 2),
+    }
+
+
 def validate_execution(
     goal: str,
     plan: dict,
@@ -437,6 +519,18 @@ def validate_execution(
 
     # Run static checks first (fast, no API call)
     static_results = _run_static_checks(execution_report.get("artifacts", []))
+
+    # Fast-reject path: skip LLM call if artifacts are definitively broken
+    fast_reject = _should_fast_reject(
+        static_results,
+        execution_report.get("artifacts", []),
+        execution_report.get("completed_steps", 0),
+        execution_report.get("total_steps", 0),
+    )
+    if fast_reject:
+        print(f"  [VALIDATOR] Fast-reject: {fast_reject['static_blocker_count']} blocker(s), "
+              f"ratio={fast_reject['static_blocker_ratio']:.0%} — skipping LLM evaluation")
+        return fast_reject
 
     # Build the evaluation context
     eval_context = {
