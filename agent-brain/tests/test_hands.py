@@ -5713,3 +5713,360 @@ class TestPlanPatternExtraction:
         all_lessons = learner2._lessons
         plan_cats = [l for l in all_lessons if l.category == "plan_template"]
         assert len(plan_cats) > 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# v17 — Auto-CWD Injection
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestAutoCwdInjection:
+    """Tests for automatic workspace_dir injection into terminal commands."""
+
+    def _tool_block(self, name, input_data, block_id="tu_1"):
+        block = MagicMock()
+        block.type = "tool_use"
+        block.name = name
+        block.input = input_data
+        block.id = block_id
+        return block
+
+    def _mock_response(self, content_blocks, inp=50, out=100):
+        resp = MagicMock()
+        resp.usage.input_tokens = inp
+        resp.usage.output_tokens = out
+        resp.content = content_blocks
+        return resp
+
+    def test_terminal_gets_workspace_cwd(self):
+        """Terminal commands should get workspace_dir as cwd when not specified."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        received_cwd = {}
+
+        class MockTerminal(BaseTool):
+            name = "terminal"
+            description = "mock terminal"
+            def execute(self, **kwargs):
+                received_cwd["value"] = kwargs.get("cwd")
+                return ToolResult(success=True, output="done", artifacts=[])
+
+        reg = ToolRegistry()
+        reg.register(MockTerminal())
+
+        call_count = {"n": 0}
+        def mock_create(*args, **kwargs):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return self._mock_response([
+                    self._tool_block("terminal", {"command": "npm install"})
+                ])
+            return self._mock_response([
+                self._tool_block("_complete", {"summary": "done", "artifacts": []}, "tu_2")
+            ])
+
+        plan = {"task_summary": "test", "steps": [
+            {"step_number": 1, "tool": "terminal", "criticality": "required",
+             "description": "install", "params": {"command": "npm install"}}
+        ]}
+
+        with patch("hands.executor.create_message", side_effect=mock_create), \
+             patch("hands.executor.log_cost"):
+            execute_plan(plan, reg, workspace_dir="/workspace/test")
+
+        assert received_cwd["value"] == "/workspace/test"
+
+    def test_terminal_preserves_explicit_cwd(self):
+        """Terminal commands with explicit cwd should NOT be overridden."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        received_cwd = {}
+
+        class MockTerminal(BaseTool):
+            name = "terminal"
+            description = "mock terminal"
+            def execute(self, **kwargs):
+                received_cwd["value"] = kwargs.get("cwd")
+                return ToolResult(success=True, output="done", artifacts=[])
+
+        reg = ToolRegistry()
+        reg.register(MockTerminal())
+
+        call_count = {"n": 0}
+        def mock_create(*args, **kwargs):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return self._mock_response([
+                    self._tool_block("terminal", {"command": "ls", "cwd": "/custom/dir"})
+                ])
+            return self._mock_response([
+                self._tool_block("_complete", {"summary": "done", "artifacts": []}, "tu_2")
+            ])
+
+        plan = {"task_summary": "test", "steps": [
+            {"step_number": 1, "tool": "terminal", "criticality": "required",
+             "description": "list", "params": {"command": "ls"}}
+        ]}
+
+        with patch("hands.executor.create_message", side_effect=mock_create), \
+             patch("hands.executor.log_cost"):
+            execute_plan(plan, reg, workspace_dir="/workspace/test")
+
+        assert received_cwd["value"] == "/custom/dir"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# v17 — Step-Directed Prompts
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestStepDirectedPrompts:
+    """Tests that tool result messages include next-step guidance."""
+
+    def _tool_block(self, name, input_data, block_id="tu_1"):
+        block = MagicMock()
+        block.type = "tool_use"
+        block.name = name
+        block.input = input_data
+        block.id = block_id
+        return block
+
+    def _mock_response(self, content_blocks, inp=50, out=100):
+        resp = MagicMock()
+        resp.usage.input_tokens = inp
+        resp.usage.output_tokens = out
+        resp.content = content_blocks
+        return resp
+
+    def test_next_step_in_tool_result(self):
+        """Tool result message should contain NEXT step info."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        class MockTerminal(BaseTool):
+            name = "terminal"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output="ok", artifacts=[])
+
+        class MockCode(BaseTool):
+            name = "code"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output="ok", artifacts=[])
+
+        reg = ToolRegistry()
+        reg.register(MockTerminal())
+        reg.register(MockCode())
+
+        calls = []
+        call_count = {"n": 0}
+        def mock_create(*args, **kwargs):
+            calls.append(kwargs)
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return self._mock_response([
+                    self._tool_block("terminal", {"command": "npm install"})
+                ])
+            elif call_count["n"] == 2:
+                return self._mock_response([
+                    self._tool_block("code", {"action": "write", "path": "x.tsx", "content": "test"}, "tu_2")
+                ])
+            return self._mock_response([
+                self._tool_block("_complete", {"summary": "done", "artifacts": ["x.tsx"]}, "tu_3")
+            ])
+
+        plan = {"task_summary": "test", "steps": [
+            {"step_number": 1, "tool": "terminal", "criticality": "required",
+             "description": "install deps", "params": {"command": "npm install"}},
+            {"step_number": 2, "tool": "code", "criticality": "required",
+             "description": "Create main component", "params": {"path": "x.tsx"}},
+        ]}
+
+        with patch("hands.executor.create_message", side_effect=mock_create), \
+             patch("hands.executor.log_cost"):
+            execute_plan(plan, reg)
+
+        # Second call's messages should contain step 1 result with "NEXT: Step 2"
+        assert len(calls) >= 2
+        second_msgs = calls[1].get("messages", [])
+        found_next = False
+        for msg in second_msgs:
+            content = msg.get("content", [])
+            if isinstance(content, list):
+                for c in content:
+                    if isinstance(c, dict) and "NEXT: Step 2" in c.get("content", ""):
+                        found_next = True
+        assert found_next, "Step 1 result should contain 'NEXT: Step 2' guidance"
+
+    def test_last_step_shows_complete_prompt(self):
+        """After last step, should say 'All planned steps complete'."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        class MockTerminal(BaseTool):
+            name = "terminal"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output="ok", artifacts=[])
+
+        reg = ToolRegistry()
+        reg.register(MockTerminal())
+
+        calls = []
+        call_count = {"n": 0}
+        def mock_create(*args, **kwargs):
+            calls.append(kwargs)
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return self._mock_response([
+                    self._tool_block("terminal", {"command": "echo hi"})
+                ])
+            return self._mock_response([
+                self._tool_block("_complete", {"summary": "done", "artifacts": []}, "tu_2")
+            ])
+
+        plan = {"task_summary": "test", "steps": [
+            {"step_number": 1, "tool": "terminal", "criticality": "required",
+             "description": "run test", "params": {"command": "echo hi"}},
+        ]}
+
+        with patch("hands.executor.create_message", side_effect=mock_create), \
+             patch("hands.executor.log_cost"):
+            execute_plan(plan, reg)
+
+        assert len(calls) >= 2
+        second_msgs = calls[1].get("messages", [])
+        found_complete = False
+        for msg in second_msgs:
+            content = msg.get("content", [])
+            if isinstance(content, list):
+                for c in content:
+                    if isinstance(c, dict) and "All planned steps complete" in c.get("content", ""):
+                        found_complete = True
+        assert found_complete, "After last step should say 'All planned steps complete'"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# v17 — Always-On File Validation
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestAlwaysOnFileValidation:
+    """Tests for immediate static validation after file writes."""
+
+    def _tool_block(self, name, input_data, block_id="tu_1"):
+        block = MagicMock()
+        block.type = "tool_use"
+        block.name = name
+        block.input = input_data
+        block.id = block_id
+        return block
+
+    def _mock_response(self, content_blocks, inp=50, out=100):
+        resp = MagicMock()
+        resp.usage.input_tokens = inp
+        resp.usage.output_tokens = out
+        resp.content = content_blocks
+        return resp
+
+    def test_broken_file_triggers_write_check(self, tmp_path):
+        """Writing a broken file should inject static check warnings."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        broken_file = tmp_path / "broken.py"
+        broken_file.write_text("def (\n")
+
+        class MockCode(BaseTool):
+            name = "code"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output=f"Wrote {broken_file}",
+                                artifacts=[str(broken_file)])
+
+        reg = ToolRegistry()
+        reg.register(MockCode())
+
+        calls = []
+        call_count = {"n": 0}
+        def mock_create(*args, **kwargs):
+            calls.append(kwargs)
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return self._mock_response([
+                    self._tool_block("code", {"action": "write", "path": str(broken_file), "content": "def (\n"})
+                ])
+            return self._mock_response([
+                self._tool_block("_complete", {"summary": "done", "artifacts": [str(broken_file)]}, "tu_2")
+            ])
+
+        plan = {"task_summary": "test", "steps": [
+            {"step_number": 1, "tool": "code", "criticality": "required",
+             "description": "write code", "params": {"path": str(broken_file)}}
+        ]}
+
+        with patch("hands.executor.create_message", side_effect=mock_create), \
+             patch("hands.executor.log_cost"):
+            execute_plan(plan, reg)
+
+        # Second call should have "STATIC CHECK" in the tool result
+        assert len(calls) >= 2
+        second_msgs = calls[1].get("messages", [])
+        found_warning = False
+        for msg in second_msgs:
+            content = msg.get("content", [])
+            if isinstance(content, list):
+                for c in content:
+                    if isinstance(c, dict) and "STATIC CHECK" in c.get("content", ""):
+                        found_warning = True
+        assert found_warning, "Broken file should trigger STATIC CHECK warning"
+
+    def test_valid_file_no_warning(self, tmp_path):
+        """Writing a valid file should NOT inject static check warnings."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        good_file = tmp_path / "good.py"
+        good_file.write_text("def hello():\n    return 'world'\n")
+
+        class MockCode(BaseTool):
+            name = "code"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output=f"Wrote {good_file}",
+                                artifacts=[str(good_file)])
+
+        reg = ToolRegistry()
+        reg.register(MockCode())
+
+        calls = []
+        call_count = {"n": 0}
+        def mock_create(*args, **kwargs):
+            calls.append(kwargs)
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return self._mock_response([
+                    self._tool_block("code", {"action": "write", "path": str(good_file), "content": "def hello():\n    return 'world'\n"})
+                ])
+            return self._mock_response([
+                self._tool_block("_complete", {"summary": "done", "artifacts": [str(good_file)]}, "tu_2")
+            ])
+
+        plan = {"task_summary": "test", "steps": [
+            {"step_number": 1, "tool": "code", "criticality": "required",
+             "description": "write code", "params": {"path": str(good_file)}}
+        ]}
+
+        with patch("hands.executor.create_message", side_effect=mock_create), \
+             patch("hands.executor.log_cost"):
+            execute_plan(plan, reg)
+
+        # Check that NO "STATIC CHECK" appears in any tool result
+        for call_kwargs in calls:
+            for msg in call_kwargs.get("messages", []):
+                content = msg.get("content", [])
+                if isinstance(content, list):
+                    for c in content:
+                        if isinstance(c, dict):
+                            assert "STATIC CHECK" not in c.get("content", ""), \
+                                "Valid file should not trigger STATIC CHECK warning"
