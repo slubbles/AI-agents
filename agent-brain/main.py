@@ -522,6 +522,13 @@ def main():
     parser.add_argument("--rag-status", action="store_true", help="Show RAG vector store stats")
     parser.add_argument("--rag-rebuild", action="store_true", help="Rebuild RAG index for a domain (or all)")
     parser.add_argument("--rag-search", metavar="QUERY", help="Semantic search across vector store")
+
+    # MCP — Docker Tool Gateway
+    parser.add_argument("--mcp-status", action="store_true", help="Show MCP gateway and server status")
+    parser.add_argument("--mcp-start", action="store_true", help="Start all MCP servers")
+    parser.add_argument("--mcp-stop", action="store_true", help="Stop all MCP servers")
+    parser.add_argument("--mcp-tools", action="store_true", help="List all available MCP tools")
+    parser.add_argument("--mcp-health", action="store_true", help="Run health checks on MCP servers")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -694,6 +701,23 @@ def main():
         return
     if getattr(args, 'rag_search', None):
         _run_rag_search(args.rag_search, args.domain)
+        return
+
+    # MCP commands
+    if getattr(args, 'mcp_status', False):
+        _show_mcp_status()
+        return
+    if getattr(args, 'mcp_start', False):
+        _mcp_start_all()
+        return
+    if getattr(args, 'mcp_stop', False):
+        _mcp_stop_all()
+        return
+    if getattr(args, 'mcp_tools', False):
+        _show_mcp_tools()
+        return
+    if getattr(args, 'mcp_health', False):
+        _mcp_health_check()
         return
 
     if args.evolve:
@@ -3143,6 +3167,171 @@ def _run_rag_search(query: str, domain: str):
         if r.get('source'):
             print(f"     Source: {r['source'][:80]}")
         print()
+
+
+# ============================================================
+# MCP — Docker Tool Gateway Commands
+# ============================================================
+
+def _show_mcp_status():
+    """Display MCP gateway status and connected servers."""
+    print(f"\n{'='*60}")
+    print(f"  MCP GATEWAY STATUS")
+    print(f"{'='*60}\n")
+
+    import config as _cfg
+    if not _cfg.MCP_ENABLED:
+        print("  MCP is disabled. Set MCP_ENABLED=True in config.py to enable.")
+        return
+
+    try:
+        from mcp.gateway import get_gateway
+        gw = get_gateway()
+        status = gw.get_status()
+
+        print(f"  Started: {status['started']}")
+        print(f"  Servers: {status['running_servers']}/{status['total_servers']} running")
+        print(f"  Total tools: {status['total_tools']}")
+        print()
+
+        for name, srv in status.get("servers", {}).items():
+            icon = "●" if srv.get("running") else "○"
+            init = "✓" if srv.get("initialized") else "✗"
+            print(f"  {icon} {name} (init: {init}, tools: {srv.get('tools_count', 0)})")
+            if srv.get("tool_names"):
+                for tn in srv["tool_names"][:10]:
+                    print(f"      - {tn}")
+                if len(srv.get("tool_names", [])) > 10:
+                    print(f"      ... and {len(srv['tool_names']) - 10} more")
+            print()
+
+    except Exception as e:
+        print(f"  Error: {e}")
+
+
+def _mcp_start_all():
+    """Start all configured MCP servers."""
+    print(f"\n{'='*60}")
+    print(f"  MCP — STARTING ALL SERVERS")
+    print(f"{'='*60}\n")
+
+    import config as _cfg
+    if not _cfg.MCP_ENABLED:
+        print("  MCP is disabled. Set MCP_ENABLED=True in config.py to enable.")
+        return
+
+    try:
+        from mcp.gateway import get_gateway
+        gw = get_gateway()
+
+        # Load config if no servers registered yet
+        if not gw._containers:
+            count = gw.load_config(_cfg.MCP_CONFIG_PATH)
+            print(f"  Loaded {count} server configurations")
+
+        results = gw.start_all()
+        for name, success in results.items():
+            icon = "✓" if success else "✗"
+            print(f"  {icon} {name}")
+
+        total_tools = len(gw.get_all_tools())
+        print(f"\n  Total tools available: {total_tools}")
+
+    except Exception as e:
+        print(f"  Error: {e}")
+
+
+def _mcp_stop_all():
+    """Stop all running MCP servers."""
+    print(f"\n{'='*60}")
+    print(f"  MCP — STOPPING ALL SERVERS")
+    print(f"{'='*60}\n")
+
+    try:
+        from mcp.gateway import get_gateway
+        gw = get_gateway()
+        gw.stop_all()
+        print("  All MCP servers stopped.")
+    except Exception as e:
+        print(f"  Error: {e}")
+
+
+def _show_mcp_tools():
+    """List all available MCP tools across all servers."""
+    print(f"\n{'='*60}")
+    print(f"  MCP TOOLS")
+    print(f"{'='*60}\n")
+
+    import config as _cfg
+    if not _cfg.MCP_ENABLED:
+        print("  MCP is disabled. Set MCP_ENABLED=True in config.py to enable.")
+        return
+
+    try:
+        from mcp.gateway import get_gateway
+        gw = get_gateway()
+        tools = gw.get_all_tools()
+
+        if not tools:
+            print("  No tools available. Start MCP servers with --mcp-start first.")
+            return
+
+        # Group by server
+        by_server: dict[str, list] = {}
+        for tool in tools:
+            server = tool["name"].split("__")[0] if "__" in tool["name"] else "unknown"
+            by_server.setdefault(server, []).append(tool)
+
+        for server, server_tools in sorted(by_server.items()):
+            print(f"  [{server}] ({len(server_tools)} tools)")
+            for t in server_tools:
+                short_name = t["name"].split("__", 1)[-1] if "__" in t["name"] else t["name"]
+                desc = t.get("description", "").replace(f"[{server}] ", "")[:80]
+                print(f"    - {short_name}: {desc}")
+            print()
+
+    except Exception as e:
+        print(f"  Error: {e}")
+
+
+def _mcp_health_check():
+    """Run health checks on all MCP servers."""
+    print(f"\n{'='*60}")
+    print(f"  MCP HEALTH CHECK")
+    print(f"{'='*60}\n")
+
+    import config as _cfg
+    if not _cfg.MCP_ENABLED:
+        print("  MCP is disabled. Set MCP_ENABLED=True in config.py to enable.")
+        return
+
+    try:
+        from mcp.gateway import get_gateway
+        gw = get_gateway()
+        health = gw.health_check()
+
+        if not health:
+            print("  No servers configured.")
+            return
+
+        for name, status in health.items():
+            running = status.get("running", False)
+            responsive = status.get("responsive", False)
+            if running and responsive:
+                icon = "●"
+                state = "healthy"
+            elif running and not responsive:
+                icon = "◐"
+                state = "unresponsive"
+            else:
+                icon = "○"
+                state = "stopped"
+            restarts = status.get("restart_count", 0)
+            tools = status.get("tools_count", 0)
+            print(f"  {icon} {name}: {state} (tools: {tools}, restarts: {restarts})")
+
+    except Exception as e:
+        print(f"  Error: {e}")
 
 
 if __name__ == "__main__":
