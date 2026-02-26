@@ -29,6 +29,7 @@ from strategy_store import (
 from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
+from utils.atomic_write import atomic_json_write
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
@@ -59,8 +60,7 @@ def _save_exec_evolution_entry(domain: str, entry: dict) -> None:
     log.append(entry)
     path = _evolution_log_path(domain)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(log, f, indent=2)
+    atomic_json_write(path, log)
 
 
 def _build_exec_meta_prompt() -> str:
@@ -217,8 +217,7 @@ def _evaluate_last_evolution(domain: str, outputs: list[dict]) -> dict | None:
     
     path = _evolution_log_path(domain)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(log, f, indent=2)
+    atomic_json_write(path, log)
     
     return evaluation
 

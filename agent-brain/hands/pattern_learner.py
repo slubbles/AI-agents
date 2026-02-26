@@ -23,6 +23,8 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from typing import Optional
 
+from utils.atomic_write import atomic_json_write
+
 
 MAX_LESSONS = 50  # Keep top N lessons
 MIN_EVIDENCE = 2  # Minimum occurrences before creating a lesson
@@ -121,8 +123,7 @@ class PatternLearner:
         )
         # Keep only top N
         self._lessons = self._lessons[:MAX_LESSONS]
-        with open(self.lessons_path, "w") as f:
-            json.dump([l.to_dict() for l in self._lessons], f, indent=2)
+        atomic_json_write(self.lessons_path, [l.to_dict() for l in self._lessons])
 
     def _find_lesson(self, pattern: str) -> Optional[ExecutionLesson]:
         """Find an existing lesson by pattern."""

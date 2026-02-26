@@ -106,7 +106,7 @@ class McpContainer:
     def __init__(self, config: McpServerConfig):
         self.config = config
         self.process: subprocess.Popen | None = None
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._stderr_thread: threading.Thread | None = None
         self._stderr_lines: list[str] = []
         self._restart_count = 0
@@ -259,12 +259,22 @@ class McpContainer:
                 self.process.stdin.write(request_bytes)
                 self.process.stdin.flush()
 
-                # Read response line from stdout (with timeout)
-                response_line = self._read_line_with_timeout(timeout)
-                if not response_line:
-                    raise RuntimeError(f"No response from '{self.config.name}' within {timeout}s")
-
-                return parse_response(response_line)
+                # Read response lines, skipping notifications (no "id" field).
+                # MCP servers may send async notifications between responses.
+                import time as _time
+                deadline = _time.monotonic() + timeout
+                while True:
+                    remaining = deadline - _time.monotonic()
+                    if remaining <= 0:
+                        raise RuntimeError(f"No response from '{self.config.name}' within {timeout}s")
+                    response_line = self._read_line_with_timeout(remaining)
+                    if not response_line:
+                        raise RuntimeError(f"No response from '{self.config.name}' within {timeout}s")
+                    parsed = parse_response(response_line)
+                    # Notifications have "method" but no "id"; skip them
+                    if "id" in parsed or "result" in parsed or "error" in parsed:
+                        return parsed
+                    logger.debug(f"Skipping notification from '{self.config.name}': {parsed.get('method', '?')}")
 
             except (BrokenPipeError, OSError) as e:
                 raise RuntimeError(
@@ -308,9 +318,10 @@ class McpContainer:
         # Container name for easy identification
         cmd.extend(["--name", f"mcp-{self.config.name}"])
 
-        # Environment variables
+        # Environment variables (resolve ${VAR} references from host env)
         for key, value in self.config.env.items():
-            cmd.extend(["-e", f"{key}={value}"])
+            resolved = self._resolve_env_value(value)
+            cmd.extend(["-e", f"{key}={resolved}"])
 
         # Volume mounts
         for host_path, container_path in self.config.volumes.items():
@@ -331,6 +342,15 @@ class McpContainer:
             cmd.extend(self.config.command)
 
         return cmd
+
+    @staticmethod
+    def _resolve_env_value(value: str) -> str:
+        """Resolve ${VAR} references in env values from the host environment."""
+        import re as _re
+        def _replace(m):
+            var_name = m.group(1)
+            return os.environ.get(var_name, "")
+        return _re.sub(r'\$\{(\w+)\}', _replace, value)
 
     def _pull_image(self) -> None:
         """Pull the Docker image if not present locally."""

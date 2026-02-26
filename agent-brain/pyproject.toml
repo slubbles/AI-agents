@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+filterwarnings = [
+    # ChromaDB legacy embedding function config — known noise, unfixable on our side
+    "ignore::DeprecationWarning:chromadb",
+    # scipy precision loss in near-identical data — expected in statistical trial tests
+    "ignore::RuntimeWarning:scipy",
+    # asyncio event loop deprecation — test-only, harmless
+    "ignore:There is no current event loop:DeprecationWarning",
+]

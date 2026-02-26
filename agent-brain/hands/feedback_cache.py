@@ -19,6 +19,8 @@ import os
 from datetime import date
 from typing import Optional
 
+from utils.atomic_write import atomic_json_write
+
 MAX_RECENT_ISSUES = 5  # Rolling buffer per dimension
 WEAK_THRESHOLD = 7.0  # Dimensions scoring below this get recorded
 CLEAR_THRESHOLD = 7.5  # Auto-clear when dimension improves above this
@@ -42,8 +44,7 @@ class FeedbackCache:
 
     def _save(self) -> None:
         os.makedirs(os.path.dirname(self._path), exist_ok=True)
-        with open(self._path, "w") as f:
-            json.dump(self._data, f, indent=2)
+        atomic_json_write(self._path, self._data)
 
     def record(
         self,

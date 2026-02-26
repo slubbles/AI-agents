@@ -377,16 +377,16 @@ def crawl_docs_site(
     # Save to disk if output_dir specified
     if output_dir and results:
         import os
+        from utils.atomic_write import atomic_json_write
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, f"crawl_{domain.replace('.', '_')}.json")
-        with open(output_path, "w") as f:
-            json.dump({
-                "domain": domain,
-                "start_url": start_url,
-                "pages_crawled": len(results),
-                "total_chars": sum(r["content_length"] for r in results),
-                "pages": results,
-            }, f, indent=2)
+        atomic_json_write(output_path, {
+            "domain": domain,
+            "start_url": start_url,
+            "pages_crawled": len(results),
+            "total_chars": sum(r["content_length"] for r in results),
+            "pages": results,
+        })
         logger.info(f"Saved crawl to {output_path}")
     
     return results

@@ -29,6 +29,7 @@ import threading
 from typing import Any
 
 from mcp.docker_manager import McpContainer, McpServerConfig
+from utils.atomic_write import atomic_json_write
 
 logger = logging.getLogger("mcp.gateway")
 
@@ -163,8 +164,7 @@ class McpGateway:
                 "categories": cfg.categories,
             }
 
-        with open(config_path, "w") as f:
-            json.dump({"servers": servers}, f, indent=2)
+        atomic_json_write(config_path, {"servers": servers})
 
     # -------------------------------------------------------------------
     # Lifecycle

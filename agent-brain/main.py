@@ -48,6 +48,8 @@ from datetime import datetime, timezone
 # Add project root to path
 sys.path.insert(0, os.path.dirname(__file__))
 
+from utils.atomic_write import atomic_json_write
+
 from agents.researcher import research
 from agents.critic import critique
 from agents.consensus import consensus_research
@@ -1773,7 +1775,7 @@ def _run_daemon(args):
 
 
 def _show_daemon_status(status: dict):
-    """Display daemon status."""
+    """Display daemon status + VPS deployment info."""
     print(f"\n{'='*60}")
     print(f"  DAEMON STATUS")
     print(f"{'='*60}")
@@ -1796,6 +1798,17 @@ def _show_daemon_status(status: dict):
                 print(f"    [{cr.get('timestamp', '?')}] "
                       f"{cr.get('rounds_completed', 0)} rounds, "
                       f"avg {cr.get('avg_score', 0):.1f}")
+
+    # VPS deploy info
+    try:
+        from deploy.vps_config import load_config as _load_vps_cfg
+        vps = _load_vps_cfg()
+        if vps.host:
+            print(f"\n  VPS: {vps.user}@{vps.host}:{vps.port}")
+            print(f"  Remote dir: {vps.remote_dir}")
+            print(f"  Cron: {vps.schedule_cron}")
+    except Exception:
+        pass
 
     print()
 
@@ -1915,8 +1928,7 @@ def _run_export(markdown: bool = False):
     else:
         # JSON output
         outpath = os.path.join(LOG_DIR, f"report_{now.strftime('%Y%m%d_%H%M%S')}.json")
-        with open(outpath, "w") as f:
-            json.dump(report, f, indent=2)
+        atomic_json_write(outpath, report)
         print(f"Report exported to: {outpath}")
         print(f"  System health: {health['health_score']}/100")
         print(f"  Domains: {len(domains)}")
@@ -3809,13 +3821,14 @@ def _list_projects():
 # ============================================================
 
 def _run_deploy(dry_run: bool = False):
-    """Deploy Agent Brain to VPS."""
+    """Deploy Agent Brain to VPS, then auto-setup cron schedule."""
     print(f"\n{'='*60}")
     print(f"  VPS DEPLOYMENT {'(DRY RUN)' if dry_run else ''}")
     print(f"{'='*60}\n")
 
     try:
-        from deploy.deployer import deploy
+        from deploy.deployer import deploy, setup_schedule
+        from deploy.vps_config import load_config
         vault = _get_vault()
 
         result = deploy(vault=vault, dry_run=dry_run)
@@ -3827,6 +3840,17 @@ def _run_deploy(dry_run: bool = False):
         print(f"\n  Deployment: {result['status']}")
         if result.get("error"):
             print(f"  Error: {result['error']}")
+
+        # Auto-setup cron schedule after successful deploy
+        if result.get("status") == "success" and not dry_run:
+            config = load_config()
+            if config.host and config.schedule_cron:
+                print(f"\n  Setting up cron schedule on VPS...")
+                sched = setup_schedule(config=config, vault=vault)
+                if sched.get("status") == "success":
+                    print(f"  ✓ Schedule configured: {sched.get('cron_entry', '')[:60]}")
+                else:
+                    print(f"  ✗ Schedule failed: {sched.get('error', 'unknown')}")
     except Exception as e:
         print(f"  ERROR: {e}")
     print()

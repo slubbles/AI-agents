@@ -11,13 +11,14 @@
       "enabled": false
     },
     "github": {
-      "image": "ghcr.io/modelcontextprotocol/server-github:latest",
+      "image": "ghcr.io/github/github-mcp-server:latest",
+      "command": ["stdio"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       },
       "categories": ["git", "github", "code"],
       "description": "GitHub API — repos, issues, PRs, search",
-      "enabled": false
+      "enabled": true
     },
     "fetch": {
       "image": "mcp/fetch-server:latest",

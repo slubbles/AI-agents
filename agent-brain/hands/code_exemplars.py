@@ -23,6 +23,8 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
+from utils.atomic_write import atomic_json_write
+
 
 MAX_EXEMPLARS_PER_DOMAIN = 20   # Cap total stored exemplars per domain
 MAX_EXEMPLAR_SIZE = 3000        # Max content size per exemplar (chars)
@@ -59,8 +61,7 @@ class CodeExemplarStore:
 
     def _save(self) -> None:
         os.makedirs(os.path.dirname(self.store_path), exist_ok=True)
-        with open(self.store_path, "w") as f:
-            json.dump(self._data, f, indent=2)
+        atomic_json_write(self.store_path, self._data)
 
     def extract_and_store(
         self,
