@@ -2271,6 +2271,9 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     from hands.checkpoint import ExecutionCheckpoint
     from hands.pattern_learner import PatternLearner
     from hands.planner import plan_repair
+    from hands.artifact_tracker import ArtifactQualityDB, score_artifacts
+    from hands.code_exemplars import CodeExemplarStore
+    from hands.output_polisher import polish_artifacts, format_polish_log
     import config as _cfg
 
     # Budget check
@@ -2361,6 +2364,18 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     learner_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_patterns.json")
     pattern_learner = PatternLearner(learner_path)
 
+    # Initialize artifact quality tracker and exemplar store
+    quality_db_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_artifact_quality.json")
+    artifact_quality_db = ArtifactQualityDB(quality_db_path)
+    exemplar_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_exemplars.json")
+    exemplar_store = CodeExemplarStore(exemplar_path)
+
+    # Inject artifact quality warnings into strategy
+    quality_warnings = artifact_quality_db.format_for_prompt(domain)
+    if quality_warnings:
+        strategy = f"{strategy}\n\n{quality_warnings}\n"
+        print(f"[ARTIFACT-QUALITY] Injected quality warnings for weak archetypes")
+
     # Check for resumable checkpoint
     resume_info = checkpoint.get_resume_info(domain)
     if resume_info and resume_info["goal"] == goal:
@@ -2423,6 +2438,22 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
 
         final_plan = plan_data
 
+        # Inject code exemplars matching this plan's expected outputs
+        predicted_archetypes = exemplar_store.predict_archetypes(plan_data)
+        if predicted_archetypes:
+            exemplars = exemplar_store.get_exemplars(domain, archetypes=predicted_archetypes)
+            if exemplars:
+                exemplar_text = exemplar_store.format_for_prompt(exemplars)
+                if exemplar_text:
+                    strategy_with_exemplars = (strategy or "") + "\n\n" + exemplar_text
+                    print(f"[EXEMPLARS] Injected {len(exemplars)} code examples for archetypes: {', '.join(e['archetype'] for e in exemplars)}")
+                else:
+                    strategy_with_exemplars = strategy or ""
+            else:
+                strategy_with_exemplars = strategy or ""
+        else:
+            strategy_with_exemplars = strategy or ""
+
         # Snapshot workspace before execution
         ws_before = snapshot_workspace(workspace_dir) if workspace_dir else {}
 
@@ -2434,7 +2465,7 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
             plan=plan_data,
             registry=registry,
             domain=domain,
-            execution_strategy=strategy or "",
+            execution_strategy=strategy_with_exemplars,
             workspace_dir=workspace_dir,
             resume_from=_resume_data if _use_surgical_retry else None,
         )
@@ -2459,6 +2490,13 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
         print(f"\n[EXECUTOR] Steps: {completed} completed, {failed} failed")
         if artifacts:
             print(f"[EXECUTOR] Artifacts: {', '.join(artifacts[:10])}")
+
+        # Step 2.5: Polish artifacts before validation (zero-cost rule-based fixes)
+        if artifacts:
+            polish_result = polish_artifacts(artifacts, domain=domain)
+            polish_log = format_polish_log(polish_result)
+            if polish_log:
+                print(f"\n{polish_log}")
 
         # Step 3: Validate
         print("\n[VALIDATOR] Evaluating execution quality...")
@@ -2559,6 +2597,28 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
             strategy_version=strategy_version,
         )
         print(f"\n[MEMORY] Saved execution output: {filepath}")
+
+    # Step 4.5: Track artifact quality and extract exemplars
+    if final_plan and final_report and final_validation:
+        try:
+            scored_arts = score_artifacts(
+                final_validation,
+                final_report.get("step_results", []),
+                final_report.get("artifacts", []),
+            )
+            if scored_arts:
+                artifact_quality_db.update(domain, scored_arts)
+                weak = artifact_quality_db.get_weak_archetypes(domain)
+                if weak:
+                    print(f"[ARTIFACT-QUALITY] Weak archetypes: {', '.join(w['archetype'] + f'({w[\"avg_score\"]})' for w in weak[:3])}")
+
+                # Extract exemplars from accepted executions
+                if final_validation.get("verdict") == "accept":
+                    stored = exemplar_store.extract_and_store(domain, scored_arts)
+                    if stored:
+                        print(f"[EXEMPLARS] Stored {stored} new code exemplars from this execution")
+        except Exception as e:
+            print(f"[ARTIFACT-QUALITY] Error: {e}")
 
     # Step 5: Learn patterns from this execution
     if final_plan and final_report and final_validation:
