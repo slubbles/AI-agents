@@ -4375,3 +4375,233 @@ class TestTargetedEvolution:
                 shutil.rmtree(parent, ignore_errors=True)
 
 
+# ==========================
+# v13 — Dependency-Aware Fail-Fast Tests
+# ==========================
+
+class TestDependencyResolver:
+    """Tests for executor DependencyResolver."""
+
+    def test_imports(self):
+        from hands.executor import DependencyResolver
+        assert DependencyResolver
+
+    def test_no_dependencies(self):
+        from hands.executor import DependencyResolver
+        steps = [
+            {"step_number": 1, "depends_on": []},
+            {"step_number": 2, "depends_on": []},
+        ]
+        dr = DependencyResolver(steps)
+        can_run, blockers = dr.can_execute(1, [])
+        assert can_run
+        assert blockers == []
+
+    def test_satisfied_dependency(self):
+        from hands.executor import DependencyResolver
+        steps = [
+            {"step_number": 1, "depends_on": []},
+            {"step_number": 2, "depends_on": [1]},
+        ]
+        dr = DependencyResolver(steps)
+        results = [{"step": 1, "success": True}]
+        can_run, blockers = dr.can_execute(2, results)
+        assert can_run
+
+    def test_failed_dependency_blocks(self):
+        from hands.executor import DependencyResolver
+        steps = [
+            {"step_number": 1, "depends_on": []},
+            {"step_number": 2, "depends_on": [1]},
+        ]
+        dr = DependencyResolver(steps)
+        results = [{"step": 1, "success": False}]
+        can_run, blockers = dr.can_execute(2, results)
+        assert not can_run
+        assert 1 in blockers
+
+    def test_transitive_block(self):
+        from hands.executor import DependencyResolver
+        steps = [
+            {"step_number": 1, "depends_on": []},
+            {"step_number": 2, "depends_on": [1]},
+            {"step_number": 3, "depends_on": [2]},
+        ]
+        dr = DependencyResolver(steps)
+        results = [
+            {"step": 1, "success": False},
+            {"step": 2, "success": False, "status": "blocked_by_dependency", "blocked_by": [1]},
+        ]
+        can_run, blockers = dr.can_execute(3, results)
+        assert not can_run
+
+    def test_all_remaining_blocked(self):
+        from hands.executor import DependencyResolver
+        steps = [
+            {"step_number": 1, "depends_on": [], "criticality": "required"},
+            {"step_number": 2, "depends_on": [1], "criticality": "required"},
+            {"step_number": 3, "depends_on": [1], "criticality": "required"},
+        ]
+        dr = DependencyResolver(steps)
+        results = [{"step": 1, "success": False}]
+        assert dr.all_remaining_blocked(1, results)
+
+    def test_not_all_blocked_if_independent(self):
+        from hands.executor import DependencyResolver
+        steps = [
+            {"step_number": 1, "depends_on": []},
+            {"step_number": 2, "depends_on": [1], "criticality": "required"},
+            {"step_number": 3, "depends_on": [], "criticality": "required"},
+        ]
+        dr = DependencyResolver(steps)
+        results = [{"step": 1, "success": False}]
+        assert not dr.all_remaining_blocked(1, results)
+
+    def test_optional_steps_not_counted(self):
+        from hands.executor import DependencyResolver
+        steps = [
+            {"step_number": 1, "depends_on": [], "criticality": "required"},
+            {"step_number": 2, "depends_on": [1], "criticality": "required"},
+            {"step_number": 3, "depends_on": [1], "criticality": "optional"},
+        ]
+        dr = DependencyResolver(steps)
+        results = [{"step": 1, "success": False}]
+        assert dr.all_remaining_blocked(1, results)
+
+
+# ==========================
+# v13 — Feedback Cache Tests
+# ==========================
+
+class TestFeedbackCache:
+    """Tests for hands/feedback_cache.py"""
+
+    def test_imports(self):
+        from hands.feedback_cache import FeedbackCache
+        assert FeedbackCache
+
+    def test_record_weak_dimension(self, tmp_path):
+        from hands.feedback_cache import FeedbackCache
+        cache = FeedbackCache(str(tmp_path / "fc.json"))
+        validation = {
+            "scores": {"correctness": 8, "security": 4, "code_quality": 7},
+            "weaknesses": ["No input sanitization", "Missing CORS config"],
+            "critical_issues": [],
+        }
+        recorded = cache.record("test-domain", validation)
+        assert "security" in recorded
+        assert "correctness" not in recorded
+
+    def test_get_for_planner(self, tmp_path):
+        from hands.feedback_cache import FeedbackCache
+        cache = FeedbackCache(str(tmp_path / "fc.json"))
+        cache.record("test-domain", {
+            "scores": {"security": 4},
+            "weaknesses": ["No input validation"],
+            "critical_issues": [],
+        })
+        text = cache.get_for_planner("test-domain")
+        assert "RECURRING QUALITY ISSUES" in text
+        assert "SECURITY" in text
+        assert "No input validation" in text
+
+    def test_auto_clear(self, tmp_path):
+        from hands.feedback_cache import FeedbackCache
+        cache = FeedbackCache(str(tmp_path / "fc.json"))
+        cache.record("test-domain", {
+            "scores": {"security": 4},
+            "weaknesses": ["issue"], "critical_issues": [],
+        })
+        assert cache.get_for_planner("test-domain") != ""
+        cleared = cache.auto_clear("test-domain", {"scores": {"security": 8.0}})
+        assert "security" in cleared
+        assert cache.get_for_planner("test-domain") == ""
+
+    def test_empty_domain(self, tmp_path):
+        from hands.feedback_cache import FeedbackCache
+        cache = FeedbackCache(str(tmp_path / "fc.json"))
+        assert cache.get_for_planner("nonexistent") == ""
+
+    def test_stats(self, tmp_path):
+        from hands.feedback_cache import FeedbackCache
+        cache = FeedbackCache(str(tmp_path / "fc.json"))
+        cache.record("d", {"scores": {"security": 3}, "weaknesses": ["bad"], "critical_issues": []})
+        s = cache.stats("d")
+        assert s["weak_dimensions"] == 1
+        assert "security" in s["dimensions"]
+
+    def test_persistent_across_instances(self, tmp_path):
+        from hands.feedback_cache import FeedbackCache
+        path = str(tmp_path / "fc.json")
+        c1 = FeedbackCache(path)
+        c1.record("d", {"scores": {"security": 4}, "weaknesses": ["issue"], "critical_issues": []})
+        c2 = FeedbackCache(path)
+        assert c2.get_for_planner("d") != ""
+
+    def test_rolling_buffer_caps(self, tmp_path):
+        from hands.feedback_cache import FeedbackCache, MAX_RECENT_ISSUES
+        cache = FeedbackCache(str(tmp_path / "fc.json"))
+        for i in range(MAX_RECENT_ISSUES + 5):
+            cache.record("d", {
+                "scores": {"security": 3},
+                "weaknesses": [f"issue_{i}"],
+                "critical_issues": [],
+            })
+        data = cache._data["d"]["security"]["recent_issues"]
+        assert len(data) <= MAX_RECENT_ISSUES
+
+
+# ==========================
+# v13 — File Repair Tests
+# ==========================
+
+class TestFileRepair:
+    """Tests for hands/file_repair.py"""
+
+    def test_imports(self):
+        from hands.file_repair import identify_weak_artifacts, repair_files
+        assert callable(identify_weak_artifacts)
+        assert callable(repair_files)
+
+    def test_identify_from_per_artifact(self):
+        from hands.file_repair import identify_weak_artifacts
+        validation = {
+            "per_artifact_scores": [
+                {"path": "src/app.ts", "score": 4, "issues": ["No error handling"]},
+                {"path": "src/utils.ts", "score": 8, "issues": []},
+            ]
+        }
+        weak = identify_weak_artifacts(validation, [], threshold=6.0)
+        assert len(weak) == 1
+        assert weak[0]["path"] == "src/app.ts"
+
+    def test_identify_fallback_from_weaknesses(self, tmp_path):
+        from hands.file_repair import identify_weak_artifacts
+        f = tmp_path / "app.ts"
+        f.write_text("const x = 1;")
+        validation = {
+            "weaknesses": [f"app.ts: No error handling"],
+            "critical_issues": [],
+        }
+        weak = identify_weak_artifacts(validation, [str(f)])
+        assert len(weak) == 1
+
+    def test_identify_no_issues(self):
+        from hands.file_repair import identify_weak_artifacts
+        validation = {"weaknesses": [], "critical_issues": []}
+        weak = identify_weak_artifacts(validation, ["/a/b.ts"])
+        assert len(weak) == 0
+
+    def test_repair_empty_list(self):
+        from hands.file_repair import repair_files
+        result = repair_files([], goal="test", plan={}, domain="test")
+        assert result["files_fixed"] == 0
+        assert result["files_failed"] == 0
+
+    def test_repair_nonexistent_file(self):
+        from hands.file_repair import repair_files
+        result = repair_files(
+            [{"path": "/nonexistent/file.ts", "issues": ["bad"]}],
+            goal="test", plan={}, domain="test",
+        )
+        assert result["files_fixed"] == 0

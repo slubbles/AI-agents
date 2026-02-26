@@ -177,6 +177,66 @@ def _apply_sliding_window(
     return [plan_msg] + recent
 
 
+# ---- Dependency-Aware Fail-Fast ----
+# Check the dependency graph BEFORE dispatching each step to the LLM.
+# Skip steps whose dependencies have already failed — no LLM cost spent.
+
+class DependencyResolver:
+    """Resolves step dependencies to enable fail-fast execution."""
+
+    def __init__(self, steps: list[dict]):
+        """Build adjacency map from plan steps."""
+        self._deps: dict[int, list[int]] = {}
+        self._criticality: dict[int, str] = {}
+        self._total_steps = len(steps)
+        
+        for step in steps:
+            sn = step.get("step_number", 0)
+            self._deps[sn] = step.get("depends_on", [])
+            self._criticality[sn] = step.get("criticality", "required")
+
+    def can_execute(self, step_num: int, step_results: list[dict]) -> tuple[bool, list[int]]:
+        """
+        Check if a step's dependencies are all satisfied.
+        
+        Returns: (can_run, [failed_dependency_step_nums])
+        A step can run if all depends_on steps succeeded.
+        """
+        deps = self._deps.get(step_num, [])
+        if not deps:
+            return True, []
+        
+        # Build lookup of completed step results
+        result_map = {}
+        for sr in step_results:
+            result_map[sr.get("step", 0)] = sr
+        
+        blockers = []
+        for dep in deps:
+            dep_result = result_map.get(dep)
+            if dep_result is None:
+                continue  # Not yet executed — might still succeed
+            if not dep_result.get("success") and dep_result.get("status") != "blocked_by_dependency":
+                blockers.append(dep)
+            elif dep_result.get("status") == "blocked_by_dependency":
+                blockers.append(dep)  # Transitively blocked
+        
+        return len(blockers) == 0, blockers
+
+    def all_remaining_blocked(self, completed_step_count: int, step_results: list[dict]) -> bool:
+        """
+        True if every unexecuted required step is blocked by a failed dependency.
+        Used for early termination.
+        """
+        for sn in range(completed_step_count + 1, self._total_steps + 1):
+            if self._criticality.get(sn) != "required":
+                continue
+            can_run, blockers = self.can_execute(sn, step_results)
+            if can_run:
+                return False
+        return True
+
+
 def _build_system_prompt(tools_description: str, execution_strategy: str = "") -> str:
     """Build the executor's system prompt."""
     today = date.today().isoformat()
@@ -345,6 +405,8 @@ def execute_plan(
     step_failures = {}  # Track retries per step: {step_num: retry_count}
     last_turn = 0  # Track the last turn for reporting
     health_monitor = ToolHealthMonitor()  # Track tool reliability
+    dep_resolver = DependencyResolver(steps)  # Dependency-aware fail-fast
+    blocked_step_count = 0  # Track skipped steps
 
     for turn in range(max_turns):
         last_turn = turn
@@ -442,6 +504,39 @@ def execute_plan(
             params = action_data.get("params", {})
             reasoning = action_data.get("reasoning", "")
             step_num = len(step_results) + 1
+
+            # Dependency-aware fail-fast: skip blocked steps without LLM cost
+            can_run, blockers = dep_resolver.can_execute(step_num, step_results)
+            if not can_run:
+                blocked_step_count += 1
+                print(f"  [STEP {step_num}] BLOCKED by failed dependencies: {blockers}")
+                step_results.append({
+                    "step": step_num,
+                    "tool": tool_name,
+                    "params": {},
+                    "reasoning": reasoning,
+                    "success": False,
+                    "output": "",
+                    "error": f"Blocked by failed dependency step(s): {blockers}",
+                    "artifacts": [],
+                    "status": "blocked_by_dependency",
+                    "blocked_by": blockers,
+                    "criticality": steps[step_num - 1].get("criticality", "required") if step_num <= len(steps) else "required",
+                })
+                # Tell the LLM to skip to next step
+                conversation.append({"role": "assistant", "content": text})
+                conversation.append({
+                    "role": "user",
+                    "content": (
+                        f"Step {step_num} SKIPPED — blocked by failed dependency "
+                        f"step(s) {blockers}. Proceed to the next step."
+                    ),
+                })
+                # Check: if all remaining required steps are blocked, early-terminate
+                if dep_resolver.all_remaining_blocked(step_num, step_results):
+                    print(f"  [EXECUTOR] All remaining required steps blocked — early termination")
+                    break
+                continue
 
             # Look up step criticality from the plan
             criticality = "required"  # default
@@ -589,6 +684,7 @@ def execute_plan(
         "failed_required": failed_required,
         "failed_optional": failed_optional,
         "retried_steps": retried_steps,
+        "blocked_steps": blocked_step_count,
         "total_steps": len(steps),
         "total_turns": last_turn + 1,
         "tool_health": health_monitor.get_health_report(),

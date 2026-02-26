@@ -2274,6 +2274,8 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     from hands.artifact_tracker import ArtifactQualityDB, score_artifacts
     from hands.code_exemplars import CodeExemplarStore
     from hands.output_polisher import polish_artifacts, format_polish_log
+    from hands.feedback_cache import FeedbackCache
+    from hands.file_repair import identify_weak_artifacts, repair_files
     import config as _cfg
 
     # Budget check
@@ -2370,6 +2372,10 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     exemplar_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_exemplars.json")
     exemplar_store = CodeExemplarStore(exemplar_path)
 
+    # Initialize feedback cache (persistent per-dimension failure signals)
+    feedback_cache_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_feedback_cache.json")
+    feedback_cache = FeedbackCache(feedback_cache_path)
+
     # Inject artifact quality warnings into strategy
     quality_warnings = artifact_quality_db.format_for_prompt(domain)
     if quality_warnings:
@@ -2410,6 +2416,12 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
             context = ""
             if previous_feedback:
                 context = f"PREVIOUS ATTEMPT FEEDBACK (fix these issues):\n{previous_feedback}"
+
+            # Inject persistent feedback from previous executions
+            feedback_text = feedback_cache.get_for_planner(domain)
+            if feedback_text:
+                context = f"{feedback_text}\n\n{context}" if context else feedback_text
+                print(f"[FEEDBACK] Injected recurring quality issue warnings")
 
             plan_data = create_plan_hands(
                 goal=goal,
@@ -2559,15 +2571,47 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
             # Clear checkpoint — execution complete
             checkpoint.mark_complete(domain, True)
             checkpoint.clear(domain)
+            # Record positive feedback + auto-clear improved dimensions
+            feedback_cache.auto_clear(domain, validation)
             break
         else:
             print(f"\n[QUALITY] Rejected (score {score} < threshold {EXEC_QUALITY_THRESHOLD})")
+
+            # Record dimension-level failure feedback for future planners
+            recorded_dims = feedback_cache.record(domain, validation)
+            if recorded_dims:
+                print(f"  [FEEDBACK] Recorded weak dimensions: {', '.join(recorded_dims)}")
+
             if attempt <= EXEC_MAX_RETRIES:
                 previous_feedback = validation.get("actionable_feedback", "Improve quality.")
                 if validation.get("critical_issues"):
                     previous_feedback += " CRITICAL: " + "; ".join(validation["critical_issues"])
 
-                # Try surgical retry — only redo failing steps
+                # Strategy 1: Targeted file repair (cheapest — single Haiku call ~$0.003)
+                weak_artifacts = identify_weak_artifacts(
+                    validation, report.get("artifacts", []), threshold=EXEC_QUALITY_THRESHOLD
+                )
+                strong_count = len(report.get("artifacts", [])) - len(weak_artifacts)
+                if weak_artifacts and strong_count > len(weak_artifacts):
+                    print(f"  [FILE REPAIR] {len(weak_artifacts)} file(s) need fixes, {strong_count} are good")
+                    repair_result = repair_files(
+                        files_to_fix=weak_artifacts,
+                        goal=goal,
+                        plan=plan_data,
+                        domain=domain,
+                        workspace_dir=workspace_dir,
+                    )
+                    if repair_result.get("files_fixed", 0) > 0:
+                        print(f"  [FILE REPAIR] Fixed {repair_result['files_fixed']} file(s) (${repair_result.get('cost', 0):.4f})")
+                        for d in repair_result.get("details", []):
+                            if d.get("fixed"):
+                                print(f"    ✓ {d['path']}: {', '.join(d.get('changes', []))[:80]}")
+                        # Re-validate with fixed files (skip re-execution)
+                        continue
+                    else:
+                        print(f"  [FILE REPAIR] Could not fix files — trying surgical retry")
+
+                # Strategy 2: Surgical retry — only redo failing steps
                 failing = identify_failing_steps(
                     validation,
                     report.get("step_results", []),
