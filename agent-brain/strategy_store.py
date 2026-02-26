@@ -24,11 +24,14 @@ def _meta_path(domain: str) -> str:
 
 
 def _load_meta(domain: str) -> dict:
-    """Load strategy metadata for a domain."""
+    """Load strategy metadata for a domain. Returns {} on corruption."""
     path = _meta_path(domain)
     if os.path.exists(path):
-        with open(path) as f:
-            return json.load(f)
+        try:
+            with open(path) as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"[STRATEGY] Warning: corrupt meta file {path}: {e}")
     return {}
 
 
@@ -42,13 +45,17 @@ def _save_meta(domain: str, meta: dict):
 
 
 def _load_strategy_file(agent_role: str, domain: str, version: str) -> dict | None:
-    """Load a specific strategy version file."""
+    """Load a specific strategy version file. Returns None on corruption."""
     strategy_dir = os.path.join(STRATEGY_DIR, domain)
     filepath = os.path.join(strategy_dir, f"{agent_role}_{version}.json")
     if not os.path.exists(filepath):
         return None
-    with open(filepath) as f:
-        return json.load(f)
+    try:
+        with open(filepath) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"[STRATEGY] Warning: corrupt strategy file {filepath}: {e}")
+        return None
 
 
 def load_strategy_file(agent_role: str, domain: str, version: str) -> dict | None:

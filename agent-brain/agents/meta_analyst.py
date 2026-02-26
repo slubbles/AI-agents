@@ -117,6 +117,7 @@ You receive:
 1. A set of scored research outputs (each with scores across 5 dimensions + critic feedback)
 2. The current strategy document the researcher is using
 3. EVOLUTION HISTORY: past decisions you made and their outcomes (did scores improve?)
+4. TOOL USAGE DATA: actual search queries, page fetch success rates, and content volumes per output
 
 CRITICAL: Use the evolution history to avoid repeating changes that failed. Double down on
 changes that worked. If the history shows a pattern (e.g., "adding source verification improved
@@ -134,6 +135,7 @@ ANALYSIS FRAMEWORK:
 - Compare high-scoring vs low-scoring outputs — what did the high-scorers do differently?
 - Identify the weakest dimension — that's the biggest improvement opportunity
 - Check evolution history: what was tried before? Did it help or hurt?
+- Analyze tool_usage data: which search queries yielded good results? What fetch success rate correlates with high scores? Did more content = better scores?
 
 STRATEGY WRITING RULES:
 - The strategy is a system prompt for the researcher agent
@@ -144,6 +146,9 @@ STRATEGY WRITING RULES:
 - Preserve behaviors that scored well. Only change what's broken.
 - CRITICAL: The researcher has a hard cap of 10 searches. Strategies must recommend 3-8 searches.
   Recommending more than 8 will cause the agent to hit its limit and produce corrupt output.
+- LIMIT CHANGES: Make at most 2 changes per evolution. Smaller changes = clearer attribution.
+  If 5 things need fixing, fix the 2 most impactful ones and save the rest for next evolution.
+  This helps determine which changes actually improved scores.
 
 OUTPUT FORMAT — respond with ONLY this JSON, no markdown fencing:
 {{
@@ -156,6 +161,7 @@ OUTPUT FORMAT — respond with ONLY this JSON, no markdown fencing:
         "low_score_behaviors": ["what low scorers did"]
     }},
     "changes_made": ["specific change 1", "specific change 2"],
+    "primary_change": "The single most important change (for attribution tracking)",
     "lessons_from_history": ["what past evolutions taught us"],
     "new_strategy": "THE FULL NEW STRATEGY TEXT HERE",
     "reasoning": "Why these changes should improve scores",
@@ -191,7 +197,18 @@ def _prepare_analysis_data(outputs: list[dict], current_strategy: str | None, ev
             "knowledge_gaps": research_data.get("knowledge_gaps", []),
             "findings_count": len(research_data.get("findings", [])),
             "searches_made": research_data.get("_searches_made", 0),
+            "empty_searches": research_data.get("_empty_searches", 0),
         }
+        # Include tool usage log if available (for tool-strategy optimization)
+        tool_log = research_data.get("_tool_log", [])
+        if tool_log:
+            # Summarize: queries used, fetch success rate, total content chars
+            summary["tool_usage"] = {
+                "search_queries": [t.get("query", "") for t in tool_log if t.get("tool") == "web_search"][:5],
+                "pages_fetched": [{"url": t.get("url", ""), "ok": t.get("success", False), "chars": t.get("chars", 0)} for t in tool_log if t.get("tool") == "fetch_page"][:5],
+                "fetch_success_rate": (sum(1 for t in tool_log if t.get("tool") in ("fetch_page", "search_and_fetch") and t.get("success")) / max(1, sum(1 for t in tool_log if t.get("tool") in ("fetch_page", "search_and_fetch")))),
+                "total_chars_retrieved": sum(t.get("chars", 0) for t in tool_log),
+            }
         summaries.append(summary)
 
     data = {

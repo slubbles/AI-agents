@@ -206,11 +206,15 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
                     recall_block += f"    [{conf}] {claim_text} (source: {source})\n"
         prior_knowledge_block += recall_block
     
-    # Inject prior knowledge into the system prompt if we have any
-    if prior_knowledge_block:
-        system_prompt += f"""
+    # Prior knowledge injected into user message (below), not system prompt,
+    # so the static system prompt stays cacheable across tool-use rounds.
 
-=== PRIOR KNOWLEDGE (from your memory) ===
+    user_message = f"Research question: {question}"
+    
+    # Inject prior knowledge into the user message (not system prompt) so the
+    # static system prompt remains cacheable across tool-use rounds.
+    if prior_knowledge_block:
+        user_message = f"""=== PRIOR KNOWLEDGE (from your memory) ===
 PRIOR KNOWLEDGE INSTRUCTIONS:
 - Claims marked [high] are verified — don't re-search these unless the question specifically requires updated data.
 - Claims marked [medium] may benefit from corroboration — search for a second source.
@@ -218,9 +222,9 @@ PRIOR KNOWLEDGE INSTRUCTIONS:
 - Focus searches on the KNOWLEDGE GAPS listed below, not on re-verifying known claims.
 {prior_knowledge_block}
 === END PRIOR KNOWLEDGE ===
-"""
 
-    user_message = f"Research question: {question}"
+Research question: {question}"""
+
     if critique:
         user_message += f"\n\nPREVIOUS ATTEMPT REJECTED. Feedback:\n{critique}\n\nSearch for more specific information and improve."
 
@@ -229,6 +233,7 @@ PRIOR KNOWLEDGE INSTRUCTIONS:
     search_count = 0
     fetch_count = 0
     empty_search_count = 0  # Track searches that returned 0 results
+    tool_log = []  # Track tool usage for critic + meta-analyst observability
 
     # Agentic tool-use loop
     for _ in range(MAX_TOOL_ROUNDS):
@@ -275,9 +280,11 @@ PRIOR KNOWLEDGE INSTRUCTIONS:
                                 for i, code in enumerate(result['code_blocks'][:3]):
                                     content += f"\n--- Code {i+1} ---\n{code[:500]}"
                             print(f"  [FETCH #{fetch_count}] Got {result['content_length']} chars")
+                            tool_log.append({"tool": "fetch_page", "url": url, "success": True, "chars": result['content_length'], "title": result['title'][:80]})
                         else:
                             content = '{"error": "Failed to fetch page. Try a different URL."}'
                             print(f"  [FETCH #{fetch_count}] FAILED")
+                            tool_log.append({"tool": "fetch_page", "url": url, "success": False, "chars": 0})
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
@@ -288,8 +295,9 @@ PRIOR KNOWLEDGE INSTRUCTIONS:
                     # Handle search_and_fetch tool
                     if tool_name == "search_and_fetch":
                         search_count += 1
-                        fetch_count += 1
-                        if search_count > MAX_SEARCHES:
+                        max_fetch = min(block.input.get("max_fetch", 3), 5)
+                        fetch_count += max_fetch  # Account for actual pages fetched
+                        if search_count > MAX_SEARCHES or fetch_count > MAX_FETCHES:
                             print(f"  [SEARCH+FETCH] SKIPPED — hit max searches ({MAX_SEARCHES})")
                             tool_results.append({
                                 "type": "tool_result",
@@ -298,7 +306,6 @@ PRIOR KNOWLEDGE INSTRUCTIONS:
                             })
                             continue
                         query = block.input.get("query", question)
-                        max_fetch = min(block.input.get("max_fetch", 3), 5)
                         print(f"  [SEARCH+FETCH] \"{query}\" (fetch top {max_fetch})")
                         result = search_and_fetch(query, max_results=5, max_fetch=max_fetch)
                         # Format combined results
@@ -315,6 +322,7 @@ PRIOR KNOWLEDGE INSTRUCTIONS:
                                     content_parts.append(f"--- Code {i+1} ---\n{code[:500]}")
                         content = "\n".join(content_parts)
                         print(f"  [SEARCH+FETCH] {len(result['fetched_pages'])} pages, {result['total_content_chars']} chars")
+                        tool_log.append({"tool": "search_and_fetch", "query": query, "success": True, "pages_fetched": len(result['fetched_pages']), "chars": result['total_content_chars']})
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
@@ -342,8 +350,10 @@ PRIOR KNOWLEDGE INSTRUCTIONS:
                     if search_failed:
                         print(f"  [SEARCH #{search_count}] FAILED: {results[0].get('snippet', 'unknown error')}")
                         empty_search_count += 1
+                        tool_log.append({"tool": "web_search", "query": query, "success": False, "results": 0})
                     else:
                         print(f"  [SEARCH #{search_count}] Got {len(results)} results")
+                        tool_log.append({"tool": "web_search", "query": query, "success": True, "results": len(results)})
                     
                     if len(results) == 0:
                         empty_search_count += 1
@@ -431,6 +441,7 @@ PRIOR KNOWLEDGE INSTRUCTIONS:
             result["_zero_findings"] = True
         result["_searches_made"] = search_count
         result["_empty_searches"] = empty_search_count
+        result["_tool_log"] = tool_log
         return result
 
     # Fallback: wrap raw text as a finding
@@ -444,4 +455,5 @@ PRIOR KNOWLEDGE INSTRUCTIONS:
         "_parse_error": True,
         "_searches_made": search_count,
         "_empty_searches": empty_search_count,
+        "_tool_log": tool_log,
     }

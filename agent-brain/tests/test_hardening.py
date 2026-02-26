@@ -900,7 +900,7 @@ class TestIntegration:
                 "knowledge_gaps": [],
             }
 
-        def mock_critique_fn(research_output, domain=None):
+        def mock_critique_fn(research_output, domain=None, sources_summary=None):
             # First attempt gets low score, second gets high
             if call_count[0] <= 1:
                 return {
