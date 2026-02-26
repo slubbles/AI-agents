@@ -478,6 +478,7 @@ def main():
     parser.add_argument("--exec-status", action="store_true", help="Show execution memory stats")
     parser.add_argument("--exec-evolve", action="store_true", help="Force execution strategy evolution")
     parser.add_argument("--exec-principles", action="store_true", help="Show learned execution principles")
+    parser.add_argument("--exec-lessons", action="store_true", help="Show learned execution patterns/lessons")
     parser.add_argument("--workspace", default="", help="Workspace directory for execution output")
     parser.add_argument("--auto-build", action="store_true", help="Brain→Hands pipeline: generate coding task from KB and execute it")
     parser.add_argument("--build-rounds", type=int, default=1, help="Number of auto-build rounds (default: 1)")
@@ -627,6 +628,9 @@ def main():
         return
     if getattr(args, 'exec_principles', False):
         _show_exec_principles()
+        return
+    if getattr(args, 'exec_lessons', False):
+        _show_exec_lessons(args.domain)
         return
     if getattr(args, 'auto_build', False):
         _run_auto_build(args.domain, getattr(args, 'build_rounds', 1), workspace_dir=args.workspace)
@@ -2265,6 +2269,7 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     from hands.workspace_diff import snapshot_workspace, compute_diff, format_diff_summary
     from hands.plan_cache import PlanCache
     from hands.checkpoint import ExecutionCheckpoint
+    from hands.pattern_learner import PatternLearner
     import config as _cfg
 
     # Budget check
@@ -2324,6 +2329,13 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     except Exception:
         pass  # Cross-domain learning is optional
 
+    # Inject learned execution lessons (from pattern_learner)
+    lessons_text = pattern_learner.format_lessons_for_prompt(domain=domain)
+    if lessons_text:
+        strategy = f"{strategy}\n\n{lessons_text}\n"
+        lesson_count = len(pattern_learner.get_lessons(domain=domain))
+        print(f"[LESSONS] Injected {lesson_count} learned execution lessons")
+
     # Load domain knowledge from Brain (if available)
     domain_knowledge = ""
     try:
@@ -2340,11 +2352,13 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
 
     from config import EXEC_MAX_RETRIES, EXEC_QUALITY_THRESHOLD
 
-    # Initialize plan cache and checkpoint manager
+    # Initialize plan cache, checkpoint, and pattern learner
     cache_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_plan_cache.json")
     plan_cache = PlanCache(cache_path)
     cp_dir = os.path.join(os.path.dirname(__file__), "exec_memory", "_checkpoints")
     checkpoint = ExecutionCheckpoint(cp_dir)
+    learner_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_patterns.json")
+    pattern_learner = PatternLearner(learner_path)
 
     # Check for resumable checkpoint
     resume_info = checkpoint.get_resume_info(domain)
@@ -2501,6 +2515,23 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
         )
         print(f"\n[MEMORY] Saved execution output: {filepath}")
 
+    # Step 5: Learn patterns from this execution
+    if final_plan and final_report and final_validation:
+        exec_output_for_learning = {
+            "domain": domain,
+            "goal": goal,
+            "overall_score": final_validation.get("overall_score", 0),
+            "accepted": final_validation.get("verdict") == "accept",
+            "execution_report": final_report,
+            "plan": final_plan,
+            "validation": final_validation,
+        }
+        new_lessons = pattern_learner.analyze_execution(exec_output_for_learning)
+        if new_lessons:
+            print(f"[PATTERN-LEARNER] Extracted {len(new_lessons)} new patterns:")
+            for lesson in new_lessons[:5]:
+                print(f"  • {lesson[:100]}")
+
     # Check if exec strategy evolution is due
     stats = get_exec_stats(domain)
     from config import EXEC_EVOLVE_EVERY_N
@@ -2604,6 +2635,46 @@ def _show_exec_principles():
         print()
 
     print(f"  Total: {len(principles)} principles")
+
+
+def _show_exec_lessons(domain: str):
+    """Show learned execution patterns/lessons."""
+    from hands.pattern_learner import PatternLearner
+
+    print(f"\n{'='*60}")
+    print(f"  EXECUTION LESSONS — Domain: {domain or 'all'}")
+    print(f"{'='*60}\n")
+
+    learner_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_patterns.json")
+    learner = PatternLearner(learner_path)
+
+    # Get all lessons (not just high-evidence ones)
+    all_lessons = learner._lessons
+    domain_lessons = [l for l in all_lessons if l.domain == domain or not domain]
+
+    if not domain_lessons:
+        print("  No execution lessons learned yet.")
+        print("  Lessons are extracted after each execution.")
+        return
+
+    # Group by category
+    by_category = {}
+    for lesson in domain_lessons:
+        cat = lesson.category
+        if cat not in by_category:
+            by_category[cat] = []
+        by_category[cat].append(lesson)
+
+    for cat, lessons in sorted(by_category.items()):
+        print(f"  [{cat.upper()}]")
+        for lesson in sorted(lessons, key=lambda l: l.evidence_count, reverse=True):
+            impact = "+" if lesson.success_impact > 0 else "-" if lesson.success_impact < 0 else "~"
+            print(f"    {impact} {lesson.lesson[:100]}")
+            print(f"      Evidence: {lesson.evidence_count}x | Impact: {lesson.success_impact:+.1f}")
+        print()
+
+    stats = learner.stats()
+    print(f"  Total: {stats['total_lessons']} lessons, {stats['high_evidence']} with strong evidence")
 
 
 if __name__ == "__main__":
