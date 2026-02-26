@@ -183,16 +183,24 @@ def _apply_sliding_window(
     Apply the sliding context window strategy.
     
     Replaces the full conversation with:
-    [plan_message, state_accumulator, last_N_messages]
+    [plan_message (trimmed), state_accumulator, last_N_messages]
     
     This is called proactively every turn (not just when nearing limits),
     keeping the conversation consistently small.
+    
+    Progressive plan trimming: completed steps are removed from the plan
+    message to avoid re-sending 1-2K tokens of already-done work on every turn.
     """
     if len(conversation) <= SLIDING_WINDOW_KEEP_RECENT + 1:
         return conversation  # Not enough messages to compress yet
     
     plan_msg = conversation[0]
     recent = conversation[-SLIDING_WINDOW_KEEP_RECENT:]
+    
+    # Progressive plan trimming: remove completed steps from plan message
+    completed_steps = {sr.get("step", 0) for sr in step_results}
+    if completed_steps:
+        plan_msg = _trim_completed_steps_from_plan(plan_msg, completed_steps)
     
     state = _build_state_accumulator(step_results, artifacts)
     
@@ -203,6 +211,52 @@ def _apply_sliding_window(
         return [plan_msg, {"role": "assistant", "content": "Understood. Continuing execution."}, state_msg] + recent
     
     return [plan_msg] + recent
+
+
+def _trim_completed_steps_from_plan(plan_msg: dict, completed_steps: set[int]) -> dict:
+    """
+    Remove completed step details from the plan message to save tokens.
+    
+    Replaces full step JSON with a one-line summary for completed steps.
+    Keeps uncompleted steps intact.
+    """
+    content = plan_msg.get("content", "")
+    if not isinstance(content, str) or '"steps"' not in content:
+        return plan_msg
+    
+    try:
+        # Find the JSON plan within the message
+        json_start = content.find("{")
+        json_end = content.rfind("}") + 1
+        if json_start < 0 or json_end <= json_start:
+            return plan_msg
+        
+        before = content[:json_start]
+        after = content[json_end:]
+        plan_json = json.loads(content[json_start:json_end])
+        
+        if "steps" not in plan_json:
+            return plan_msg
+        
+        trimmed_steps = []
+        for step in plan_json["steps"]:
+            sn = step.get("step_number", step.get("step", 0))
+            if sn in completed_steps:
+                # Replace with compact summary
+                trimmed_steps.append({
+                    "step_number": sn,
+                    "status": "completed",
+                    "tool": step.get("tool", "?"),
+                    "description": step.get("description", "")[:40],
+                })
+            else:
+                trimmed_steps.append(step)
+        
+        plan_json["steps"] = trimmed_steps
+        new_content = before + json.dumps(plan_json, separators=(",", ":")) + after
+        return {"role": plan_msg.get("role", "user"), "content": new_content}
+    except (json.JSONDecodeError, KeyError):
+        return plan_msg  # On any error, return original
 
 
 # ---- Dependency-Aware Fail-Fast ----
