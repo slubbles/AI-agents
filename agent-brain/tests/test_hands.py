@@ -4052,3 +4052,326 @@ class TestOutputPolisher:
         assert "[POLISHER]" in log
         assert "reformatted_json" in log
 
+
+# ==========================
+# v12 — Plan Pre-Flight Validator Tests
+# ==========================
+
+class TestPlanPreflight:
+    """Tests for hands/plan_preflight.py"""
+
+    def test_imports(self):
+        from hands.plan_preflight import preflight_check, PreflightResult, PreflightIssue
+        assert callable(preflight_check)
+
+    def test_empty_plan_is_blocker(self):
+        from hands.plan_preflight import preflight_check
+        result = preflight_check({"steps": []})
+        assert not result.passed
+        assert len(result.blockers) == 1
+        assert "no steps" in result.blockers[0].message.lower()
+
+    def test_valid_plan_passes(self):
+        from hands.plan_preflight import preflight_check
+        plan = {"steps": [
+            {"step_number": 1, "tool": "code", "params": {"path": "src/index.ts", "action": "write"}, "description": "Create main file", "depends_on": []},
+            {"step_number": 2, "tool": "terminal", "params": {"command": "npm test"}, "description": "Run tests", "depends_on": [1]},
+        ]}
+        result = preflight_check(plan)
+        assert result.passed
+
+    def test_forward_dependency_is_blocker(self):
+        from hands.plan_preflight import preflight_check
+        plan = {"steps": [
+            {"step_number": 1, "tool": "code", "depends_on": [2], "params": {}},
+            {"step_number": 2, "tool": "code", "depends_on": [], "params": {}},
+        ]}
+        result = preflight_check(plan)
+        assert any(i.category == "ordering" and i.severity == "blocker" for i in result.issues)
+
+    def test_nonexistent_dependency_warning(self):
+        from hands.plan_preflight import preflight_check
+        plan = {"steps": [
+            {"step_number": 1, "tool": "code", "depends_on": [99], "params": {}},
+        ]}
+        result = preflight_check(plan)
+        assert any(i.category == "ordering" and "non-existent" in i.message for i in result.issues)
+
+    def test_config_after_source_warning(self):
+        from hands.plan_preflight import preflight_check
+        plan = {"steps": [
+            {"step_number": 1, "tool": "code", "params": {"path": "src/main.ts"}, "depends_on": []},
+            {"step_number": 2, "tool": "code", "params": {"path": "package.json"}, "depends_on": []},
+        ]}
+        result = preflight_check(plan)
+        assert any(i.category == "ordering" and "config" in i.message.lower() for i in result.issues)
+
+    def test_all_code_tool_warning(self):
+        from hands.plan_preflight import preflight_check
+        plan = {"steps": [
+            {"step_number": i, "tool": "code", "params": {}, "depends_on": []}
+            for i in range(1, 5)
+        ]}
+        result = preflight_check(plan)
+        assert any(i.category == "diversity" for i in result.issues)
+
+    def test_duplicate_action_warning(self):
+        from hands.plan_preflight import preflight_check
+        plan = {"steps": [
+            {"step_number": 1, "tool": "code", "params": {"path": "src/app.ts", "action": "write"}, "depends_on": []},
+            {"step_number": 2, "tool": "code", "params": {"path": "src/app.ts", "action": "write"}, "depends_on": []},
+        ]}
+        result = preflight_check(plan)
+        assert any(i.category == "duplicate" for i in result.issues)
+
+    def test_no_verification_step_warning(self):
+        from hands.plan_preflight import preflight_check
+        plan = {"steps": [
+            {"step_number": i, "tool": "code", "params": {"path": f"f{i}.ts"}, "description": f"Write file {i}", "depends_on": []}
+            for i in range(1, 5)
+        ]}
+        result = preflight_check(plan)
+        assert any(i.category == "completeness" for i in result.issues)
+
+    def test_cost_blocker_for_huge_plan(self):
+        from hands.plan_preflight import preflight_check
+        plan = {"steps": [
+            {"step_number": i, "tool": "code", "params": {}, "depends_on": []}
+            for i in range(1, 200)
+        ]}
+        result = preflight_check(plan, cost_ceiling=0.10)
+        assert any(i.category == "cost" and i.severity == "blocker" for i in result.issues)
+
+    def test_preflight_result_format(self):
+        from hands.plan_preflight import PreflightResult, PreflightIssue
+        r = PreflightResult(issues=[
+            PreflightIssue("blocker", "cost", "Too expensive"),
+            PreflightIssue("warning", "ordering", "Config late"),
+        ])
+        text = r.format()
+        assert "BLOCKER" in text
+        assert "WARNING" in text
+
+    def test_passed_property(self):
+        from hands.plan_preflight import PreflightResult, PreflightIssue
+        r1 = PreflightResult(issues=[PreflightIssue("warning", "x", "minor")])
+        assert r1.passed  # Warnings don't block
+
+        r2 = PreflightResult(issues=[PreflightIssue("blocker", "x", "fatal")])
+        assert not r2.passed
+
+
+# ==========================
+# v12 — Sliding Context Window Tests
+# ==========================
+
+class TestSlidingContextWindow:
+    """Tests for executor sliding context window."""
+
+    def test_build_state_accumulator_empty(self):
+        from hands.executor import _build_state_accumulator
+        assert _build_state_accumulator([], []) == ""
+
+    def test_build_state_accumulator_success(self):
+        from hands.executor import _build_state_accumulator
+        results = [
+            {"step": 1, "tool": "code", "success": True, "output": "Created file.ts", "error": ""},
+            {"step": 2, "tool": "terminal", "success": True, "output": "Tests passed", "error": ""},
+        ]
+        state = _build_state_accumulator(results, ["file.ts"])
+        assert "2 step(s) completed" in state
+        assert "Step 1 [code] ✓" in state
+        assert "Step 2 [terminal] ✓" in state
+        assert "file.ts" in state
+
+    def test_build_state_accumulator_with_failure(self):
+        from hands.executor import _build_state_accumulator
+        results = [
+            {"step": 1, "tool": "code", "success": True, "output": "ok", "error": ""},
+            {"step": 2, "tool": "terminal", "success": False, "output": "", "error": "Command failed"},
+        ]
+        state = _build_state_accumulator(results, [])
+        assert "✗" in state
+        assert "Command failed" in state
+
+    def test_apply_sliding_window_short_conversation(self):
+        from hands.executor import _apply_sliding_window
+        conv = [
+            {"role": "user", "content": "Plan..."},
+            {"role": "assistant", "content": "Ok"},
+            {"role": "user", "content": "Result..."},
+        ]
+        result = _apply_sliding_window(conv, [], [])
+        assert result == conv  # Unchanged — too short
+
+    def test_apply_sliding_window_compresses(self):
+        from hands.executor import _apply_sliding_window, SLIDING_WINDOW_KEEP_RECENT
+        # Build a conversation longer than SLIDING_WINDOW_KEEP_RECENT + 1
+        conv = [{"role": "user", "content": "Plan..."}]
+        for i in range(10):
+            conv.append({"role": "assistant", "content": f"Assistant msg {i}" * 100})
+            conv.append({"role": "user", "content": f"TOOL RESULT {i}" * 100})
+
+        step_results = [{"step": i + 1, "tool": "code", "success": True, "output": "ok", "error": ""} for i in range(10)]
+        compressed = _apply_sliding_window(conv, step_results, ["file.ts"])
+
+        # Should be much shorter than original
+        assert len(compressed) < len(conv)
+        # Should keep plan msg and recent messages
+        assert compressed[0]["content"] == "Plan..."
+        # State accumulator should be present
+        state_content = " ".join(m["content"] for m in compressed)
+        assert "EXECUTION STATE" in state_content
+
+    def test_sliding_window_preserves_recent(self):
+        from hands.executor import _apply_sliding_window, SLIDING_WINDOW_KEEP_RECENT
+        conv = [{"role": "user", "content": "Plan..."}]
+        for i in range(8):
+            conv.append({"role": "assistant", "content": f"A{i}"})
+            conv.append({"role": "user", "content": f"U{i}"})
+
+        compressed = _apply_sliding_window(conv, [], [])
+        # Last messages should be preserved
+        last_msgs = [m["content"] for m in compressed[-SLIDING_WINDOW_KEEP_RECENT:]]
+        orig_last_msgs = [m["content"] for m in conv[-SLIDING_WINDOW_KEEP_RECENT:]]
+        assert last_msgs == orig_last_msgs
+
+
+# ==========================
+# v12 — Targeted Dimension Evolution Tests
+# ==========================
+
+class TestTargetedEvolution:
+    """Tests for exec_meta targeted dimension evolution."""
+
+    def test_identify_weakest_dimension(self):
+        from hands.exec_meta import _identify_weakest_dimension
+        outputs = [
+            {"validation": {"scores": {"correctness": 8, "completeness": 5, "code_quality": 7, "security": 6}}},
+            {"validation": {"scores": {"correctness": 9, "completeness": 4, "code_quality": 8, "security": 7}}},
+            {"validation": {"scores": {"correctness": 7, "completeness": 5, "code_quality": 7, "security": 6}}},
+        ]
+        result = _identify_weakest_dimension(outputs)
+        assert result == "completeness"
+
+    def test_identify_weakest_uniform_returns_none(self):
+        from hands.exec_meta import _identify_weakest_dimension
+        outputs = [
+            {"validation": {"scores": {"correctness": 7, "completeness": 7, "code_quality": 7}}},
+            {"validation": {"scores": {"correctness": 7, "completeness": 7, "code_quality": 7}}},
+        ]
+        result = _identify_weakest_dimension(outputs)
+        assert result is None  # Gap < 0.5
+
+    def test_identify_weakest_no_scores(self):
+        from hands.exec_meta import _identify_weakest_dimension
+        outputs = [{"validation": {}}, {"validation": {"scores": {}}}]
+        result = _identify_weakest_dimension(outputs)
+        assert result is None
+
+    def test_build_targeted_prompt(self):
+        from hands.exec_meta import _build_targeted_evolution_prompt
+        prompt = _build_targeted_evolution_prompt("code_quality")
+        assert "code_quality" in prompt
+        assert "TARGETED" in prompt
+        assert "ONE specific dimension" in prompt
+
+    def test_evaluate_last_evolution_no_log(self, tmp_path=None):
+        from hands.exec_meta import _evaluate_last_evolution
+        result = _evaluate_last_evolution("nonexistent_domain_xyz_test", [])
+        assert result is None
+
+    def test_evaluate_last_evolution_with_data(self):
+        import tempfile
+        from hands.exec_meta import _evaluate_last_evolution, _save_exec_evolution_entry, _evolution_log_path
+        domain = "_test_targeted_eval"
+        path = _evolution_log_path(domain)
+
+        try:
+            # Create a log entry
+            _save_exec_evolution_entry(domain, {
+                "version": "v001",
+                "previous_version": "default",
+                "date": "2025-01-01",
+                "changes": ["improved security"],
+                "reasoning": "test",
+                "target_dimension": "security",
+                "outcome": "pending",
+            })
+
+            # Create outputs—before and after
+            outputs = [
+                {"timestamp": "2024-12-28T00:00:00", "validation": {"scores": {"security": 5}}},
+                {"timestamp": "2024-12-29T00:00:00", "validation": {"scores": {"security": 4}}},
+                {"timestamp": "2025-01-02T00:00:00", "validation": {"scores": {"security": 7}}},
+                {"timestamp": "2025-01-03T00:00:00", "validation": {"scores": {"security": 8}}},
+            ]
+
+            result = _evaluate_last_evolution(domain, outputs)
+            assert result is not None
+            assert result["status"] == "evaluated"
+            assert result["improved"] is True
+            assert result["delta"] > 0
+        finally:
+            # Cleanup
+            if os.path.exists(path):
+                os.remove(path)
+            import shutil
+            parent = os.path.dirname(path)
+            if os.path.isdir(parent) and os.path.basename(parent) == domain:
+                shutil.rmtree(parent, ignore_errors=True)
+
+    def test_evaluate_last_evolution_insufficient_data(self):
+        from hands.exec_meta import _evaluate_last_evolution, _save_exec_evolution_entry, _evolution_log_path
+        domain = "_test_targeted_insuff"
+        path = _evolution_log_path(domain)
+
+        try:
+            _save_exec_evolution_entry(domain, {
+                "version": "v001",
+                "date": "2025-01-01",
+                "target_dimension": "security",
+                "outcome": "pending",
+            })
+
+            # Only 1 output after evolution — not enough
+            outputs = [
+                {"timestamp": "2025-01-02T00:00:00", "validation": {"scores": {"security": 7}}},
+            ]
+
+            result = _evaluate_last_evolution(domain, outputs)
+            assert result is not None
+            assert result["status"] == "insufficient_data"
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+            import shutil
+            parent = os.path.dirname(path)
+            if os.path.isdir(parent) and os.path.basename(parent) == domain:
+                shutil.rmtree(parent, ignore_errors=True)
+
+    def test_evolution_log_stores_target_dimension(self):
+        from hands.exec_meta import _save_exec_evolution_entry, load_exec_evolution_log, _evolution_log_path
+        domain = "_test_targeted_log"
+        path = _evolution_log_path(domain)
+
+        try:
+            _save_exec_evolution_entry(domain, {
+                "version": "v001",
+                "target_dimension": "code_quality",
+                "targeted": True,
+                "outcome": "pending",
+            })
+            log = load_exec_evolution_log(domain)
+            assert len(log) == 1
+            assert log[0]["target_dimension"] == "code_quality"
+            assert log[0]["targeted"] is True
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+            import shutil
+            parent = os.path.dirname(path)
+            if os.path.isdir(parent) and os.path.basename(parent) == domain:
+                shutil.rmtree(parent, ignore_errors=True)
+
+

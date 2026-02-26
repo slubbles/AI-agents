@@ -2438,6 +2438,31 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
 
         final_plan = plan_data
 
+        # Step 1.5: Pre-flight validation (zero-cost structural checks)
+        from hands.plan_preflight import preflight_check
+        preflight = preflight_check(
+            plan=plan_data,
+            domain=domain,
+            pattern_learner=pattern_learner,
+            artifact_quality_db=artifact_quality_db,
+            cost_ceiling=float(os.environ.get("MAX_EXECUTION_COST", "0.50")),
+        )
+        if preflight.issues:
+            for issue in preflight.blockers:
+                print(f"  [PREFLIGHT] BLOCKER: {issue.message}")
+            for issue in preflight.warnings:
+                print(f"  [PREFLIGHT] WARNING: {issue.message}")
+        if not preflight.passed:
+            print(f"  [PREFLIGHT] Plan blocked — {len(preflight.blockers)} blocker(s)")
+            if attempt <= EXEC_MAX_RETRIES:
+                previous_feedback = f"Plan pre-flight check failed:\n{preflight.format()}\nFix these issues."
+                continue
+            break
+        elif preflight.warnings:
+            print(f"  [PREFLIGHT] {len(preflight.warnings)} warning(s) — proceeding")
+        else:
+            print(f"  [PREFLIGHT] All checks passed")
+
         # Inject code exemplars matching this plan's expected outputs
         predicted_archetypes = exemplar_store.predict_archetypes(plan_data)
         if predicted_archetypes:

@@ -110,6 +110,119 @@ STRATEGY WRITING RULES:
 """
 
 
+def _build_targeted_evolution_prompt(weakest_dimension: str) -> str:
+    """Build a focused prompt that targets the single weakest scoring dimension."""
+    today = date.today().isoformat()
+    
+    return f"""\
+You are an execution meta-analyst performing a TARGETED evolution. You must improve
+the system's execution strategy on ONE specific dimension: {weakest_dimension}.
+
+TODAY'S DATE: {today}
+
+TARGETED DIMENSION: {weakest_dimension}
+
+Your job:
+1. Look at recent execution outputs. Focus specifically on what causes LOW {weakest_dimension} scores.
+2. Identify concrete, actionable patterns that hurt {weakest_dimension}.
+3. Generate a MODIFIED execution strategy that specifically addresses {weakest_dimension} weaknesses.
+4. Keep all other parts of the strategy UNCHANGED — only patch what affects {weakest_dimension}.
+
+RULES:
+- Do NOT rewrite the whole strategy. Make surgical, targeted edits.
+- Every change must clearly target {weakest_dimension}.
+- Be specific: "add input validation to all handlers" not "improve security".
+- Keep the strategy under 2000 words.
+
+OUTPUT FORMAT — respond with ONLY valid JSON:
+{{
+    "target_dimension": "{weakest_dimension}",
+    "analysis": {{
+        "current_score": 0.0,
+        "root_causes": ["cause 1", "cause 2"],
+        "patterns": ["pattern 1", "pattern 2"]
+    }},
+    "new_strategy": "The complete modified execution strategy text...",
+    "changes_made": ["change targeting {weakest_dimension}"],
+    "reasoning": "Why these specific changes should improve {weakest_dimension}"
+}}
+"""
+
+
+def _evaluate_last_evolution(domain: str, outputs: list[dict]) -> dict | None:
+    """
+    Check if the last strategy evolution actually helped.
+    
+    Looks at the evolution log to find the last targeted change,
+    then compares scores before/after on that specific dimension.
+    
+    Returns evaluation dict or None if no previous evolution to evaluate.
+    """
+    log = load_exec_evolution_log(domain)
+    if not log:
+        return None
+    
+    last = log[-1]
+    if last.get("outcome") not in ("pending", "trial"):
+        return None  # Already evaluated
+    
+    target_dim = last.get("target_dimension", "")
+    evolution_date = last.get("date", "")
+    
+    if not target_dim or not evolution_date:
+        return None  # Old-style evolution without targeting — skip evaluation
+    
+    # Split outputs into before/after the evolution
+    before = []
+    after = []
+    for o in outputs:
+        ts = o.get("timestamp", "")[:10]
+        if ts and ts >= evolution_date:
+            after.append(o)
+        else:
+            before.append(o)
+    
+    # Need at least 2 outputs after evolution to evaluate
+    if len(after) < 2:
+        return {"status": "insufficient_data", "after_count": len(after)}
+    
+    # Compare the targeted dimension specifically
+    def avg_dim(outs: list[dict], dim: str) -> float:
+        scores = []
+        for o in outs:
+            val = o.get("validation", {})
+            dim_scores = val.get("scores", {})
+            if dim in dim_scores:
+                scores.append(dim_scores[dim])
+        return sum(scores) / len(scores) if scores else 0.0
+    
+    before_score = avg_dim(before[-5:], target_dim) if before else 0.0  # Use last 5 before
+    after_score = avg_dim(after, target_dim)
+    delta = after_score - before_score
+    
+    evaluation = {
+        "status": "evaluated",
+        "target_dimension": target_dim,
+        "before_score": round(before_score, 2),
+        "after_score": round(after_score, 2),
+        "delta": round(delta, 2),
+        "improved": delta > 0.0,
+        "version": last.get("version", ""),
+    }
+    
+    # Update the log entry with outcome
+    outcome = "improved" if delta > 0.0 else ("neutral" if delta >= -0.3 else "regressed")
+    last["outcome"] = outcome
+    last["outcome_delta"] = round(delta, 2)
+    
+    path = _evolution_log_path(domain)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(log, f, indent=2)
+    
+    return evaluation
+
+
 def _prepare_exec_analysis_data(outputs: list[dict], current_strategy: str | None) -> str:
     """Format execution outputs + strategy + analytics for the meta-analyst."""
     data_parts = []
@@ -203,6 +316,11 @@ def _prepare_exec_analysis_data(outputs: list[dict], current_strategy: str | Non
 def analyze_and_evolve_exec(domain: str) -> dict | None:
     """
     Run the execution meta-analyst: analyze scored outputs → improve exec strategy.
+    
+    Uses targeted dimension evolution: identifies the single weakest dimension
+    and generates a surgical strategy patch instead of rewriting everything.
+    Evaluates whether the last evolution helped; reverts to general evolution
+    if targeted approach stalls.
 
     Returns:
         Dict with analysis + new strategy version, or None if not enough data.
@@ -219,10 +337,38 @@ def analyze_and_evolve_exec(domain: str) -> dict | None:
     print(f"[EXEC-META] Analyzing {len(all_outputs)} outputs for '{domain}'...")
     print(f"[EXEC-META] Current exec strategy: {current_version or 'default'}")
 
+    # Evaluate last evolution before proceeding
+    last_eval = _evaluate_last_evolution(domain, all_outputs)
+    if last_eval:
+        if last_eval.get("status") == "evaluated":
+            dim = last_eval.get("target_dimension", "?")
+            delta = last_eval.get("delta", 0)
+            outcome = "improved" if delta > 0 else ("neutral" if delta >= -0.3 else "regressed")
+            print(f"[EXEC-META] Last evolution targeting '{dim}': {outcome} (delta: {delta:+.2f})")
+            if last_eval.get("improved"):
+                print(f"[EXEC-META]   ✓ {dim} improved from {last_eval['before_score']} → {last_eval['after_score']}")
+            elif delta < -0.3:
+                print(f"[EXEC-META]   ✗ {dim} regressed — will try different approach")
+        elif last_eval.get("status") == "insufficient_data":
+            print(f"[EXEC-META] Previous evolution still in trial (only {last_eval.get('after_count', 0)} outputs)")
+
+    # Identify weakest dimension for targeted evolution
+    weakest_dim = _identify_weakest_dimension(all_outputs)
+    use_targeted = weakest_dim is not None
+    
+    if use_targeted:
+        print(f"[EXEC-META] Targeting weakest dimension: {weakest_dim}")
+    else:
+        print(f"[EXEC-META] Using general evolution (no clear weak dimension)")
+
     # Prepare analysis data
     analysis_data = _prepare_exec_analysis_data(all_outputs, current_strategy)
 
-    prompt = _build_exec_meta_prompt()
+    # Choose prompt type — targeted or general
+    if use_targeted:
+        prompt = _build_targeted_evolution_prompt(weakest_dim)
+    else:
+        prompt = _build_exec_meta_prompt()
 
     response = create_message(
         client,
@@ -274,7 +420,8 @@ def analyze_and_evolve_exec(domain: str) -> dict | None:
 
     changes = result.get("changes_made", [])
     reasoning = result.get("reasoning", "")
-    reason = f"Changes: {'; '.join(changes)}. Reasoning: {reasoning}"
+    target_dim_label = f" [targeting: {weakest_dim}]" if use_targeted else ""
+    reason = f"Changes{target_dim_label}: {'; '.join(changes)}. Reasoning: {reasoning}"
 
     # Save as pending (requires approval)
     filepath = save_strategy(
@@ -287,21 +434,27 @@ def analyze_and_evolve_exec(domain: str) -> dict | None:
     )
 
     print(f"[EXEC-META] New exec strategy: {new_version} (PENDING APPROVAL)")
+    if use_targeted:
+        print(f"[EXEC-META] Targeted dimension: {weakest_dim}")
     print(f"[EXEC-META] File: {filepath}")
 
     analysis = result.get("analysis", {})
-    print(f"[EXEC-META] Strongest: {analysis.get('strongest_dimension', '?')}")
-    print(f"[EXEC-META] Weakest: {analysis.get('weakest_dimension', '?')}")
+    strongest = analysis.get("strongest_dimension", "?")
+    weakest = analysis.get("weakest_dimension", weakest_dim or "?")
+    print(f"[EXEC-META] Strongest: {strongest}")
+    print(f"[EXEC-META] Weakest: {weakest}")
     for change in changes:
         print(f"  → {change}")
 
-    # Log evolution entry
+    # Log evolution entry with target dimension
     _save_exec_evolution_entry(domain, {
         "version": new_version,
         "previous_version": current_version or "default",
         "date": date.today().isoformat(),
         "changes": changes,
         "reasoning": reasoning,
+        "target_dimension": weakest_dim or "",
+        "targeted": use_targeted,
         "weakest_dimension": analysis.get("weakest_dimension", ""),
         "outcome": "pending",
     })
@@ -312,4 +465,43 @@ def analyze_and_evolve_exec(domain: str) -> dict | None:
         "new_version": new_version,
         "reasoning": reasoning,
         "strategy_filepath": filepath,
+        "targeted": use_targeted,
+        "target_dimension": weakest_dim,
+        "last_evolution_eval": last_eval,
     }
+
+
+def _identify_weakest_dimension(outputs: list[dict]) -> str | None:
+    """
+    Identify the single weakest scoring dimension across recent outputs.
+    Returns the dimension name, or None if scores are too uniform.
+    """
+    dim_totals: dict[str, list[float]] = {}
+    
+    # Use the last 10 outputs
+    recent = outputs[-10:]
+    for o in recent:
+        val = o.get("validation", {})
+        scores = val.get("scores", {})
+        for dim, score in scores.items():
+            if isinstance(score, (int, float)):
+                dim_totals.setdefault(dim, []).append(score)
+    
+    if not dim_totals:
+        return None
+    
+    # Calculate averages
+    dim_avgs = {dim: sum(s) / len(s) for dim, s in dim_totals.items() if s}
+    if not dim_avgs:
+        return None
+    
+    # Find weakest
+    weakest = min(dim_avgs, key=dim_avgs.get)  # type: ignore
+    strongest = max(dim_avgs, key=dim_avgs.get)  # type: ignore
+    
+    # Only target if there's a meaningful gap (>0.5 points)
+    gap = dim_avgs[strongest] - dim_avgs[weakest]
+    if gap < 0.5:
+        return None  # Scores too uniform, use general evolution
+    
+    return weakest
