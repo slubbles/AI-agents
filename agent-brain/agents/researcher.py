@@ -15,6 +15,7 @@ from anthropic import Anthropic
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import ANTHROPIC_API_KEY, MODELS, MAX_TOOL_ROUNDS, MAX_SEARCHES
 from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
+from tools.web_fetcher import fetch_page, search_and_fetch, FETCH_TOOL_DEFINITION, SEARCH_AND_FETCH_TOOL_DEFINITION
 from cost_tracker import log_cost
 from memory_store import retrieve_relevant, load_knowledge_base
 from utils.retry import create_message
@@ -27,7 +28,7 @@ def _build_baseline() -> str:
     """Baseline instructions that ALWAYS apply, regardless of domain strategy."""
     today = date.today().isoformat()  # e.g. "2026-02-23"
     return f"""\
-You are a research agent with web search capability.
+You are a research agent with web search AND page reading capability.
 
 TODAY'S DATE: {today}
 Any source, event, or data dated AFTER {today} is FUTURE and cannot be verified.
@@ -35,9 +36,15 @@ Only report information dated on or before {today} as factual. If a search resul
 a future date, flag it explicitly as unverified/projected and set confidence to "low".
 
 WORKFLOW:
-1. Use web_search 2-4 times to gather current information. Be targeted — don't over-search.
-2. After searching, compile your findings.
-3. Respond with ONLY a JSON object. No preamble text, no explanation, no markdown fencing.
+1. Use web_search 1-2 times to find relevant URLs.
+2. Use fetch_page on the 2-3 most promising URLs to read full page content.
+   This gives you 10-50x more information than search snippets alone.
+3. OR use search_and_fetch for a combined search+read in one step.
+4. After reading pages, compile your findings with SPECIFIC details from the actual content.
+5. Respond with ONLY a JSON object. No preamble text, no explanation, no markdown fencing.
+
+IMPORTANT: ALWAYS fetch pages when possible. Search snippets are 100 words; full pages are 3000-8000 words.
+The quality difference is enormous. Prioritize fetch_page over multiple web_search calls.
 
 RULES:
 - Cite concrete facts, numbers, dates, URLs from search results
@@ -132,8 +139,9 @@ If prior knowledge conflicts with new search results, flag the contradiction.
         user_message += f"\n\nPREVIOUS ATTEMPT REJECTED. Feedback:\n{critique}\n\nSearch for more specific information and improve."
 
     messages = [{"role": "user", "content": user_message}]
-    tools = [SEARCH_TOOL_DEFINITION]
+    tools = [SEARCH_TOOL_DEFINITION, FETCH_TOOL_DEFINITION, SEARCH_AND_FETCH_TOOL_DEFINITION]
     search_count = 0
+    fetch_count = 0
     empty_search_count = 0  # Track searches that returned 0 results
 
     # Agentic tool-use loop
@@ -154,6 +162,65 @@ If prior knowledge conflicts with new search results, flag the contradiction.
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
+                    tool_name = block.name
+                    
+                    # Handle fetch_page tool
+                    if tool_name == "fetch_page":
+                        fetch_count += 1
+                        url = block.input.get("url", "")
+                        print(f"  [FETCH #{fetch_count}] {url[:80]}")
+                        result = fetch_page(url)
+                        if result:
+                            # Format for researcher consumption — cap at 4K to avoid context bloat
+                            page_content = result['content'][:4000]
+                            content = f"PAGE: {result['title']}\nURL: {result['url']}\nContent ({result['content_length']} chars):\n{page_content}"
+                            if result['headings']:
+                                content += f"\nHeadings: {', '.join(result['headings'][:10])}"
+                            if result['code_blocks']:
+                                content += f"\nCode examples: {len(result['code_blocks'])} found"
+                                for i, code in enumerate(result['code_blocks'][:3]):
+                                    content += f"\n--- Code {i+1} ---\n{code[:500]}"
+                            print(f"  [FETCH #{fetch_count}] Got {result['content_length']} chars")
+                        else:
+                            content = '{"error": "Failed to fetch page. Try a different URL."}'
+                            print(f"  [FETCH #{fetch_count}] FAILED")
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": content,
+                        })
+                        continue
+                    
+                    # Handle search_and_fetch tool
+                    if tool_name == "search_and_fetch":
+                        search_count += 1
+                        fetch_count += 1
+                        query = block.input.get("query", question)
+                        max_fetch = min(block.input.get("max_fetch", 3), 5)
+                        print(f"  [SEARCH+FETCH] \"{query}\" (fetch top {max_fetch})")
+                        result = search_and_fetch(query, max_results=5, max_fetch=max_fetch)
+                        # Format combined results
+                        content_parts = []
+                        content_parts.append(f"Search results for: {query}")
+                        for sr in result['search_results']:
+                            content_parts.append(f"  - {sr['title']}: {sr['snippet'][:150]}")
+                        for fp in result['fetched_pages']:
+                            content_parts.append(f"\n=== FULL PAGE: {fp['title']} ===")
+                            content_parts.append(f"URL: {fp['url']}")
+                            content_parts.append(fp['content'])
+                            if fp['code_blocks']:
+                                for i, code in enumerate(fp['code_blocks'][:3]):
+                                    content_parts.append(f"--- Code {i+1} ---\n{code[:500]}")
+                        content = "\n".join(content_parts)
+                        print(f"  [SEARCH+FETCH] {len(result['fetched_pages'])} pages, {result['total_content_chars']} chars")
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": content[:12000],  # Cap at 12K chars to avoid context bloat
+                        })
+                        continue
+                    
+                    # Handle web_search tool (original)
                     search_count += 1
                     if search_count > MAX_SEARCHES:
                         print(f"  [SEARCH #{search_count}] SKIPPED — hit max searches ({MAX_SEARCHES})")
@@ -205,6 +272,30 @@ If prior knowledge conflicts with new search results, flag the contradiction.
             break
     else:
         print(f"  [RESEARCHER] Hit max tool rounds ({MAX_TOOL_ROUNDS})")
+        # Model wanted more tools but we cut it off — force a synthesis response
+        # The last response was tool_use, so we need one more call to get JSON
+        messages.append({"role": "assistant", "content": response.content})
+        # Return empty results for the pending tool calls
+        pending_results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                pending_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": '{"error": "Tool round limit reached. You MUST now compile your findings into the JSON response format. No more tools."}',
+                })
+        if pending_results:
+            messages.append({"role": "user", "content": pending_results})
+        # Final synthesis call — no tools available
+        response = create_message(
+            client,
+            model=MODELS["researcher"],
+            max_tokens=4096,
+            system=system_prompt,
+            messages=messages,
+            tools=[],  # No tools — force text output
+        )
+        log_cost(MODELS["researcher"], response.usage.input_tokens, response.usage.output_tokens, "researcher", domain)
 
     # Extract text from response
     raw_text = ""

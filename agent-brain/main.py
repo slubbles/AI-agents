@@ -483,6 +483,13 @@ def main():
     parser.add_argument("--auto-build", action="store_true", help="Brain→Hands pipeline: generate coding task from KB and execute it")
     parser.add_argument("--build-rounds", type=int, default=1, help="Number of auto-build rounds (default: 1)")
     parser.add_argument("--next-task", action="store_true", help="Show next AI-generated coding task for a domain")
+    
+    # Web Fetching — Scrapling integration
+    parser.add_argument("--crawl", default="", help="Crawl a docs site URL and store content locally")
+    parser.add_argument("--crawl-max", type=int, default=20, help="Max pages to crawl (default: 20)")
+    parser.add_argument("--crawl-pattern", default="", help="URL regex pattern for crawl (default: same domain)")
+    parser.add_argument("--fetch", default="", help="Fetch a single URL and display content")
+    parser.add_argument("--crawl-inject", action="store_true", help="Inject crawled docs into KB as claims")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -637,6 +644,15 @@ def main():
         return
     if getattr(args, 'next_task', False):
         _show_next_task(args.domain)
+        return
+    if getattr(args, 'crawl', ''):
+        _run_crawl(args.crawl, args.domain, getattr(args, 'crawl_max', 20), getattr(args, 'crawl_pattern', ''))
+        return
+    if getattr(args, 'fetch', ''):
+        _run_fetch(args.fetch)
+        return
+    if getattr(args, 'crawl_inject', False):
+        _run_crawl_inject(args.domain)
         return
 
     if args.evolve:
@@ -2897,6 +2913,83 @@ def _show_exec_lessons(domain: str):
 
     stats = learner.stats()
     print(f"  Total: {stats['total_lessons']} lessons, {stats['high_evidence']} with strong evidence")
+
+
+def _run_crawl(url: str, domain: str, max_pages: int, url_pattern: str):
+    """Crawl a documentation site and store content locally."""
+    from tools.web_fetcher import crawl_docs_site
+    import os
+    
+    output_dir = os.path.join(os.path.dirname(__file__), "crawl_data", domain or "general")
+    
+    print(f"\n{'='*60}")
+    print(f"CRAWLING: {url}")
+    print(f"  Domain: {domain or 'general'}")
+    print(f"  Max pages: {max_pages}")
+    if url_pattern:
+        print(f"  URL pattern: {url_pattern}")
+    print(f"  Output: {output_dir}")
+    print(f"{'='*60}\n")
+    
+    pages = crawl_docs_site(
+        start_url=url,
+        max_pages=max_pages,
+        url_pattern=url_pattern or None,
+        output_dir=output_dir,
+    )
+    
+    total_chars = sum(p.get("content_length", 0) for p in pages)
+    print(f"\n{'='*60}")
+    print(f"CRAWL COMPLETE")
+    print(f"  Pages crawled: {len(pages)}")
+    print(f"  Total content: {total_chars:,} chars")
+    print(f"  Saved to: {output_dir}")
+    print(f"{'='*60}")
+
+
+def _run_fetch(url: str):
+    """Fetch a single URL and display content."""
+    from tools.web_fetcher import fetch_page
+    
+    print(f"\nFetching: {url}")
+    result = fetch_page(url)
+    
+    if not result:
+        print("  FAILED — could not fetch page")
+        return
+    
+    print(f"  Title: {result['title']}")
+    print(f"  Content: {result['content_length']} chars")
+    print(f"  Headings: {len(result['headings'])}")
+    print(f"  Code blocks: {len(result['code_blocks'])}")
+    print(f"\n--- Content Preview (first 1000 chars) ---")
+    print(result['content'][:1000])
+    if result['headings']:
+        print(f"\n--- Headings ---")
+        for h in result['headings'][:15]:
+            print(f"  - {h}")
+
+
+def _run_crawl_inject(domain: str):
+    """Inject crawled documentation into knowledge base."""
+    from tools.crawl_to_kb import inject_crawl_claims_into_kb
+    
+    print(f"\n{'='*60}")
+    print(f"INJECTING CRAWL DATA → KB")
+    print(f"  Domain: {domain}")
+    print(f"{'='*60}\n")
+    
+    result = inject_crawl_claims_into_kb(domain)
+    
+    print(f"\nResult:")
+    print(f"  Total claims extracted: {result['total_claims']}")
+    print(f"  Injected into KB: {result['injected']}")
+    print(f"  Skipped (duplicates): {result['skipped']}")
+    
+    if result['injected'] > 0:
+        print(f"\n  ✓ KB updated. Run: python main.py --status --domain {domain}")
+    else:
+        print(f"\n  No new claims to inject. Run --crawl first to gather docs.")
 
 
 if __name__ == "__main__":

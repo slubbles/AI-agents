@@ -49,7 +49,7 @@ DAILY_BUDGET_USD = 5.00  # Hard stop — refuse to run if daily spend exceeds th
 DEFAULT_DOMAIN = "general"
 
 # --- Research ---
-MAX_TOOL_ROUNDS = 5   # max rounds of tool-use before forcing output
+MAX_TOOL_ROUNDS = 8   # max rounds of tool-use before forcing output
 MAX_SEARCHES = 10     # hard cap on total web searches per run
 
 # --- Strategy Evolution ---
