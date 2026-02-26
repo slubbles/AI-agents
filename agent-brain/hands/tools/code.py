@@ -13,10 +13,13 @@ All operations respect safety constraints from config:
 - EXEC_MAX_FILE_SIZE caps write size
 - EXEC_ALLOWED_DIRS restricts where files can be written
 - Never writes to system directories
+- Automatic backup before destructive operations (edit/overwrite/delete)
 """
 
 import os
+import shutil
 import sys
+from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from config import EXEC_MAX_FILE_SIZE, EXEC_ALLOWED_DIRS
@@ -28,6 +31,13 @@ _SYSTEM_DIRS = {
     "/etc", "/usr", "/bin", "/sbin", "/boot", "/dev",
     "/proc", "/sys", "/var/run", "/var/lock",
 }
+
+# Backup directory name (within workspace)
+_BACKUP_DIR_NAME = ".agent-backups"
+# Max backups to keep per workspace (prevent disk fill)
+_MAX_BACKUPS = 200
+# Track all backups made during the current session for rollback
+_session_backups: list[dict] = []
 
 
 def _is_safe_path(path: str) -> str | None:
@@ -54,6 +64,84 @@ def _is_safe_path(path: str) -> str | None:
             return f"Path '{path}' not in allowed directories: {EXEC_ALLOWED_DIRS}"
 
     return None
+
+
+def _backup_file(filepath: str) -> str | None:
+    """
+    Create a backup of a file before a destructive operation.
+    Returns the backup path, or None if backup failed/not needed.
+    """
+    if not os.path.exists(filepath):
+        return None
+
+    try:
+        # Find a suitable backup directory
+        # Use the file's parent directory as the base
+        parent = os.path.dirname(os.path.abspath(filepath))
+        backup_dir = os.path.join(parent, _BACKUP_DIR_NAME)
+        os.makedirs(backup_dir, exist_ok=True)
+
+        # Create a timestamped backup name
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
+        basename = os.path.basename(filepath)
+        backup_name = f"{ts}_{basename}"
+        backup_path = os.path.join(backup_dir, backup_name)
+
+        # Enforce backup limit — prune oldest if over limit
+        existing = sorted(os.listdir(backup_dir))
+        if len(existing) >= _MAX_BACKUPS:
+            for old in existing[:len(existing) - _MAX_BACKUPS + 1]:
+                try:
+                    os.remove(os.path.join(backup_dir, old))
+                except OSError:
+                    pass
+
+        shutil.copy2(filepath, backup_path)
+
+        # Record for session rollback
+        _session_backups.append({
+            "original": os.path.abspath(filepath),
+            "backup": backup_path,
+            "timestamp": ts,
+            "action": "backup",
+        })
+
+        return backup_path
+    except OSError:
+        return None  # Backup is best-effort, don't block the operation
+
+
+def rollback_session() -> list[dict]:
+    """
+    Rollback all file changes made during the current session.
+    Restores all backed-up files to their original locations.
+
+    Returns list of rollback results.
+    """
+    results = []
+    for entry in reversed(_session_backups):
+        original = entry["original"]
+        backup = entry["backup"]
+        try:
+            if os.path.exists(backup):
+                shutil.copy2(backup, original)
+                results.append({"file": original, "status": "restored"})
+            else:
+                results.append({"file": original, "status": "backup_missing"})
+        except OSError as e:
+            results.append({"file": original, "status": f"error: {e}"})
+    _session_backups.clear()
+    return results
+
+
+def get_session_backups() -> list[dict]:
+    """Get list of all backups made during the current session."""
+    return list(_session_backups)
+
+
+def clear_session_backups() -> None:
+    """Clear the session backup tracker (call after successful execution)."""
+    _session_backups.clear()
 
 
 class CodeTool(BaseTool):
@@ -154,16 +242,26 @@ class CodeTool(BaseTool):
             return ToolResult(success=False, error=f"Unknown action: {action}")
 
     def _write(self, path: str, content: str) -> ToolResult:
-        """Create or overwrite a file."""
+        """Create or overwrite a file. Backs up existing files before overwrite."""
+        # Backup if overwriting an existing file
+        backup_path = None
+        if os.path.exists(path):
+            backup_path = _backup_file(path)
+
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         with open(path, "w") as f:
             f.write(content)
         size = len(content.encode("utf-8"))
+
+        metadata = {"bytes": size, "action": "write"}
+        if backup_path:
+            metadata["backup"] = backup_path
+
         return ToolResult(
             success=True,
-            output=f"Wrote {size} bytes to {path}",
+            output=f"Wrote {size} bytes to {path}" + (f" (backup: {backup_path})" if backup_path else ""),
             artifacts=[path],
-            metadata={"bytes": size, "action": "write"},
+            metadata=metadata,
         )
 
     def _read(self, path: str) -> ToolResult:
@@ -184,9 +282,13 @@ class CodeTool(BaseTool):
         )
 
     def _edit(self, path: str, old_string: str, new_string: str) -> ToolResult:
-        """Replace a specific string in a file."""
+        """Replace a specific string in a file. Backs up the file first."""
         if not os.path.exists(path):
             return ToolResult(success=False, error=f"File not found: {path}")
+
+        # Backup before editing
+        _backup_file(path)
+
         with open(path) as f:
             content = f.read()
 
@@ -251,16 +353,20 @@ class CodeTool(BaseTool):
         )
 
     def _delete(self, path: str) -> ToolResult:
-        """Delete a file."""
+        """Delete a file. Backs up the file first."""
         if not os.path.exists(path):
             return ToolResult(success=False, error=f"File not found: {path}")
         if os.path.isdir(path):
             return ToolResult(success=False, error=f"Cannot delete directory: {path}. Use terminal for that.")
+
+        # Backup before deleting
+        backup_path = _backup_file(path)
+
         os.remove(path)
         return ToolResult(
             success=True,
-            output=f"Deleted {path}",
-            metadata={"action": "delete"},
+            output=f"Deleted {path}" + (f" (backup: {backup_path})" if backup_path else ""),
+            metadata={"action": "delete", "backup": backup_path},
         )
 
     def _list_dir(self, path: str) -> ToolResult:

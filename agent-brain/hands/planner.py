@@ -30,24 +30,13 @@ from utils.json_parser import extract_json
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
-
-# File extensions considered "key files" that get their content injected
-_KEY_FILENAMES = {
-    "package.json", "tsconfig.json", "pyproject.toml", "requirements.txt",
-    "setup.py", "setup.cfg", "cargo.toml", "go.mod", "dockerfile",
-    ".gitignore", "readme.md", "readme.rst", ".env.example",
-    "next.config.js", "next.config.mjs", "next.config.ts",
-    "vite.config.ts", "vite.config.js", "tailwind.config.js",
-    "eslint.config.js", ".eslintrc.json", "jest.config.js",
-}
-
-# Extensions to skip in file tree
-_SKIP_DIRS = {"node_modules", ".git", "__pycache__", ".next", ".cache",
-              "dist", "build", ".turbo", "coverage", ".venv", "venv"}
-
-# Max chars for workspace context section
-_MAX_TREE_CHARS = 3000
-_MAX_KEY_FILE_CHARS = 4000
+# Import shared constants (single source of truth)
+from hands.constants import (
+    KEY_FILENAMES as _KEY_FILENAMES,
+    SKIP_DIRS as _SKIP_DIRS,
+    MAX_TREE_CHARS as _MAX_TREE_CHARS,
+    MAX_KEY_FILE_CHARS as _MAX_KEY_FILE_CHARS,
+)
 
 
 def _scan_workspace(workspace_dir: str) -> dict:

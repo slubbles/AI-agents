@@ -21,6 +21,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from config import EXEC_STEP_TIMEOUT
 from hands.tools.registry import BaseTool, ToolResult
+from hands.constants import SKIP_DIRS
 
 
 class SearchTool(BaseTool):
@@ -284,10 +285,8 @@ class SearchTool(BaseTool):
                 error=f"Count timed out after {EXEC_STEP_TIMEOUT}s",
             )
 
-    # Directories to skip in tree display
-    _TREE_SKIP_DIRS = {"node_modules", ".git", "__pycache__", ".next", ".cache",
-                       "dist", "build", ".turbo", "coverage", ".venv", "venv",
-                       ".mypy_cache", ".pytest_cache", ".tox", "egg-info"}
+    # Use shared skip dirs
+    _TREE_SKIP_DIRS = SKIP_DIRS
 
     def _tree(self, path: str, max_depth: int = 4) -> ToolResult:
         """Display directory structure as an ASCII tree."""

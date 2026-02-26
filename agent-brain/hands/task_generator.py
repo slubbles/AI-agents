@@ -11,6 +11,8 @@ Pipeline:
    b) Fill knowledge gaps through experimentation
    c) Build on past successes
    d) Fix past failures
+4. Deduplicate against past tasks (prevent re-attempting failed goals)
+5. Adapt difficulty based on success rates at each complexity level
 
 Uses Haiku (cheap synthesis task) — the judgment happens in the validator.
 """
@@ -36,6 +38,70 @@ client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 MAX_KB_CLAIMS = 20
 MAX_PAST_TASKS = 10
+
+# Minimum accept rate at a complexity level to allow generating tasks at that level
+MIN_ACCEPT_RATE_FOR_COMPLEXITY = 0.40
+# Minimum attempts at a level before enforcing success rate gating
+MIN_ATTEMPTS_FOR_GATING = 3
+
+
+def _get_past_goals(domain: str) -> list[str]:
+    """Get list of all previously attempted goals for deduplication."""
+    outputs = load_exec_outputs(domain)
+    return [o.get("goal", "") for o in outputs if o.get("goal")]
+
+
+def _get_complexity_stats(domain: str) -> dict[str, dict]:
+    """
+    Calculate success rates by complexity level.
+    
+    Returns:
+        {"low": {"count": 5, "accepted": 4, "rate": 0.8}, ...}
+    """
+    outputs = load_exec_outputs(domain)
+    stats: dict[str, dict] = {}
+    
+    for o in outputs:
+        # Get complexity from the plan
+        complexity = o.get("plan", {}).get("estimated_complexity", "medium")
+        if complexity not in stats:
+            stats[complexity] = {"count": 0, "accepted": 0}
+        stats[complexity]["count"] += 1
+        if o.get("accepted"):
+            stats[complexity]["accepted"] += 1
+    
+    # Calculate rates
+    for level, data in stats.items():
+        data["rate"] = data["accepted"] / data["count"] if data["count"] > 0 else 0
+    
+    return stats
+
+
+def _get_max_allowed_complexity(domain: str) -> str:
+    """
+    Determine the maximum complexity level the system should attempt,
+    based on historical success rates.
+    
+    If high-complexity tasks have <40% accept rate (with 3+ attempts),
+    cap at medium. If medium also fails, cap at low.
+    """
+    stats = _get_complexity_stats(domain)
+    levels = ["low", "medium", "high"]
+    
+    for level in reversed(levels):  # Check high, then medium
+        data = stats.get(level, {})
+        count = data.get("count", 0)
+        rate = data.get("rate", 1.0)
+        
+        # Only gate if enough attempts at this level
+        if count >= MIN_ATTEMPTS_FOR_GATING and rate < MIN_ACCEPT_RATE_FOR_COMPLEXITY:
+            # This level is too hard — cap at the previous level
+            idx = levels.index(level)
+            if idx > 0:
+                return levels[idx - 1]
+            return "low"  # Even low is failing, but allow it
+    
+    return "high"  # No restrictions
 
 
 def _build_task_gen_prompt() -> str:
@@ -79,8 +145,35 @@ Respond with a JSON array of 3 task objects.
 
 
 def _prepare_context(domain: str) -> str:
-    """Prepare context from KB and execution history."""
+    """Prepare context from KB, execution history, dedup list, and difficulty bounds."""
     parts = []
+
+    # Difficulty adaptation — tell the LLM what complexity level to target
+    max_complexity = _get_max_allowed_complexity(domain)
+    if max_complexity != "high":
+        parts.append(f"⚠ COMPLEXITY CAP: Generate tasks at '{max_complexity}' complexity or below.")
+        parts.append(f"  (Higher complexity tasks have low success rates for this domain)")
+        parts.append("")
+
+    complexity_stats = _get_complexity_stats(domain)
+    if complexity_stats:
+        parts.append("=== COMPLEXITY SUCCESS RATES ===")
+        for level in ["low", "medium", "high"]:
+            data = complexity_stats.get(level, {"count": 0, "accepted": 0, "rate": 0})
+            if data["count"] > 0:
+                parts.append(f"  {level}: {data['accepted']}/{data['count']} accepted ({data['rate']:.0%})")
+        parts.append("")
+
+    # Deduplication — past goals as a "DO NOT REPEAT" list
+    past_goals = _get_past_goals(domain)
+    if past_goals:
+        parts.append("=== PREVIOUSLY ATTEMPTED TASKS (DO NOT REPEAT) ===")
+        for i, goal in enumerate(past_goals[-15:]):  # Show last 15
+            parts.append(f"  {i+1}. {goal[:120]}")
+        parts.append("")
+        parts.append("IMPORTANT: Do NOT generate tasks identical or very similar to the above.")
+        parts.append("Generate tasks that advance the system's capabilities in NEW directions.")
+        parts.append("")
 
     # KB claims
     try:
