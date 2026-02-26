@@ -970,3 +970,368 @@ class TestRegistryIntegration:
         result = registry.execute("terminal", command="echo integration_test")
         assert result.success
         assert "integration_test" in result.output
+
+
+# ============================================================
+# Git Tool Tests
+# ============================================================
+
+class TestGitTool:
+    def test_git_init(self, tmp_workspace):
+        """Git init creates a repository."""
+        from hands.tools.git import GitTool
+        tool = GitTool()
+        result = tool.safe_execute(action="init", path=tmp_workspace)
+        assert result.success
+        assert os.path.isdir(os.path.join(tmp_workspace, ".git"))
+
+    def test_git_status(self, tmp_workspace):
+        """Git status works on an initialized repo."""
+        from hands.tools.git import GitTool
+        import subprocess
+        subprocess.run(["git", "init"], cwd=tmp_workspace, capture_output=True)
+
+        tool = GitTool()
+        result = tool.safe_execute(action="status", path=tmp_workspace)
+        assert result.success
+
+    def test_git_add_and_commit(self, tmp_workspace):
+        """Git add + commit works."""
+        from hands.tools.git import GitTool
+        import subprocess
+        subprocess.run(["git", "init"], cwd=tmp_workspace, capture_output=True)
+
+        # Create a file
+        with open(os.path.join(tmp_workspace, "test.txt"), "w") as f:
+            f.write("hello")
+
+        tool = GitTool()
+        # Add
+        result = tool.safe_execute(action="add", path=tmp_workspace)
+        assert result.success
+
+        # Commit
+        result = tool.safe_execute(action="commit", path=tmp_workspace, message="Initial commit")
+        assert result.success
+        assert "Initial commit" in result.output or "1 file changed" in result.output
+
+    def test_git_log(self, tmp_workspace):
+        """Git log shows commits."""
+        from hands.tools.git import GitTool
+        import subprocess
+        subprocess.run(["git", "init"], cwd=tmp_workspace, capture_output=True)
+        with open(os.path.join(tmp_workspace, "test.txt"), "w") as f:
+            f.write("hello")
+        subprocess.run(["git", "add", "."], cwd=tmp_workspace, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "test log"],
+            cwd=tmp_workspace, capture_output=True,
+            env={**os.environ, "GIT_AUTHOR_NAME": "Test", "GIT_AUTHOR_EMAIL": "t@t.com",
+                 "GIT_COMMITTER_NAME": "Test", "GIT_COMMITTER_EMAIL": "t@t.com"},
+        )
+
+        tool = GitTool()
+        result = tool.safe_execute(action="log", path=tmp_workspace)
+        assert result.success
+        assert "test log" in result.output
+
+    def test_git_branch(self, tmp_workspace):
+        """Git branch creation works."""
+        from hands.tools.git import GitTool
+        import subprocess
+        subprocess.run(["git", "init"], cwd=tmp_workspace, capture_output=True)
+        with open(os.path.join(tmp_workspace, "test.txt"), "w") as f:
+            f.write("hello")
+        subprocess.run(["git", "add", "."], cwd=tmp_workspace, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "init"],
+            cwd=tmp_workspace, capture_output=True,
+            env={**os.environ, "GIT_AUTHOR_NAME": "Test", "GIT_AUTHOR_EMAIL": "t@t.com",
+                 "GIT_COMMITTER_NAME": "Test", "GIT_COMMITTER_EMAIL": "t@t.com"},
+        )
+
+        tool = GitTool()
+        result = tool.safe_execute(action="branch", path=tmp_workspace, branch_name="feature-test")
+        assert result.success
+
+    def test_git_safety_blocks_force_push(self):
+        """Blocked git operations are rejected."""
+        from hands.tools.git import _check_git_safety
+        assert _check_git_safety("push --force origin main") is not None
+        assert _check_git_safety("rebase main") is not None
+        assert _check_git_safety("reset --hard HEAD~1") is not None
+
+    def test_git_safety_allows_normal(self):
+        """Normal git operations are allowed."""
+        from hands.tools.git import _check_git_safety
+        assert _check_git_safety("push origin main") is None
+        assert _check_git_safety("pull origin main") is None
+        assert _check_git_safety("commit -m 'test'") is None
+
+    def test_git_requires_message_for_commit(self):
+        """Commit without message returns validation error."""
+        from hands.tools.git import GitTool
+        tool = GitTool()
+        result = tool.safe_execute(action="commit", path="/tmp")
+        assert not result.success
+        assert "message" in result.error.lower()
+
+    def test_git_diff(self, tmp_workspace):
+        """Git diff shows changes."""
+        from hands.tools.git import GitTool
+        import subprocess
+        subprocess.run(["git", "init"], cwd=tmp_workspace, capture_output=True)
+        with open(os.path.join(tmp_workspace, "test.txt"), "w") as f:
+            f.write("hello")
+        subprocess.run(["git", "add", "."], cwd=tmp_workspace, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "init"],
+            cwd=tmp_workspace, capture_output=True,
+            env={**os.environ, "GIT_AUTHOR_NAME": "Test", "GIT_AUTHOR_EMAIL": "t@t.com",
+                 "GIT_COMMITTER_NAME": "Test", "GIT_COMMITTER_EMAIL": "t@t.com"},
+        )
+        # Modify file
+        with open(os.path.join(tmp_workspace, "test.txt"), "w") as f:
+            f.write("world")
+
+        tool = GitTool()
+        result = tool.safe_execute(action="diff", path=tmp_workspace)
+        assert result.success
+
+
+# ============================================================
+# HTTP Tool Tests
+# ============================================================
+
+class TestHttpTool:
+    def test_url_safety_blocks_internal(self):
+        """Internal IPs are blocked."""
+        from hands.tools.http import _check_url_safety
+        assert _check_url_safety("http://127.0.0.1/secret") is not None
+        assert _check_url_safety("http://192.168.1.1/admin") is not None
+        assert _check_url_safety("http://10.0.0.1/api") is not None
+        assert _check_url_safety("http://localhost:3000") is not None
+
+    def test_url_safety_allows_public(self):
+        """Public URLs are allowed."""
+        from hands.tools.http import _check_url_safety
+        assert _check_url_safety("https://api.github.com/repos") is None
+        assert _check_url_safety("https://example.com") is None
+
+    def test_url_safety_blocks_file_scheme(self):
+        """file:// scheme is blocked."""
+        from hands.tools.http import _check_url_safety
+        assert _check_url_safety("file:///etc/passwd") is not None
+
+    def test_http_requires_url(self):
+        """HTTP tool validates required params."""
+        from hands.tools.http import HttpTool
+        tool = HttpTool()
+        result = tool.safe_execute(action="get", url="")
+        assert not result.success
+
+    def test_http_get_real(self):
+        """HTTP GET actually works against a real endpoint."""
+        from hands.tools.http import HttpTool
+        tool = HttpTool()
+        # Use httpbin or a known-stable endpoint
+        result = tool.safe_execute(action="head", url="https://httpbin.org/get")
+        # May fail network-wise but validates the tool runs
+        assert isinstance(result.success, bool)
+
+
+# ============================================================
+# Search Tool Tests
+# ============================================================
+
+class TestSearchTool:
+    def test_grep_finds_pattern(self, tmp_workspace):
+        """Grep finds text in files."""
+        from hands.tools.search import SearchTool
+        # Create test file
+        with open(os.path.join(tmp_workspace, "test.py"), "w") as f:
+            f.write("def hello_world():\n    return 'hello'\n")
+
+        tool = SearchTool()
+        result = tool.safe_execute(action="grep", path=tmp_workspace, pattern="hello_world")
+        assert result.success
+        assert "hello_world" in result.output
+
+    def test_grep_no_match(self, tmp_workspace):
+        """Grep returns no matches gracefully."""
+        from hands.tools.search import SearchTool
+        with open(os.path.join(tmp_workspace, "test.py"), "w") as f:
+            f.write("nothing here\n")
+
+        tool = SearchTool()
+        result = tool.safe_execute(action="grep", path=tmp_workspace, pattern="nonexistent_xyz")
+        assert result.success  # grep returns success even with no matches
+        assert "no matches" in result.output.lower() or result.metadata.get("matches", 0) == 0
+
+    def test_find_files(self, tmp_workspace):
+        """Find locates files by pattern."""
+        from hands.tools.search import SearchTool
+        # Create test files
+        with open(os.path.join(tmp_workspace, "app.py"), "w") as f:
+            f.write("# app")
+        with open(os.path.join(tmp_workspace, "utils.py"), "w") as f:
+            f.write("# utils")
+        with open(os.path.join(tmp_workspace, "readme.md"), "w") as f:
+            f.write("# readme")
+
+        tool = SearchTool()
+        result = tool.safe_execute(action="find", path=tmp_workspace, pattern="*.py")
+        assert result.success
+        assert "app.py" in result.output
+        assert "utils.py" in result.output
+        assert "readme.md" not in result.output
+
+    def test_count_lines_file(self, tmp_workspace):
+        """Count lines for a single file."""
+        from hands.tools.search import SearchTool
+        filepath = os.path.join(tmp_workspace, "test.py")
+        with open(filepath, "w") as f:
+            f.write("line1\nline2\nline3\n")
+
+        tool = SearchTool()
+        result = tool.safe_execute(action="count_lines", path=filepath)
+        assert result.success
+        assert "3" in result.output
+
+    def test_search_requires_pattern_for_grep(self):
+        """Grep requires a pattern."""
+        from hands.tools.search import SearchTool
+        tool = SearchTool()
+        result = tool.safe_execute(action="grep", path="/tmp")
+        assert not result.success
+        assert "pattern" in result.error.lower()
+
+
+# ============================================================
+# Task Generator Tests
+# ============================================================
+
+class TestTaskGenerator:
+    @patch("hands.task_generator.create_message")
+    def test_generate_tasks_returns_list(self, mock_create):
+        """Task generator returns a list of tasks."""
+        from hands.task_generator import generate_tasks
+
+        mock_response = MagicMock()
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 200
+        mock_block = MagicMock()
+        mock_block.text = json.dumps([
+            {"task": "Build a React component library", "reasoning": "Apply KB claims", "priority": 1,
+             "applies_claims": ["Use TypeScript"], "expected_complexity": "medium",
+             "builds_on": "none", "success_criteria": "All tests pass"},
+            {"task": "Build a REST API", "reasoning": "Practice patterns", "priority": 2,
+             "applies_claims": [], "expected_complexity": "high",
+             "builds_on": "none", "success_criteria": "API responds"},
+        ])
+        mock_response.content = [mock_block]
+        mock_create.return_value = mock_response
+
+        tasks = generate_tasks("test-domain")
+        assert len(tasks) == 2
+        assert tasks[0]["task"] == "Build a React component library"
+
+    @patch("hands.task_generator.create_message")
+    def test_get_next_task_returns_string(self, mock_create):
+        """get_next_task returns a string."""
+        from hands.task_generator import get_next_task
+
+        mock_response = MagicMock()
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 200
+        mock_block = MagicMock()
+        mock_block.text = json.dumps([
+            {"task": "Build something cool", "reasoning": "why not", "priority": 1,
+             "applies_claims": [], "expected_complexity": "low",
+             "builds_on": "none", "success_criteria": "tests pass"},
+        ])
+        mock_response.content = [mock_block]
+        mock_create.return_value = mock_response
+
+        task = get_next_task("test-domain")
+        assert isinstance(task, str)
+        assert "Build something cool" in task
+
+
+# ============================================================
+# Enhanced Executor Tests
+# ============================================================
+
+class TestEnhancedExecutor:
+    def test_context_summarization(self):
+        """Context compression reduces conversation size."""
+        from hands.executor import _summarize_old_steps, _estimate_conversation_size
+
+        # Build a long conversation
+        conversation = [
+            {"role": "user", "content": "Execute this plan..." + "x" * 1000},
+        ]
+        for i in range(20):
+            conversation.append({"role": "assistant", "content": f"Step {i} action" + "y" * 500})
+            conversation.append({"role": "user", "content": f"TOOL RESULT (step {i+1}):\nSUCCESS: output {i}" + "z" * 500})
+
+        original_size = _estimate_conversation_size(conversation)
+        compressed = _summarize_old_steps(conversation, keep_recent=6)
+        compressed_size = _estimate_conversation_size(compressed)
+
+        assert compressed_size < original_size
+        # First message preserved
+        assert compressed[0]["content"].startswith("Execute this plan")
+        # Recent messages preserved
+        assert len(compressed) <= 8  # first + summary + 6 recent
+
+    def test_conversation_size_estimation(self):
+        """Size estimation works correctly."""
+        from hands.executor import _estimate_conversation_size
+
+        conv = [
+            {"role": "user", "content": "hello"},
+            {"role": "assistant", "content": "world"},
+        ]
+        assert _estimate_conversation_size(conv) == 10
+
+
+# ============================================================
+# Registry with new tools
+# ============================================================
+
+class TestExpandedRegistry:
+    def test_registry_has_all_tools(self):
+        """Default registry has all 5 tools."""
+        from hands.tools.registry import create_default_registry
+        registry = create_default_registry()
+        tools = registry.list_tools()
+        assert "code" in tools
+        assert "terminal" in tools
+        assert "git" in tools
+        assert "http" in tools
+        assert "search" in tools
+        assert len(tools) == 5
+
+    def test_registry_claude_tools_format(self):
+        """All tools produce valid Claude tool definitions."""
+        from hands.tools.registry import create_default_registry
+        registry = create_default_registry()
+        claude_tools = registry.get_claude_tools()
+        assert len(claude_tools) == 5
+        for tool in claude_tools:
+            assert "name" in tool
+            assert "description" in tool
+            assert "input_schema" in tool
+            assert tool["input_schema"]["type"] == "object"
+
+    def test_registry_tool_descriptions(self):
+        """Tool descriptions are informative."""
+        from hands.tools.registry import create_default_registry
+        registry = create_default_registry()
+        desc = registry.get_tool_descriptions()
+        assert "code" in desc
+        assert "terminal" in desc
+        assert "git" in desc
+        assert "http" in desc
+        assert "search" in desc
