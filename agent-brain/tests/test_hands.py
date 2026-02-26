@@ -3808,3 +3808,247 @@ class TestIdentifyFailingSteps:
         )
         assert failing == []
 
+
+# ============================================================
+# v11: Artifact Tracker, Code Exemplars, Output Polisher
+# ============================================================
+
+class TestArtifactTracker:
+    """Test per-file/archetype quality tracking."""
+
+    def test_classify_archetype_exact(self):
+        from hands.artifact_tracker import classify_archetype
+        assert classify_archetype("package.json") == "config/package-json"
+        assert classify_archetype("tsconfig.json") == "config/tsconfig"
+
+    def test_classify_archetype_test(self):
+        from hands.artifact_tracker import classify_archetype
+        assert classify_archetype("src/App.test.tsx") == "test/react"
+        assert classify_archetype("tests/test_api.py") == "test/python"
+
+    def test_classify_archetype_extension(self):
+        from hands.artifact_tracker import classify_archetype
+        assert classify_archetype("src/utils.ts") == "source/typescript"
+        assert classify_archetype("src/Button.tsx") == "component/react"
+
+    def test_score_artifacts_basic(self):
+        from hands.artifact_tracker import score_artifacts
+        validation = {
+            "overall_score": 7.0,
+            "weaknesses": [],
+            "critical_issues": [],
+            "strengths": [],
+            "static_checks": {"issues": []},
+        }
+        step_results = [
+            {"step": 1, "tool": "code", "success": True, "artifacts": ["/path/to/file.ts"]},
+        ]
+        scored = score_artifacts(validation, step_results, ["/path/to/file.ts"])
+        assert len(scored) == 1
+        assert scored[0]["inferred_score"] == 7.0
+        assert scored[0]["archetype"] == "source/typescript"
+
+    def test_score_artifacts_failed_step_penalty(self):
+        from hands.artifact_tracker import score_artifacts
+        validation = {
+            "overall_score": 7.0, "weaknesses": [], "critical_issues": [],
+            "strengths": [], "static_checks": {"issues": []},
+        }
+        step_results = [
+            {"step": 1, "tool": "code", "success": False, "artifacts": ["/path/file.py"]},
+        ]
+        scored = score_artifacts(validation, step_results, ["/path/file.py"])
+        assert scored[0]["inferred_score"] < 7.0
+
+    def test_quality_db_update_and_query(self, tmp_path):
+        from hands.artifact_tracker import ArtifactQualityDB
+        db = ArtifactQualityDB(str(tmp_path / "quality.json"))
+        db.update("test-domain", [
+            {"archetype": "source/typescript", "inferred_score": 5.0, "issues": ["syntax"]},
+            {"archetype": "source/typescript", "inferred_score": 4.0, "issues": ["syntax"]},
+            {"archetype": "config/tsconfig", "inferred_score": 9.0, "issues": []},
+            {"archetype": "config/tsconfig", "inferred_score": 8.5, "issues": []},
+        ])
+        weak = db.get_weak_archetypes("test-domain", threshold=6.5)
+        assert any(w["archetype"] == "source/typescript" for w in weak)
+        strong = db.get_strong_archetypes("test-domain", threshold=7.5)
+        assert any(s["archetype"] == "config/tsconfig" for s in strong)
+
+    def test_quality_db_persistence(self, tmp_path):
+        from hands.artifact_tracker import ArtifactQualityDB
+        path = str(tmp_path / "quality.json")
+        db1 = ArtifactQualityDB(path)
+        db1.update("d", [{"archetype": "source/python", "inferred_score": 6.0, "issues": []}])
+        db2 = ArtifactQualityDB(path)
+        summary = db2.get_domain_summary("d")
+        assert summary["archetypes"] == 1
+
+    def test_format_for_prompt(self, tmp_path):
+        from hands.artifact_tracker import ArtifactQualityDB
+        db = ArtifactQualityDB(str(tmp_path / "q.json"))
+        db.update("d", [
+            {"archetype": "test/python", "inferred_score": 4.0, "issues": ["incomplete"]},
+            {"archetype": "test/python", "inferred_score": 3.5, "issues": ["incomplete"]},
+        ])
+        text = db.format_for_prompt("d")
+        assert "QUALITY WARNINGS" in text
+        assert "test/python" in text
+
+
+class TestCodeExemplars:
+    """Test code exemplar storage and retrieval."""
+
+    def test_extract_and_store(self, tmp_path):
+        from hands.code_exemplars import CodeExemplarStore
+        store = CodeExemplarStore(str(tmp_path / "exemplars.json"))
+        # Create a real file
+        code_file = tmp_path / "good_code.ts"
+        code_file.write_text("export const add = (a: number, b: number): number => a + b;\n")
+        scored = [
+            {"filepath": str(code_file), "archetype": "source/typescript", "inferred_score": 8.0, "step_success": True},
+        ]
+        count = store.extract_and_store("test", scored)
+        assert count == 1
+
+    def test_get_exemplars(self, tmp_path):
+        from hands.code_exemplars import CodeExemplarStore
+        store = CodeExemplarStore(str(tmp_path / "exemplars.json"))
+        code_file = tmp_path / "good.ts"
+        code_file.write_text("const x = 1;\n")
+        store.extract_and_store("test", [
+            {"filepath": str(code_file), "archetype": "source/typescript", "inferred_score": 8.0, "step_success": True},
+        ])
+        exemplars = store.get_exemplars("test", archetypes=["source/typescript"])
+        assert len(exemplars) == 1
+        assert exemplars[0]["score"] == 8.0
+
+    def test_higher_score_replaces(self, tmp_path):
+        from hands.code_exemplars import CodeExemplarStore
+        store = CodeExemplarStore(str(tmp_path / "exemplars.json"))
+        f1 = tmp_path / "v1.ts"
+        f1.write_text("version 1\n")
+        f2 = tmp_path / "v2.ts"
+        f2.write_text("version 2\n")
+        store.extract_and_store("test", [
+            {"filepath": str(f1), "archetype": "source/typescript", "inferred_score": 7.0, "step_success": True},
+        ])
+        store.extract_and_store("test", [
+            {"filepath": str(f2), "archetype": "source/typescript", "inferred_score": 9.0, "step_success": True},
+        ])
+        exemplars = store.get_exemplars("test")
+        assert "version 2" in exemplars[0]["content"]
+
+    def test_format_for_prompt(self, tmp_path):
+        from hands.code_exemplars import CodeExemplarStore
+        store = CodeExemplarStore(str(tmp_path / "exemplars.json"))
+        f = tmp_path / "good.py"
+        f.write_text("def hello(): pass\n")
+        store.extract_and_store("test", [
+            {"filepath": str(f), "archetype": "source/python", "inferred_score": 8.0, "step_success": True},
+        ])
+        text = store.format_for_prompt(store.get_exemplars("test"))
+        assert "HIGH-SCORING" in text
+        assert "hello" in text
+
+    def test_predict_archetypes(self, tmp_path):
+        from hands.code_exemplars import CodeExemplarStore
+        store = CodeExemplarStore(str(tmp_path / "exemplars.json"))
+        plan = {
+            "steps": [
+                {"params": {"path": "package.json"}},
+                {"params": {"path": "src/index.ts"}},
+                {"params": {"path": "tests/index.test.ts"}},
+            ]
+        }
+        archetypes = store.predict_archetypes(plan)
+        assert "config/package-json" in archetypes
+        assert "source/typescript" in archetypes
+        assert "test/typescript" in archetypes
+
+    def test_stats(self, tmp_path):
+        from hands.code_exemplars import CodeExemplarStore
+        store = CodeExemplarStore(str(tmp_path / "exemplars.json"))
+        stats = store.stats("empty-domain")
+        assert stats["total_exemplars"] == 0
+
+    def test_min_score_filter(self, tmp_path):
+        from hands.code_exemplars import CodeExemplarStore
+        store = CodeExemplarStore(str(tmp_path / "exemplars.json"))
+        f = tmp_path / "bad.ts"
+        f.write_text("bad code\n")
+        count = store.extract_and_store("test", [
+            {"filepath": str(f), "archetype": "source/typescript", "inferred_score": 3.0, "step_success": True},
+        ])
+        assert count == 0  # Below MIN_SCORE_TO_STORE
+
+
+class TestOutputPolisher:
+    """Test zero-cost rule-based output polishing."""
+
+    def test_adds_trailing_newline(self, tmp_path):
+        from hands.output_polisher import polish_artifacts
+        f = tmp_path / "file.py"
+        f.write_text("x = 1")  # No trailing newline
+        result = polish_artifacts([str(f)])
+        assert result["files_modified"] == 1
+        assert f.read_text().endswith("\n")
+
+    def test_fixes_trailing_commas_json(self, tmp_path):
+        from hands.output_polisher import polish_artifacts
+        f = tmp_path / "config.json"
+        f.write_text('{"a": 1, "b": 2,}')
+        result = polish_artifacts([str(f)])
+        assert result["files_modified"] >= 1
+        import json
+        data = json.loads(f.read_text())
+        assert data == {"a": 1, "b": 2}
+
+    def test_adds_package_json_fields(self, tmp_path):
+        from hands.output_polisher import polish_artifacts
+        f = tmp_path / "package.json"
+        f.write_text('{"dependencies": {}}')
+        result = polish_artifacts([str(f)])
+        import json
+        data = json.loads(f.read_text())
+        assert "name" in data
+        assert "version" in data
+
+    def test_removes_null_bytes(self, tmp_path):
+        from hands.output_polisher import polish_artifacts
+        f = tmp_path / "file.py"
+        f.write_text("x = 1\x00\n")
+        result = polish_artifacts([str(f)])
+        assert "\x00" not in f.read_text()
+
+    def test_trims_excess_blank_lines(self, tmp_path):
+        from hands.output_polisher import polish_artifacts
+        f = tmp_path / "file.py"
+        f.write_text("x = 1\n\n\n\n\n")
+        result = polish_artifacts([str(f)])
+        content = f.read_text()
+        assert content.count("\n\n\n") == 0
+
+    def test_skips_binary_extensions(self, tmp_path):
+        from hands.output_polisher import polish_artifacts
+        f = tmp_path / "image.png"
+        f.write_bytes(b"\x89PNG")
+        result = polish_artifacts([str(f)])
+        assert result["files_checked"] == 0
+
+    def test_no_change_for_clean_files(self, tmp_path):
+        from hands.output_polisher import polish_artifacts
+        f = tmp_path / "clean.py"
+        f.write_text("x = 1\n")
+        result = polish_artifacts([str(f)])
+        assert result["files_modified"] == 0
+
+    def test_format_polish_log(self):
+        from hands.output_polisher import format_polish_log
+        result = {"files_modified": 2, "fixes": [
+            {"file": "/path/to/file.json", "fix": "reformatted_json"},
+            {"file": "/path/to/main.py", "fix": "added_trailing_newline"},
+        ]}
+        log = format_polish_log(result)
+        assert "[POLISHER]" in log
+        assert "reformatted_json" in log
+
