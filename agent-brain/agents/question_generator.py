@@ -156,8 +156,20 @@ def generate_questions(domain: str) -> dict | None:
         print(f"  Run at least one manual question first to seed the domain.")
         return None
 
-    # Take recent outputs
+    # Take recent outputs, filtering out stale ones beyond claim expiry
     recent = all_outputs[-MAX_OUTPUTS_TO_SCAN:]
+    try:
+        from datetime import datetime, timezone, timedelta
+        from config import CLAIM_EXPIRY_DAYS
+        cutoff = datetime.now(timezone.utc) - timedelta(days=CLAIM_EXPIRY_DAYS)
+        recent = [
+            o for o in recent
+            if datetime.fromisoformat(
+                o.get("timestamp", "2099-01-01T00:00:00+00:00")
+            ).replace(tzinfo=timezone.utc) >= cutoff
+        ]
+    except Exception:
+        pass  # If date parsing fails, keep all outputs
     stats = get_stats(domain)
 
     print(f"[QUESTION-GEN] Scanning {len(recent)} outputs in domain '{domain}'...")

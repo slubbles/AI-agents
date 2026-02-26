@@ -151,10 +151,12 @@ def _compress_messages(messages: list) -> None:
             if isinstance(item, dict) and item.get("type") == "tool_result":
                 content = item.get("content", "")
                 if isinstance(content, str) and len(content) > 500:
-                    # Extract key info: URLs, first 200 chars, any numbers/dates
-                    lines = content.split("\n")[:5]  # First 5 lines
+                    # Preserve ALL URLs before truncating (most valuable for citations)
+                    urls = re.findall(r'https?://[^\s"\'>]+', content)
+                    lines = content.split("\n")[:5]
                     summary = "\n".join(lines)[:400]
-                    item["content"] = f"[COMPRESSED] {summary}..."
+                    url_block = "\nPreserved URLs: " + " ".join(sorted(set(urls))) if urls else ""
+                    item["content"] = f"[COMPRESSED] {summary}...{url_block}"
             compressed_content.append(item)
         msg["content"] = compressed_content
 

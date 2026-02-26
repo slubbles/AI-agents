@@ -352,8 +352,10 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
         print(f"\n[SAFETY] ⏳ {trial_result['reason']}")
 
     # Step 6.5: Knowledge synthesis — integrate findings into domain knowledge base
+    # Only trigger on runs that actually produced an accepted output
+    final_verdict = final_critique.get("verdict", "unknown")
     accepted_count = get_stats(domain).get("accepted", 0)
-    if accepted_count >= MIN_OUTPUTS_FOR_SYNTHESIS and accepted_count % SYNTHESIZE_EVERY_N == 0:
+    if final_verdict == "accept" and accepted_count >= MIN_OUTPUTS_FOR_SYNTHESIS and accepted_count % SYNTHESIZE_EVERY_N == 0:
         # Auto-synthesize every SYNTHESIZE_EVERY_N accepted outputs
         kb = synthesize(domain)
         if kb:
@@ -1451,7 +1453,7 @@ def _run_orchestrate(target_domains: list[str] | None, total_rounds: int):
             else:
                 try:
                     question = retry_api_call(
-                        lambda: get_next_question(domain),
+                        lambda d=domain: get_next_question(d),
                         max_attempts=5, base_delay=30, verbose=True,
                     )
                 except Exception as e:
@@ -1469,7 +1471,7 @@ def _run_orchestrate(target_domains: list[str] | None, total_rounds: int):
             result = None
             try:
                 result = retry_api_call(
-                    lambda: run_loop(question=question, domain=domain),
+                    lambda q=question, d=domain: run_loop(question=q, domain=d),
                     max_attempts=5, base_delay=30, verbose=True,
                 )
             except SystemExit:

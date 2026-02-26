@@ -36,12 +36,12 @@ def _load_meta(domain: str) -> dict:
 
 
 def _save_meta(domain: str, meta: dict):
-    """Save strategy metadata for a domain."""
+    """Save strategy metadata for a domain (atomic write)."""
+    from utils.atomic_write import atomic_json_write
     strategy_dir = os.path.join(STRATEGY_DIR, domain)
     os.makedirs(strategy_dir, exist_ok=True)
     path = _meta_path(domain)
-    with open(path, "w") as f:
-        json.dump(meta, f, indent=2)
+    atomic_json_write(path, meta)
 
 
 def _load_strategy_file(agent_role: str, domain: str, version: str) -> dict | None:
@@ -172,8 +172,9 @@ def save_strategy(agent_role: str, domain: str, strategy_text: str, version: str
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    with open(filepath, "w") as f:
-        json.dump(record, f, indent=2)
+    from utils.atomic_write import atomic_json_write
+
+    atomic_json_write(filepath, record)
 
     # Only set as active for non-pending statuses
     # Pending strategies require explicit approval before becoming active/trial
@@ -209,8 +210,8 @@ def rollback(agent_role: str, domain: str) -> str | None:
             current_data["status"] = "rolled_back"
             current_data["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
             filepath = os.path.join(STRATEGY_DIR, domain, f"{agent_role}_{current_version}.json")
-            with open(filepath, "w") as f:
-                json.dump(current_data, f, indent=2)
+            from utils.atomic_write import atomic_json_write
+            atomic_json_write(filepath, current_data)
 
     # Update meta directly (don't use set_active_version — it would re-add current to history)
     meta[history_key] = history
@@ -416,12 +417,12 @@ def evaluate_trial(agent_role: str, domain: str) -> dict:
 
 def _extend_trial(agent_role: str, domain: str, version: str, current_extensions: int) -> None:
     """Extend a trial by incrementing the extension counter on its strategy file."""
+    from utils.atomic_write import atomic_json_write
     data = _load_strategy_file(agent_role, domain, version)
     if data:
         data["_extensions"] = current_extensions + 1
         filepath = os.path.join(STRATEGY_DIR, domain, f"{agent_role}_{version}.json")
-        with open(filepath, "w") as f:
-            json.dump(data, f, indent=2)
+        atomic_json_write(filepath, data)
 
 
 def _update_evolution_outcome(domain: str, version: str, outcome: str, score_after: float) -> None:
@@ -494,8 +495,8 @@ def approve_strategy(agent_role: str, domain: str, version: str) -> dict:
     data["status"] = "trial"
     data["approved_at"] = datetime.now(timezone.utc).isoformat()
     filepath = os.path.join(STRATEGY_DIR, domain, f"{agent_role}_{version}.json")
-    with open(filepath, "w") as f:
-        json.dump(data, f, indent=2)
+    from utils.atomic_write import atomic_json_write
+    atomic_json_write(filepath, data)
 
     # Set as active trial
     set_active_version(agent_role, domain, version, "trial")
@@ -523,8 +524,8 @@ def reject_strategy(agent_role: str, domain: str, version: str) -> dict:
     data["status"] = "rejected"
     data["rejected_at"] = datetime.now(timezone.utc).isoformat()
     filepath = os.path.join(STRATEGY_DIR, domain, f"{agent_role}_{version}.json")
-    with open(filepath, "w") as f:
-        json.dump(data, f, indent=2)
+    from utils.atomic_write import atomic_json_write
+    atomic_json_write(filepath, data)
 
     return {"action": "rejected", "reason": f"Strategy {version} rejected — will not be deployed"}
 
