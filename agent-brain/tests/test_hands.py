@@ -2698,3 +2698,437 @@ class TestExecAnalytics:
         assert eff["avg_steps_per_task"] == 2.5  # (3+2)/2
         assert eff["total_steps_executed"] == 5  # 3+1 successes + 1 failure
 
+
+# ============================================================
+# v7: Environment Sanitization
+# ============================================================
+
+class TestEnvSanitization:
+    """Test that terminal tool strips secrets from subprocess environment."""
+
+    def test_safe_env_strips_api_keys(self):
+        """API keys and secrets are stripped from subprocess environment."""
+        from hands.tools.terminal import _build_safe_env
+        with patch.dict(os.environ, {
+            "ANTHROPIC_API_KEY": "sk-ant-secret123",
+            "OPENAI_API_KEY": "sk-openai-secret",
+            "SECRET_TOKEN": "mysecret",
+            "PATH": "/usr/bin",
+            "HOME": "/home/user",
+        }):
+            env = _build_safe_env()
+            assert "ANTHROPIC_API_KEY" not in env
+            assert "OPENAI_API_KEY" not in env
+            assert "SECRET_TOKEN" not in env
+            assert env.get("PATH") == "/usr/bin"
+            assert env.get("HOME") == "/home/user"
+
+    def test_safe_env_keeps_system_vars(self):
+        """System vars like PATH, HOME, LANG are preserved."""
+        from hands.tools.terminal import _build_safe_env
+        with patch.dict(os.environ, {
+            "PATH": "/usr/bin:/usr/local/bin",
+            "HOME": "/home/test",
+            "USER": "testuser",
+            "SHELL": "/bin/bash",
+            "NODE_ENV": "development",
+        }, clear=True):
+            env = _build_safe_env()
+            assert "PATH" in env
+            assert "HOME" in env
+            assert "USER" in env
+            assert "SHELL" in env
+
+    def test_safe_env_blocks_credential_patterns(self):
+        """Any env var with credential-like name is blocked."""
+        from hands.tools.terminal import _build_safe_env
+        with patch.dict(os.environ, {
+            "MY_PASSWORD": "pass123",
+            "AUTH_CREDENTIAL": "cred",
+            "PRIVATE_KEY_PATH": "/keys/id_rsa",
+            "DATABASE_PASSWD": "dbpass",
+            "PATH": "/usr/bin",
+        }, clear=True):
+            env = _build_safe_env()
+            assert "MY_PASSWORD" not in env
+            assert "AUTH_CREDENTIAL" not in env
+            assert "PRIVATE_KEY_PATH" not in env
+            assert "DATABASE_PASSWD" not in env
+
+    def test_command_blocks_secret_probes(self):
+        """Commands that try to read secrets are blocked."""
+        from hands.tools.terminal import _check_command_safety
+        assert _check_command_safety("echo $ANTHROPIC_API_KEY") is not None
+        assert _check_command_safety("printenv OPENAI_API_KEY") is not None
+        assert _check_command_safety("cat /etc/passwd") is None  # allowed (not a secret probe)
+
+
+# ============================================================
+# v7: File Backup + Rollback
+# ============================================================
+
+class TestFileBackup:
+    """Test automatic file backup before destructive operations."""
+
+    def test_write_creates_backup_on_overwrite(self, tmp_workspace):
+        """Overwriting an existing file creates a backup."""
+        from hands.tools.code import CodeTool, _session_backups, _BACKUP_DIR_NAME
+        _session_backups.clear()
+
+        filepath = os.path.join(tmp_workspace, "test.txt")
+        with open(filepath, "w") as f:
+            f.write("original content")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            tool = CodeTool()
+            result = tool.safe_execute(action="write", path=filepath, content="new content")
+
+        assert result.success
+        assert "backup" in result.output.lower() or len(_session_backups) > 0
+
+        # Original file has new content
+        with open(filepath) as f:
+            assert f.read() == "new content"
+
+        _session_backups.clear()
+
+    def test_edit_creates_backup(self, tmp_workspace):
+        """Editing a file creates a backup first."""
+        from hands.tools.code import CodeTool, _session_backups
+        _session_backups.clear()
+
+        filepath = os.path.join(tmp_workspace, "test.txt")
+        with open(filepath, "w") as f:
+            f.write("hello world")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            tool = CodeTool()
+            result = tool.safe_execute(action="edit", path=filepath, old_string="hello", content="goodbye")
+
+        assert result.success
+        with open(filepath) as f:
+            assert "goodbye world" in f.read()
+
+        _session_backups.clear()
+
+    def test_delete_creates_backup(self, tmp_workspace):
+        """Deleting a file creates a backup first."""
+        from hands.tools.code import CodeTool, _session_backups
+        _session_backups.clear()
+
+        filepath = os.path.join(tmp_workspace, "to_delete.txt")
+        with open(filepath, "w") as f:
+            f.write("delete me")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            tool = CodeTool()
+            result = tool.safe_execute(action="delete", path=filepath)
+
+        assert result.success
+        assert not os.path.exists(filepath)
+        assert len(_session_backups) > 0
+
+        _session_backups.clear()
+
+    def test_rollback_restores_files(self, tmp_workspace):
+        """rollback_session restores files from backups."""
+        from hands.tools.code import CodeTool, rollback_session, _session_backups
+        _session_backups.clear()
+
+        filepath = os.path.join(tmp_workspace, "rollback_test.txt")
+        with open(filepath, "w") as f:
+            f.write("original")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            tool = CodeTool()
+            tool.safe_execute(action="write", path=filepath, content="modified")
+
+        # Verify modification
+        with open(filepath) as f:
+            assert f.read() == "modified"
+
+        # Rollback
+        results = rollback_session()
+        assert len(results) > 0
+        assert results[0]["status"] == "restored"
+
+        # Verify restoration
+        with open(filepath) as f:
+            assert f.read() == "original"
+
+    def test_get_session_backups(self, tmp_workspace):
+        """get_session_backups returns the backup list."""
+        from hands.tools.code import CodeTool, get_session_backups, clear_session_backups, _session_backups
+        _session_backups.clear()
+
+        filepath = os.path.join(tmp_workspace, "tracked.txt")
+        with open(filepath, "w") as f:
+            f.write("track me")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            tool = CodeTool()
+            tool.safe_execute(action="write", path=filepath, content="new")
+
+        backups = get_session_backups()
+        assert len(backups) >= 1
+        assert backups[0]["original"] == os.path.abspath(filepath)
+
+        clear_session_backups()
+        assert len(get_session_backups()) == 0
+
+
+# ============================================================
+# v7: Tool Execution Metrics
+# ============================================================
+
+class TestToolMetrics:
+    """Test per-tool execution metrics tracking."""
+
+    def test_metrics_record_success(self):
+        """Metrics correctly record successful invocations."""
+        from hands.tools.registry import ToolMetrics
+        metrics = ToolMetrics()
+        metrics.record("code", True, 150.0)
+        metrics.record("code", True, 200.0)
+
+        m = metrics.get_metrics("code")
+        assert m["invocations"] == 2
+        assert m["successes"] == 2
+        assert m["failures"] == 0
+        assert m["success_rate"] == 1.0
+        assert m["avg_duration_ms"] == 175.0
+
+    def test_metrics_record_failure(self):
+        """Metrics correctly record failed invocations."""
+        from hands.tools.registry import ToolMetrics
+        metrics = ToolMetrics()
+        metrics.record("terminal", False, 50.0, "Command not found")
+        metrics.record("terminal", True, 100.0)
+
+        m = metrics.get_metrics("terminal")
+        assert m["invocations"] == 2
+        assert m["successes"] == 1
+        assert m["failures"] == 1
+        assert m["success_rate"] == 0.5
+        assert len(m["errors"]) == 1
+
+    def test_metrics_summary(self):
+        """Summary aggregates across all tools."""
+        from hands.tools.registry import ToolMetrics
+        metrics = ToolMetrics()
+        metrics.record("code", True, 100.0)
+        metrics.record("terminal", True, 200.0)
+        metrics.record("terminal", False, 50.0, "error")
+
+        s = metrics.summary()
+        assert s["total_invocations"] == 3
+        assert s["total_successes"] == 2
+        assert s["total_failures"] == 1
+        assert set(s["tools_used"]) == {"code", "terminal"}
+
+    def test_metrics_per_tool_empty(self):
+        """Getting metrics for unknown tool returns empty dict."""
+        from hands.tools.registry import ToolMetrics
+        metrics = ToolMetrics()
+        assert metrics.get_metrics("nonexistent") == {}
+
+    def test_metrics_reset(self):
+        """Reset clears all metrics."""
+        from hands.tools.registry import ToolMetrics
+        metrics = ToolMetrics()
+        metrics.record("code", True, 100.0)
+        metrics.reset()
+        assert metrics.summary()["total_invocations"] == 0
+
+    def test_registry_records_metrics(self, tmp_workspace):
+        """Registry automatically records metrics on tool execution."""
+        from hands.tools.registry import ToolRegistry, ToolResult, BaseTool
+
+        class FakeTool(BaseTool):
+            name = "fake"
+            description = "test"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output="ok")
+
+        reg = ToolRegistry()
+        reg.register(FakeTool())
+        reg.execute("fake")
+        reg.execute("fake")
+
+        m = reg.metrics.get_metrics("fake")
+        assert m["invocations"] == 2
+        assert m["successes"] == 2
+
+
+# ============================================================
+# v7: insert_at_line action
+# ============================================================
+
+class TestInsertAtLine:
+    """Test the new insert_at_line code tool action."""
+
+    def test_insert_at_beginning(self, tmp_workspace):
+        """Insert at line 1 prepends content."""
+        from hands.tools.code import CodeTool
+        filepath = os.path.join(tmp_workspace, "insert.txt")
+        with open(filepath, "w") as f:
+            f.write("line1\nline2\nline3\n")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            tool = CodeTool()
+            result = tool.safe_execute(
+                action="insert_at_line", path=filepath,
+                line_number=1, content="header"
+            )
+
+        assert result.success
+        with open(filepath) as f:
+            lines = f.readlines()
+        assert lines[0].strip() == "header"
+        assert lines[1].strip() == "line1"
+
+    def test_insert_at_middle(self, tmp_workspace):
+        """Insert at line 2 puts content between line 1 and 2."""
+        from hands.tools.code import CodeTool
+        filepath = os.path.join(tmp_workspace, "insert.txt")
+        with open(filepath, "w") as f:
+            f.write("line1\nline2\nline3\n")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            tool = CodeTool()
+            result = tool.safe_execute(
+                action="insert_at_line", path=filepath,
+                line_number=2, content="inserted"
+            )
+
+        assert result.success
+        with open(filepath) as f:
+            lines = f.readlines()
+        assert lines[0].strip() == "line1"
+        assert lines[1].strip() == "inserted"
+        assert lines[2].strip() == "line2"
+
+    def test_insert_requires_params(self, tmp_workspace):
+        """insert_at_line requires content and line_number."""
+        from hands.tools.code import CodeTool
+        filepath = os.path.join(tmp_workspace, "test.txt")
+        with open(filepath, "w") as f:
+            f.write("hello")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            tool = CodeTool()
+            result = tool.safe_execute(action="insert_at_line", path=filepath, content="x")
+        assert not result.success
+        assert "line_number" in result.error.lower()
+
+
+# ============================================================
+# v7: Shared Constants
+# ============================================================
+
+class TestSharedConstants:
+    """Test the consolidated constants module."""
+
+    def test_skip_dirs_contains_node_modules(self):
+        """SKIP_DIRS includes common skippable directories."""
+        from hands.constants import SKIP_DIRS
+        assert "node_modules" in SKIP_DIRS
+        assert ".git" in SKIP_DIRS
+        assert "__pycache__" in SKIP_DIRS
+
+    def test_key_filenames_contains_configs(self):
+        """KEY_FILENAMES includes important config files."""
+        from hands.constants import KEY_FILENAMES
+        assert "package.json" in KEY_FILENAMES
+        assert "tsconfig.json" in KEY_FILENAMES
+        assert "pyproject.toml" in KEY_FILENAMES
+
+    def test_binary_extensions_skips_images(self):
+        """BINARY_EXTENSIONS includes image/binary formats."""
+        from hands.constants import BINARY_EXTENSIONS
+        assert ".png" in BINARY_EXTENSIONS
+        assert ".jpg" in BINARY_EXTENSIONS
+        assert ".pyc" in BINARY_EXTENSIONS
+
+    def test_max_constants_reasonable(self):
+        """Max constants have reasonable values."""
+        from hands.constants import MAX_TREE_CHARS, MAX_KEY_FILE_CHARS, MAX_WORKSPACE_FILES
+        assert MAX_TREE_CHARS > 0
+        assert MAX_KEY_FILE_CHARS > 0
+        assert MAX_WORKSPACE_FILES > 0
+
+
+# ============================================================
+# v7: Task Deduplication + Difficulty Adaptation
+# ============================================================
+
+class TestTaskDedup:
+    """Test that task generator avoids repeating past goals."""
+
+    def test_get_past_goals(self, tmp_workspace):
+        """_get_past_goals returns goals from exec memory."""
+        from hands.task_generator import _get_past_goals
+        outputs = [
+            {"goal": "Build a REST API"},
+            {"goal": "Create a CLI tool"},
+            {"goal": ""},  # empty — should be skipped
+        ]
+        with patch("hands.task_generator.load_exec_outputs", return_value=outputs):
+            goals = _get_past_goals("test")
+        assert len(goals) == 2
+        assert "Build a REST API" in goals
+
+    def test_complexity_stats(self, tmp_workspace):
+        """_get_complexity_stats calculates success rates by level."""
+        from hands.task_generator import _get_complexity_stats
+        outputs = [
+            {"plan": {"estimated_complexity": "low"}, "accepted": True},
+            {"plan": {"estimated_complexity": "low"}, "accepted": True},
+            {"plan": {"estimated_complexity": "medium"}, "accepted": False},
+            {"plan": {"estimated_complexity": "high"}, "accepted": False},
+            {"plan": {"estimated_complexity": "high"}, "accepted": False},
+        ]
+        with patch("hands.task_generator.load_exec_outputs", return_value=outputs):
+            stats = _get_complexity_stats("test")
+
+        assert stats["low"]["rate"] == 1.0
+        assert stats["medium"]["rate"] == 0.0
+        assert stats["high"]["count"] == 2
+
+    def test_max_complexity_caps_when_failing(self):
+        """_get_max_allowed_complexity caps at lower level when high fails."""
+        from hands.task_generator import _get_max_allowed_complexity
+        outputs = [
+            {"plan": {"estimated_complexity": "high"}, "accepted": False},
+            {"plan": {"estimated_complexity": "high"}, "accepted": False},
+            {"plan": {"estimated_complexity": "high"}, "accepted": False},
+            {"plan": {"estimated_complexity": "low"}, "accepted": True},
+        ]
+        with patch("hands.task_generator.load_exec_outputs", return_value=outputs):
+            max_level = _get_max_allowed_complexity("test")
+        assert max_level == "medium"  # High fails >40%, capped to medium
+
+    def test_max_complexity_no_cap_when_succeeding(self):
+        """No complexity cap when success rates are good."""
+        from hands.task_generator import _get_max_allowed_complexity
+        outputs = [
+            {"plan": {"estimated_complexity": "high"}, "accepted": True},
+            {"plan": {"estimated_complexity": "high"}, "accepted": True},
+            {"plan": {"estimated_complexity": "medium"}, "accepted": True},
+        ]
+        with patch("hands.task_generator.load_exec_outputs", return_value=outputs):
+            max_level = _get_max_allowed_complexity("test")
+        assert max_level == "high"
+
+    def test_context_includes_past_goals(self):
+        """_prepare_context includes past goals for dedup."""
+        from hands.task_generator import _prepare_context
+        outputs = [{"goal": "Build a date formatter"}]
+        with patch("hands.task_generator.load_exec_outputs", return_value=outputs), \
+             patch("hands.task_generator.get_exec_stats", return_value={"count": 1, "avg_score": 7.0, "accepted": 1, "rejected": 0}), \
+             patch("hands.task_generator.load_knowledge_base", return_value=None), \
+             patch("hands.task_generator.load_outputs", return_value=[]):
+            ctx = _prepare_context("test")
+        assert "DO NOT REPEAT" in ctx
+        assert "date formatter" in ctx
+

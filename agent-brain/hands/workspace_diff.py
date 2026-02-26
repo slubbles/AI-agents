@@ -9,15 +9,7 @@ Provides the validator and memory store with concrete change data.
 import hashlib
 import os
 
-# Directories to skip when scanning workspace
-_SKIP_DIRS = {
-    "node_modules", ".git", "__pycache__", ".next", ".nuxt",
-    "dist", "build", ".cache", "coverage", ".pytest_cache",
-    "venv", ".venv", "env", ".env",
-}
-
-# Max files to track (prevent scanning huge repos)
-_MAX_FILES = 2000
+from hands.constants import SKIP_DIRS as _SKIP_DIRS, MAX_WORKSPACE_FILES as _MAX_FILES
 
 
 def snapshot_workspace(workspace_dir: str) -> dict[str, str]:

@@ -5,11 +5,18 @@ Every execution tool inherits from BaseTool and registers itself.
 The planner selects tools by name; the executor calls them through the registry.
 
 Adding a new capability = adding a new tool file + registering it here.
+
+Includes execution metrics middleware:
+- Per-tool invocation count, success rate, average duration
+- Error category tracking
+- Metrics exported for analytics and meta-analysis
 """
 
 import os
 import sys
+import time
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
@@ -115,6 +122,74 @@ class BaseTool(ABC):
         }
 
 
+class ToolMetrics:
+    """Tracks per-tool execution metrics during a session."""
+
+    def __init__(self):
+        self._metrics: dict[str, dict] = defaultdict(lambda: {
+            "invocations": 0,
+            "successes": 0,
+            "failures": 0,
+            "total_duration_ms": 0.0,
+            "errors": [],  # last N errors for analysis
+        })
+        self._max_errors_per_tool = 10
+
+    def record(self, tool_name: str, success: bool, duration_ms: float, error: str = "") -> None:
+        """Record a tool invocation result."""
+        m = self._metrics[tool_name]
+        m["invocations"] += 1
+        m["total_duration_ms"] += duration_ms
+        if success:
+            m["successes"] += 1
+        else:
+            m["failures"] += 1
+            if error:
+                m["errors"].append(error[:200])
+                # Keep only last N errors
+                if len(m["errors"]) > self._max_errors_per_tool:
+                    m["errors"] = m["errors"][-self._max_errors_per_tool:]
+
+    def get_metrics(self, tool_name: str = "") -> dict:
+        """Get metrics for a specific tool, or all tools if no name given."""
+        if tool_name:
+            m = self._metrics.get(tool_name)
+            if not m:
+                return {}
+            return {
+                **m,
+                "success_rate": m["successes"] / m["invocations"] if m["invocations"] > 0 else 0,
+                "avg_duration_ms": m["total_duration_ms"] / m["invocations"] if m["invocations"] > 0 else 0,
+            }
+        # All tools
+        result = {}
+        for name, m in self._metrics.items():
+            result[name] = {
+                **m,
+                "success_rate": m["successes"] / m["invocations"] if m["invocations"] > 0 else 0,
+                "avg_duration_ms": m["total_duration_ms"] / m["invocations"] if m["invocations"] > 0 else 0,
+            }
+        return result
+
+    def summary(self) -> dict:
+        """Get aggregate summary across all tools."""
+        total_invocations = sum(m["invocations"] for m in self._metrics.values())
+        total_successes = sum(m["successes"] for m in self._metrics.values())
+        total_duration = sum(m["total_duration_ms"] for m in self._metrics.values())
+        return {
+            "total_invocations": total_invocations,
+            "total_successes": total_successes,
+            "total_failures": total_invocations - total_successes,
+            "overall_success_rate": total_successes / total_invocations if total_invocations > 0 else 0,
+            "total_duration_ms": total_duration,
+            "tools_used": list(self._metrics.keys()),
+        }
+
+    def reset(self) -> None:
+        """Reset all metrics (call between executions)."""
+        self._metrics.clear()
+
+
 class ToolRegistry:
     """
     Central registry for all execution tools.
@@ -134,6 +209,7 @@ class ToolRegistry:
 
     def __init__(self):
         self._tools: dict[str, BaseTool] = {}
+        self.metrics = ToolMetrics()
 
     def register(self, tool: BaseTool) -> None:
         """Register a tool. Raises if name conflicts."""
@@ -172,15 +248,32 @@ class ToolRegistry:
     def execute(self, tool_name: str, **kwargs) -> ToolResult:
         """
         Execute a tool by name with given parameters.
+        Records execution metrics (timing, success/failure).
         Returns ToolResult (never raises — errors captured in result).
         """
         tool = self._tools.get(tool_name)
         if not tool:
+            self.metrics.record(tool_name, False, 0.0, f"Tool '{tool_name}' not found")
             return ToolResult(
                 success=False,
                 error=f"Tool '{tool_name}' not found. Available: {', '.join(self.list_tools())}",
             )
-        return tool.safe_execute(**kwargs)
+
+        start = time.monotonic()
+        result = tool.safe_execute(**kwargs)
+        duration_ms = (time.monotonic() - start) * 1000
+
+        self.metrics.record(
+            tool_name,
+            result.success,
+            duration_ms,
+            result.error if not result.success else "",
+        )
+
+        # Inject timing into metadata
+        result.metadata["duration_ms"] = round(duration_ms, 1)
+
+        return result
 
 
 def create_default_registry() -> ToolRegistry:
