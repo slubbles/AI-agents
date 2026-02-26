@@ -445,7 +445,8 @@ class TestDatabase:
 # ============================================================
 
 class TestTFIDFCache:
-    """Tests for persistent TF-IDF vector cache in memory_store.py."""
+    """Tests for persistent TF-IDF vector cache in memory_store.py.
+    RAG is disabled in these tests to exercise the TF-IDF fallback path."""
 
     def test_cache_created_on_retrieve(self, tmp_path):
         """TF-IDF cache is created on disk after first retrieve_relevant call."""
@@ -462,7 +463,8 @@ class TestTFIDFCache:
             with open(os.path.join(domain_dir, filename), "w") as f:
                 json.dump(record, f)
 
-        with patch("memory_store.MEMORY_DIR", mem_dir):
+        with patch("memory_store.MEMORY_DIR", mem_dir), \
+             patch("config.RAG_ENABLED", False):
             import memory_store
             memory_store._tfidf_cache.clear()  # Clear in-memory cache
 
@@ -486,7 +488,8 @@ class TestTFIDFCache:
             with open(os.path.join(domain_dir, filename), "w") as f:
                 json.dump(record, f)
 
-        with patch("memory_store.MEMORY_DIR", mem_dir):
+        with patch("memory_store.MEMORY_DIR", mem_dir), \
+             patch("config.RAG_ENABLED", False):
             import memory_store
             memory_store._tfidf_cache.clear()
 
@@ -516,7 +519,8 @@ class TestTFIDFCache:
             with open(os.path.join(domain_dir, filename), "w") as f:
                 json.dump(record, f)
 
-        with patch("memory_store.MEMORY_DIR", mem_dir):
+        with patch("memory_store.MEMORY_DIR", mem_dir), \
+             patch("config.RAG_ENABLED", False):
             import memory_store
 
             # Build cache
@@ -553,7 +557,8 @@ class TestTFIDFCache:
             with open(os.path.join(domain_dir, filename), "w") as f:
                 json.dump(record, f)
 
-        with patch("memory_store.MEMORY_DIR", mem_dir):
+        with patch("memory_store.MEMORY_DIR", mem_dir), \
+             patch("config.RAG_ENABLED", False):
             import memory_store
 
             # First call — builds and saves cache

@@ -154,6 +154,18 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
     except Exception as e:
         print(f"[DB] \u26a0 Output write failed (non-blocking): {e}")
 
+    # Auto-index in RAG vector store (non-blocking)
+    try:
+        from config import RAG_ENABLED
+        if RAG_ENABLED:
+            from rag.vector_store import index_output
+            indexed = index_output(domain, record)
+            if indexed > 0:
+                print(f"[RAG] Indexed {indexed} claims from output")
+    except Exception as e:
+        # RAG indexing is non-blocking — don't crash the loop
+        pass
+
     return filepath
 
 
@@ -298,14 +310,28 @@ def retrieve_relevant(domain: str, question: str, max_results: int = 5, min_scor
     """
     Retrieve the most relevant past findings for a new research question.
     
-    Uses TF-IDF cosine similarity for semantic matching, combined with
-    quality and recency signals. Falls back to keyword matching for < 2 docs.
+    Uses RAG vector embeddings when available (semantic search), with automatic
+    fallback to TF-IDF cosine similarity for backward compatibility.
     
     Only returns accepted outputs (score >= min_score) to avoid feeding the
     researcher bad information from its own rejected outputs.
     
     Returns a list of condensed output summaries, ranked by relevance.
     """
+    # Try RAG first — semantic embeddings are much more accurate
+    try:
+        from config import RAG_ENABLED
+        if RAG_ENABLED:
+            from rag.retrieval import retrieve_relevant_rag, RAG_ENABLED as _rag_deps
+            if _rag_deps:
+                from rag.vector_store import get_collection_stats
+                stats = get_collection_stats()
+                if stats.get("claims_count", 0) > 0:
+                    return retrieve_relevant_rag(domain, question, max_results, min_score)
+    except Exception:
+        pass  # Fall through to TF-IDF
+    
+    # Fallback: TF-IDF retrieval (original implementation)
     outputs = load_outputs(domain, min_score=min_score)
     if not outputs:
         return []
@@ -429,6 +455,18 @@ def save_knowledge_base(domain: str, knowledge_base: dict) -> str:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(knowledge_base, f, indent=2)
+    
+    # Auto-index KB claims in RAG vector store (non-blocking)
+    try:
+        from config import RAG_ENABLED
+        if RAG_ENABLED:
+            from rag.vector_store import index_knowledge_base
+            indexed = index_knowledge_base(domain, knowledge_base)
+            if indexed > 0:
+                print(f"[RAG] Indexed {indexed} KB claims")
+    except Exception:
+        pass
+    
     return path
 
 
@@ -605,8 +643,8 @@ def expire_stale_claims(domain: str) -> dict:
     """
     Check knowledge base claims for staleness and mark them.
     
-    - Claims older than CLAIM_EXPIRY_DAYS without re-verification → status='stale'
-    - Claims older than CLAIM_MAX_AGE_DAYS → status='expired'
+    - Claims older than CLAIM_EXPIRY_DAYS without re-verification -> status='stale'
+    - Claims older than CLAIM_MAX_AGE_DAYS -> status='expired'
     
     Returns:
         Dict with counts of flagged/expired claims.
@@ -664,7 +702,8 @@ def is_duplicate_question(domain: str, question: str, threshold: float = 0.80) -
     """
     Check if a question has already been researched (or is very similar to one).
     
-    Uses TF-IDF cosine similarity against all previously asked questions.
+    Uses RAG vector embeddings when available for accurate semantic matching
+    (catches paraphrases). Falls back to TF-IDF cosine similarity.
     
     Args:
         domain: Domain to check
@@ -674,6 +713,20 @@ def is_duplicate_question(domain: str, question: str, threshold: float = 0.80) -
     Returns:
         (is_duplicate, matched_question_or_None)
     """
+    # Try RAG first
+    try:
+        from config import RAG_ENABLED
+        if RAG_ENABLED:
+            from rag.retrieval import is_duplicate_question_rag, RAG_ENABLED as _rag_deps
+            if _rag_deps:
+                from rag.vector_store import get_collection_stats
+                stats = get_collection_stats()
+                if stats.get("questions_count", 0) > 0:
+                    return is_duplicate_question_rag(domain, question, threshold)
+    except Exception:
+        pass  # Fall through to TF-IDF
+    
+    # Fallback: TF-IDF dedup (original implementation)
     outputs = load_outputs(domain, min_score=0)
     if not outputs:
         return False, None

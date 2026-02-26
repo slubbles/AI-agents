@@ -53,6 +53,11 @@ MAX_TOOL_ROUNDS = 8   # max rounds of tool-use before forcing output
 MAX_SEARCHES = 10     # hard cap on total web searches per run
 MAX_FETCHES = 8       # hard cap on total page fetches per run
 
+# --- RAG (Retrieval-Augmented Generation) ---
+RAG_ENABLED = True                # use vector embeddings for semantic retrieval
+EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # local, free, 384 dimensions
+VECTORDB_DIR = os.path.join(os.path.dirname(__file__), "memory", "_vectordb")
+
 # --- Strategy Evolution ---
 SAFETY_DROP_THRESHOLD = 0.20  # block if new strategy avg drops >20%
 TRIAL_PERIOD = 5              # outputs under trial before evaluation
