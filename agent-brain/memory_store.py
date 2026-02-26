@@ -141,6 +141,9 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
     with open(filepath, "w") as f:
         json.dump(record, f, indent=2)
 
+    # NOTE: save_output uses non-atomic write intentionally.
+    # Individual output files are append-only (never overwritten), so corruption
+    # risk is minimal. The file either exists or doesn't.
     # Invalidate TF-IDF cache for this domain (new data available)
     invalidate_tfidf_cache(domain)
     
@@ -451,10 +454,10 @@ def load_knowledge_base(domain: str) -> dict | None:
 
 def save_knowledge_base(domain: str, knowledge_base: dict) -> str:
     """Save a synthesized knowledge base for a domain."""
+    from utils.atomic_write import atomic_json_write
     path = get_knowledge_base_path(domain)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(knowledge_base, f, indent=2)
+    atomic_json_write(path, knowledge_base)
     
     # Auto-index KB claims in RAG vector store (non-blocking)
     try:
