@@ -202,6 +202,120 @@ def _read_artifact_files(artifacts: list[str], suspect_files: set[str] | None = 
     return contents
 
 
+_MAX_FILE_CHARS = 500_000  # Cap file reads for syntax checks
+
+
+def _check_js_ts_syntax(content: str, path: str) -> list[str]:
+    """
+    Heuristic syntax checks for JS/TS files.
+    Returns list of issues found (empty = OK).
+    
+    Checks:
+      1. Bracket/paren/brace balance
+      2. Common import/export syntax errors
+      3. Unterminated template literals
+      4. node -c validation for .js/.jsx (if node available)
+    """
+    issues: list[str] = []
+    ext = os.path.splitext(path)[1].lower()
+
+    # --- Bracket balance ---
+    stack: list[str] = []
+    pairs = {")": "(", "]": "[", "}": "{"}
+    in_string = False
+    string_char = ""
+    in_template = False
+    in_line_comment = False
+    in_block_comment = False
+    prev_ch = ""
+
+    for ch in content:
+        if in_line_comment:
+            if ch == "\n":
+                in_line_comment = False
+            prev_ch = ch
+            continue
+        if in_block_comment:
+            if prev_ch == "*" and ch == "/":
+                in_block_comment = False
+            prev_ch = ch
+            continue
+        if not in_string and not in_template:
+            if prev_ch == "/" and ch == "/":
+                in_line_comment = True
+                if stack and stack[-1] == "/":
+                    stack.pop()
+                prev_ch = ch
+                continue
+            if prev_ch == "/" and ch == "*":
+                in_block_comment = True
+                if stack and stack[-1] == "/":
+                    stack.pop()
+                prev_ch = ch
+                continue
+        if in_string:
+            if ch == string_char and prev_ch != "\\":
+                in_string = False
+            prev_ch = ch
+            continue
+        if in_template:
+            if ch == "`" and prev_ch != "\\":
+                in_template = False
+            prev_ch = ch
+            continue
+        if ch in ("'", '"'):
+            in_string = True
+            string_char = ch
+            prev_ch = ch
+            continue
+        if ch == "`":
+            in_template = True
+            prev_ch = ch
+            continue
+        if ch in ("(", "[", "{"):
+            stack.append(ch)
+        elif ch in pairs:
+            if not stack or stack[-1] != pairs[ch]:
+                issues.append(f"Unmatched '{ch}' in {os.path.basename(path)}")
+                break
+            stack.pop()
+        prev_ch = ch
+
+    if in_template:
+        issues.append("Unterminated template literal")
+    if stack:
+        openers = "".join(stack[-3:])
+        issues.append(f"Unclosed brackets: {openers}")
+
+    # --- Import/export syntax ---
+    for i, line in enumerate(content.split("\n")[:200], 1):
+        stripped = line.strip()
+        # Catch 'import from' without braces/default: import "module"
+        if re.match(r'^import\s+from\s', stripped):
+            issues.append(f"Line {i}: 'import from' missing specifier")
+        # Catch missing from: import { X }  (no 'from')
+        if re.match(r'^import\s*\{[^}]*\}\s*$', stripped):
+            issues.append(f"Line {i}: import statement missing 'from'")
+        # Catch export default followed by nothing meaningful
+        if re.match(r'^export\s+default\s*$', stripped):
+            issues.append(f"Line {i}: empty 'export default'")
+
+    # --- Node -c for JS files (fast, authoritative) ---
+    if ext in (".js", ".jsx") and not issues and os.path.isfile(path):
+        try:
+            proc = subprocess.run(
+                ["node", "-c", path],
+                capture_output=True, text=True, timeout=5,
+            )
+            if proc.returncode != 0:
+                err = (proc.stderr or "").strip().split("\n")[0][:120]
+                issues.append(f"node -c: {err}")
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass  # node not available — heuristic results stand
+
+    return issues
+
+
 def _run_static_checks(artifacts: list[str]) -> dict:
     """
     Run basic static checks on artifact files before LLM validation.
@@ -286,6 +400,23 @@ def _run_static_checks(artifacts: list[str]) -> dict:
                     "file": path, "check": "yaml_valid",
                     "detail": f"Invalid YAML: {str(e)[:100]}"
                 })
+
+        # Check: TypeScript/JavaScript syntax (heuristic + node fallback)
+        if ext in (".ts", ".tsx", ".js", ".jsx"):
+            results["checks_run"] += 1
+            try:
+                with open(path, "r", errors="replace") as f:
+                    content = f.read(_MAX_FILE_CHARS)
+                issues = _check_js_ts_syntax(content, path)
+                if issues:
+                    results["issues"].append({
+                        "file": path, "check": "js_ts_syntax",
+                        "detail": "; ".join(issues[:3]),
+                    })
+                else:
+                    results["passes"].append({"file": path, "check": "js_ts_syntax"})
+            except OSError:
+                pass
         
         # Check: HTML files have basic structure
         if ext in (".html", ".htm"):
@@ -416,7 +547,7 @@ def identify_failing_steps(
 # ---- Fast-Reject for Blocker-Level Static Issues ----
 
 # Checks that indicate definitively broken output (no need for LLM eval)
-_BLOCKER_CHECKS = {"python_syntax", "json_valid", "exists", "not_empty"}
+_BLOCKER_CHECKS = {"python_syntax", "json_valid", "js_ts_syntax", "exists", "not_empty"}
 
 
 def _should_fast_reject(

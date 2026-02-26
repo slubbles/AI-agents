@@ -5334,3 +5334,382 @@ class TestFastReject:
         assert result is not None
         assert len(result["weaknesses"]) > 0
         assert result["static_blocker_count"] == 2
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# v16 — TS/JS Static Validation
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestJsTsSyntaxChecker:
+    """Tests for _check_js_ts_syntax heuristic checker."""
+
+    def test_valid_js_passes(self):
+        """Valid JavaScript should produce no issues."""
+        from hands.validator import _check_js_ts_syntax
+        code = """
+import React from 'react';
+const App = () => {
+  return <div>Hello</div>;
+};
+export default App;
+"""
+        issues = _check_js_ts_syntax(code, "app.jsx")
+        assert issues == []
+
+    def test_unmatched_brace(self):
+        """Unclosed brace should be detected."""
+        from hands.validator import _check_js_ts_syntax
+        code = """
+function foo() {
+  if (true) {
+    console.log('hello');
+
+}
+"""
+        issues = _check_js_ts_syntax(code, "foo.ts")
+        assert any("Unclosed" in i or "Unmatched" in i for i in issues)
+
+    def test_unmatched_close_paren(self):
+        """Extra closing paren should be detected."""
+        from hands.validator import _check_js_ts_syntax
+        code = "const x = (1 + 2));"
+        issues = _check_js_ts_syntax(code, "test.ts")
+        assert any("Unmatched" in i for i in issues)
+
+    def test_unterminated_template_literal(self):
+        """Unterminated template literal should be caught."""
+        from hands.validator import _check_js_ts_syntax
+        code = "const msg = `Hello ${name}"
+        issues = _check_js_ts_syntax(code, "test.ts")
+        assert any("template" in i.lower() for i in issues)
+
+    def test_import_from_missing_specifier(self):
+        """'import from' without specifier should be caught."""
+        from hands.validator import _check_js_ts_syntax
+        code = "import from 'react';\n"
+        issues = _check_js_ts_syntax(code, "test.ts")
+        assert any("missing specifier" in i for i in issues)
+
+    def test_import_missing_from(self):
+        """Import braces without 'from' should be caught."""
+        from hands.validator import _check_js_ts_syntax
+        code = "import { useState }\n"
+        issues = _check_js_ts_syntax(code, "test.ts")
+        assert any("missing 'from'" in i for i in issues)
+
+    def test_empty_export_default(self):
+        """'export default' with nothing after should be caught."""
+        from hands.validator import _check_js_ts_syntax
+        code = "export default\n"
+        issues = _check_js_ts_syntax(code, "test.ts")
+        assert any("empty" in i.lower() for i in issues)
+
+    def test_complex_tsx_passes(self):
+        """Complex valid TSX with generics should pass."""
+        from hands.validator import _check_js_ts_syntax
+        code = """
+import { useState, useEffect } from 'react';
+
+interface Props {
+  title: string;
+  count: number;
+}
+
+const Component: React.FC<Props> = ({ title, count }) => {
+  const [data, setData] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch('/api/data').then(res => {
+      setData(res.data);
+    });
+  }, []);
+
+  return (
+    <div className="container">
+      <h1>{title}</h1>
+      {data.map((item, i) => (
+        <span key={i}>{item}</span>
+      ))}
+    </div>
+  );
+};
+
+export default Component;
+"""
+        issues = _check_js_ts_syntax(code, "component.tsx")
+        assert issues == []
+
+    def test_strings_ignored_in_bracket_check(self):
+        """Brackets inside strings should not affect balance check."""
+        from hands.validator import _check_js_ts_syntax
+        code = """
+const x = "some { bracket }";
+const y = 'another [ bracket ]';
+const z = `template { literal }`;
+"""
+        issues = _check_js_ts_syntax(code, "test.js")
+        # Filter out node -c issues (file doesn't exist)
+        heuristic_issues = [i for i in issues if "node -c" not in i]
+        assert heuristic_issues == []
+
+    def test_comments_ignored(self):
+        """Brackets in comments should not affect balance check."""
+        from hands.validator import _check_js_ts_syntax
+        code = """
+// This has { unmatched brackets
+/* Also this { and this [ */
+const x = 1;
+"""
+        issues = _check_js_ts_syntax(code, "test.ts")
+        assert issues == []
+
+    def test_static_checks_includes_js_ts(self, tmp_path):
+        """_run_static_checks should run js_ts_syntax for .ts files."""
+        from hands.validator import _run_static_checks
+        f = tmp_path / "broken.ts"
+        f.write_text("function foo() {\n  if (true) {\n}\n")
+        results = _run_static_checks([str(f)])
+        assert results["checks_run"] >= 1
+        checks = [i["check"] for i in results["issues"]]
+        assert "js_ts_syntax" in checks
+
+    def test_js_ts_syntax_in_blocker_checks(self):
+        """js_ts_syntax should be in _BLOCKER_CHECKS for fast-reject."""
+        from hands.validator import _BLOCKER_CHECKS
+        assert "js_ts_syntax" in _BLOCKER_CHECKS
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# v16 — Retry Strategy Advisor
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestRetryAdvisor:
+    """Tests for retry_advisor.py failure classification and recommendations."""
+
+    def test_classify_fundamental_low_score(self):
+        """Score < 3.0 should be classified as fundamental."""
+        from hands.retry_advisor import classify_failure, FailureClass
+        result = classify_failure({"overall_score": 2.0})
+        assert result == FailureClass.FUNDAMENTAL
+
+    def test_classify_fundamental_fast_reject(self):
+        """Fast-rejected should be classified as fundamental."""
+        from hands.retry_advisor import classify_failure, FailureClass
+        result = classify_failure({"overall_score": 4.0, "fast_rejected": True})
+        assert result == FailureClass.FUNDAMENTAL
+
+    def test_classify_cosmetic_by_score(self):
+        """Score 5.5-6.9 without dimension data should be cosmetic."""
+        from hands.retry_advisor import classify_failure, FailureClass
+        result = classify_failure({"overall_score": 6.0})
+        assert result == FailureClass.COSMETIC
+
+    def test_classify_structural_by_score(self):
+        """Score 3.0-5.4 without dimension data should be structural."""
+        from hands.retry_advisor import classify_failure, FailureClass
+        result = classify_failure({"overall_score": 4.5})
+        assert result == FailureClass.STRUCTURAL
+
+    def test_classify_cosmetic_by_dimensions(self):
+        """High correctness + low code_quality = cosmetic."""
+        from hands.retry_advisor import classify_failure, FailureClass
+        result = classify_failure({
+            "overall_score": 6.0,
+            "dimension_scores": {
+                "correctness": 8.0,
+                "completeness": 7.5,
+                "code_quality": 5.0,
+                "security": 6.0,
+                "kb_alignment": 5.5,
+            }
+        })
+        assert result == FailureClass.COSMETIC
+
+    def test_classify_structural_by_dimensions(self):
+        """Low correctness + high code_quality = structural."""
+        from hands.retry_advisor import classify_failure, FailureClass
+        result = classify_failure({
+            "overall_score": 5.0,
+            "dimension_scores": {
+                "correctness": 4.0,
+                "completeness": 4.5,
+                "code_quality": 7.0,
+                "security": 7.5,
+                "kb_alignment": 7.0,
+            }
+        })
+        assert result == FailureClass.STRUCTURAL
+
+    def test_recommend_fundamental_skips_repair_and_surgical(self):
+        """Fundamental failure should skip file_repair and surgical."""
+        from hands.retry_advisor import recommend_strategy, RetryRecommendation
+        rec = recommend_strategy(
+            {"overall_score": 2.0}, attempt=1, max_retries=2,
+        )
+        assert rec.strategy == RetryRecommendation.FULL_REPLAN
+        assert RetryRecommendation.FILE_REPAIR in rec.skip_strategies
+        assert RetryRecommendation.SURGICAL in rec.skip_strategies
+
+    def test_recommend_cosmetic_with_weak_artifacts(self):
+        """Cosmetic failure with weak artifacts should recommend file_repair."""
+        from hands.retry_advisor import recommend_strategy, RetryRecommendation
+        rec = recommend_strategy(
+            {"overall_score": 6.0}, attempt=1, max_retries=2,
+            has_weak_artifacts=True,
+        )
+        assert rec.strategy == RetryRecommendation.FILE_REPAIR
+
+    def test_recommend_structural_with_failing_steps(self):
+        """Structural failure with failing steps should recommend surgical."""
+        from hands.retry_advisor import recommend_strategy, RetryRecommendation
+        rec = recommend_strategy(
+            {"overall_score": 4.5}, attempt=1, max_retries=2,
+            has_failing_steps=True,
+        )
+        assert rec.strategy == RetryRecommendation.SURGICAL
+
+    def test_recommend_skip_when_no_retries(self):
+        """Fundamental failure with no retries left should recommend skip."""
+        from hands.retry_advisor import recommend_strategy, RetryRecommendation
+        rec = recommend_strategy(
+            {"overall_score": 2.0}, attempt=2, max_retries=2,
+        )
+        assert rec.strategy == RetryRecommendation.SKIP_RETRY
+
+    def test_should_skip_strategy(self):
+        """should_skip_strategy correctly checks skip list."""
+        from hands.retry_advisor import should_skip_strategy, RetryRecommendation
+        rec = RetryRecommendation(
+            strategy=RetryRecommendation.FULL_REPLAN,
+            failure_class="fundamental",
+            confidence=0.9,
+            reason="test",
+            skip_strategies=[RetryRecommendation.FILE_REPAIR],
+        )
+        assert should_skip_strategy(rec, RetryRecommendation.FILE_REPAIR) is True
+        assert should_skip_strategy(rec, RetryRecommendation.SURGICAL) is False
+
+    def test_recommendation_to_dict(self):
+        """RetryRecommendation.to_dict() should return useful data."""
+        from hands.retry_advisor import RetryRecommendation
+        rec = RetryRecommendation(
+            strategy="file_repair",
+            failure_class="cosmetic",
+            confidence=0.85,
+            reason="test reason",
+            skip_strategies=["full_replan"],
+        )
+        d = rec.to_dict()
+        assert d["strategy"] == "file_repair"
+        assert d["confidence"] == 0.85
+        assert "full_replan" in d["skip_strategies"]
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# v16 — Plan-Level Pattern Extraction
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestPlanPatternExtraction:
+    """Tests for PatternLearner.analyze_plan_structure()."""
+
+    def _make_exec_output(self, steps, score=8.0, accepted=True, domain="test"):
+        """Helper to create a mock exec_output dict."""
+        step_results = [
+            {"step": i + 1, "tool": s.get("tool", "shell"), "success": True}
+            for i, s in enumerate(steps)
+        ]
+        return {
+            "domain": domain,
+            "overall_score": score,
+            "accepted": accepted,
+            "plan": {"steps": steps},
+            "execution_report": {"step_results": step_results},
+            "validation": {},
+        }
+
+    def test_ignores_rejected_executions(self, tmp_path):
+        """Should not extract patterns from rejected executions."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "lessons.json"))
+        steps = [
+            {"step_number": i, "tool": "write_file", "description": f"step {i}"}
+            for i in range(5)
+        ]
+        output = self._make_exec_output(steps, score=5.0, accepted=False)
+        result = learner.analyze_plan_structure(output)
+        assert result == []
+
+    def test_ignores_short_plans(self, tmp_path):
+        """Plans with fewer than 3 steps should be ignored."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "lessons.json"))
+        steps = [
+            {"step_number": 1, "tool": "write_file"},
+            {"step_number": 2, "tool": "shell"},
+        ]
+        output = self._make_exec_output(steps)
+        result = learner.analyze_plan_structure(output)
+        assert result == []
+
+    def test_extracts_setup_first_pattern(self, tmp_path):
+        """Should learn 'setup before create' pattern."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "lessons.json"))
+        steps = [
+            {"step_number": 1, "tool": "shell", "description": "npm init"},
+            {"step_number": 2, "tool": "shell", "description": "install deps"},
+            {"step_number": 3, "tool": "write_file", "description": "create component"},
+            {"step_number": 4, "tool": "write_file", "description": "create styles"},
+            {"step_number": 5, "tool": "write_file", "description": "create tests"},
+        ]
+        output = self._make_exec_output(steps, score=8.5)
+        result = learner.analyze_plan_structure(output)
+        assert any("setup" in l.lower() for l in result)
+
+    def test_extracts_tool_diversity_pattern(self, tmp_path):
+        """Should learn tool diversity pattern when 3+ tools used."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "lessons.json"))
+        steps = [
+            {"step_number": 1, "tool": "shell", "description": "init"},
+            {"step_number": 2, "tool": "write_file", "description": "create"},
+            {"step_number": 3, "tool": "read_file", "description": "verify"},
+            {"step_number": 4, "tool": "patch_file", "description": "modify"},
+            {"step_number": 5, "tool": "shell", "description": "test"},
+        ]
+        output = self._make_exec_output(steps, score=8.0)
+        result = learner.analyze_plan_structure(output)
+        assert any("diversity" in l.lower() or "diverse" in l.lower() for l in result)
+
+    def test_extracts_optimal_size_pattern(self, tmp_path):
+        """Should learn optimal plan size when all steps succeed."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "lessons.json"))
+        steps = [
+            {"step_number": i, "tool": "write_file", "description": f"step {i}"}
+            for i in range(1, 8)
+        ]
+        output = self._make_exec_output(steps, score=8.0)
+        result = learner.analyze_plan_structure(output)
+        assert any("7 steps" in l for l in result)
+
+    def test_patterns_saved_to_disk(self, tmp_path):
+        """Extracted plan patterns should be persisted."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "lessons.json"))
+        steps = [
+            {"step_number": 1, "tool": "shell"},
+            {"step_number": 2, "tool": "write_file"},
+            {"step_number": 3, "tool": "read_file"},
+            {"step_number": 4, "tool": "patch_file"},
+        ]
+        output = self._make_exec_output(steps, score=8.0)
+        learner.analyze_plan_structure(output)
+
+        # Reload from disk
+        learner2 = PatternLearner(str(tmp_path / "lessons.json"))
+        plan_lessons = learner2.get_lessons(category="plan_template")
+        # At minimum has plan_template category lessons stored
+        all_lessons = learner2._lessons
+        plan_cats = [l for l in all_lessons if l.category == "plan_template"]
+        assert len(plan_cats) > 0

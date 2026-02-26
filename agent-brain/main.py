@@ -2276,6 +2276,7 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     from hands.output_polisher import polish_artifacts, format_polish_log
     from hands.feedback_cache import FeedbackCache
     from hands.file_repair import identify_weak_artifacts, repair_files
+    from hands.retry_advisor import recommend_strategy, should_skip_strategy, RetryRecommendation
     import config as _cfg
 
     # Budget check
@@ -2611,66 +2612,82 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
                 if validation.get("critical_issues"):
                     previous_feedback += " CRITICAL: " + "; ".join(validation["critical_issues"])
 
-                # Strategy 1: Targeted file repair (cheapest — single Haiku call ~$0.003)
+                # Classify failure and get retry recommendation
                 weak_artifacts = identify_weak_artifacts(
                     validation, report.get("artifacts", []), threshold=EXEC_QUALITY_THRESHOLD
                 )
                 strong_count = len(report.get("artifacts", [])) - len(weak_artifacts)
-                if weak_artifacts and strong_count > len(weak_artifacts):
-                    print(f"  [FILE REPAIR] {len(weak_artifacts)} file(s) need fixes, {strong_count} are good")
-                    repair_result = repair_files(
-                        files_to_fix=weak_artifacts,
-                        goal=goal,
-                        plan=plan_data,
-                        domain=domain,
-                        workspace_dir=workspace_dir,
-                    )
-                    if repair_result.get("files_fixed", 0) > 0:
-                        print(f"  [FILE REPAIR] Fixed {repair_result['files_fixed']} file(s) (${repair_result.get('cost', 0):.4f})")
-                        for d in repair_result.get("details", []):
-                            if d.get("fixed"):
-                                print(f"    ✓ {d['path']}: {', '.join(d.get('changes', []))[:80]}")
-                        # Re-validate with fixed files (skip re-execution)
-                        continue
-                    else:
-                        print(f"  [FILE REPAIR] Could not fix files — trying surgical retry")
 
-                # Strategy 2: Surgical retry — only redo failing steps
                 failing = identify_failing_steps(
                     validation,
                     report.get("step_results", []),
                     plan_data.get("steps", []),
                 )
-                if failing and len(failing) < len(plan_data.get("steps", [])):
-                    print(f"  [SURGICAL RETRY] {len(failing)} steps need repair: {failing}")
-                    repair = plan_repair(
-                        original_plan=plan_data,
-                        failing_steps=failing,
-                        feedback=previous_feedback,
-                        tools_description=tools_desc,
-                        completed_steps=report.get("step_results", []),
-                        domain=domain,
-                        workspace_dir=workspace_dir,
-                    )
-                    if repair:
-                        # Use repair plan + pass successful steps as resume_from
-                        plan_data = repair
-                        _use_surgical_retry = True
-                        _resume_data = {
-                            "completed_steps": [
-                                sr for sr in report.get("step_results", [])
-                                if sr.get("success") and sr.get("step") not in failing
-                            ],
-                            "artifacts": [
-                                a for sr in report.get("step_results", [])
-                                if sr.get("success") and sr.get("step") not in failing
-                                for a in sr.get("artifacts", [])
-                            ],
-                        }
-                        print(f"  [SURGICAL RETRY] Repair plan: {len(repair.get('steps', []))} steps")
-                        continue
-                    else:
-                        print(f"  [SURGICAL RETRY] Repair plan failed — falling back to full replan")
+
+                recommendation = recommend_strategy(
+                    validation,
+                    attempt=attempt,
+                    max_retries=EXEC_MAX_RETRIES,
+                    has_weak_artifacts=bool(weak_artifacts) and strong_count > len(weak_artifacts),
+                    has_failing_steps=bool(failing) and len(failing) < len(plan_data.get("steps", [])),
+                )
+                print(f"  [RETRY ADVISOR] {recommendation.failure_class} failure → {recommendation.strategy} (confidence={recommendation.confidence:.0%})")
+                if recommendation.skip_strategies:
+                    print(f"  [RETRY ADVISOR] Skipping: {', '.join(recommendation.skip_strategies)}")
+
+                # Strategy 1: Targeted file repair (cheapest — single Haiku call ~$0.003)
+                if not should_skip_strategy(recommendation, RetryRecommendation.FILE_REPAIR):
+                    if weak_artifacts and strong_count > len(weak_artifacts):
+                        print(f"  [FILE REPAIR] {len(weak_artifacts)} file(s) need fixes, {strong_count} are good")
+                        repair_result = repair_files(
+                            files_to_fix=weak_artifacts,
+                            goal=goal,
+                            plan=plan_data,
+                            domain=domain,
+                            workspace_dir=workspace_dir,
+                        )
+                        if repair_result.get("files_fixed", 0) > 0:
+                            print(f"  [FILE REPAIR] Fixed {repair_result['files_fixed']} file(s) (${repair_result.get('cost', 0):.4f})")
+                            for d in repair_result.get("details", []):
+                                if d.get("fixed"):
+                                    print(f"    ✓ {d['path']}: {', '.join(d.get('changes', []))[:80]}")
+                            # Re-validate with fixed files (skip re-execution)
+                            continue
+                        else:
+                            print(f"  [FILE REPAIR] Could not fix files — trying next strategy")
+
+                # Strategy 2: Surgical retry — only redo failing steps
+                if not should_skip_strategy(recommendation, RetryRecommendation.SURGICAL):
+                    if failing and len(failing) < len(plan_data.get("steps", [])):
+                        print(f"  [SURGICAL RETRY] {len(failing)} steps need repair: {failing}")
+                        repair = plan_repair(
+                            original_plan=plan_data,
+                            failing_steps=failing,
+                            feedback=previous_feedback,
+                            tools_description=tools_desc,
+                            completed_steps=report.get("step_results", []),
+                            domain=domain,
+                            workspace_dir=workspace_dir,
+                        )
+                        if repair:
+                            # Use repair plan + pass successful steps as resume_from
+                            plan_data = repair
+                            _use_surgical_retry = True
+                            _resume_data = {
+                                "completed_steps": [
+                                    sr for sr in report.get("step_results", [])
+                                    if sr.get("success") and sr.get("step") not in failing
+                                ],
+                                "artifacts": [
+                                    a for sr in report.get("step_results", [])
+                                    if sr.get("success") and sr.get("step") not in failing
+                                    for a in sr.get("artifacts", [])
+                                ],
+                            }
+                            print(f"  [SURGICAL RETRY] Repair plan: {len(repair.get('steps', []))} steps")
+                            continue
+                        else:
+                            print(f"  [SURGICAL RETRY] Repair plan failed — falling back to full replan")
 
                 print(f"  Retrying with feedback...")
             else:
@@ -2703,7 +2720,11 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
                 artifact_quality_db.update(domain, scored_arts)
                 weak = artifact_quality_db.get_weak_archetypes(domain)
                 if weak:
-                    print(f"[ARTIFACT-QUALITY] Weak archetypes: {', '.join(w['archetype'] + f'({w[\"avg_score\"]})' for w in weak[:3])}")
+                    weak_info = ", ".join(
+                        w["archetype"] + "(" + str(w["avg_score"]) + ")"
+                        for w in weak[:3]
+                    )
+                    print(f"[ARTIFACT-QUALITY] Weak archetypes: {weak_info}")
 
                 # Extract exemplars from accepted executions
                 if final_validation.get("verdict") == "accept":
@@ -2725,9 +2746,12 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
             "validation": final_validation,
         }
         new_lessons = pattern_learner.analyze_execution(exec_output_for_learning)
-        if new_lessons:
-            print(f"[PATTERN-LEARNER] Extracted {len(new_lessons)} new patterns:")
-            for lesson in new_lessons[:5]:
+        # Also extract plan-level patterns from successful executions
+        plan_lessons = pattern_learner.analyze_plan_structure(exec_output_for_learning)
+        all_new = new_lessons + plan_lessons
+        if all_new:
+            print(f"[PATTERN-LEARNER] Extracted {len(all_new)} new patterns:")
+            for lesson in all_new[:5]:
                 print(f"  • {lesson[:100]}")
 
     # Check if exec strategy evolution is due
