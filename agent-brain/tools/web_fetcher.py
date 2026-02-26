@@ -337,17 +337,25 @@ def crawl_docs_site(
             continue
         visited.add(url)
         
-        # Fetch page
-        content = fetch_page(url, timeout=15)
+        # Fetch page ONCE — extract both content and links from same response
+        try:
+            page = Fetcher.get(url, stealthy_headers=True, timeout=15, follow_redirects=True)
+            if page.status != 200:
+                continue
+        except Exception as e:
+            logger.debug(f"Crawl fetch failed for {url}: {e}")
+            continue
+        
+        # Extract content
+        content = _extract_content(page, url)
         if not content or content["content_length"] < 50:
             continue
         
         results.append(content)
         logger.info(f"Crawled [{len(results)}/{max_pages}] {url} — {content['content_length']} chars")
         
-        # Extract links from page
+        # Extract links from the SAME page object (no double-fetch)
         try:
-            page = Fetcher.get(url, stealthy_headers=True, timeout=15)
             links = page.css("a::attr(href)").getall()
             
             for link in links:

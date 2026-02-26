@@ -143,6 +143,9 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
 
     # Invalidate TF-IDF cache for this domain (new data available)
     invalidate_tfidf_cache(domain)
+    
+    # Invalidate output cache
+    _invalidate_output_cache(domain)
 
     # Dual-write to SQLite
     try:
@@ -154,24 +157,56 @@ def save_output(domain: str, question: str, research: dict, critique: dict, atte
     return filepath
 
 
+# --- Output cache ---
+# In-memory cache for load_outputs to avoid repeated disk I/O.
+# Keyed by full domain_dir path so different MEMORY_DIR values don't collide.
+_output_cache: dict[str, tuple[float, list[dict]]] = {}  # domain_dir -> (timestamp, outputs)
+_OUTPUT_CACHE_TTL = 60  # seconds
+
+
+def _invalidate_output_cache(domain: str) -> None:
+    """Remove cached outputs for a domain."""
+    domain_dir = os.path.join(MEMORY_DIR, domain)
+    _output_cache.pop(domain_dir, None)
+
+
 def load_outputs(domain: str, min_score: float = 0) -> list[dict]:
     """
     Load all stored outputs for a domain, optionally filtered by minimum score.
+    Uses in-memory cache to avoid repeated disk I/O within the same loop run.
     """
+    import time
+    
     domain_dir = os.path.join(MEMORY_DIR, domain)
     if not os.path.exists(domain_dir):
         return []
+
+    # Check cache keyed by full path (all outputs cached, filter applied after)
+    now = time.time()
+    if domain_dir in _output_cache:
+        cached_time, cached_outputs = _output_cache[domain_dir]
+        if now - cached_time < _OUTPUT_CACHE_TTL:
+            if min_score > 0:
+                return [o for o in cached_outputs if o.get("overall_score", 0) >= min_score]
+            return list(cached_outputs)  # Return copy
 
     outputs = []
     for filename in sorted(os.listdir(domain_dir)):
         if not filename.endswith(".json"):
             continue
         filepath = os.path.join(domain_dir, filename)
-        with open(filepath) as f:
-            record = json.load(f)
-        if record.get("overall_score", 0) >= min_score:
+        try:
+            with open(filepath) as f:
+                record = json.load(f)
             outputs.append(record)
+        except (json.JSONDecodeError, OSError):
+            continue
 
+    # Cache all outputs keyed by full path (filter applied on retrieval)
+    _output_cache[domain_dir] = (now, outputs)
+    
+    if min_score > 0:
+        return [o for o in outputs if o.get("overall_score", 0) >= min_score]
     return outputs
 
 
