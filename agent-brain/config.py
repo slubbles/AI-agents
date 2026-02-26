@@ -30,6 +30,12 @@ MODELS = {
 QUALITY_THRESHOLD = 6  # minimum score (1-10) to accept output
 MAX_RETRIES = 2  # how many times researcher retries after rejection
 
+# --- Critic Enhancements ---
+CRITIC_ENSEMBLE = False           # run 2 critics and average scores (2x critic cost)
+CRITIC_LOG_PARSE_FAILURES = True  # write raw critic response to logs/ on parse failure
+CONFIDENCE_VALIDATION = True      # post-hoc check: "high" claims must cite 2+ sources
+CONFIDENCE_PENALTY = 1.0          # accuracy deduction for invalid high-confidence claims
+
 # --- Memory ---
 MEMORY_DIR = os.path.join(os.path.dirname(__file__), "memory")
 STRATEGY_DIR = os.path.join(os.path.dirname(__file__), "strategies")
@@ -105,6 +111,14 @@ DRIFT_WARNING_THRESHOLD = 0.6    # warn when strategy has <60% overlap with v001
 # --- Multi-Researcher Consensus ---
 CONSENSUS_ENABLED = False       # disabled by default — run N researchers in parallel
 CONSENSUS_RESEARCHERS = 3       # number of parallel researchers (max 5)
+
+# --- Orchestrator Tuning ---
+ORCH_MAX_PER_DOMAIN = 5          # max rounds per domain in orchestrate mode
+ORCH_SCORE_PLATEAU_WINDOW = 5    # check last N scores for plateau detection
+ORCH_SCORE_PLATEAU_RANGE = 0.5   # scores within ±this are considered plateau
+ORCH_TIME_DECAY_DAYS = 7         # domains not researched in N days get priority boost
+ORCH_TIME_DECAY_BOOST = 15       # priority boost for stale domains
+AUTO_DEDUP_RETRIES = 2           # retry question generation when dedup skips
 
 # --- Memory Hygiene ---
 MAX_OUTPUTS_PER_DOMAIN = 100          # archive overflow beyond this

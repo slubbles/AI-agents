@@ -1276,12 +1276,26 @@ def _run_auto(domain: str, rounds: int = 1):
 
         # Dedup check — avoid re-researching known questions
         from memory_store import is_duplicate_question
+        from config import AUTO_DEDUP_RETRIES
         is_dup, matched = is_duplicate_question(domain, question, threshold=0.80)
         if is_dup:
-            print(f"[DEDUP] ⚠ Skipping — too similar to already-researched question:")
-            print(f"  → {matched[:100]}")
-            dedup_skipped += 1
-            continue
+            # Retry question generation up to AUTO_DEDUP_RETRIES times
+            retried = False
+            for dedup_attempt in range(AUTO_DEDUP_RETRIES):
+                print(f"[DEDUP] ⚠ Too similar to: {matched[:100]}")
+                print(f"[DEDUP] Regenerating question (attempt {dedup_attempt + 2})...")
+                question = get_next_question(domain)
+                if not question:
+                    break
+                is_dup, matched = is_duplicate_question(domain, question, threshold=0.80)
+                if not is_dup:
+                    retried = True
+                    print(f"[DEDUP] ✓ New question accepted: {question[:80]}")
+                    break
+            if not retried:
+                print(f"[DEDUP] ⚠ Skipping — all {AUTO_DEDUP_RETRIES + 1} attempts were duplicates")
+                dedup_skipped += 1
+                continue
 
         # Stages 3+4+5: Research → Evaluate (handled by run_loop)
         print(f"\n[STAGE 3-5] Researching, evaluating, storing...")

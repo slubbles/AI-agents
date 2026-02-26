@@ -31,6 +31,9 @@ from config import (
     MIN_OUTPUTS_FOR_SYNTHESIS, SYNTHESIZE_EVERY_N,
     MIN_OUTPUTS_FOR_TRANSFER, MIN_AVG_SCORE_FOR_TRANSFER,
     MEMORY_DIR,
+    ORCH_MAX_PER_DOMAIN, ORCH_SCORE_PLATEAU_WINDOW,
+    ORCH_SCORE_PLATEAU_RANGE, ORCH_TIME_DECAY_DAYS,
+    ORCH_TIME_DECAY_BOOST,
 )
 from memory_store import get_stats, load_outputs, get_archive_stats, load_knowledge_base
 from strategy_store import (
@@ -133,6 +136,44 @@ def _score_domain_priority(domain: str, stats: dict, strategy_version: str,
             score += 3
             reasons.append("qualifies as cross-domain transfer source")
 
+    # ── Score plateau detection ──
+    recent_outputs = None
+    if count >= ORCH_SCORE_PLATEAU_WINDOW:
+        recent_outputs = load_outputs(domain)
+        recent_scores = [
+            o.get("critique", {}).get("overall_score", 0)
+            for o in recent_outputs[-ORCH_SCORE_PLATEAU_WINDOW:]
+            if o.get("critique", {}).get("overall_score", 0) > 0
+        ]
+        if len(recent_scores) >= ORCH_SCORE_PLATEAU_WINDOW:
+            score_range = max(recent_scores) - min(recent_scores)
+            if score_range <= ORCH_SCORE_PLATEAU_RANGE:
+                avg_plateau = sum(recent_scores) / len(recent_scores)
+                score -= 10
+                reasons.append(
+                    f"score plateau detected (last {ORCH_SCORE_PLATEAU_WINDOW}: "
+                    f"range {score_range:.1f}, avg {avg_plateau:.1f}) — deprioritized"
+                )
+
+    # ── Time decay — boost stale domains ──
+    if count > 0:
+        if recent_outputs is None:
+            recent_outputs = load_outputs(domain)
+        if recent_outputs:
+            last_ts = recent_outputs[-1].get("timestamp", "")
+            if last_ts:
+                try:
+                    last_dt = datetime.fromisoformat(last_ts.replace("Z", "+00:00"))
+                    now = datetime.now(timezone.utc)
+                    days_since = (now - last_dt).days
+                    if days_since >= ORCH_TIME_DECAY_DAYS:
+                        score += ORCH_TIME_DECAY_BOOST
+                        reasons.append(
+                            f"stale domain ({days_since} days since last research) — boosted +{ORCH_TIME_DECAY_BOOST}"
+                        )
+                except (ValueError, TypeError):
+                    pass  # Can't parse timestamp, skip decay
+
     return {
         "domain": domain,
         "priority": round(score, 1),
@@ -196,7 +237,7 @@ def prioritize_domains(target_domains: list[str] | None = None) -> list[dict]:
 # ============================================================
 
 def allocate_rounds(priorities: list[dict], total_rounds: int,
-                    max_per_domain: int = 5) -> list[dict]:
+                    max_per_domain: int | None = None) -> list[dict]:
     """
     Allocate research rounds across domains based on priority.
     
@@ -210,6 +251,9 @@ def allocate_rounds(priorities: list[dict], total_rounds: int,
     Returns:
         List of {domain, rounds, action, reasons} dicts
     """
+    if max_per_domain is None:
+        max_per_domain = ORCH_MAX_PER_DOMAIN
+
     # Filter to actionable domains (not skipped, has at least some data or is seedable)
     active = [p for p in priorities if not p["skip"] and p["stats"]["count"] > 0]
     skipped = [p for p in priorities if p["skip"] or p["stats"]["count"] == 0]
