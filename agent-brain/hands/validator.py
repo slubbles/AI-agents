@@ -309,6 +309,86 @@ def _run_static_checks(artifacts: list[str]) -> dict:
     return results
 
 
+def identify_failing_steps(
+    validation: dict,
+    step_results: list[dict],
+    plan_steps: list[dict],
+) -> list[int]:
+    """
+    Cross-reference validation feedback with step results to identify
+    which specific steps produced the issues.
+
+    Used for surgical retry — only re-execute failing steps + dependents
+    instead of starting from scratch.
+
+    Args:
+        validation: Validation result dict (from validate_execution)
+        step_results: List of step result dicts from execution report
+        plan_steps: Original plan steps
+
+    Returns:
+        List of step numbers (1-based) that need re-doing.
+    """
+    failing_steps: set[int] = set()
+
+    # 1. Steps that explicitly failed
+    for sr in step_results:
+        if not sr.get("success", False) and sr.get("criticality", "required") == "required":
+            failing_steps.add(sr.get("step", 0))
+
+    # 2. Cross-reference critical_issues + weaknesses with artifacts
+    problem_text = " ".join(
+        validation.get("critical_issues", []) +
+        validation.get("weaknesses", [])
+    ).lower()
+
+    for sr in step_results:
+        step_num = sr.get("step", 0)
+        # Check if any artifact from this step is mentioned in issues
+        for artifact in sr.get("artifacts", []):
+            basename = os.path.basename(artifact).lower()
+            if basename in problem_text:
+                failing_steps.add(step_num)
+                break
+
+        # Check if the tool type matches issue categories
+        tool = sr.get("tool", "").lower()
+        if tool == "code" and any(
+            kw in problem_text
+            for kw in ["syntax", "import", "missing file", "empty file", "invalid json"]
+        ):
+            # Code step that created a file mentioned in issues
+            if sr.get("artifacts"):
+                failing_steps.add(step_num)
+
+    # 3. Static check failures — map file to the step that created it
+    static_issues = validation.get("static_checks", {}).get("issues", [])
+    artifact_to_step: dict[str, int] = {}
+    for sr in step_results:
+        for art in sr.get("artifacts", []):
+            artifact_to_step[art] = sr.get("step", 0)
+
+    for issue in static_issues:
+        file_path = issue.get("file", "")
+        if file_path in artifact_to_step:
+            failing_steps.add(artifact_to_step[file_path])
+
+    # 4. Add dependent steps (steps that depend on failing steps)
+    failing_deps: set[int] = set()
+    for ps in plan_steps:
+        sn = ps.get("step_number", 0)
+        deps = ps.get("depends_on", [])
+        if any(d in failing_steps for d in deps):
+            failing_deps.add(sn)
+
+    failing_steps |= failing_deps
+
+    # Remove step 0 if present (invalid)
+    failing_steps.discard(0)
+
+    return sorted(failing_steps)
+
+
 def validate_execution(
     goal: str,
     plan: dict,

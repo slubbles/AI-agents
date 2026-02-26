@@ -347,6 +347,140 @@ def plan(
     return plan_data
 
 
+def plan_repair(
+    original_plan: dict,
+    failing_steps: list[int],
+    feedback: str,
+    tools_description: str,
+    completed_steps: list[dict],
+    domain: str = "general",
+    workspace_dir: str = "",
+) -> dict | None:
+    """
+    Generate a repair plan that only re-does failing steps + dependents.
+    
+    Instead of full re-planning from scratch, this takes the original plan,
+    identifies what worked, and produces a focused repair plan that:
+    1. Preserves successful steps (don't redo what's already good)
+    2. Replaces failing steps with improved versions
+    3. Includes dependent steps that build on the failures
+    
+    Args:
+        original_plan: The plan that was executed (with issues)
+        failing_steps: Step numbers that need re-doing (from identify_failing_steps)
+        feedback: Validation feedback / actionable critique
+        tools_description: Available tools description
+        completed_steps: Step results from the original execution
+        domain: Domain context
+        workspace_dir: Workspace path for context
+    
+    Returns:
+        Repair plan dict, or None if repair isn't feasible (falls back to full replan)
+    """
+    if not failing_steps:
+        return None
+    
+    total = len(original_plan.get("steps", []))
+    if not total:
+        return None
+    
+    # If >60% of steps failed, full replan is better
+    if len(failing_steps) > total * 0.6:
+        return None
+
+    # Build context: what succeeded vs what failed
+    successful_summaries = []
+    for sr in completed_steps:
+        if sr.get("success") and sr.get("step") not in failing_steps:
+            successful_summaries.append(
+                f"Step {sr['step']} ({sr.get('tool', '?')}): ✓ {sr.get('output', '')[:100]}"
+            )
+
+    failing_details = []
+    for sr in completed_steps:
+        if sr.get("step") in failing_steps:
+            failing_details.append(
+                f"Step {sr['step']} ({sr.get('tool', '?')}): ✗ {sr.get('error', '')[:200]}"
+            )
+
+    repair_prompt = f"""\
+You are an execution planner performing SURGICAL REPAIR on a partially-failed plan.
+
+ORIGINAL PLAN:
+{json.dumps(original_plan, indent=2)[:4000]}
+
+STEPS THAT SUCCEEDED (DO NOT REDO):
+{chr(10).join(successful_summaries) if successful_summaries else "(none)"}
+
+STEPS THAT FAILED (MUST BE FIXED):
+{chr(10).join(failing_details) if failing_details else "Steps " + str(failing_steps)}
+
+FAILING STEP NUMBERS: {failing_steps}
+
+VALIDATOR FEEDBACK:
+{feedback[:2000]}
+
+REPAIR INSTRUCTIONS:
+1. Generate replacement steps ONLY for the failing steps and their dependents.
+2. Keep the same step numbering as the original plan.
+3. Use improved parameters based on the feedback.
+4. Reference artifacts created by successful steps — don't recreate them.
+5. If a failing step's approach was fundamentally wrong, redesign it.
+
+AVAILABLE TOOLS:
+{tools_description}
+
+Respond with ONLY the JSON repair plan (same format as original plan, but with only the steps that need re-execution).
+"""
+
+    # Scan workspace context if available
+    workspace_context = ""
+    if workspace_dir and os.path.isdir(workspace_dir):
+        ws = _scan_workspace(workspace_dir)
+        workspace_context = f"Current workspace state:\n{ws['tree']}\n"
+
+    if workspace_context:
+        repair_prompt += f"\nWORKSPACE STATE:\n{workspace_context}"
+
+    try:
+        response = create_message(
+            client,
+            model=MODELS["planner"],
+            max_tokens=4096,
+            system="You are a precise execution planner. Output ONLY valid JSON.",
+            messages=[{"role": "user", "content": repair_prompt}],
+        )
+
+        log_cost(
+            model=MODELS["planner"],
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
+            agent_role="planner",
+            domain=domain,
+        )
+
+        text = ""
+        for block in response.content:
+            if hasattr(block, "text"):
+                text += block.text
+
+        repair_plan = extract_json(text, expected_keys={"steps"})
+        if not repair_plan or not repair_plan.get("steps"):
+            return None
+
+        # Inherit metadata from original plan
+        repair_plan.setdefault("task_summary", original_plan.get("task_summary", ""))
+        repair_plan.setdefault("success_criteria", original_plan.get("success_criteria", ""))
+        repair_plan["is_repair"] = True
+        repair_plan["original_failing_steps"] = failing_steps
+
+        return repair_plan
+
+    except Exception as e:
+        print(f"  [PLANNER] Repair plan failed: {e}")
+        return None
+
+
 def _validate_dependencies(steps: list[dict]) -> None:
     """
     Validate and sanitize the dependency graph of plan steps.

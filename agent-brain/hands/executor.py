@@ -35,6 +35,8 @@ from utils.json_parser import extract_json
 from hands.tools.registry import ToolRegistry, ToolResult
 from hands.error_analyzer import analyze_error, format_retry_guidance
 from hands.tool_health import ToolHealthMonitor
+from hands.timeout_adapter import TimeoutAdapter
+from hands.mid_validator import MidExecutionValidator
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -163,6 +165,8 @@ def execute_plan(
     domain: str = "general",
     execution_strategy: str = "",
     workspace_dir: str = "",
+    resume_from: dict | None = None,
+    enable_mid_gates: bool = True,
 ) -> dict:
     """
     Execute a plan step-by-step using tools.
@@ -173,6 +177,8 @@ def execute_plan(
         domain: Domain context
         execution_strategy: Execution strategy text
         workspace_dir: Base directory for file operations
+        resume_from: Checkpoint data for partial re-execution (completed steps to skip)
+        enable_mid_gates: Whether to run mid-execution quality gates
 
     Returns:
         Execution report dict with step results, artifacts, and summary
@@ -192,23 +198,68 @@ def execute_plan(
     print(f"\n  [EXECUTOR] Executing {len(steps)} steps...")
     print(f"  [EXECUTOR] Task: {plan.get('task_summary', 'unknown')}")
 
+    # Initialize timeout adapter with per-tool intelligent timeouts
+    timeout_adapter = TimeoutAdapter(global_default=EXEC_STEP_TIMEOUT)
+
+    # Initialize mid-execution quality gates
+    mid_validator = MidExecutionValidator(plan) if enable_mid_gates else None
+    if mid_validator and mid_validator.gate_points:
+        print(f"  [EXECUTOR] Quality gates at steps: {sorted(mid_validator.gate_points)}")
+    mid_gate_corrections = 0  # Track how many corrections were injected
+
+    # Handle resume_from (partial re-execution)
+    resumed_steps = []
+    resumed_artifacts = []
+    if resume_from:
+        completed = resume_from.get("completed_steps", [])
+        resumed_artifacts = resume_from.get("artifacts", [])
+        # Build a summary of completed steps for the executor's context
+        resume_summary_parts = []
+        for sr in completed:
+            if sr.get("success"):
+                resumed_steps.append(sr)
+                resume_summary_parts.append(
+                    f"Step {sr.get('step', '?')} [{sr.get('tool', '?')}]: ✓ Completed — {sr.get('output', '')[:200]}"
+                )
+        if resumed_steps:
+            print(f"  [EXECUTOR] Resuming — {len(resumed_steps)} steps already done, skipping to remaining")
+
     # Build initial context with the full plan
     plan_text = json.dumps(plan, indent=2)
-    conversation = [
-        {
-            "role": "user",
-            "content": (
-                f"Execute this plan step by step. After each tool execution, "
-                f"I'll give you the result and you proceed to the next step.\n\n"
-                f"PLAN:\n{plan_text}\n\n"
-                f"WORKSPACE: {workspace_dir or 'current directory'}\n\n"
-                f"Begin with Step 1."
-            ),
-        }
-    ]
+    if resumed_steps:
+        resume_context = "\n".join(
+            f"Step {sr.get('step', '?')} [{sr.get('tool', '?')}]: ✓ Already completed"
+            for sr in resumed_steps
+        )
+        conversation = [
+            {
+                "role": "user",
+                "content": (
+                    f"Execute this plan step by step. Some steps are already completed "
+                    f"from a previous run — SKIP those and continue from where it left off.\n\n"
+                    f"PLAN:\n{plan_text}\n\n"
+                    f"ALREADY COMPLETED (DO NOT REDO):\n{resume_context}\n\n"
+                    f"WORKSPACE: {workspace_dir or 'current directory'}\n\n"
+                    f"Continue with the first uncompleted step."
+                ),
+            }
+        ]
+    else:
+        conversation = [
+            {
+                "role": "user",
+                "content": (
+                    f"Execute this plan step by step. After each tool execution, "
+                    f"I'll give you the result and you proceed to the next step.\n\n"
+                    f"PLAN:\n{plan_text}\n\n"
+                    f"WORKSPACE: {workspace_dir or 'current directory'}\n\n"
+                    f"Begin with Step 1."
+                ),
+            }
+        ]
 
-    step_results = []
-    all_artifacts = []
+    step_results = list(resumed_steps)  # Pre-populate with resumed steps
+    all_artifacts = list(resumed_artifacts)
     total_input_tokens = 0
     total_output_tokens = 0
     max_turns = EXEC_MAX_STEPS * 3  # Allow some retries per step
@@ -325,8 +376,18 @@ def execute_plan(
                 if health_ctx:
                     print(f"           ⚠ Tool '{tool_name}' is degraded — consider alternatives")
 
-            # Execute the tool through the registry
+            # Get adaptive timeout for this tool + params
+            step_timeout = timeout_adapter.suggest(tool_name, params)
+
+            # Execute the tool through the registry (with timeout for terminal)
+            if tool_name == "terminal":
+                params["timeout"] = step_timeout
             result = registry.execute(tool_name, **params)
+
+            # Record duration in timeout adapter for future improvement
+            duration_ms = result.metadata.get("duration_ms", 0)
+            if duration_ms > 0:
+                timeout_adapter.record(tool_name, duration_ms / 1000.0)
 
             # Record in health monitor
             health_monitor.record(tool_name, result.success, result.error)
@@ -347,6 +408,19 @@ def execute_plan(
 
             status = "✓" if result.success else "✗"
             print(f"           {status} {result.output[:100] if result.success else result.error[:100]}")
+
+            # Mid-execution quality gate check
+            gate_correction = ""
+            if mid_validator and result.success and mid_validator.should_gate(step_num, step_result):
+                gate_issues = mid_validator.quick_validate(all_artifacts)
+                if gate_issues:
+                    gate_correction = mid_validator.get_correction_prompt(gate_issues)
+                    mid_gate_corrections += 1
+                    print(f"           [GATE] Quality check at step {step_num}: {len(gate_issues)} issue(s) found")
+                    for gi in gate_issues[:3]:
+                        print(f"             • {os.path.basename(gi['file'])}: {gi['detail'][:80]}")
+                else:
+                    print(f"           [GATE] Step {step_num}: ✓ passed")
 
             # Step-level retry tracking with smart error analysis
             retry_msg = ""
@@ -393,6 +467,11 @@ def execute_plan(
                 result_msg += f"\nArtifacts: {result.artifacts}"
 
             result_msg += retry_msg
+
+            # Inject mid-execution gate correction if any
+            if gate_correction:
+                result_msg += f"\n\n{gate_correction}"
+
             result_msg += "\n\nProceed to the next step (or 'complete' if all steps are done)."
             conversation.append({"role": "user", "content": result_msg})
 
@@ -433,6 +512,10 @@ def execute_plan(
         "total_steps": len(steps),
         "total_turns": last_turn + 1,
         "tool_health": health_monitor.get_health_report(),
+        "mid_gate_corrections": mid_gate_corrections,
+        "timeout_stats": timeout_adapter.stats(),
+        "resumed_steps": len(resumed_steps),
+        "is_repair": plan.get("is_repair", False),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
