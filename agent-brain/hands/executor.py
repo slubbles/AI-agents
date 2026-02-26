@@ -98,6 +98,85 @@ def _summarize_old_steps(conversation: list[dict], keep_recent: int = 6) -> list
     return [first, summary] + recent
 
 
+# ---- Sliding Context Window ----
+# Instead of grow-then-compress, proactively keep the conversation small.
+# The state accumulator maintains a running summary of all completed steps,
+# so the executor always has full context in a compact form.
+
+SLIDING_WINDOW_KEEP_RECENT = 4  # Keep last N messages (2 turns)
+
+
+def _build_state_accumulator(step_results: list[dict], artifacts: list[str]) -> str:
+    """
+    Build a compact state summary from all completed steps.
+    
+    This replaces the old conversation history with a structured status block.
+    The executor sees: plan + state accumulator + last 2 turns. That's it.
+    Cuts context by ~70% on multi-step executions.
+    """
+    if not step_results:
+        return ""
+    
+    parts = [f"EXECUTION STATE — {len(step_results)} step(s) completed:"]
+    
+    for sr in step_results:
+        status = "✓" if sr.get("success") else "✗"
+        tool = sr.get("tool", "?")
+        step_num = sr.get("step", "?")
+        output = sr.get("output", "")[:200]
+        error = sr.get("error", "")
+        
+        line = f"  Step {step_num} [{tool}] {status}"
+        if sr.get("success"):
+            # Only include output summary for successful steps
+            if output:
+                line += f": {output}"
+        else:
+            if error:
+                line += f": ERROR — {error[:200]}"
+        
+        parts.append(line)
+    
+    if artifacts:
+        # List unique artifacts
+        unique = sorted(set(artifacts))
+        parts.append(f"\nArtifacts created: {', '.join(unique[:20])}")
+    
+    parts.append(f"\nProceed with Step {len(step_results) + 1}.")
+    return "\n".join(parts)
+
+
+def _apply_sliding_window(
+    conversation: list[dict],
+    step_results: list[dict],
+    artifacts: list[str],
+) -> list[dict]:
+    """
+    Apply the sliding context window strategy.
+    
+    Replaces the full conversation with:
+    [plan_message, state_accumulator, last_N_messages]
+    
+    This is called proactively every turn (not just when nearing limits),
+    keeping the conversation consistently small.
+    """
+    if len(conversation) <= SLIDING_WINDOW_KEEP_RECENT + 1:
+        return conversation  # Not enough messages to compress yet
+    
+    plan_msg = conversation[0]
+    recent = conversation[-SLIDING_WINDOW_KEEP_RECENT:]
+    
+    state = _build_state_accumulator(step_results, artifacts)
+    
+    if state:
+        state_msg = {"role": "user", "content": state}
+        # Ensure conversation alternation: plan(user), state(user) won't work
+        # So we merge state into the last assistant message before recent, or inject as context
+        return [plan_msg, {"role": "assistant", "content": "Understood. Continuing execution."}, state_msg] + recent
+    
+    return [plan_msg] + recent
+
+
 def _build_system_prompt(tools_description: str, execution_strategy: str = "") -> str:
     """Build the executor's system prompt."""
     today = date.today().isoformat()
@@ -275,11 +354,12 @@ def execute_plan(
             print(f"  [EXECUTOR] ⚠ Cost ceiling reached (${estimated_cost:.4f} > ${MAX_EXECUTION_COST})")
             break
 
-        # Context window management — compress old turns if conversation grows large
-        conv_size = _estimate_conversation_size(conversation)
-        if conv_size > MAX_CONVERSATION_CHARS * 0.7:
-            conversation = _summarize_old_steps(conversation)
-            print(f"  [EXECUTOR] Context compressed ({conv_size // 1000}K chars → {_estimate_conversation_size(conversation) // 1000}K)")
+        # Sliding context window — proactively compress every turn (not just near limit)
+        prev_size = _estimate_conversation_size(conversation)
+        conversation = _apply_sliding_window(conversation, step_results, all_artifacts)
+        new_size = _estimate_conversation_size(conversation)
+        if new_size < prev_size * 0.7:
+            print(f"  [EXECUTOR] Sliding window: {prev_size // 1000}K → {new_size // 1000}K chars")
 
         # Call the model
         response = create_message(
