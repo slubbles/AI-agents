@@ -17,6 +17,8 @@ Scoring Rubric (5 dimensions):
 
 import json
 import os
+import re
+import subprocess
 import sys
 from datetime import date
 
@@ -176,6 +178,137 @@ def _read_artifact_files(artifacts: list[str]) -> dict[str, str]:
     return contents
 
 
+def _run_static_checks(artifacts: list[str]) -> dict:
+    """
+    Run basic static checks on artifact files before LLM validation.
+    
+    Returns dict with:
+        - checks_run: int
+        - issues: list of {file, check, detail}
+        - passes: list of {file, check}
+    """
+    results = {"checks_run": 0, "issues": [], "passes": []}
+    
+    for path in artifacts:
+        if not os.path.isfile(path):
+            results["checks_run"] += 1
+            results["issues"].append({
+                "file": path, "check": "exists",
+                "detail": "File does not exist"
+            })
+            continue
+        
+        ext = os.path.splitext(path)[1].lower()
+        basename = os.path.basename(path).lower()
+        
+        # Check: file is not empty
+        try:
+            size = os.path.getsize(path)
+            results["checks_run"] += 1
+            if size == 0:
+                results["issues"].append({
+                    "file": path, "check": "not_empty",
+                    "detail": "File is empty (0 bytes)"
+                })
+            else:
+                results["passes"].append({"file": path, "check": "not_empty"})
+        except OSError:
+            pass
+        
+        # Check: JSON files are valid JSON
+        if ext == ".json" or basename in ("package.json", "tsconfig.json"):
+            results["checks_run"] += 1
+            try:
+                with open(path, "r") as f:
+                    json.load(f)
+                results["passes"].append({"file": path, "check": "json_valid"})
+            except (json.JSONDecodeError, OSError) as e:
+                results["issues"].append({
+                    "file": path, "check": "json_valid",
+                    "detail": f"Invalid JSON: {str(e)[:100]}"
+                })
+        
+        # Check: Python files compile
+        if ext == ".py":
+            results["checks_run"] += 1
+            try:
+                result = subprocess.run(
+                    [sys.executable, "-m", "py_compile", path],
+                    capture_output=True, text=True, timeout=10,
+                )
+                if result.returncode == 0:
+                    results["passes"].append({"file": path, "check": "python_syntax"})
+                else:
+                    detail = result.stderr.strip()[:200] or "Syntax error"
+                    results["issues"].append({
+                        "file": path, "check": "python_syntax",
+                        "detail": detail
+                    })
+            except (subprocess.TimeoutExpired, OSError):
+                pass  # Skip if we can't run py_compile
+        
+        # Check: YAML files parse (if pyyaml available)
+        if ext in (".yaml", ".yml"):
+            results["checks_run"] += 1
+            try:
+                import yaml
+                with open(path, "r") as f:
+                    yaml.safe_load(f)
+                results["passes"].append({"file": path, "check": "yaml_valid"})
+            except ImportError:
+                results["checks_run"] -= 1  # Don't count if yaml not installed
+            except Exception as e:
+                results["issues"].append({
+                    "file": path, "check": "yaml_valid",
+                    "detail": f"Invalid YAML: {str(e)[:100]}"
+                })
+        
+        # Check: HTML files have basic structure
+        if ext in (".html", ".htm"):
+            results["checks_run"] += 1
+            try:
+                with open(path, "r", errors="replace") as f:
+                    content = f.read(10000)
+                if "<html" in content.lower() or "<!doctype" in content.lower():
+                    results["passes"].append({"file": path, "check": "html_structure"})
+                else:
+                    results["issues"].append({
+                        "file": path, "check": "html_structure",
+                        "detail": "Missing <html> or <!DOCTYPE> tag"
+                    })
+            except OSError:
+                pass
+
+        # Check: no hardcoded secrets patterns
+        if ext in _PRIORITY_EXTENSIONS and ext not in (".md",):
+            results["checks_run"] += 1
+            try:
+                with open(path, "r", errors="replace") as f:
+                    content = f.read(20000)
+                # Look for common secret patterns
+                secret_patterns = [
+                    r'(?:api_key|apikey|secret|password|token)\s*=\s*["\'][a-zA-Z0-9_\-]{20,}["\']',
+                    r'sk-[a-zA-Z0-9_\-]{20,}',  # OpenAI/Anthropic-style keys
+                    r'ghp_[a-zA-Z0-9]{36}',  # GitHub PATs
+                ]
+                found_secrets = False
+                for pat in secret_patterns:
+                    if re.search(pat, content, re.IGNORECASE):
+                        found_secrets = True
+                        break
+                if found_secrets:
+                    results["issues"].append({
+                        "file": path, "check": "no_hardcoded_secrets",
+                        "detail": "Possible hardcoded secret/API key detected"
+                    })
+                else:
+                    results["passes"].append({"file": path, "check": "no_hardcoded_secrets"})
+            except OSError:
+                pass
+    
+    return results
+
+
 def validate_execution(
     goal: str,
     plan: dict,
@@ -198,6 +331,9 @@ def validate_execution(
     """
     system = _build_validator_prompt()
 
+    # Run static checks first (fast, no API call)
+    static_results = _run_static_checks(execution_report.get("artifacts", []))
+
     # Build the evaluation context
     eval_context = {
         "goal": goal,
@@ -208,6 +344,15 @@ def validate_execution(
         "total_steps": execution_report.get("total_steps", 0),
         "artifacts": execution_report.get("artifacts", []),
     }
+
+    # Inject static check results so the LLM evaluator knows about them
+    if static_results["checks_run"] > 0:
+        eval_context["static_analysis"] = {
+            "checks_run": static_results["checks_run"],
+            "issues_found": len(static_results["issues"]),
+            "issues": static_results["issues"][:10],  # Cap to avoid bloat
+            "passes": len(static_results["passes"]),
+        }
 
     # Include step details (capped to avoid huge payloads)
     step_details = []
@@ -295,5 +440,8 @@ def validate_execution(
     result.setdefault("strengths", [])
     result.setdefault("weaknesses", [])
     result.setdefault("actionable_feedback", "")
+
+    # Attach static check results for downstream consumers
+    result["static_checks"] = static_results
 
     return result

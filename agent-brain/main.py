@@ -32,6 +32,7 @@ Agent Hands (Execution Layer):
     python main.py --execute --goal 'Build X'    Execute a coding task with Agent Hands
     python main.py --exec-status                  Show execution memory stats
     python main.py --exec-evolve                  Force execution strategy evolution
+    python main.py --exec-principles              Show learned execution principles
     python main.py --next-task                    Show next AI-generated coding task
     python main.py --auto-build                   Brain→Hands: generate task from KB + execute
     python main.py --auto-build --build-rounds 3  Run 3 rounds of auto-build
@@ -476,6 +477,7 @@ def main():
     parser.add_argument("--goal", default="", help="Task goal for --execute mode (alternative to positional arg)")
     parser.add_argument("--exec-status", action="store_true", help="Show execution memory stats")
     parser.add_argument("--exec-evolve", action="store_true", help="Force execution strategy evolution")
+    parser.add_argument("--exec-principles", action="store_true", help="Show learned execution principles")
     parser.add_argument("--workspace", default="", help="Workspace directory for execution output")
     parser.add_argument("--auto-build", action="store_true", help="Brain→Hands pipeline: generate coding task from KB and execute it")
     parser.add_argument("--build-rounds", type=int, default=1, help="Number of auto-build rounds (default: 1)")
@@ -622,6 +624,9 @@ def main():
         return
     if getattr(args, 'exec_evolve', False):
         _run_exec_evolve(args.domain)
+        return
+    if getattr(args, 'exec_principles', False):
+        _show_exec_principles()
         return
     if getattr(args, 'auto_build', False):
         _run_auto_build(args.domain, getattr(args, 'build_rounds', 1), workspace_dir=args.workspace)
@@ -2300,8 +2305,21 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     if strategy:
         print(f"[EXEC-STRATEGY] Loaded: {strategy_version}")
     else:
-        strategy_version = "default"
-        print(f"[EXEC-STRATEGY] Using defaults (no custom strategy yet)")
+        # Use template as seed strategy
+        from hands.exec_templates import get_template
+        strategy = get_template(domain)
+        strategy_version = "template"
+        print(f"[EXEC-STRATEGY] Using template for '{domain}' (no evolved strategy yet)")
+
+    # Inject cross-domain execution principles (if available)
+    try:
+        from hands.exec_cross_domain import get_principles_for_domain
+        principles_text = get_principles_for_domain(domain)
+        if principles_text:
+            strategy = f"{strategy}\n\n{principles_text}\n"
+            print(f"[EXEC-PRINCIPLES] Injected learned execution principles")
+    except Exception:
+        pass  # Cross-domain learning is optional
 
     # Load domain knowledge from Brain (if available)
     domain_knowledge = ""
@@ -2343,6 +2361,7 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
             execution_strategy=strategy or "",
             context=context,
             workspace_dir=workspace_dir,
+            available_tools=registry.list_tools(),
         )
 
         if not plan_data:
@@ -2441,6 +2460,16 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
         print(f"\n[EXEC-META] Evolution due ({stats['count']} outputs, every {EXEC_EVOLVE_EVERY_N})")
         _run_exec_evolve(domain)
 
+    # Extract cross-domain principles from high-scoring executions
+    if final_validation and final_validation.get("overall_score", 0) >= EXEC_QUALITY_THRESHOLD:
+        try:
+            from hands.exec_cross_domain import extract_exec_principles
+            new_p = extract_exec_principles(domain, min_outputs=3)
+            if new_p:
+                print(f"[EXEC-PRINCIPLES] Extracted {len(new_p)} new execution principles from '{domain}'")
+        except Exception:
+            pass  # Non-critical
+
     # Summary
     daily = get_daily_spend()
     print(f"\n{'='*60}")
@@ -2501,6 +2530,33 @@ def _run_exec_evolve(domain: str):
 
     print(f"\n  New version: {result['new_version']} (pending approval)")
     print(f"  Run: python main.py --domain {domain} --approve {result['new_version']}")
+
+
+def _show_exec_principles():
+    """Show learned execution principles."""
+    from hands.exec_cross_domain import load_exec_principles
+
+    print(f"\n{'='*60}")
+    print(f"  LEARNED EXECUTION PRINCIPLES")
+    print(f"{'='*60}\n")
+
+    principles = load_exec_principles()
+    if not principles:
+        print("  No execution principles extracted yet.")
+        print("  Principles are extracted after 3+ high-scoring executions in a domain.")
+        return
+
+    for i, p in enumerate(principles, 1):
+        domains = ", ".join(p.get("domains_observed", ["general"]))
+        evidence = p.get("evidence_count", 1)
+        category = p.get("category", "general")
+        print(f"  {i}. [{category}] {p.get('principle', '?')}")
+        print(f"     Evidence: {evidence} | Domains: {domains}")
+        if p.get("evidence"):
+            print(f"     Detail: {p['evidence'][:120]}")
+        print()
+
+    print(f"  Total: {len(principles)} principles")
 
 
 if __name__ == "__main__":

@@ -1865,3 +1865,394 @@ class TestTaskGeneratorCleanup:
         assert isinstance(tasks, list)
         assert len(tasks) == 2
         assert tasks[0]["task"] == "Build X"
+
+
+# ============================================================
+# v4: Planner Tool Name Validation
+# ============================================================
+
+class TestPlannerToolValidation:
+    """Tests for tool name validation and remapping in planner."""
+
+    @patch("hands.planner.create_message")
+    @patch("hands.planner.log_cost")
+    def test_valid_tool_names_pass_through(self, mock_cost, mock_msg):
+        """Steps with valid tool names are left unchanged."""
+        from hands.planner import plan
+
+        plan_json = json.dumps({
+            "task_summary": "Test task",
+            "steps": [
+                {"step_number": 1, "tool": "code", "description": "Write file"},
+                {"step_number": 2, "tool": "terminal", "description": "Run cmd"},
+            ]
+        })
+        mock_response = MagicMock()
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 50
+        mock_response.content = [MagicMock(text=plan_json)]
+        mock_msg.return_value = mock_response
+
+        result = plan("test", "tools desc", available_tools=["code", "terminal", "git", "http", "search"])
+        assert result["steps"][0]["tool"] == "code"
+        assert result["steps"][1]["tool"] == "terminal"
+
+    @patch("hands.planner.create_message")
+    @patch("hands.planner.log_cost")
+    def test_hallucinated_tool_remapped(self, mock_cost, mock_msg):
+        """Hallucinated tool names are remapped to real ones."""
+        from hands.planner import plan
+
+        plan_json = json.dumps({
+            "task_summary": "Test task",
+            "steps": [
+                {"step_number": 1, "tool": "file", "description": "Write file"},
+                {"step_number": 2, "tool": "bash", "description": "Run cmd"},
+                {"step_number": 3, "tool": "grep", "description": "Search files"},
+            ]
+        })
+        mock_response = MagicMock()
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 50
+        mock_response.content = [MagicMock(text=plan_json)]
+        mock_msg.return_value = mock_response
+
+        result = plan("test", "tools desc", available_tools=["code", "terminal", "git", "http", "search"])
+        assert result["steps"][0]["tool"] == "code"
+        assert result["steps"][1]["tool"] == "terminal"
+        assert result["steps"][2]["tool"] == "search"
+
+    @patch("hands.planner.create_message")
+    @patch("hands.planner.log_cost")
+    def test_unknown_tool_defaults_to_terminal(self, mock_cost, mock_msg):
+        """Completely unknown tools default to terminal."""
+        from hands.planner import plan
+
+        plan_json = json.dumps({
+            "task_summary": "Test task",
+            "steps": [
+                {"step_number": 1, "tool": "quantum_flux_capacitor", "description": "Do magic"},
+            ]
+        })
+        mock_response = MagicMock()
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 50
+        mock_response.content = [MagicMock(text=plan_json)]
+        mock_msg.return_value = mock_response
+
+        result = plan("test", "tools desc", available_tools=["code", "terminal", "git"])
+        assert result["steps"][0]["tool"] == "terminal"
+
+    @patch("hands.planner.create_message")
+    @patch("hands.planner.log_cost")
+    def test_no_validation_without_available_tools(self, mock_cost, mock_msg):
+        """Without available_tools, any tool name is accepted."""
+        from hands.planner import plan
+
+        plan_json = json.dumps({
+            "task_summary": "Test task",
+            "steps": [
+                {"step_number": 1, "tool": "nonexistent", "description": "OK"},
+            ]
+        })
+        mock_response = MagicMock()
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 50
+        mock_response.content = [MagicMock(text=plan_json)]
+        mock_msg.return_value = mock_response
+
+        result = plan("test", "tools desc")
+        assert result["steps"][0]["tool"] == "nonexistent"
+
+
+# ============================================================
+# v4: Planner Retry on Parse Failure
+# ============================================================
+
+class TestPlannerRetry:
+    """Tests for planner retry logic on parse failure."""
+
+    @patch("hands.planner.create_message")
+    @patch("hands.planner.log_cost")
+    def test_retry_on_bad_json(self, mock_cost, mock_msg):
+        """Planner retries when LLM returns invalid JSON."""
+        from hands.planner import plan
+
+        good_json = json.dumps({
+            "task_summary": "Test task",
+            "steps": [{"step_number": 1, "tool": "code", "description": "Write"}]
+        })
+        # First call: bad response, second: good
+        bad_response = MagicMock()
+        bad_response.usage.input_tokens = 100
+        bad_response.usage.output_tokens = 50
+        bad_response.content = [MagicMock(text="Here's the plan: I think we should...")]
+
+        good_response = MagicMock()
+        good_response.usage.input_tokens = 100
+        good_response.usage.output_tokens = 50
+        good_response.content = [MagicMock(text=good_json)]
+
+        mock_msg.side_effect = [bad_response, good_response]
+        result = plan("test", "tools desc", max_retries=2)
+        assert result is not None
+        assert result["steps"][0]["tool"] == "code"
+        assert mock_msg.call_count == 2
+
+    @patch("hands.planner.create_message")
+    @patch("hands.planner.log_cost")
+    def test_returns_none_after_max_retries(self, mock_cost, mock_msg):
+        """Planner returns None after exhausting retries."""
+        from hands.planner import plan
+
+        bad_response = MagicMock()
+        bad_response.usage.input_tokens = 100
+        bad_response.usage.output_tokens = 50
+        bad_response.content = [MagicMock(text="Not JSON at all")]
+        mock_msg.return_value = bad_response
+
+        result = plan("test", "tools desc", max_retries=1)
+        assert result is None
+        # 1 initial + 1 retry = 2 calls
+        assert mock_msg.call_count == 2
+
+    @patch("hands.planner.create_message")
+    @patch("hands.planner.log_cost")
+    def test_retry_on_empty_steps(self, mock_cost, mock_msg):
+        """Planner retries when plan has empty steps array."""
+        from hands.planner import plan
+
+        empty_json = json.dumps({"task_summary": "Test", "steps": []})
+        good_json = json.dumps({
+            "task_summary": "Test",
+            "steps": [{"step_number": 1, "tool": "code", "description": "Write"}]
+        })
+
+        empty_resp = MagicMock()
+        empty_resp.usage.input_tokens = 100
+        empty_resp.usage.output_tokens = 50
+        empty_resp.content = [MagicMock(text=empty_json)]
+
+        good_resp = MagicMock()
+        good_resp.usage.input_tokens = 100
+        good_resp.usage.output_tokens = 50
+        good_resp.content = [MagicMock(text=good_json)]
+
+        mock_msg.side_effect = [empty_resp, good_resp]
+        result = plan("test", "tools desc", max_retries=2)
+        assert result is not None
+        assert len(result["steps"]) == 1
+
+
+# ============================================================
+# v4: Strategy Templates
+# ============================================================
+
+class TestExecTemplates:
+    """Tests for execution strategy templates."""
+
+    def test_default_template_returned(self):
+        """Default template is returned for unknown domains."""
+        from hands.exec_templates import get_template, DEFAULT_TEMPLATE
+        result = get_template("unknown-domain-xyz")
+        assert result == DEFAULT_TEMPLATE
+        assert "Planning Principles" in result
+
+    def test_exact_domain_match(self):
+        """Exact domain match returns specific template."""
+        from hands.exec_templates import get_template
+        result = get_template("nextjs-react")
+        assert "Next.js" in result or "React" in result
+        assert "create-next-app" in result
+
+    def test_partial_domain_match(self):
+        """Partial keywords in domain name match to correct template."""
+        from hands.exec_templates import get_template
+        # "python" is a key in DOMAIN_TEMPLATES
+        result = get_template("my-python-project")
+        assert "Python" in result or "PEP 8" in result
+
+    def test_list_templates(self):
+        """list_templates returns default + all domain templates."""
+        from hands.exec_templates import list_templates
+        templates = list_templates()
+        assert "default" in templates
+        assert "nextjs-react" in templates
+        assert "python" in templates
+        assert len(templates) >= 4
+
+
+# ============================================================
+# v4: Validator Static Checks
+# ============================================================
+
+class TestValidatorStaticChecks:
+    """Tests for the static pre-check system in the validator."""
+
+    def test_missing_file_detected(self, tmp_path):
+        """Static checks detect missing files."""
+        from hands.validator import _run_static_checks
+        result = _run_static_checks([str(tmp_path / "nonexistent.py")])
+        assert result["checks_run"] >= 1
+        assert any(i["check"] == "exists" for i in result["issues"])
+
+    def test_empty_file_detected(self, tmp_path):
+        """Static checks detect empty files."""
+        from hands.validator import _run_static_checks
+        empty_file = tmp_path / "empty.py"
+        empty_file.write_text("")
+        result = _run_static_checks([str(empty_file)])
+        assert any(i["check"] == "not_empty" for i in result["issues"])
+
+    def test_valid_json_passes(self, tmp_path):
+        """Valid JSON files pass the json_valid check."""
+        from hands.validator import _run_static_checks
+        json_file = tmp_path / "package.json"
+        json_file.write_text('{"name": "test", "version": "1.0.0"}')
+        result = _run_static_checks([str(json_file)])
+        assert any(p["check"] == "json_valid" for p in result["passes"])
+
+    def test_invalid_json_detected(self, tmp_path):
+        """Invalid JSON files are flagged."""
+        from hands.validator import _run_static_checks
+        json_file = tmp_path / "bad.json"
+        json_file.write_text('{name: test, missing quotes}')
+        result = _run_static_checks([str(json_file)])
+        assert any(i["check"] == "json_valid" for i in result["issues"])
+
+    def test_python_syntax_error_detected(self, tmp_path):
+        """Python files with syntax errors are flagged."""
+        from hands.validator import _run_static_checks
+        py_file = tmp_path / "bad.py"
+        py_file.write_text("def foo(\n    return 42\n")
+        result = _run_static_checks([str(py_file)])
+        assert any(i["check"] == "python_syntax" for i in result["issues"])
+
+    def test_valid_python_passes(self, tmp_path):
+        """Valid Python files pass syntax check."""
+        from hands.validator import _run_static_checks
+        py_file = tmp_path / "good.py"
+        py_file.write_text("def foo():\n    return 42\n")
+        result = _run_static_checks([str(py_file)])
+        assert any(p["check"] == "python_syntax" for p in result["passes"])
+
+    def test_hardcoded_secret_detected(self, tmp_path):
+        """Hardcoded secrets in code files are flagged."""
+        from hands.validator import _run_static_checks
+        py_file = tmp_path / "config.py"
+        py_file.write_text('API_KEY = "sk-ant-abc123456789012345678901234567890"\n')
+        result = _run_static_checks([str(py_file)])
+        assert any(i["check"] == "no_hardcoded_secrets" for i in result["issues"])
+
+    def test_no_issues_for_clean_file(self, tmp_path):
+        """Clean files pass all checks with no issues."""
+        from hands.validator import _run_static_checks
+        py_file = tmp_path / "clean.py"
+        py_file.write_text('"""A clean module."""\n\ndef greet(name: str) -> str:\n    return f"Hello, {name}!"\n')
+        result = _run_static_checks([str(py_file)])
+        assert len(result["issues"]) == 0
+        assert result["checks_run"] >= 2
+
+    def test_html_structure_check(self, tmp_path):
+        """HTML files are checked for basic structure."""
+        from hands.validator import _run_static_checks
+        html_file = tmp_path / "page.html"
+        html_file.write_text("<!DOCTYPE html>\n<html><body>Hi</body></html>")
+        result = _run_static_checks([str(html_file)])
+        assert any(p["check"] == "html_structure" for p in result["passes"])
+
+    def test_html_missing_structure_detected(self, tmp_path):
+        """HTML files without basic tags are flagged."""
+        from hands.validator import _run_static_checks
+        html_file = tmp_path / "bad.html"
+        html_file.write_text("<div>Not a real HTML document</div>")
+        result = _run_static_checks([str(html_file)])
+        assert any(i["check"] == "html_structure" for i in result["issues"])
+
+
+# ============================================================
+# v4: Cross-Domain Execution Principles
+# ============================================================
+
+class TestExecCrossDomain:
+    """Tests for execution cross-domain learning."""
+
+    def test_load_empty_principles(self, tmp_path):
+        """Loading from nonexistent file returns empty list."""
+        from hands.exec_cross_domain import load_exec_principles
+        with patch("hands.exec_cross_domain._EXEC_PRINCIPLES_PATH", str(tmp_path / "nope.json")):
+            result = load_exec_principles()
+        assert result == []
+
+    def test_save_and_load_principles(self, tmp_path):
+        """Principles can be saved and loaded back."""
+        from hands.exec_cross_domain import load_exec_principles, _save_exec_principles
+        path = str(tmp_path / "principles.json")
+        with patch("hands.exec_cross_domain._EXEC_PRINCIPLES_PATH", path):
+            _save_exec_principles([
+                {"principle": "Always test", "evidence_count": 3, "avg_score": 8.0},
+                {"principle": "Use types", "evidence_count": 2, "avg_score": 7.5},
+            ])
+            loaded = load_exec_principles()
+        assert len(loaded) == 2
+        # Sorted by evidence_count desc
+        assert loaded[0]["principle"] == "Always test"
+
+    def test_principles_similar_true(self):
+        """Similar principles are detected."""
+        from hands.exec_cross_domain import _principles_similar
+        assert _principles_similar(
+            "Always create package.json before installing dependencies",
+            "Create package.json before installing project dependencies"
+        )
+
+    def test_principles_similar_false(self):
+        """Different principles are not flagged as similar."""
+        from hands.exec_cross_domain import _principles_similar
+        assert not _principles_similar(
+            "Always test after creating files",
+            "Use TypeScript for better type safety"
+        )
+
+    def test_get_principles_for_domain_empty(self, tmp_path):
+        """No principles returns empty string."""
+        from hands.exec_cross_domain import get_principles_for_domain
+        with patch("hands.exec_cross_domain._EXEC_PRINCIPLES_PATH", str(tmp_path / "nope.json")):
+            result = get_principles_for_domain("test-domain")
+        assert result == ""
+
+    def test_get_principles_formats_nicely(self, tmp_path):
+        """Principles are formatted as readable text."""
+        from hands.exec_cross_domain import get_principles_for_domain, _save_exec_principles
+        path = str(tmp_path / "principles.json")
+        with patch("hands.exec_cross_domain._EXEC_PRINCIPLES_PATH", path):
+            _save_exec_principles([
+                {
+                    "principle": "Test after creating files",
+                    "evidence_count": 5,
+                    "avg_score": 8.0,
+                    "domains_observed": ["python", "test-domain"],
+                },
+            ])
+            result = get_principles_for_domain("test-domain")
+        assert "Learned Execution Principles" in result
+        assert "Test after creating files" in result
+
+    def test_suggest_principles_in_strategy(self, tmp_path):
+        """Strategy seed combines template with principles."""
+        from hands.exec_cross_domain import suggest_principles_in_strategy, _save_exec_principles
+        path = str(tmp_path / "principles.json")
+        with patch("hands.exec_cross_domain._EXEC_PRINCIPLES_PATH", path):
+            _save_exec_principles([
+                {
+                    "principle": "Always validate JSON config",
+                    "evidence_count": 3,
+                    "avg_score": 7.5,
+                    "domains_observed": ["general"],
+                },
+            ])
+            result = suggest_principles_in_strategy("python")
+        assert result is not None
+        assert "Python" in result or "PEP 8" in result  # Template part
+        assert "Always validate JSON config" in result  # Principles part
+

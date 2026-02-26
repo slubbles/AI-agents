@@ -217,6 +217,8 @@ def plan(
     execution_strategy: str = "",
     context: str = "",
     workspace_dir: str = "",
+    available_tools: list[str] | None = None,
+    max_retries: int = 2,
 ) -> dict | None:
     """
     Generate an execution plan for a given goal.
@@ -229,6 +231,8 @@ def plan(
         execution_strategy: Execution strategy text (evolves over time)
         context: Additional context (e.g., prior execution feedback)
         workspace_dir: Path to workspace directory (for scanning existing files)
+        available_tools: List of available tool names (for validation)
+        max_retries: Number of retries on parse failure
 
     Returns:
         Parsed plan dict, or None if planning failed
@@ -251,46 +255,70 @@ def plan(
     if context:
         user_message += f"\n\nADDITIONAL CONTEXT:\n{context}"
 
-    response = create_message(
-        client,
-        model=MODELS["planner"],
-        max_tokens=8192,
-        system=system,
-        messages=[{"role": "user", "content": user_message}],
-    )
+    for attempt in range(max_retries + 1):
+        response = create_message(
+            client,
+            model=MODELS["planner"],
+            max_tokens=8192,
+            system=system,
+            messages=[{"role": "user", "content": user_message}],
+        )
 
-    # Track cost
-    log_cost(
-        model=MODELS["planner"],
-        input_tokens=response.usage.input_tokens,
-        output_tokens=response.usage.output_tokens,
-        agent_role="planner",
-        domain=domain,
-    )
+        # Track cost
+        log_cost(
+            model=MODELS["planner"],
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
+            agent_role="planner",
+            domain=domain,
+        )
 
-    # Extract text
-    text = ""
-    for block in response.content:
-        if hasattr(block, "text"):
-            text += block.text
+        # Extract text
+        text = ""
+        for block in response.content:
+            if hasattr(block, "text"):
+                text += block.text
 
-    # Parse JSON
-    plan_data = extract_json(text, expected_keys={"steps", "task_summary"})
+        # Parse JSON
+        plan_data = extract_json(text, expected_keys={"steps", "task_summary"})
 
-    if not plan_data:
-        print(f"  [PLANNER] Failed to parse plan. Raw output:\n{text[:500]}")
-        return None
+        if not plan_data:
+            if attempt < max_retries:
+                print(f"  [PLANNER] Parse failed (attempt {attempt + 1}/{max_retries + 1}), retrying...")
+                user_message = (
+                    f"TASK: {goal}\n\n"
+                    f"IMPORTANT: Your previous response was not valid JSON. "
+                    f"Respond with ONLY the JSON plan structure, no extra text."
+                )
+                if context:
+                    user_message += f"\n\nADDITIONAL CONTEXT:\n{context}"
+                continue
+            print(f"  [PLANNER] Failed to parse plan after {max_retries + 1} attempts. Raw:\n{text[:500]}")
+            return None
 
-    # Validate plan structure
-    if "steps" not in plan_data or not isinstance(plan_data["steps"], list):
-        print("  [PLANNER] Plan missing 'steps' array")
-        return None
+        # Validate plan structure
+        if "steps" not in plan_data or not isinstance(plan_data["steps"], list):
+            if attempt < max_retries:
+                print(f"  [PLANNER] Plan missing 'steps' array (attempt {attempt + 1}), retrying...")
+                continue
+            print("  [PLANNER] Plan missing 'steps' array")
+            return None
+
+        if not plan_data["steps"]:
+            if attempt < max_retries:
+                print(f"  [PLANNER] Plan has 0 steps (attempt {attempt + 1}), retrying...")
+                continue
+            print("  [PLANNER] Plan has no steps")
+            return None
+
+        # Successfully parsed — break out of retry loop
+        break
 
     if len(plan_data["steps"]) > EXEC_MAX_STEPS:
         print(f"  [PLANNER] Plan has {len(plan_data['steps'])} steps (max {EXEC_MAX_STEPS})")
         plan_data["steps"] = plan_data["steps"][:EXEC_MAX_STEPS]
 
-    # Ensure each step has required fields
+    # Ensure each step has required fields + validate tool names
     for i, step in enumerate(plan_data["steps"]):
         step.setdefault("step_number", i + 1)
         step.setdefault("tool", "unknown")
@@ -298,7 +326,26 @@ def plan(
         step.setdefault("depends_on", [])
         step.setdefault("description", "")
         step.setdefault("expected_output", "")
-        step.setdefault("criticality", "required")  # Default to required
+        step.setdefault("criticality", "required")
+
+        # Validate tool name against available tools
+        if available_tools and step["tool"] not in available_tools:
+            # Try to map common misspellings/aliases
+            tool_map = {
+                "file": "code", "fs": "code", "write": "code", "read": "code",
+                "shell": "terminal", "bash": "terminal", "exec": "terminal",
+                "cmd": "terminal", "run": "terminal",
+                "grep": "search", "find": "search",
+                "http_request": "http", "curl": "http", "fetch": "http",
+                "version_control": "git", "vcs": "git",
+            }
+            mapped = tool_map.get(step["tool"])
+            if mapped and mapped in available_tools:
+                print(f"  [PLANNER] Remapped tool '{step['tool']}' → '{mapped}' (step {i+1})")
+                step["tool"] = mapped
+            else:
+                print(f"  [PLANNER] ⚠ Unknown tool '{step['tool']}' in step {i+1} — defaulting to 'terminal'")
+                step["tool"] = "terminal"
 
     plan_data.setdefault("task_summary", goal[:200])
     plan_data.setdefault("success_criteria", "All steps complete without errors")
