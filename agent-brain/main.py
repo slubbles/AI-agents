@@ -2263,6 +2263,8 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     from hands.exec_memory import save_exec_output, get_exec_stats
     from hands.tools.registry import create_default_registry
     from hands.workspace_diff import snapshot_workspace, compute_diff, format_diff_summary
+    from hands.plan_cache import PlanCache
+    from hands.checkpoint import ExecutionCheckpoint
     import config as _cfg
 
     # Budget check
@@ -2338,6 +2340,18 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
 
     from config import EXEC_MAX_RETRIES, EXEC_QUALITY_THRESHOLD
 
+    # Initialize plan cache and checkpoint manager
+    cache_path = os.path.join(os.path.dirname(__file__), "exec_memory", "_plan_cache.json")
+    plan_cache = PlanCache(cache_path)
+    cp_dir = os.path.join(os.path.dirname(__file__), "exec_memory", "_checkpoints")
+    checkpoint = ExecutionCheckpoint(cp_dir)
+
+    # Check for resumable checkpoint
+    resume_info = checkpoint.get_resume_info(domain)
+    if resume_info and resume_info["goal"] == goal:
+        print(f"[CHECKPOINT] Found resumable execution ({resume_info['completed_step_count']} steps done)")
+        print(f"  Started: {resume_info['started_at']}")
+
     attempt = 0
     previous_feedback = None
     final_plan = None
@@ -2348,22 +2362,33 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
         attempt += 1
         print(f"\n--- Attempt {attempt}/{EXEC_MAX_RETRIES + 1} ---\n")
 
-        # Step 1: Plan
-        print("[PLANNER] Decomposing task into steps...")
-        context = ""
-        if previous_feedback:
-            context = f"PREVIOUS ATTEMPT FEEDBACK (fix these issues):\n{previous_feedback}"
+        # Step 1: Plan (with cache)
+        cached_plan = None
+        if attempt == 1 and not previous_feedback:
+            cached_plan = plan_cache.get(goal, domain)
+            if cached_plan:
+                print(f"[PLAN-CACHE] Hit! Reusing plan from previous score {cached_plan.get('score', '?')}/10")
+                plan_data = cached_plan["plan"]
+            else:
+                print("[PLANNER] Decomposing task into steps...")
+        else:
+            print("[PLANNER] Decomposing task into steps (retry — no cache)...")
 
-        plan_data = create_plan_hands(
-            goal=goal,
-            tools_description=tools_desc,
-            domain=domain,
-            domain_knowledge=domain_knowledge,
-            execution_strategy=strategy or "",
-            context=context,
-            workspace_dir=workspace_dir,
-            available_tools=registry.list_tools(),
-        )
+        if not cached_plan:
+            context = ""
+            if previous_feedback:
+                context = f"PREVIOUS ATTEMPT FEEDBACK (fix these issues):\n{previous_feedback}"
+
+            plan_data = create_plan_hands(
+                goal=goal,
+                tools_description=tools_desc,
+                domain=domain,
+                domain_knowledge=domain_knowledge,
+                execution_strategy=strategy or "",
+                context=context,
+                workspace_dir=workspace_dir,
+                available_tools=registry.list_tools(),
+            )
 
         if not plan_data:
             print("[PLANNER] Failed to generate plan")
@@ -2383,6 +2408,9 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
 
         # Snapshot workspace before execution
         ws_before = snapshot_workspace(workspace_dir) if workspace_dir else {}
+
+        # Create checkpoint for crash recovery
+        checkpoint.create(domain, goal, plan_data)
 
         # Step 2: Execute
         report = execute_plan(
@@ -2442,6 +2470,11 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
         # Quality gate
         if score >= EXEC_QUALITY_THRESHOLD:
             print(f"\n[QUALITY] Accepted (score {score} >= threshold {EXEC_QUALITY_THRESHOLD})")
+            # Cache the successful plan
+            plan_cache.put(goal, domain, plan_data, score)
+            # Clear checkpoint — execution complete
+            checkpoint.mark_complete(domain, True)
+            checkpoint.clear(domain)
             break
         else:
             print(f"\n[QUALITY] Rejected (score {score} < threshold {EXEC_QUALITY_THRESHOLD})")
@@ -2452,6 +2485,8 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
                 print(f"  Retrying with feedback...")
             else:
                 print(f"  Max retries reached. Storing as-is.")
+                checkpoint.mark_complete(domain, False)
+                checkpoint.clear(domain)
 
     # Step 4: Store result
     if final_plan and final_report and final_validation:
