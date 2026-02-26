@@ -712,7 +712,26 @@ class TestExecutor:
         registry.register(MockCodeTool())
         registry.register(MockTerminalTool())
 
-        # Mock the model to return execute_tool then complete
+        # Helper to create mock tool_use blocks
+        def _tool_block(name, input_data, block_id="tu_1"):
+            block = MagicMock()
+            block.type = "tool_use"
+            block.name = name
+            block.input = input_data
+            block.id = block_id
+            return block
+
+        def _text_block(text):
+            block = MagicMock()
+            block.type = "text"
+            block.text = text
+            # Ensure hasattr(block, "type") returns True for tool_use check
+            del block.name  # text blocks don't have .name
+            del block.input
+            del block.id
+            return block
+
+        # Mock the model to return tool_use blocks (native API format)
         call_count = {"n": 0}
         def mock_create(*args, **kwargs):
             call_count["n"] += 1
@@ -720,25 +739,19 @@ class TestExecutor:
             resp.usage.input_tokens = 50
             resp.usage.output_tokens = 100
             if call_count["n"] == 1:
-                resp.content = [MagicMock(text=json.dumps({
-                    "action": "execute_tool",
-                    "tool": "code",
-                    "params": {"action": "write", "path": "hello.py", "content": "print('hello')"},
-                    "reasoning": "Create the script",
-                }))]
+                resp.content = [
+                    _text_block("Creating the script"),
+                    _tool_block("code", {"action": "write", "path": "hello.py", "content": "print('hello')"}, "tu_1"),
+                ]
             elif call_count["n"] == 2:
-                resp.content = [MagicMock(text=json.dumps({
-                    "action": "execute_tool",
-                    "tool": "terminal",
-                    "params": {"command": "python hello.py"},
-                    "reasoning": "Run the script",
-                }))]
+                resp.content = [
+                    _text_block("Running the script"),
+                    _tool_block("terminal", {"command": "python hello.py"}, "tu_2"),
+                ]
             else:
-                resp.content = [MagicMock(text=json.dumps({
-                    "action": "complete",
-                    "summary": "Script created and tested",
-                    "artifacts": ["hello.py"],
-                }))]
+                resp.content = [
+                    _tool_block("_complete", {"summary": "Script created and tested", "artifacts": ["hello.py"]}, "tu_3"),
+                ]
             return resp
 
         with patch("hands.executor.create_message", side_effect=mock_create), \
@@ -761,20 +774,23 @@ class TestExecutor:
         assert "no steps" in report["error"].lower()
 
     def test_execute_plan_abort(self, sample_plan):
-        """Executor handles abort action."""
+        """Executor handles abort action via _abort tool."""
         from hands.executor import execute_plan
         from hands.tools.registry import ToolRegistry
 
         registry = ToolRegistry()
 
+        # Create proper tool_use mock for _abort
+        abort_block = MagicMock()
+        abort_block.type = "tool_use"
+        abort_block.name = "_abort"
+        abort_block.input = {"reason": "Cannot proceed without database", "completed_steps": 0}
+        abort_block.id = "tu_abort"
+
         mock_resp = MagicMock()
         mock_resp.usage.input_tokens = 50
         mock_resp.usage.output_tokens = 100
-        mock_resp.content = [MagicMock(text=json.dumps({
-            "action": "abort",
-            "reason": "Cannot proceed without database",
-            "completed_steps": 0,
-        }))]
+        mock_resp.content = [abort_block]
 
         with patch("hands.executor.create_message", return_value=mock_resp), \
              patch("hands.executor.log_cost"):
@@ -1286,14 +1302,21 @@ class TestEnhancedExecutor:
         assert len(compressed) <= 8  # first + summary + 6 recent
 
     def test_conversation_size_estimation(self):
-        """Size estimation works correctly."""
+        """Size estimation works for both string and list content."""
         from hands.executor import _estimate_conversation_size
 
+        # String content
         conv = [
             {"role": "user", "content": "hello"},
             {"role": "assistant", "content": "world"},
         ]
         assert _estimate_conversation_size(conv) == 10
+
+        # List content (tool_result format)
+        conv_blocks = [
+            {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "tu_1", "content": "OK"}]},
+        ]
+        assert _estimate_conversation_size(conv_blocks) >= 2  # at least "OK"
 
 
 # ============================================================
@@ -4605,3 +4628,399 @@ class TestFileRepair:
             goal="test", plan={}, domain="test",
         )
         assert result["files_fixed"] == 0
+
+
+# ============================================================
+# V14 — Native Tool Use API, Compact Validator Payloads
+# ============================================================
+
+class TestNativeToolUse:
+    """Tests for executor native tool_use API integration."""
+
+    def _tool_block(self, name, input_data, block_id="tu_1"):
+        """Create a mock tool_use block."""
+        block = MagicMock()
+        block.type = "tool_use"
+        block.name = name
+        block.input = input_data
+        block.id = block_id
+        return block
+
+    def _text_block(self, text):
+        """Create a mock text block."""
+        block = MagicMock()
+        block.type = "text"
+        block.text = text
+        # Remove tool_use-specific attributes
+        del block.name
+        del block.input
+        del block.id
+        return block
+
+    def _mock_response(self, content_blocks, inp=50, out=100):
+        resp = MagicMock()
+        resp.usage.input_tokens = inp
+        resp.usage.output_tokens = out
+        resp.content = content_blocks
+        return resp
+
+    def test_execution_tools_have_control_tools(self):
+        """get_execution_tools() returns _complete and _abort alongside real tools."""
+        from hands.tools.registry import create_default_registry
+        registry = create_default_registry()
+        tools = registry.get_execution_tools()
+        names = [t["name"] for t in tools]
+        assert "_complete" in names
+        assert "_abort" in names
+        assert "code" in names
+        assert "terminal" in names
+        assert len(tools) == 7  # 5 real + 2 synthetic
+
+    def test_control_tool_schemas(self):
+        """Synthetic control tools have valid input schemas."""
+        from hands.tools.registry import create_default_registry
+        registry = create_default_registry()
+        tools = {t["name"]: t for t in registry.get_execution_tools()}
+
+        complete = tools["_complete"]
+        assert "summary" in complete["input_schema"]["properties"]
+        assert "artifacts" in complete["input_schema"]["properties"]
+        assert "summary" in complete["input_schema"]["required"]
+
+        abort = tools["_abort"]
+        assert "reason" in abort["input_schema"]["properties"]
+        assert "reason" in abort["input_schema"]["required"]
+
+    def test_executor_passes_tools_to_api(self):
+        """Executor passes tools= parameter to create_message."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        class MockTool(BaseTool):
+            name = "code"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output="ok", artifacts=["f.py"])
+
+        registry = ToolRegistry()
+        registry.register(MockTool())
+
+        calls = []
+        def capture_create(*args, **kwargs):
+            calls.append(kwargs)
+            return self._mock_response([
+                self._tool_block("_complete", {"summary": "done", "artifacts": ["f.py"]})
+            ])
+
+        # Need at least 1 step result for _complete to work — use 2 calls
+        call_count = {"n": 0}
+        def two_step(*args, **kwargs):
+            call_count["n"] += 1
+            calls.append(kwargs)
+            if call_count["n"] == 1:
+                return self._mock_response([
+                    self._tool_block("code", {"action": "write", "path": "f.py", "content": "x"}, "tu_1")
+                ])
+            return self._mock_response([
+                self._tool_block("_complete", {"summary": "done", "artifacts": ["f.py"]}, "tu_2")
+            ])
+
+        plan = {"task_summary": "test", "steps": [{"step": 1, "tool": "code", "params": {}, "description": "write"}], "success_criteria": "file exists"}
+        with patch("hands.executor.create_message", side_effect=two_step), \
+             patch("hands.executor.log_cost"):
+            execute_plan(plan, registry)
+
+        # Verify tools= was passed
+        assert any("tools" in c for c in calls), "tools= not passed to create_message"
+        passed_tools = [c["tools"] for c in calls if "tools" in c][0]
+        tool_names = [t["name"] for t in passed_tools]
+        assert "_complete" in tool_names
+        assert "_abort" in tool_names
+
+    def test_executor_handles_text_only_fallback(self):
+        """When model sends only text (no tool_use), executor nudges it."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        class MockTool(BaseTool):
+            name = "code"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output="ok", artifacts=[])
+
+        registry = ToolRegistry()
+        registry.register(MockTool())
+
+        call_count = {"n": 0}
+        def text_then_tool(*args, **kwargs):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                # Text only — no tool_use block
+                return self._mock_response([self._text_block("Let me think about this...")])
+            elif call_count["n"] == 2:
+                return self._mock_response([self._tool_block("code", {"action": "write", "path": "f.py", "content": "x"}, "tu_1")])
+            return self._mock_response([self._tool_block("_complete", {"summary": "done"}, "tu_2")])
+
+        plan = {"task_summary": "test", "steps": [{"step": 1, "tool": "code", "params": {}, "description": "write"}], "success_criteria": "ok"}
+        with patch("hands.executor.create_message", side_effect=text_then_tool), \
+             patch("hands.executor.log_cost"):
+            report = execute_plan(plan, registry)
+
+        assert report["success"]
+        # Should have taken 3 calls: text nudge → tool → complete
+        assert call_count["n"] == 3
+
+    def test_executor_premature_complete_rejected(self):
+        """_complete without any tool execution is rejected."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        class MockTool(BaseTool):
+            name = "code"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output="ok", artifacts=["f.py"])
+
+        registry = ToolRegistry()
+        registry.register(MockTool())
+
+        call_count = {"n": 0}
+        def premature_then_real(*args, **kwargs):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                # Premature _complete
+                return self._mock_response([self._tool_block("_complete", {"summary": "done"}, "tu_1")])
+            elif call_count["n"] == 2:
+                # After rejection, execute a tool
+                return self._mock_response([self._tool_block("code", {"action": "write", "path": "f.py", "content": "x"}, "tu_2")])
+            return self._mock_response([self._tool_block("_complete", {"summary": "done", "artifacts": ["f.py"]}, "tu_3")])
+
+        plan = {"task_summary": "test", "steps": [{"step": 1, "tool": "code", "params": {}, "description": "write"}], "success_criteria": "ok"}
+        with patch("hands.executor.create_message", side_effect=premature_then_real), \
+             patch("hands.executor.log_cost"):
+            report = execute_plan(plan, registry)
+
+        assert report["success"]
+        assert report["completed_steps"] == 1
+        assert call_count["n"] == 3  # rejected + tool + complete
+
+    def test_tool_result_format_in_conversation(self):
+        """Verify tool results are sent as tool_result content blocks."""
+        from hands.executor import execute_plan
+        from hands.tools.registry import ToolRegistry, BaseTool, ToolResult
+
+        class MockTool(BaseTool):
+            name = "code"
+            description = "mock"
+            def execute(self, **kwargs):
+                return ToolResult(success=True, output="File created", artifacts=["f.py"])
+
+        registry = ToolRegistry()
+        registry.register(MockTool())
+
+        captured_messages = []
+        call_count = {"n": 0}
+        def capture(*args, **kwargs):
+            call_count["n"] += 1
+            captured_messages.append(kwargs.get("messages", []))
+            if call_count["n"] == 1:
+                return self._mock_response([self._tool_block("code", {"action": "write", "path": "f.py", "content": "x"}, "tu_1")])
+            return self._mock_response([self._tool_block("_complete", {"summary": "done"}, "tu_2")])
+
+        plan = {"task_summary": "test", "steps": [{"step": 1, "tool": "code", "params": {}, "description": "write"}], "success_criteria": "ok"}
+        with patch("hands.executor.create_message", side_effect=capture), \
+             patch("hands.executor.log_cost"):
+            execute_plan(plan, registry)
+
+        # The second call's messages should contain a tool_result block
+        if len(captured_messages) >= 2:
+            msgs = captured_messages[1]
+            # Find the user message with tool_result
+            tool_results = [m for m in msgs if isinstance(m.get("content"), list)]
+            assert len(tool_results) > 0, "No tool_result blocks found in conversation"
+            tr = tool_results[-1]["content"]
+            assert tr[0]["type"] == "tool_result"
+            assert "tu_1" in tr[0]["tool_use_id"]
+
+
+class TestCompactValidatorPayloads:
+    """Tests for compact validator payloads (v14)."""
+
+    def test_read_artifacts_digest_mode(self, tmp_path):
+        """Clean files get digest (first+last N lines), not full content."""
+        from hands.validator import _read_artifact_files
+
+        # Create a long file (>60 lines)
+        lines = [f"line {i}: some code here with content" for i in range(100)]
+        f = tmp_path / "big_file.py"
+        f.write_text("\n".join(lines))
+
+        # Without suspect status — should get digest
+        result = _read_artifact_files([str(f)])
+        content = result[str(f)]
+        assert "lines omitted" in content
+        assert "line 0:" in content  # head present
+        assert "line 99:" in content  # tail present
+        assert "line 50:" not in content  # middle omitted
+
+    def test_read_artifacts_suspect_full_content(self, tmp_path):
+        """Suspect files get full content regardless of size."""
+        from hands.validator import _read_artifact_files
+
+        lines = [f"line {i}: code" for i in range(100)]
+        f = tmp_path / "suspect.py"
+        f.write_text("\n".join(lines))
+
+        # Mark as suspect — should get full content
+        result = _read_artifact_files([str(f)], suspect_files={str(f)})
+        content = result[str(f)]
+        assert "lines omitted" not in content
+        assert "line 50:" in content  # middle preserved
+
+    def test_read_artifacts_short_file_no_digest(self, tmp_path):
+        """Short files get full content even when not suspect."""
+        from hands.validator import _read_artifact_files
+
+        f = tmp_path / "short.py"
+        f.write_text("line 1\nline 2\nline 3\n")
+
+        result = _read_artifact_files([str(f)])
+        content = result[str(f)]
+        assert "omitted" not in content
+        assert "line 1" in content
+
+    def test_compact_json_used(self):
+        """Validator uses compact JSON (no indent) for payloads."""
+        from hands.validator import validate_execution
+
+        captured = {}
+        def mock_create(*args, **kwargs):
+            messages = kwargs.get("messages", [])
+            if messages:
+                captured["msg"] = messages[0]["content"]
+            resp = MagicMock()
+            resp.usage.input_tokens = 100
+            resp.usage.output_tokens = 200
+            resp.content = [MagicMock(text=json.dumps({
+                "overall_score": 8, "dimensions": {},
+                "verdict": "accept", "strengths": [], "weaknesses": [],
+                "critical_issues": [],
+            }))]
+            return resp
+
+        with patch("hands.validator.create_message", side_effect=mock_create), \
+             patch("hands.validator.log_cost"):
+            validate_execution(
+                goal="test",
+                plan={"task_summary": "test", "success_criteria": "ok"},
+                execution_report={"completed_steps": 1, "failed_steps": 0, "total_steps": 1,
+                                  "artifacts": [], "step_results": []},
+            )
+
+        # Compact JSON should NOT have indent-based formatting
+        msg = captured.get("msg", "")
+        # indent=2 would produce '  "goal"' — compact produces '"goal"'
+        assert '  "goal"' not in msg or '"goal":' in msg
+
+    def test_successful_steps_compacted(self):
+        """Successful steps in validator payload have shorter output."""
+        from hands.validator import validate_execution
+
+        captured = {}
+        def mock_create(*args, **kwargs):
+            messages = kwargs.get("messages", [])
+            if messages:
+                captured["msg"] = messages[0]["content"]
+            resp = MagicMock()
+            resp.usage.input_tokens = 100
+            resp.usage.output_tokens = 200
+            resp.content = [MagicMock(text=json.dumps({
+                "overall_score": 8, "dimensions": {},
+                "verdict": "accept", "strengths": [], "weaknesses": [],
+                "critical_issues": [],
+            }))]
+            return resp
+
+        step_results = [
+            {"step": 1, "tool": "code", "success": True, "output": "x" * 500, "error": ""},
+            {"step": 2, "tool": "terminal", "success": False, "output": "y" * 500, "error": "command failed"},
+        ]
+        with patch("hands.validator.create_message", side_effect=mock_create), \
+             patch("hands.validator.log_cost"):
+            validate_execution(
+                goal="test",
+                plan={"task_summary": "test", "success_criteria": "ok"},
+                execution_report={"completed_steps": 1, "failed_steps": 1, "total_steps": 2,
+                                  "artifacts": [], "step_results": step_results},
+            )
+
+        msg = captured.get("msg", "")
+        # Successful step output should be truncated to 200 chars
+        assert "x" * 300 not in msg
+        # Failed step output should be preserved longer (500 chars)
+        assert "command failed" in msg
+
+    def test_suspect_files_from_static_issues(self, tmp_path):
+        """Files with static check issues are treated as suspects."""
+        from hands.validator import validate_execution
+
+        # Create files — good.py must be valid Python to pass static checks
+        good_file = tmp_path / "good.py"
+        good_file.write_text("\n".join([f"x_{i} = {i}  # line {i}" for i in range(100)]))
+        bad_file = tmp_path / "bad.json"
+        bad_file.write_text("{invalid json")
+
+        captured = {}
+        def mock_create(*args, **kwargs):
+            messages = kwargs.get("messages", [])
+            if messages:
+                captured["msg"] = messages[0]["content"]
+            resp = MagicMock()
+            resp.usage.input_tokens = 100
+            resp.usage.output_tokens = 200
+            resp.content = [MagicMock(text=json.dumps({
+                "overall_score": 6, "dimensions": {},
+                "verdict": "accept", "strengths": [], "weaknesses": [],
+                "critical_issues": [],
+            }))]
+            return resp
+
+        with patch("hands.validator.create_message", side_effect=mock_create), \
+             patch("hands.validator.log_cost"):
+            validate_execution(
+                goal="test",
+                plan={"task_summary": "test", "success_criteria": "ok"},
+                execution_report={
+                    "completed_steps": 1, "failed_steps": 0, "total_steps": 1,
+                    "artifacts": [str(good_file), str(bad_file)],
+                    "step_results": [],
+                },
+            )
+
+        msg = captured.get("msg", "")
+        # good.py (100 lines, clean) — should have digest
+        assert "lines omitted" in msg
+        # bad.json (has static issue: invalid JSON) — treated as suspect, shown in full
+        assert "{invalid json" in msg
+
+    def test_conversation_size_with_block_content(self):
+        """_estimate_conversation_size handles both string and list content."""
+        from hands.executor import _estimate_conversation_size
+
+        # String content
+        conv = [{"role": "user", "content": "hello"}]
+        assert _estimate_conversation_size(conv) == 5
+
+        # List content (tool_result blocks)
+        conv = [{"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": "tu_1", "content": "result text here"}
+        ]}]
+        size = _estimate_conversation_size(conv)
+        assert size >= 10  # "result text here" = 16 chars
+
+        # Mixed
+        conv = [
+            {"role": "user", "content": "hello"},
+            {"role": "user", "content": [{"type": "tool_result", "content": "world"}]},
+        ]
+        assert _estimate_conversation_size(conv) >= 10
