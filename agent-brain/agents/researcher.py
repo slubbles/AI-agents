@@ -35,6 +35,18 @@ Any source, event, or data dated AFTER {today} is FUTURE and cannot be verified.
 Only report information dated on or before {today} as factual. If a search result references
 a future date, flag it explicitly as unverified/projected and set confidence to "low".
 
+ANTI-HALLUCINATION RULES (violating these WILL get your output rejected):
+- NEVER fabricate URLs, CVE numbers, file paths, version numbers, or benchmark data.
+  Every specific claim must trace to content you actually saw in search results or fetched pages.
+- If you searched and didn't find the requested data, say "not found in available sources"
+  rather than constructing plausible-sounding details from memory.
+- An honest "I could not find X" scores HIGHER than a fabricated answer.
+  The critic penalizes hallucination more severely than knowledge gaps.
+- When reporting a URL, it MUST be a URL that appeared in your search results or fetched pages.
+  Do NOT construct URLs from memory — they are often wrong.
+- When citing file paths, function names, or code: ONLY cite what you read from a fetched page.
+  If you haven't fetched the source, say "based on documentation" not "the code at path/to/file.js shows..."
+
 WORKFLOW:
 1. Use web_search 1-2 times to find relevant URLs.
 2. Use fetch_page on the 2-3 most promising URLs to read full page content.
@@ -54,6 +66,14 @@ RULES:
 - Flag knowledge gaps honestly
 - Keep it concise — quality over quantity
 - NEVER present future-dated information as established fact
+
+DEPTH PROTOCOL — every finding should answer at least 2 of these:
+  - WHY does this work this way? (mechanism/rationale)
+  - WHAT trade-offs does this involve? (cost/benefit)
+  - HOW does this compare to alternatives? (context)
+  - WHAT would break if this changed? (implications)
+If your finding only states WHAT exists, you haven't gone deep enough.
+Search for explanatory content, not just confirmatory content.
 
 RESPOND WITH ONLY THIS JSON STRUCTURE:
 {{"question": "...", "findings": [{{"claim": "...", "confidence": "high|medium|low", "reasoning": "...", "source": "URL"}}], "key_insights": ["..."], "knowledge_gaps": ["..."], "sources_used": ["url1"], "summary": "2-3 sentences"}}
@@ -165,7 +185,7 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
                 kb_summary = f"\nDOMAIN SUMMARY: {kb['domain_summary']}\n" + kb_summary
             prior_knowledge_block += kb_summary
     
-    # 2. Retrieve relevant past findings
+    # 2. Retrieve relevant past findings — include concrete claims with sources
     relevant = retrieve_relevant(domain, question, max_results=3)
     if relevant:
         recall_block = f"\nRELEVANT PAST FINDINGS ({len(relevant)} previous outputs):\n"
@@ -176,6 +196,14 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
                 recall_block += f"  Key insights: {'; '.join(r['key_insights'][:3])}\n"
             if r.get("knowledge_gaps"):
                 recall_block += f"  Known gaps: {'; '.join(r['knowledge_gaps'][:3])}\n"
+            # Include concrete claims with sources for building upon
+            if r.get("findings"):
+                recall_block += "  Key verified claims:\n"
+                for finding in r["findings"][:3]:
+                    conf = finding.get("confidence", "?")
+                    source = finding.get("source", "no source")
+                    claim_text = finding.get("claim", "")[:150]
+                    recall_block += f"    [{conf}] {claim_text} (source: {source})\n"
         prior_knowledge_block += recall_block
     
     # Inject prior knowledge into the system prompt if we have any
@@ -183,9 +211,11 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
         system_prompt += f"""
 
 === PRIOR KNOWLEDGE (from your memory) ===
-Use this to AVOID redundant searches and BUILD ON what you already know.
-Focus your searches on GAPS and NEW INFORMATION, not re-verifying known facts.
-If prior knowledge conflicts with new search results, flag the contradiction.
+PRIOR KNOWLEDGE INSTRUCTIONS:
+- Claims marked [high] are verified — don't re-search these unless the question specifically requires updated data.
+- Claims marked [medium] may benefit from corroboration — search for a second source.
+- If new findings CONTRADICT a prior claim, flag it explicitly as a contradiction.
+- Focus searches on the KNOWLEDGE GAPS listed below, not on re-verifying known claims.
 {prior_knowledge_block}
 === END PRIOR KNOWLEDGE ===
 """
@@ -235,8 +265,8 @@ If prior knowledge conflicts with new search results, flag the contradiction.
                         print(f"  [FETCH #{fetch_count}] {url[:80]}")
                         result = fetch_page(url)
                         if result:
-                            # Format for researcher consumption — cap at 4K to avoid context bloat
-                            page_content = result['content'][:4000]
+                            # Format for researcher consumption — cap at 6K for rich content
+                            page_content = result['content'][:6000]
                             content = f"PAGE: {result['title']}\nURL: {result['url']}\nContent ({result['content_length']} chars):\n{page_content}"
                             if result['headings']:
                                 content += f"\nHeadings: {', '.join(result['headings'][:10])}"
@@ -337,6 +367,13 @@ If prior knowledge conflicts with new search results, flag the contradiction.
                             "tool_use_id": block.id,
                             "content": json.dumps(results),
                         })
+                    
+                    # Fetch nudge: after search results, remind to fetch pages
+                    if fetch_count == 0 and search_count >= 1 and not search_failed:
+                        nudge = ("\n\nREMINDER: Use fetch_page on the 2-3 most relevant "
+                                 "URLs above for much richer data. Search snippets are only "
+                                 "~100 words; full pages give you 3000-8000 words of content.")
+                        tool_results[-1]["content"] = tool_results[-1]["content"] + nudge
 
             messages.append({"role": "assistant", "content": response.content})
             messages.append({"role": "user", "content": tool_results})

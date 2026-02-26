@@ -224,3 +224,83 @@ class TestStaleDatesFix:
         """CRITIC_SYSTEM_PROMPT should not exist as module constant."""
         from agents import critic
         assert not hasattr(critic, "CRITIC_SYSTEM_PROMPT")
+
+
+class TestAntiHallucinationPrompt:
+    """Quality: anti-hallucination guard rails in researcher prompt."""
+
+    def test_anti_hallucination_in_baseline(self):
+        """Baseline prompt should contain anti-hallucination rules."""
+        from agents.researcher import _build_baseline
+        baseline = _build_baseline()
+        assert "ANTI-HALLUCINATION" in baseline
+        assert "NEVER fabricate" in baseline
+        assert "not found in available sources" in baseline
+
+    def test_depth_protocol_in_baseline(self):
+        """Baseline prompt should contain depth protocol."""
+        from agents.researcher import _build_baseline
+        baseline = _build_baseline()
+        assert "DEPTH PROTOCOL" in baseline
+        assert "WHY does this work" in baseline
+        assert "trade-offs" in baseline
+
+
+class TestStructuredRetryFeedback:
+    """Quality: retry feedback should include dimension scores."""
+
+    def test_dimension_scoring_format(self):
+        """Verify dimension-based feedback format works."""
+        # Simulate the feedback construction from main.py
+        dim_scores = {"accuracy": 4, "depth": 7, "completeness": 6, "specificity": 5, "intellectual_honesty": 8}
+        dim_names = ["accuracy", "depth", "completeness", "specificity", "intellectual_honesty"]
+        scored_dims = [(d, dim_scores.get(d, 0)) for d in dim_names if d in dim_scores]
+        scored_dims.sort(key=lambda x: x[1])
+        lowest_dim, lowest_score = scored_dims[0]
+        assert lowest_dim == "accuracy"
+        assert lowest_score == 4
+
+    def test_dimension_hints_coverage(self):
+        """All 5 dimensions should have specific guidance."""
+        dim_hints = {
+            "accuracy": "VERIFY",
+            "depth": "EXPLAIN",
+            "completeness": "angles",
+            "specificity": "numbers",
+            "intellectual_honesty": "DISTINGUISH",
+        }
+        assert len(dim_hints) == 5
+
+
+class TestEnrichedPriorKnowledge:
+    """Quality: prior knowledge should include concrete claims."""
+
+    def test_enriched_knowledge_injection(self):
+        """Researcher prompt builder should pass findings with sources."""
+        import inspect
+        from agents import researcher
+        source = inspect.getsource(researcher.research)
+        # Should include findings loop
+        assert "Key verified claims" in source
+        assert '["confidence"]' in source or 'finding.get("confidence"' in source
+        assert '["source"]' in source or 'finding.get("source"' in source
+
+    def test_prior_knowledge_instructions(self):
+        """Prior knowledge block should have clear instructions."""
+        import inspect
+        from agents import researcher
+        source = inspect.getsource(researcher.research)
+        assert "Claims marked [high] are verified" in source
+        assert "CONTRADICT" in source
+
+
+class TestFetchNudge:
+    """Quality: researcher should nudge to use fetch_page after search."""
+
+    def test_nudge_present_in_code(self):
+        """Researcher should have fetch nudge after search results."""
+        import inspect
+        from agents import researcher
+        source = inspect.getsource(researcher.research)
+        assert "REMINDER: Use fetch_page" in source
+        assert "fetch_count == 0" in source

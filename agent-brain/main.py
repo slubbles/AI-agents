@@ -266,6 +266,33 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
         elif attempt <= MAX_RETRIES:
             feedback = critique_output.get("actionable_feedback", "Improve quality.")
             
+            # Build structured retry feedback with dimension scores
+            dim_scores = critique_output.get("scores", {})
+            if dim_scores:
+                # Find weakest dimension
+                dim_names = ["accuracy", "depth", "completeness", "specificity", "intellectual_honesty"]
+                scored_dims = [(d, dim_scores.get(d, 0)) for d in dim_names if d in dim_scores]
+                scored_dims.sort(key=lambda x: x[1])
+                lowest_dim, lowest_score = scored_dims[0] if scored_dims else ("unknown", 0)
+                
+                dim_block = "DIMENSION SCORES:\n"
+                for d, s in [(d, dim_scores.get(d, 0)) for d in dim_names if d in dim_scores]:
+                    marker = " ⚠ FOCUS HERE" if s < 6 else ""
+                    dim_block += f"  {d:22s}: {s}/10{marker}\n"
+                dim_block += f"\nWEAKEST AREA: {lowest_dim} ({lowest_score}/10)\n"
+                
+                # Add dimension-specific guidance
+                dim_hints = {
+                    "accuracy": "VERIFY all claims against fetched page content. Remove anything you can't source.",
+                    "depth": "EXPLAIN mechanisms, not just list facts. Answer WHY and HOW, not just WHAT.",
+                    "completeness": "Cover MORE angles. Check if you missed important sub-topics or perspectives.",
+                    "specificity": "INCLUDE specific numbers, dates, URLs, code examples. Vague claims score low.",
+                    "intellectual_honesty": "Clearly DISTINGUISH facts from speculation. Flag uncertainty explicitly.",
+                }
+                hint = dim_hints.get(lowest_dim, "")
+                
+                feedback = f"PREVIOUS SCORE: {score}/10\n\n{dim_block}\n{hint}\n\nCRITIC FEEDBACK: {feedback}"
+            
             # Smart recovery: enhance feedback when failure was search-related
             if research_output.get("_zero_findings") or research_output.get("_parse_error"):
                 feedback += (
