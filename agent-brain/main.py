@@ -517,6 +517,11 @@ def main():
     parser.add_argument("--crawl-pattern", default="", help="URL regex pattern for crawl (default: same domain)")
     parser.add_argument("--fetch", default="", help="Fetch a single URL and display content")
     parser.add_argument("--crawl-inject", action="store_true", help="Inject crawled docs into KB as claims")
+    
+    # RAG — Vector Store
+    parser.add_argument("--rag-status", action="store_true", help="Show RAG vector store stats")
+    parser.add_argument("--rag-rebuild", action="store_true", help="Rebuild RAG index for a domain (or all)")
+    parser.add_argument("--rag-search", metavar="QUERY", help="Semantic search across vector store")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -680,6 +685,15 @@ def main():
         return
     if getattr(args, 'crawl_inject', False):
         _run_crawl_inject(args.domain)
+        return
+    if getattr(args, 'rag_status', False):
+        _show_rag_status()
+        return
+    if getattr(args, 'rag_rebuild', False):
+        _run_rag_rebuild(args.domain)
+        return
+    if getattr(args, 'rag_search', None):
+        _run_rag_search(args.rag_search, args.domain)
         return
 
     if args.evolve:
@@ -3017,6 +3031,118 @@ def _run_crawl_inject(domain: str):
         print(f"\n  ✓ KB updated. Run: python main.py --status --domain {domain}")
     else:
         print(f"\n  No new claims to inject. Run --crawl first to gather docs.")
+
+
+def _show_rag_status():
+    """Show RAG vector store statistics."""
+    print(f"\n{'='*60}")
+    print(f"  RAG VECTOR STORE STATUS")
+    print(f"{'='*60}\n")
+    
+    try:
+        from rag.vector_store import get_collection_stats
+        stats = get_collection_stats()
+        
+        if "error" in stats:
+            print(f"  Error: {stats['error']}")
+            return
+        
+        print(f"  Claims indexed:    {stats['claims_count']}")
+        print(f"  Questions indexed: {stats['questions_count']}")
+        print(f"  Storage:           {stats['vectordb_path']}")
+        
+        # Check RAG config
+        from config import RAG_ENABLED, EMBEDDING_MODEL
+        print(f"\n  RAG enabled:       {RAG_ENABLED}")
+        print(f"  Embedding model:   {EMBEDDING_MODEL}")
+        
+    except ImportError as e:
+        print(f"  RAG not available: {e}")
+        print(f"  Install: pip install chromadb sentence-transformers")
+
+
+def _run_rag_rebuild(domain: str):
+    """Rebuild RAG index for a domain (or all domains)."""
+    print(f"\n{'='*60}")
+    print(f"  RAG INDEX REBUILD")
+    print(f"  Domain: {domain if domain != 'general' else 'ALL'}")
+    print(f"{'='*60}\n")
+    
+    try:
+        from rag.vector_store import rebuild_index
+        from memory_store import load_outputs, load_knowledge_base, MEMORY_DIR
+    except ImportError as e:
+        print(f"  Error: {e}")
+        return
+    
+    # Determine which domains to rebuild
+    if domain == "general":
+        # Rebuild all domains
+        domains = []
+        if os.path.exists(MEMORY_DIR):
+            for d in os.listdir(MEMORY_DIR):
+                dpath = os.path.join(MEMORY_DIR, d)
+                if os.path.isdir(dpath) and not d.startswith("_"):
+                    domains.append(d)
+        domains.sort()
+    else:
+        domains = [domain]
+    
+    if not domains:
+        print("  No domains found in memory.")
+        return
+    
+    total_claims = 0
+    total_kb = 0
+    
+    for d in domains:
+        outputs = load_outputs(d, min_score=0)
+        kb = load_knowledge_base(d)
+        
+        print(f"  Rebuilding {d}... ({len(outputs)} outputs)", end=" ")
+        result = rebuild_index(d, outputs, kb)
+        print(f"→ {result['claims_indexed']} claims + {result['kb_claims_indexed']} KB claims")
+        
+        total_claims += result['claims_indexed']
+        total_kb += result['kb_claims_indexed']
+    
+    print(f"\n  ✓ Total: {total_claims} claims + {total_kb} KB claims indexed across {len(domains)} domain(s)")
+
+
+def _run_rag_search(query: str, domain: str):
+    """Semantic search across the vector store."""
+    print(f"\n{'='*60}")
+    print(f"  RAG SEMANTIC SEARCH")
+    print(f"  Query: {query}")
+    print(f"  Domain: {domain}")
+    print(f"{'='*60}\n")
+    
+    try:
+        from rag.vector_store import search_claims
+    except ImportError as e:
+        print(f"  Error: {e}")
+        return
+    
+    target_domain = domain if domain != "general" else None
+    results = search_claims(
+        query=query,
+        domain=target_domain,
+        max_results=10,
+        accepted_only=True,
+    )
+    
+    if not results:
+        print("  No results found. Try --rag-rebuild first to index existing data.")
+        return
+    
+    for i, r in enumerate(results):
+        sim = r['similarity']
+        sim_bar = "█" * int(sim * 20) + "░" * (20 - int(sim * 20))
+        print(f"  {i+1}. [{r['domain']}] (sim: {sim:.3f}) {sim_bar}")
+        print(f"     {r['text'][:120]}")
+        if r.get('source'):
+            print(f"     Source: {r['source'][:80]}")
+        print()
 
 
 if __name__ == "__main__":

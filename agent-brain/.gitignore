@@ -1,0 +1,5 @@
+memory/_vectordb/
+logs/
+__pycache__/
+*.pyc
+.env
