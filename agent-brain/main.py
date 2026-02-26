@@ -2262,6 +2262,7 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     from hands.validator import validate_execution
     from hands.exec_memory import save_exec_output, get_exec_stats
     from hands.tools.registry import create_default_registry
+    from hands.workspace_diff import snapshot_workspace, compute_diff, format_diff_summary
     import config as _cfg
 
     # Budget check
@@ -2380,6 +2381,9 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
 
         final_plan = plan_data
 
+        # Snapshot workspace before execution
+        ws_before = snapshot_workspace(workspace_dir) if workspace_dir else {}
+
         # Step 2: Execute
         report = execute_plan(
             plan=plan_data,
@@ -2390,6 +2394,15 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
         )
 
         final_report = report
+
+        # Compute workspace diff
+        workspace_changes = {}
+        if workspace_dir and ws_before:
+            ws_after = snapshot_workspace(workspace_dir)
+            workspace_changes = compute_diff(ws_before, ws_after)
+            diff_summary = format_diff_summary(workspace_changes)
+            print(f"\n[DIFF] {diff_summary}")
+            report["workspace_changes"] = workspace_changes
 
         completed = report.get("completed_steps", 0)
         failed = report.get("failed_steps", 0)

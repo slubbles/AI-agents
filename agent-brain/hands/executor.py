@@ -33,6 +33,7 @@ from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
 from hands.tools.registry import ToolRegistry, ToolResult
+from hands.error_analyzer import analyze_error, format_retry_guidance
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -336,27 +337,31 @@ def execute_plan(
             status = "✓" if result.success else "✗"
             print(f"           {status} {result.output[:100] if result.success else result.error[:100]}")
 
-            # Step-level retry tracking
+            # Step-level retry tracking with smart error analysis
             retry_msg = ""
             if not result.success:
                 step_failures[step_num] = step_failures.get(step_num, 0) + 1
                 retries_left = STEP_RETRY_LIMIT - step_failures[step_num]
+                
+                # Analyze the error for targeted retry guidance
+                error_analysis = analyze_error(result.error, result.output)
+                
                 if criticality == "optional":
                     retry_msg = (
-                        f"\nThis optional step failed. You may retry once or skip to the next step. "
+                        f"\nThis optional step failed ({error_analysis['category']}). "
+                        f"You may retry once or skip to the next step. "
                         f"Optional step failures do not block execution."
                     )
-                    print(f"           [OPTIONAL] Step failed — non-blocking")
-                elif retries_left > 0:
-                    retry_msg = (
-                        f"\nThis step failed. You have {retries_left} retries left for this step. "
-                        f"Analyze the error and try again with corrected parameters, "
-                        f"or skip to the next step if the error is not recoverable."
-                    )
-                    print(f"           [RETRY] {retries_left} retries remaining for step {step_num}")
+                    print(f"           [OPTIONAL] Step failed — non-blocking ({error_analysis['category']})")
+                elif retries_left > 0 and error_analysis["retryable"]:
+                    retry_msg = format_retry_guidance(error_analysis, retries_left)
+                    print(f"           [RETRY] {retries_left} retries — {error_analysis['category']}")
+                elif not error_analysis["retryable"]:
+                    retry_msg = format_retry_guidance(error_analysis, 0)
+                    print(f"           [SKIP] Non-retryable error: {error_analysis['category']}")
                 else:
                     retry_msg = (
-                        f"\nThis step has failed {STEP_RETRY_LIMIT} times. "
+                        f"\nThis step has failed {STEP_RETRY_LIMIT} times ({error_analysis['category']}). "
                         f"Move on to the next step or abort if this blocks progress."
                     )
 
