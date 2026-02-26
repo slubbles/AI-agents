@@ -419,6 +419,48 @@ def execute_plan(
             print(f"  [EXECUTOR] ⚠ Cost ceiling reached (${estimated_cost:.4f} > ${MAX_EXECUTION_COST})")
             break
 
+        # Batch-skip dependency-blocked steps BEFORE calling LLM (saves round-trips)
+        next_step = len(step_results) + 1
+        batch_blocked = []
+        while next_step <= len(steps):
+            can_run, blockers = dep_resolver.can_execute(next_step, step_results)
+            if can_run:
+                break
+            crit = steps[next_step - 1].get("criticality", "required") if next_step <= len(steps) else "required"
+            batch_blocked.append({
+                "step": next_step,
+                "tool": steps[next_step - 1].get("tool", "unknown"),
+                "params": {},
+                "reasoning": "",
+                "success": False,
+                "output": "",
+                "error": f"Blocked by failed dependency step(s): {blockers}",
+                "artifacts": [],
+                "status": "blocked_by_dependency",
+                "blocked_by": blockers,
+                "criticality": crit,
+            })
+            next_step += 1
+
+        if batch_blocked:
+            step_results.extend(batch_blocked)
+            blocked_step_count += len(batch_blocked)
+            blocked_nums = [b["step"] for b in batch_blocked]
+            print(f"  [EXECUTOR] Batch-skipped {len(batch_blocked)} blocked step(s): {blocked_nums}")
+            # Inject summary into conversation (single message, not N round-trips)
+            conversation.append({
+                "role": "user",
+                "content": (
+                    f"Steps {blocked_nums} are BLOCKED by failed dependencies and have been skipped. "
+                    f"Continue with Step {next_step} if available, or call _complete."
+                ),
+            })
+            # Check if all remaining steps are blocked
+            if next_step > len(steps):
+                print(f"  [EXECUTOR] All remaining steps blocked — early termination")
+                break
+            continue
+
         # Sliding context window — proactively compress every turn (not just near limit)
         prev_size = _estimate_conversation_size(conversation)
         conversation = _apply_sliding_window(conversation, step_results, all_artifacts)
