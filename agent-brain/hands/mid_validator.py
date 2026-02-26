@@ -183,21 +183,20 @@ class MidExecutionValidator:
                 except (subprocess.TimeoutExpired, OSError):
                     pass
 
-            # Check: JS/TS basic syntax (look for obvious broken patterns)
+            # Check: JS/TS syntax (uses shared heuristic checker)
             elif ext in (".js", ".ts", ".jsx", ".tsx"):
                 try:
+                    from hands.validator import _check_js_ts_syntax
                     with open(path, "r", errors="replace") as f:
-                        content = f.read(20000)
-                    # Check for unmatched braces (simple heuristic)
-                    opens = content.count("{") + content.count("[") + content.count("(")
-                    closes = content.count("}") + content.count("]") + content.count(")")
-                    if abs(opens - closes) > 3:
+                        content = f.read(500_000)
+                    syntax_issues = _check_js_ts_syntax(content, path)
+                    for detail in syntax_issues[:3]:
                         issues.append({
                             "file": path,
-                            "check": "bracket_balance",
-                            "detail": f"Potentially unmatched brackets: {opens} opens vs {closes} closes",
+                            "check": "js_ts_syntax",
+                            "detail": detail,
                         })
-                except OSError:
+                except (ImportError, OSError):
                     pass
 
             # Check: YAML valid

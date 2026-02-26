@@ -286,7 +286,151 @@ class PatternLearner:
         self._save()
         return new_lessons
 
-    def get_lessons(self, domain: str = "", category: str = "", top_n: int = 10) -> list[ExecutionLesson]:
+    def analyze_plan_structure(self, exec_output: dict) -> list[str]:
+        """
+        Extract plan-level patterns from successful executions.
+        
+        Unlike analyze_execution() which looks at individual steps,
+        this identifies archetypal plan structures — sequences of tool
+        categories that reliably produce good results.
+        
+        Only analyzes accepted executions (score >= threshold).
+        
+        Returns:
+            List of new plan template descriptions added
+        """
+        new_lessons = []
+        score = exec_output.get("overall_score", 0)
+        accepted = exec_output.get("accepted", False)
+        
+        # Only learn plan structures from successful executions
+        if not accepted or score < 7.0:
+            return new_lessons
+        
+        domain = exec_output.get("domain", "general")
+        report = exec_output.get("execution_report", {})
+        plan = exec_output.get("plan", {})
+        step_results = report.get("step_results", [])
+        plan_steps = plan.get("steps", [])
+        
+        if len(plan_steps) < 3:
+            return new_lessons  # Too short to learn from
+
+        # ── Extract the plan tool sequence ───────────────────────
+        tool_sequence = []
+        for step in plan_steps:
+            tool = step.get("tool", "unknown")
+            tool_sequence.append(tool)
+        
+        # ── Categorize tools into abstract phases ────────────────
+        phase_map = {
+            "shell": "setup",
+            "write_file": "create",
+            "read_file": "read",
+            "patch_file": "modify",
+            "code": "create",  # generic code tool
+        }
+        
+        phases = []
+        for tool in tool_sequence:
+            # Classify the first step's tool based on common patterns
+            phase = phase_map.get(tool, "execute")
+            # Config files at start = setup phase
+            phases.append(phase)
+        
+        # Deduplicate consecutive same-phase entries
+        compressed_phases = [phases[0]]
+        for p in phases[1:]:
+            if p != compressed_phases[-1]:
+                compressed_phases.append(p)
+        
+        phase_signature = " → ".join(compressed_phases)
+        
+        # ── Identify key structural patterns ─────────────────────
+        
+        # Pattern: Setup-first (shell/config before create)
+        if phases[0] == "setup" and "create" in phases:
+            first_create = phases.index("create")
+            setup_count = sum(1 for p in phases[:first_create] if p == "setup")
+            if setup_count >= 1:
+                pattern = "plan_setup_first"
+                lesson = (
+                    f"Successful plans start with {setup_count} setup step(s) "
+                    f"before creating source files. Phase flow: {phase_signature}"
+                )
+                self._add_or_update(
+                    pattern, lesson, "plan_template",
+                    score - 7.0, domain,
+                    f"Score: {score:.1f}, {len(plan_steps)} steps"
+                )
+                new_lessons.append(lesson)
+        
+        # Pattern: Config placement (config tools used in first 30%)
+        config_indicators = {"package.json", "tsconfig.json", "pyproject.toml",
+                           ".env", "config", "setup"}
+        early_threshold = max(1, len(plan_steps) // 3)
+        early_configs = 0
+        for i, step in enumerate(plan_steps[:early_threshold]):
+            desc = str(step.get("description", "")).lower()
+            params = step.get("params", {})
+            path = (params.get("path", "") or params.get("file_path", "")).lower()
+            basename = os.path.basename(path) if path else ""
+            if basename in config_indicators or any(c in desc for c in ("config", "setup", "install")):
+                early_configs += 1
+        
+        if early_configs >= 2:
+            pattern = "plan_early_config"
+            lesson = (
+                f"Place config/setup files in the first third of the plan "
+                f"({early_configs} config steps in first {early_threshold} steps). "
+                f"This establishes project structure before implementation."
+            )
+            self._add_or_update(
+                pattern, lesson, "plan_template",
+                score - 7.0, domain,
+                f"Score: {score:.1f}"
+            )
+            new_lessons.append(lesson)
+        
+        # Pattern: Step count sweet spot
+        n_steps = len(plan_steps)
+        success_rate = sum(
+            1 for sr in step_results if sr.get("success", False)
+        ) / max(1, len(step_results))
+        
+        if success_rate >= 0.9 and 4 <= n_steps <= 15:
+            pattern = f"plan_optimal_size_{domain}"
+            lesson = (
+                f"Plans with {n_steps} steps score well in {domain} domain "
+                f"({success_rate:.0%} step success rate, overall score {score:.1f})."
+            )
+            self._add_or_update(
+                pattern, lesson, "plan_template",
+                score - 7.0, domain,
+                f"{n_steps} steps, {success_rate:.0%} success"
+            )
+            new_lessons.append(lesson)
+        
+        # Pattern: Tool diversity (using multiple tools = better outcomes)
+        unique_tools = set(tool_sequence)
+        if len(unique_tools) >= 3 and score >= 7.5:
+            pattern = "plan_tool_diversity"
+            lesson = (
+                f"Diverse tool usage ({len(unique_tools)} different tools) "
+                f"correlates with higher scores. Tools: {', '.join(sorted(unique_tools)[:5])}"
+            )
+            self._add_or_update(
+                pattern, lesson, "plan_template",
+                score - 7.0, domain,
+                f"Score: {score:.1f}, {len(unique_tools)} tools"
+            )
+            new_lessons.append(lesson)
+        
+        if new_lessons:
+            self._save()
+        return new_lessons
+
+    def get_lessons(self, domain: str = "", category: str = "", top_n: int = 10) -> list["ExecutionLesson"]:
         """
         Get top lessons, optionally filtered by domain and category.
         
