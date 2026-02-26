@@ -51,6 +51,7 @@ DEFAULT_DOMAIN = "general"
 # --- Research ---
 MAX_TOOL_ROUNDS = 8   # max rounds of tool-use before forcing output
 MAX_SEARCHES = 10     # hard cap on total web searches per run
+MAX_FETCHES = 8       # hard cap on total page fetches per run
 
 # --- Strategy Evolution ---
 SAFETY_DROP_THRESHOLD = 0.20  # block if new strategy avg drops >20%

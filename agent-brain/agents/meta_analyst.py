@@ -263,7 +263,7 @@ def analyze_and_evolve(domain: str) -> dict | None:
     raw_text = response.content[0].text.strip()
 
     # Robust JSON extraction (handles markdown fences, preamble, etc.)
-    EXPECTED_KEYS = {"new_strategy", "changes", "reasoning"}
+    EXPECTED_KEYS = {"new_strategy", "changes_made", "reasoning"}
     result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
 
     if result is None:
