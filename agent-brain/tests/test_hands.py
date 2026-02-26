@@ -3557,3 +3557,254 @@ class TestPatternLearner:
         lessons = learner.analyze_execution(output)
         assert lessons == []
 
+
+# ============================================================
+# v10: Timeout Adapter, Mid-Execution Gates, Surgical Retry
+# ============================================================
+
+class TestTimeoutAdapter:
+    """Test adaptive per-tool timeout calculation."""
+
+    def test_default_timeout(self):
+        """Falls back to global default for unknown tools."""
+        from hands.timeout_adapter import TimeoutAdapter
+        adapter = TimeoutAdapter(global_default=120)
+        assert adapter.suggest("unknown_tool") == 120
+
+    def test_tool_specific_default(self):
+        """Uses tool-specific defaults when no history exists."""
+        from hands.timeout_adapter import TimeoutAdapter
+        adapter = TimeoutAdapter()
+        assert adapter.suggest("terminal") == 120
+        assert adapter.suggest("code") == 30
+
+    def test_slow_command_detection(self):
+        """Detects known slow commands and returns higher timeout."""
+        from hands.timeout_adapter import TimeoutAdapter
+        adapter = TimeoutAdapter()
+        t = adapter.suggest("terminal", {"command": "npm install --save react"})
+        assert t >= 180
+
+    def test_history_based_timeout(self):
+        """Calculates timeout from historical durations."""
+        from hands.timeout_adapter import TimeoutAdapter
+        adapter = TimeoutAdapter(global_default=120)
+        # Record 5 durations of ~10s each
+        for _ in range(5):
+            adapter.record("code", 10.0)
+        suggested = adapter.suggest("code")
+        # Should be ~25s (10 * 2.5 multiplier)
+        assert 20 <= suggested <= 50
+
+    def test_record_and_stats(self):
+        """Stats correctly summarize recorded durations."""
+        from hands.timeout_adapter import TimeoutAdapter
+        adapter = TimeoutAdapter()
+        adapter.record("terminal", 5.0)
+        adapter.record("terminal", 15.0)
+        adapter.record("terminal", 10.0)
+        stats = adapter.stats()
+        assert "terminal" in stats
+        assert stats["terminal"]["samples"] == 3
+        assert stats["terminal"]["avg_s"] == 10.0
+
+    def test_max_timeout_cap(self):
+        """Timeout never exceeds MAX_TIMEOUT."""
+        from hands.timeout_adapter import TimeoutAdapter
+        adapter = TimeoutAdapter()
+        # Record huge durations
+        for _ in range(5):
+            adapter.record("terminal", 500.0)
+        assert adapter.suggest("terminal") <= 600
+
+    def test_min_timeout_floor(self):
+        """Timeout never goes below MIN_TIMEOUT."""
+        from hands.timeout_adapter import TimeoutAdapter
+        adapter = TimeoutAdapter()
+        for _ in range(5):
+            adapter.record("code", 0.01)
+        assert adapter.suggest("code") >= 10
+
+
+class TestMidValidator:
+    """Test mid-execution quality gates."""
+
+    def _make_plan(self, step_count=5, with_setup=True):
+        """Create a test plan with optional setup step."""
+        steps = []
+        for i in range(1, step_count + 1):
+            step = {
+                "step_number": i,
+                "tool": "code",
+                "params": {"path": f"src/file{i}.py", "action": "write"},
+                "depends_on": [i - 1] if i > 1 else [],
+                "description": f"Write file {i}",
+            }
+            if with_setup and i == 1:
+                step["params"]["path"] = "package.json"
+                step["description"] = "Setup package.json"
+            steps.append(step)
+        return {"steps": steps, "task_summary": "test plan"}
+
+    def test_gate_points_setup(self):
+        """Gate points include setup steps."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = self._make_plan(5, with_setup=True)
+        mv = MidExecutionValidator(plan)
+        assert 1 in mv.gate_points  # package.json step
+
+    def test_gate_points_midpoint(self):
+        """Gate at midpoint for large plans."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = self._make_plan(10, with_setup=False)
+        mv = MidExecutionValidator(plan)
+        assert 5 in mv.gate_points  # midpoint of 10 steps
+
+    def test_no_gate_on_failure(self):
+        """Don't gate on failed steps."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = self._make_plan(5)
+        mv = MidExecutionValidator(plan)
+        assert mv.should_gate(1, {"success": True}) or 1 not in mv.gate_points
+        assert not mv.should_gate(1, {"success": False})
+
+    def test_quick_validate_missing_file(self, tmp_path):
+        """Detects artifact files that don't exist."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = self._make_plan(3)
+        mv = MidExecutionValidator(plan)
+        issues = mv.quick_validate([str(tmp_path / "nonexistent.py")])
+        assert len(issues) == 1
+        assert issues[0]["check"] == "exists"
+
+    def test_quick_validate_empty_file(self, tmp_path):
+        """Detects empty files."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = self._make_plan(3)
+        mv = MidExecutionValidator(plan)
+        empty_file = tmp_path / "empty.json"
+        empty_file.write_text("")
+        issues = mv.quick_validate([str(empty_file)])
+        assert any(i["check"] == "not_empty" for i in issues)
+
+    def test_quick_validate_invalid_json(self, tmp_path):
+        """Detects invalid JSON files."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = self._make_plan(3)
+        mv = MidExecutionValidator(plan)
+        bad_json = tmp_path / "config.json"
+        bad_json.write_text("{invalid json!")
+        issues = mv.quick_validate([str(bad_json)])
+        assert any(i["check"] == "json_valid" for i in issues)
+
+    def test_quick_validate_valid_files(self, tmp_path):
+        """No issues for valid files."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = self._make_plan(3)
+        mv = MidExecutionValidator(plan)
+        good = tmp_path / "config.json"
+        good.write_text('{"name": "test"}')
+        issues = mv.quick_validate([str(good)])
+        assert len(issues) == 0
+
+    def test_correction_prompt(self):
+        """Generates correction prompt from issues."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = self._make_plan(3)
+        mv = MidExecutionValidator(plan)
+        prompt = mv.get_correction_prompt([
+            {"file": "/path/to/file.json", "check": "json_valid", "detail": "Bad JSON"}
+        ])
+        assert "QUALITY CHECK" in prompt
+        assert "json_valid" in prompt
+
+    def test_avoids_rechecking_artifacts(self, tmp_path):
+        """Doesn't re-check artifacts that were already validated."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = self._make_plan(3)
+        mv = MidExecutionValidator(plan)
+        good = tmp_path / "file.json"
+        good.write_text('{"ok": true}')
+        mv.quick_validate([str(good)])
+        # Second call with same file should return no issues
+        issues = mv.quick_validate([str(good)])
+        assert len(issues) == 0
+
+    def test_fan_out_detection(self):
+        """Steps depended on by 2+ others are gate points."""
+        from hands.mid_validator import MidExecutionValidator
+        plan = {
+            "steps": [
+                {"step_number": 1, "tool": "code", "params": {}, "depends_on": [], "description": "base"},
+                {"step_number": 2, "tool": "code", "params": {}, "depends_on": [1], "description": "a"},
+                {"step_number": 3, "tool": "code", "params": {}, "depends_on": [1], "description": "b"},
+                {"step_number": 4, "tool": "code", "params": {}, "depends_on": [1], "description": "c"},
+            ]
+        }
+        mv = MidExecutionValidator(plan)
+        assert 1 in mv.gate_points  # Step 1 is depended on by 3 others
+
+
+class TestIdentifyFailingSteps:
+    """Test surgical retry step identification."""
+
+    def test_identifies_failed_required_steps(self):
+        """Finds steps that explicitly failed."""
+        from hands.validator import identify_failing_steps
+        validation = {"critical_issues": [], "weaknesses": [], "static_checks": {"issues": []}}
+        step_results = [
+            {"step": 1, "tool": "code", "success": True, "artifacts": [], "criticality": "required"},
+            {"step": 2, "tool": "terminal", "success": False, "artifacts": [], "error": "timeout", "criticality": "required"},
+            {"step": 3, "tool": "code", "success": True, "artifacts": [], "criticality": "required"},
+        ]
+        plan_steps = [
+            {"step_number": 1, "depends_on": []},
+            {"step_number": 2, "depends_on": [1]},
+            {"step_number": 3, "depends_on": [2]},
+        ]
+        failing = identify_failing_steps(validation, step_results, plan_steps)
+        assert 2 in failing
+        assert 3 in failing  # Depends on step 2
+
+    def test_identifies_static_check_failures(self):
+        """Maps static check issues to their creating step."""
+        from hands.validator import identify_failing_steps
+        validation = {
+            "critical_issues": [],
+            "weaknesses": [],
+            "static_checks": {
+                "issues": [{"file": "/path/to/broken.json", "check": "json_valid", "detail": "bad"}]
+            },
+        }
+        step_results = [
+            {"step": 1, "tool": "code", "success": True, "artifacts": ["/path/to/broken.json"], "criticality": "required"},
+            {"step": 2, "tool": "code", "success": True, "artifacts": ["/path/to/good.py"], "criticality": "required"},
+        ]
+        plan_steps = [
+            {"step_number": 1, "depends_on": []},
+            {"step_number": 2, "depends_on": []},
+        ]
+        failing = identify_failing_steps(validation, step_results, plan_steps)
+        assert 1 in failing
+        assert 2 not in failing
+
+    def test_skips_optional_failures(self):
+        """Optional step failures don't trigger surgical retry."""
+        from hands.validator import identify_failing_steps
+        validation = {"critical_issues": [], "weaknesses": [], "static_checks": {"issues": []}}
+        step_results = [
+            {"step": 1, "tool": "terminal", "success": False, "artifacts": [], "criticality": "optional"},
+        ]
+        plan_steps = [{"step_number": 1, "depends_on": []}]
+        failing = identify_failing_steps(validation, step_results, plan_steps)
+        assert 1 not in failing
+
+    def test_empty_inputs_no_crash(self):
+        """Handles empty inputs gracefully."""
+        from hands.validator import identify_failing_steps
+        failing = identify_failing_steps(
+            {"critical_issues": [], "weaknesses": [], "static_checks": {"issues": []}},
+            [], [],
+        )
+        assert failing == []
+

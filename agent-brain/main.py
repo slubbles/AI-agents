@@ -2263,13 +2263,14 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     """
     from hands.planner import plan as create_plan_hands
     from hands.executor import execute_plan
-    from hands.validator import validate_execution
+    from hands.validator import validate_execution, identify_failing_steps
     from hands.exec_memory import save_exec_output, get_exec_stats
     from hands.tools.registry import create_default_registry
     from hands.workspace_diff import snapshot_workspace, compute_diff, format_diff_summary
     from hands.plan_cache import PlanCache
     from hands.checkpoint import ExecutionCheckpoint
     from hands.pattern_learner import PatternLearner
+    from hands.planner import plan_repair
     import config as _cfg
 
     # Budget check
@@ -2371,6 +2372,8 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
     final_plan = None
     final_report = None
     final_validation = None
+    _use_surgical_retry = False
+    _resume_data = None
 
     while attempt <= EXEC_MAX_RETRIES:
         attempt += 1
@@ -2433,7 +2436,11 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
             domain=domain,
             execution_strategy=strategy or "",
             workspace_dir=workspace_dir,
+            resume_from=_resume_data if _use_surgical_retry else None,
         )
+        # Reset surgical retry state after use
+        _use_surgical_retry = False
+        _resume_data = None
 
         final_report = report
 
@@ -2496,6 +2503,44 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
                 previous_feedback = validation.get("actionable_feedback", "Improve quality.")
                 if validation.get("critical_issues"):
                     previous_feedback += " CRITICAL: " + "; ".join(validation["critical_issues"])
+
+                # Try surgical retry — only redo failing steps
+                failing = identify_failing_steps(
+                    validation,
+                    report.get("step_results", []),
+                    plan_data.get("steps", []),
+                )
+                if failing and len(failing) < len(plan_data.get("steps", [])):
+                    print(f"  [SURGICAL RETRY] {len(failing)} steps need repair: {failing}")
+                    repair = plan_repair(
+                        original_plan=plan_data,
+                        failing_steps=failing,
+                        feedback=previous_feedback,
+                        tools_description=tools_desc,
+                        completed_steps=report.get("step_results", []),
+                        domain=domain,
+                        workspace_dir=workspace_dir,
+                    )
+                    if repair:
+                        # Use repair plan + pass successful steps as resume_from
+                        plan_data = repair
+                        _use_surgical_retry = True
+                        _resume_data = {
+                            "completed_steps": [
+                                sr for sr in report.get("step_results", [])
+                                if sr.get("success") and sr.get("step") not in failing
+                            ],
+                            "artifacts": [
+                                a for sr in report.get("step_results", [])
+                                if sr.get("success") and sr.get("step") not in failing
+                                for a in sr.get("artifacts", [])
+                            ],
+                        }
+                        print(f"  [SURGICAL RETRY] Repair plan: {len(repair.get('steps', []))} steps")
+                        continue
+                    else:
+                        print(f"  [SURGICAL RETRY] Repair plan failed — falling back to full replan")
+
                 print(f"  Retrying with feedback...")
             else:
                 print(f"  Max retries reached. Storing as-is.")
