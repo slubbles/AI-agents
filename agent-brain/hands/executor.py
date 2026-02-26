@@ -34,6 +34,7 @@ from utils.retry import create_message
 from utils.json_parser import extract_json
 from hands.tools.registry import ToolRegistry, ToolResult
 from hands.error_analyzer import analyze_error, format_retry_guidance
+from hands.tool_health import ToolHealthMonitor
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -213,6 +214,7 @@ def execute_plan(
     max_turns = EXEC_MAX_STEPS * 3  # Allow some retries per step
     step_failures = {}  # Track retries per step: {step_num: retry_count}
     last_turn = 0  # Track the last turn for reporting
+    health_monitor = ToolHealthMonitor()  # Track tool reliability
 
     for turn in range(max_turns):
         last_turn = turn
@@ -317,8 +319,17 @@ def execute_plan(
 
             print(f"  [STEP {step_num}] {tool_name}: {reasoning[:80]}")
 
+            # Check tool health and inject warnings if degraded
+            if health_monitor.is_degraded(tool_name):
+                health_ctx = health_monitor.get_health_context()
+                if health_ctx:
+                    print(f"           ⚠ Tool '{tool_name}' is degraded — consider alternatives")
+
             # Execute the tool through the registry
             result = registry.execute(tool_name, **params)
+
+            # Record in health monitor
+            health_monitor.record(tool_name, result.success, result.error)
 
             step_result = {
                 "step": step_num,
@@ -364,6 +375,11 @@ def execute_plan(
                         f"\nThis step has failed {STEP_RETRY_LIMIT} times ({error_analysis['category']}). "
                         f"Move on to the next step or abort if this blocks progress."
                     )
+
+                # Add tool health warnings if degraded
+                health_ctx = health_monitor.get_health_context()
+                if health_ctx:
+                    retry_msg += health_ctx
 
             # Feed result back into conversation
             conversation.append({"role": "assistant", "content": text})
@@ -416,6 +432,7 @@ def execute_plan(
         "retried_steps": retried_steps,
         "total_steps": len(steps),
         "total_turns": last_turn + 1,
+        "tool_health": health_monitor.get_health_report(),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
