@@ -28,6 +28,7 @@ from hands.exec_memory import load_exec_outputs
 from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
+from utils.atomic_write import atomic_json_write
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
@@ -61,8 +62,7 @@ def _save_exec_principles(principles: list[dict]) -> None:
         key=lambda p: (p.get("evidence_count", 1), p.get("avg_score", 0)),
         reverse=True,
     )[:MAX_PRINCIPLES]
-    with open(_EXEC_PRINCIPLES_PATH, "w") as f:
-        json.dump(principles, f, indent=2)
+    atomic_json_write(_EXEC_PRINCIPLES_PATH, principles)
 
 
 def extract_exec_principles(domain: str, min_outputs: int = 3) -> list[dict] | None:

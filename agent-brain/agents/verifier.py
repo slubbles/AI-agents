@@ -27,6 +27,7 @@ from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
+from utils.atomic_write import atomic_json_write
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -57,8 +58,7 @@ def save_predictions(domain: str, predictions: list[dict]) -> str:
     """Save predictions list for a domain."""
     path = _predictions_path(domain)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(predictions, f, indent=2)
+    atomic_json_write(path, predictions)
     return path
 
 

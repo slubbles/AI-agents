@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import EXEC_MEMORY_DIR, EXEC_QUALITY_THRESHOLD
+from utils.atomic_write import atomic_json_write
 
 
 def save_exec_output(
@@ -79,8 +80,7 @@ def save_exec_output(
         "verdict": validation.get("verdict", "unknown"),
     }
 
-    with open(filepath, "w") as f:
-        json.dump(record, f, indent=2)
+    atomic_json_write(filepath, record)
 
     return filepath
 

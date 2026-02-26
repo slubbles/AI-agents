@@ -23,6 +23,7 @@ from config import ANTHROPIC_API_KEY, MODELS, STRATEGY_DIR, LOG_DIR
 from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
+from utils.atomic_write import atomic_json_write
 
 logger = logging.getLogger("critic")
 
@@ -80,8 +81,7 @@ def save_rubric(domain: str, weights: dict, reason: str = "") -> str:
         "reason": reason,
         "updated_at": date.today().isoformat(),
     }
-    with open(rubric_path, "w") as f:
-        json.dump(data, f, indent=2)
+    atomic_json_write(rubric_path, data)
     return rubric_path
 
 

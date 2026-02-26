@@ -76,7 +76,7 @@ VAULT_PASSPHRASE_ENV = "VAULT_PASSPHRASE"  # env var name for vault master passp
 DEPLOY_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "deploy", "vps_config.json")
 
 # --- MCP (Model Context Protocol) Gateway ---
-MCP_ENABLED = False               # enable Docker MCP server integration
+MCP_ENABLED = True                # enable Docker MCP server integration
 MCP_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "mcp_servers.json")
 MCP_MAX_TOOLS_PER_CALL = 15      # max MCP tools surfaced in a single Claude call
 MCP_DEFAULT_TIMEOUT = 30.0       # seconds before MCP request times out

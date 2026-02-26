@@ -10,6 +10,8 @@ import os
 from dataclasses import dataclass, field, asdict
 from typing import Optional
 
+from utils.atomic_write import atomic_json_write
+
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "vps_config.json")
 
 # Default values
@@ -82,5 +84,4 @@ def load_config() -> VPSConfig:
 def save_config(config: VPSConfig) -> None:
     """Save VPS config to disk."""
     os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-    with open(CONFIG_PATH, "w") as f:
-        json.dump(config.to_dict(), f, indent=2)
+    atomic_json_write(CONFIG_PATH, config.to_dict())

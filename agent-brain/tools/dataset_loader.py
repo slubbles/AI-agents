@@ -20,6 +20,8 @@ import logging
 from typing import Optional
 from urllib.parse import quote
 
+from utils.atomic_write import atomic_json_write
+
 logger = logging.getLogger(__name__)
 
 # HuggingFace datasets API
@@ -84,8 +86,7 @@ def _save_cache(source: str, identifier: str, data: list):
     _ensure_cache_dir()
     cache_path = _get_cache_path(source, identifier)
     try:
-        with open(cache_path, "w") as f:
-            json.dump(data, f)
+        atomic_json_write(cache_path, data)
     except IOError as e:
         logger.warning(f"Failed to cache {identifier}: {e}")
 

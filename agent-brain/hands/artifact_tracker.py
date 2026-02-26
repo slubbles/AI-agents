@@ -24,6 +24,8 @@ import re
 from datetime import datetime, timezone
 from typing import Optional
 
+from utils.atomic_write import atomic_json_write
+
 
 # =====================================================
 # Archetype classification
@@ -253,8 +255,7 @@ class ArtifactQualityDB:
 
     def _save(self) -> None:
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        with open(self.db_path, "w") as f:
-            json.dump(self._data, f, indent=2)
+        atomic_json_write(self.db_path, self._data)
 
     def update(self, domain: str, scored_artifacts: list[dict]) -> None:
         """Record new artifact scores into the DB."""

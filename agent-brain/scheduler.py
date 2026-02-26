@@ -29,6 +29,7 @@ from strategy_store import (
 from agents.orchestrator import discover_domains, prioritize_domains, allocate_rounds
 from agents.cross_domain import load_principles
 from domain_seeder import has_curated_seeds, list_available_domains
+from utils.atomic_write import atomic_json_write
 
 
 # ============================================================
@@ -451,8 +452,7 @@ def _save_daemon_state(state: dict):
     """Persist daemon state for recovery and dashboard visibility."""
     state_file = os.path.join(LOG_DIR, "daemon_state.json")
     os.makedirs(LOG_DIR, exist_ok=True)
-    with open(state_file, "w") as f:
-        json.dump(state, f, indent=2)
+    atomic_json_write(state_file, state)
 
 
 def _load_daemon_state() -> dict | None:

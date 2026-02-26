@@ -28,6 +28,7 @@ from config import (
 )
 from memory_store import load_outputs
 from strategy_store import get_strategy, save_strategy, list_versions, get_strategy_performance
+from utils.atomic_write import atomic_json_write
 from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
@@ -63,8 +64,7 @@ def save_evolution_entry(domain: str, entry: dict) -> None:
     log.append(entry)
     path = _evolution_log_path(domain)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(log, f, indent=2)
+    atomic_json_write(path, log)
 
 
 def _format_evolution_history(domain: str) -> str:
@@ -101,8 +101,7 @@ def update_evolution_outcome(domain: str, version: str, outcome: str, score_afte
             break
     path = _evolution_log_path(domain)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(log, f, indent=2)
+    atomic_json_write(path, log)
 
 
 def _build_meta_prompt() -> str:

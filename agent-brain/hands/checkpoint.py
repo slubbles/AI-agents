@@ -19,6 +19,8 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
+from utils.atomic_write import atomic_json_write
+
 
 class ExecutionCheckpoint:
     """
@@ -63,8 +65,7 @@ class ExecutionCheckpoint:
             "last_updated": datetime.now(timezone.utc).isoformat(),
             "status": "in_progress",
         }
-        with open(self._path(domain), "w") as f:
-            json.dump(checkpoint, f, indent=2)
+        atomic_json_write(self._path(domain), checkpoint)
 
     def update_step(self, domain: str, step_result: dict) -> None:
         """Record a completed step in the checkpoint."""
@@ -83,8 +84,7 @@ class ExecutionCheckpoint:
             checkpoint["artifacts"].extend(step_result["artifacts"])
         checkpoint["last_updated"] = datetime.now(timezone.utc).isoformat()
 
-        with open(path, "w") as f:
-            json.dump(checkpoint, f, indent=2)
+        atomic_json_write(path, checkpoint)
 
     def load(self, domain: str) -> Optional[dict]:
         """
@@ -122,8 +122,7 @@ class ExecutionCheckpoint:
                 checkpoint = json.load(f)
             checkpoint["status"] = "completed" if success else "failed"
             checkpoint["finished_at"] = datetime.now(timezone.utc).isoformat()
-            with open(path, "w") as f:
-                json.dump(checkpoint, f, indent=2)
+            atomic_json_write(path, checkpoint)
         except (json.JSONDecodeError, OSError):
             pass
 

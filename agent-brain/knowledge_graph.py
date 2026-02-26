@@ -27,6 +27,7 @@ from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(__file__))
 from config import MEMORY_DIR
+from utils.atomic_write import atomic_json_write
 
 
 # ============================================================
@@ -520,8 +521,7 @@ def save_graph(domain: str, graph: dict) -> str:
     """Save a knowledge graph to disk."""
     filepath = _graph_path(domain)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with open(filepath, "w") as f:
-        json.dump(graph, f, indent=2)
+    atomic_json_write(filepath, graph)
     return filepath
 
 

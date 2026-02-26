@@ -28,6 +28,7 @@ from strategy_store import (
     get_strategy, get_active_version, get_strategy_status,
     get_strategy_performance, list_versions, save_strategy,
 )
+from utils.atomic_write import atomic_json_write
 from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
@@ -292,8 +293,7 @@ def extract_principles(force: bool = False) -> dict | None:
     }
 
     os.makedirs(os.path.dirname(PRINCIPLES_FILE), exist_ok=True)
-    with open(PRINCIPLES_FILE, "w") as f:
-        json.dump(record, f, indent=2)
+    atomic_json_write(PRINCIPLES_FILE, record)
 
     print(f"[CROSS-DOMAIN] ✓ Extracted {len(principles)} general principles")
     for i, p in enumerate(principles, 1):
@@ -472,8 +472,7 @@ def _load_transfer_log() -> list[dict]:
 def _save_transfer_log(log: list[dict]) -> None:
     """Save the transfer log."""
     os.makedirs(os.path.dirname(TRANSFER_LOG_FILE), exist_ok=True)
-    with open(TRANSFER_LOG_FILE, "w") as f:
-        json.dump(log, f, indent=2)
+    atomic_json_write(TRANSFER_LOG_FILE, log)
 
 
 def _log_transfer(target_domain: str, source_domains: list[str], version: str, principles_applied: list[str]) -> None:
@@ -611,8 +610,7 @@ def _update_principle_confidence(principles_applied: list[str], lift: float) -> 
             updated = True
     
     if updated:
-        with open(PRINCIPLES_FILE, "w") as f:
-            json.dump(principles_data, f, indent=2)
+        atomic_json_write(PRINCIPLES_FILE, principles_data)
 
 
 def get_transfer_stats() -> list[dict]:

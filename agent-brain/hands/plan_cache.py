@@ -24,6 +24,8 @@ import re
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
+from utils.atomic_write import atomic_json_write
+
 
 # Cache config
 MAX_CACHE_ENTRIES = 50
@@ -104,8 +106,7 @@ class PlanCache:
     def _save(self) -> None:
         """Save cache to disk."""
         os.makedirs(os.path.dirname(self.cache_path) or ".", exist_ok=True)
-        with open(self.cache_path, "w") as f:
-            json.dump(self._cache, f, indent=2)
+        atomic_json_write(self.cache_path, self._cache)
 
     def _evict_expired(self) -> None:
         """Remove expired entries."""
