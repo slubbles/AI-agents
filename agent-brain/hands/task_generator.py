@@ -17,6 +17,7 @@ Uses Haiku (cheap synthesis task) — the judgment happens in the validator.
 
 import json
 import os
+import re
 import sys
 from datetime import date
 
@@ -93,8 +94,8 @@ def _prepare_context(domain: str) -> str:
                     parts.append(f"     Evidence: {str(claim['evidence'])[:100]}")
             parts.append(f"Total claims: {len(kb['claims'])}")
             parts.append("")
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"  [TASK-GEN] Warning: failed to load KB: {e}")
 
     # Research history (recent high-scoring)
     try:
@@ -106,8 +107,8 @@ def _prepare_context(domain: str) -> str:
                 question = o.get("question", "?")[:100]
                 parts.append(f"  [{score}/10] {question}")
             parts.append("")
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"  [TASK-GEN] Warning: failed to load research history: {e}")
 
     # Execution history
     exec_outputs = load_exec_outputs(domain)
@@ -180,7 +181,6 @@ def generate_tasks(domain: str, hint: str = "") -> list[dict]:
 
     # Try to find JSON array first (multiple tasks)
     try:
-        import re
         match = re.search(r'\[.*\]', text, re.DOTALL)
         if match:
             tasks = json.loads(match.group())
@@ -194,21 +194,8 @@ def generate_tasks(domain: str, hint: str = "") -> list[dict]:
     if result and isinstance(result, dict):
         return [result]
 
-    # Try to find array
-    try:
-        import re
-        # Find JSON array in text
-        match = re.search(r'\[.*\]', text, re.DOTALL)
-        if match:
-            tasks = json.loads(match.group())
-            if isinstance(tasks, list) and all(isinstance(t, dict) for t in tasks):
-                return tasks
-    except (json.JSONDecodeError, AttributeError):
-        pass
-
-    # Final fallback — try to extract multiple objects
+    # Final fallback — try to extract multiple objects split by }{
     tasks = []
-    # Split by common separators and try each
     for candidate in text.split("}{"):
         candidate = candidate.strip()
         if not candidate.startswith("{"):

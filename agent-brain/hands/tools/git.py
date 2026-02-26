@@ -18,6 +18,7 @@ All operations respect safety constraints:
 """
 
 import os
+import shlex
 import subprocess
 import sys
 
@@ -116,41 +117,40 @@ class GitTool(BaseTool):
         url = kwargs.get("url", "")
         extra_args = kwargs.get("args", "")
 
-        # Build git command based on action
+        # Build git command as a list (safe from shell injection)
         if action == "init":
-            cmd = f"git init"
+            cmd = ["git", "init"]
             cwd = path
         elif action == "status":
-            cmd = f"git status --short"
+            cmd = ["git", "status", "--short"]
             cwd = path
         elif action == "add":
             target = extra_args or "."
-            cmd = f"git add {target}"
+            cmd = ["git", "add"] + shlex.split(target)
             cwd = path
         elif action == "commit":
-            # Sanitize message for shell
-            safe_msg = message.replace('"', '\\"').replace("'", "\\'")
-            cmd = f'git commit -m "{safe_msg}"'
+            cmd = ["git", "commit", "-m", message]  # message passed safely as list arg
             cwd = path
         elif action == "log":
             count = extra_args or "10"
-            cmd = f"git log --oneline -n {count}"
+            cmd = ["git", "log", "--oneline", "-n", str(count)]
             cwd = path
         elif action == "branch":
             if branch_name:
-                cmd = f"git branch {branch_name}"
+                cmd = ["git", "branch", branch_name]
             else:
-                cmd = "git branch -a"
+                cmd = ["git", "branch", "-a"]
             cwd = path
         elif action == "checkout":
-            cmd = f"git checkout {branch_name}"
+            cmd = ["git", "checkout", branch_name]
             cwd = path
         elif action == "diff":
-            target = extra_args or ""
-            cmd = f"git diff {target}".strip()
+            cmd = ["git", "diff"]
+            if extra_args:
+                cmd += shlex.split(extra_args)
             cwd = path
         elif action == "clone":
-            cmd = f"git clone {url} {path}"
+            cmd = ["git", "clone", url, path]
             cwd = os.path.dirname(path) or "."
         else:
             return ToolResult(success=False, error=f"Unknown git action: {action}")
@@ -163,14 +163,14 @@ class GitTool(BaseTool):
         try:
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,  # Explicit: never use shell=True for git
                 capture_output=True,
                 text=True,
                 timeout=EXEC_STEP_TIMEOUT,
                 cwd=cwd,
                 env={
                     **os.environ,
-                    "GIT_TERMINAL_PROMPT": "0",  # Never prompt for credentials interactively
+                    "GIT_TERMINAL_PROMPT": "0",
                     "GIT_AUTHOR_NAME": "Agent Hands",
                     "GIT_AUTHOR_EMAIL": "agent-hands@agent-brain.local",
                     "GIT_COMMITTER_NAME": "Agent Hands",
@@ -188,7 +188,7 @@ class GitTool(BaseTool):
                 return ToolResult(
                     success=True,
                     output=output,
-                    metadata={"action": action, "command": cmd[:200]},
+                    metadata={"action": action, "command": " ".join(cmd[:5])},
                 )
             else:
                 return ToolResult(

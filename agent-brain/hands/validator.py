@@ -4,6 +4,9 @@ Execution Validator — Scores execution output quality.
 Parallel to Brain's critic.py but for code/execution output.
 Evaluates on different dimensions suited to execution quality.
 
+Now reads actual artifact file contents for accurate evaluation,
+not just step output summaries.
+
 Scoring Rubric (5 dimensions):
 - Correctness (30%) — Does the code work? Does it do what was asked?
 - Completeness (20%) — All requirements met? No missing pieces?
@@ -64,11 +67,14 @@ Overall score = weighted average (Correctness {cor}%, Completeness {com}%, Quali
 
 EVALUATION RULES:
 - A file with just placeholders or TODO comments is NOT complete — score 1-2.
-- working code with minor issues = 6-7. Production-quality = 8+.
+- Working code with minor issues = 6-7. Production-quality = 8+.
 - If tests exist and pass, that's a strong correctness signal.
 - If tests exist and fail, that's a strong correctness penalty.
 - Code without ANY error handling = max 5 on quality.
 - Hardcoded secrets = max 3 on security.
+- IMPORTANT: You will receive the actual file contents of produced artifacts.
+  Read the code carefully — verify imports, types, logic flow, and completeness.
+  Do NOT just trust step summaries — the code itself is the ground truth.
 
 Output ONLY valid JSON:
 {{
@@ -90,6 +96,84 @@ Output ONLY valid JSON:
 Threshold for accept: overall_score >= {EXEC_QUALITY_THRESHOLD}.
 Be harsh but fair. The system depends on honest evaluation.
 """
+
+
+# Binary/non-text file extensions to skip when reading artifacts
+_BINARY_EXTENSIONS = {
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg", ".webp",
+    ".woff", ".woff2", ".ttf", ".eot", ".otf",
+    ".pdf", ".zip", ".tar", ".gz", ".bz2", ".xz",
+    ".exe", ".dll", ".so", ".dylib", ".wasm",
+    ".mp3", ".mp4", ".avi", ".mov", ".wav",
+    ".pyc", ".pyo", ".class", ".o",
+    ".db", ".sqlite", ".sqlite3",
+}
+
+# File extensions to prioritize reading (most informative for validation)
+_PRIORITY_EXTENSIONS = {
+    ".py", ".ts", ".tsx", ".js", ".jsx", ".json", ".yaml", ".yml",
+    ".toml", ".cfg", ".ini", ".md", ".html", ".css", ".sql",
+    ".sh", ".bash", ".dockerfile", ".env.example",
+}
+
+# Max total chars of artifact content we'll send to the validator
+_MAX_ARTIFACT_CHARS = 40_000
+# Max chars per individual file
+_MAX_FILE_CHARS = 8_000
+
+
+def _read_artifact_files(artifacts: list[str]) -> dict[str, str]:
+    """
+    Read actual file contents from artifact paths.
+    Prioritizes key files (package.json, entry points, configs, tests).
+    Skips binary files. Caps total size to stay within context limits.
+
+    Returns:
+        Dict mapping file path to content string
+    """
+    if not artifacts:
+        return {}
+
+    contents = {}
+    total_chars = 0
+
+    # Deduplicate and filter
+    unique_paths = list(dict.fromkeys(artifacts))  # preserve order, dedupe
+
+    # Separate into priority and non-priority files
+    priority_files = []
+    other_files = []
+    for path in unique_paths:
+        if not os.path.isfile(path):
+            continue
+        ext = os.path.splitext(path)[1].lower()
+        if ext in _BINARY_EXTENSIONS:
+            continue
+        basename = os.path.basename(path).lower()
+        # Boost config files and tests
+        if (ext in _PRIORITY_EXTENSIONS
+                or basename in ("package.json", "tsconfig.json", "pyproject.toml",
+                                "readme.md", "dockerfile", ".gitignore",
+                                "requirements.txt", "setup.py", "setup.cfg")):
+            priority_files.append(path)
+        else:
+            other_files.append(path)
+
+    # Read priority files first, then others
+    for path in priority_files + other_files:
+        if total_chars >= _MAX_ARTIFACT_CHARS:
+            break
+        try:
+            with open(path, "r", errors="replace") as f:
+                content = f.read(_MAX_FILE_CHARS + 100)
+            if len(content) > _MAX_FILE_CHARS:
+                content = content[:_MAX_FILE_CHARS] + f"\n... (truncated at {_MAX_FILE_CHARS} chars)"
+            contents[path] = content
+            total_chars += len(content)
+        except (OSError, UnicodeDecodeError):
+            contents[path] = "(unable to read file)"
+
+    return contents
 
 
 def validate_execution(
@@ -137,29 +221,52 @@ def validate_execution(
         })
     eval_context["step_details"] = step_details
 
+    # Read actual artifact file contents for accurate evaluation
+    artifact_contents = _read_artifact_files(execution_report.get("artifacts", []))
+    if artifact_contents:
+        eval_context["file_contents"] = artifact_contents
+
     user_message = f"Evaluate this execution:\n\n{json.dumps(eval_context, indent=2)}"
 
     if domain_knowledge:
         user_message += f"\n\nDOMAIN KNOWLEDGE (best practices):\n{domain_knowledge[:3000]}"
 
-    response = create_message(
-        client,
-        model=MODELS["exec_validator"],
-        max_tokens=2048,
-        system=system,
-        messages=[{"role": "user", "content": user_message}],
-    )
+    try:
+        response = create_message(
+            client,
+            model=MODELS["exec_validator"],
+            max_tokens=2048,
+            system=system,
+            messages=[{"role": "user", "content": user_message}],
+        )
 
-    # Track cost
-    log_cost(
-        model=MODELS["exec_validator"],
-        input_tokens=response.usage.input_tokens,
-        output_tokens=response.usage.output_tokens,
-        agent_role="exec_validator",
-        domain=domain,
-    )
+        # Track cost
+        log_cost(
+            model=MODELS["exec_validator"],
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
+            agent_role="exec_validator",
+            domain=domain,
+        )
 
-    raw_text = response.content[0].text.strip()
+        if not response.content:
+            raise ValueError("Empty response from validator model")
+        raw_text = response.content[0].text.strip()
+
+    except Exception as e:
+        return {
+            "scores": {
+                "correctness": 0, "completeness": 0,
+                "code_quality": 0, "security": 0, "kb_alignment": 0,
+            },
+            "overall_score": 0,
+            "strengths": [],
+            "weaknesses": [f"Validator API error: {str(e)[:200]}"],
+            "actionable_feedback": "Unable to evaluate — retry",
+            "verdict": "reject",
+            "critical_issues": ["Validation API error"],
+            "_api_error": True,
+        }
 
     # Parse JSON
     EXPECTED_KEYS = {"scores", "overall_score", "verdict"}

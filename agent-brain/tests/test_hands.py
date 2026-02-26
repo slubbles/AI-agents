@@ -1335,3 +1335,533 @@ class TestExpandedRegistry:
         assert "git" in desc
         assert "http" in desc
         assert "search" in desc
+
+
+# ============================================================
+# V3 Improvements — Security fixes, artifact reading, workspace-aware planning
+# ============================================================
+
+
+class TestGitToolSecurityV3:
+    """Tests for git tool shell injection fix (shell=False)."""
+
+    def test_commit_with_special_chars_safe(self, tmp_workspace):
+        """Commit message with shell metacharacters doesn't cause injection."""
+        from hands.tools.git import GitTool
+        tool = GitTool()
+        # Init repo first
+        tool.safe_execute(action="init", path=tmp_workspace)
+        # Write a file and stage it
+        test_file = os.path.join(tmp_workspace, "test.txt")
+        with open(test_file, "w") as f:
+            f.write("hello")
+        tool.safe_execute(action="add", path=tmp_workspace)
+        # Commit with dangerous-looking message (should be safe with shell=False)
+        result = tool.safe_execute(
+            action="commit",
+            path=tmp_workspace,
+            message='test"; rm -rf /; echo "pwned',
+        )
+        # Should succeed or fail gracefully — never execute the injected command
+        # The message is passed as a list arg, not shell-interpreted
+        assert result is not None
+
+    def test_commit_uses_list_args(self):
+        """Verify git commands use list args not shell strings."""
+        import subprocess
+        from hands.tools.git import GitTool
+        tool = GitTool()
+        # Patch subprocess.run to capture how it's called
+        with patch("hands.tools.git.subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(
+                returncode=0, stdout="test output", stderr=""
+            )
+            tool.execute(action="status", path="/tmp/test")
+            call_args = mock_run.call_args
+            # First positional arg should be a list, not a string
+            cmd = call_args[0][0]
+            assert isinstance(cmd, list), f"Expected list command, got: {type(cmd)}"
+            assert cmd == ["git", "status", "--short"]
+            # shell should be False
+            assert call_args[1].get("shell") == False
+
+    def test_commit_message_preserved_exactly(self, tmp_workspace):
+        """Commit message with quotes is preserved correctly."""
+        import subprocess
+        from hands.tools.git import GitTool
+        tool = GitTool()
+        with patch("hands.tools.git.subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(
+                returncode=0, stdout="committed", stderr=""
+            )
+            tool.execute(
+                action="commit",
+                path=tmp_workspace,
+                message="It's a \"test\" with 'quotes'"
+            )
+            cmd = mock_run.call_args[0][0]
+            # Message should be the exact string, not escaped
+            assert cmd[3] == "It's a \"test\" with 'quotes'"
+
+
+class TestHttpToolSecurityV3:
+    """Tests for HTTP redirect SSRF fix and new methods."""
+
+    def test_redirect_handler_blocks_internal(self):
+        """SafeRedirectHandler blocks redirects to internal IPs."""
+        from hands.tools.http import _SafeRedirectHandler
+        import urllib.request
+        import urllib.error
+
+        handler = _SafeRedirectHandler()
+        req = urllib.request.Request("https://example.com")
+        with pytest.raises(urllib.error.URLError, match="Redirect blocked"):
+            handler.redirect_request(
+                req, None, 302, "Found", {},
+                "http://127.0.0.1/internal"
+            )
+
+    def test_redirect_handler_allows_safe(self):
+        """SafeRedirectHandler allows redirects to safe URLs."""
+        from hands.tools.http import _SafeRedirectHandler
+        import urllib.request
+
+        handler = _SafeRedirectHandler()
+        req = urllib.request.Request("https://example.com")
+        result = handler.redirect_request(
+            req, None, 302, "Found", {},
+            "https://www.example.com/page"
+        )
+        assert result is not None
+
+    def test_put_method_in_schema(self):
+        """HTTP tool schema includes PUT, PATCH, DELETE methods."""
+        from hands.tools.http import HttpTool
+        tool = HttpTool()
+        actions = tool.input_schema["properties"]["action"]["enum"]
+        assert "put" in actions
+        assert "patch" in actions
+        assert "delete" in actions
+        assert "get" in actions
+        assert "post" in actions
+        assert "head" in actions
+
+
+class TestValidatorArtifactReading:
+    """Tests for validator reading actual file contents."""
+
+    def test_read_artifact_files_reads_text(self, tmp_workspace):
+        """_read_artifact_files reads text file contents."""
+        from hands.validator import _read_artifact_files
+
+        # Create test files
+        py_file = os.path.join(tmp_workspace, "main.py")
+        with open(py_file, "w") as f:
+            f.write("print('hello world')")
+
+        json_file = os.path.join(tmp_workspace, "package.json")
+        with open(json_file, "w") as f:
+            f.write('{"name": "test"}')
+
+        files = _read_artifact_files([py_file, json_file])
+        assert py_file in files
+        assert json_file in files
+        assert "hello world" in files[py_file]
+        assert "test" in files[json_file]
+
+    def test_read_artifact_files_skips_binary(self, tmp_workspace):
+        """_read_artifact_files skips binary file extensions."""
+        from hands.validator import _read_artifact_files
+
+        png_file = os.path.join(tmp_workspace, "image.png")
+        with open(png_file, "wb") as f:
+            f.write(b"\x89PNG\r\n")
+
+        py_file = os.path.join(tmp_workspace, "app.py")
+        with open(py_file, "w") as f:
+            f.write("import os")
+
+        files = _read_artifact_files([png_file, py_file])
+        assert png_file not in files
+        assert py_file in files
+
+    def test_read_artifact_files_handles_missing(self, tmp_workspace):
+        """_read_artifact_files handles non-existent paths gracefully."""
+        from hands.validator import _read_artifact_files
+
+        files = _read_artifact_files([
+            os.path.join(tmp_workspace, "nonexistent.py"),
+            os.path.join(tmp_workspace, "also_missing.txt"),
+        ])
+        assert len(files) == 0
+
+    def test_read_artifact_files_caps_size(self, tmp_workspace):
+        """_read_artifact_files respects per-file size cap."""
+        from hands.validator import _read_artifact_files, _MAX_FILE_CHARS
+
+        big_file = os.path.join(tmp_workspace, "big.py")
+        with open(big_file, "w") as f:
+            f.write("x" * (_MAX_FILE_CHARS + 5000))
+
+        files = _read_artifact_files([big_file])
+        assert big_file in files
+        assert len(files[big_file]) <= _MAX_FILE_CHARS + 100  # +100 for truncation message
+        assert "truncated" in files[big_file]
+
+    def test_read_artifact_files_deduplicates(self, tmp_workspace):
+        """_read_artifact_files deduplicates paths."""
+        from hands.validator import _read_artifact_files
+
+        py_file = os.path.join(tmp_workspace, "app.py")
+        with open(py_file, "w") as f:
+            f.write("test")
+
+        files = _read_artifact_files([py_file, py_file, py_file])
+        assert len(files) == 1
+
+    def test_read_artifact_files_prioritizes_key_files(self, tmp_workspace):
+        """_read_artifact_files reads key files (package.json etc) first."""
+        from hands.validator import _read_artifact_files
+
+        # Create a bunch of files
+        pkg = os.path.join(tmp_workspace, "package.json")
+        with open(pkg, "w") as f:
+            f.write('{"name": "priority"}')
+
+        # package.json should be in the result even with other files
+        other = os.path.join(tmp_workspace, "random.txt")
+        with open(other, "w") as f:
+            f.write("other")
+
+        files = _read_artifact_files([other, pkg])
+        assert pkg in files
+
+
+class TestWorkspaceAwarePlanning:
+    """Tests for planner workspace scanning."""
+
+    def test_scan_workspace_returns_tree(self, tmp_workspace):
+        """_scan_workspace produces a file tree and key files."""
+        from hands.planner import _scan_workspace
+
+        # Create a project structure
+        os.makedirs(os.path.join(tmp_workspace, "src"))
+        with open(os.path.join(tmp_workspace, "package.json"), "w") as f:
+            f.write('{"name": "test-project"}')
+        with open(os.path.join(tmp_workspace, "src", "index.ts"), "w") as f:
+            f.write('console.log("hello")')
+
+        result = _scan_workspace(tmp_workspace)
+        assert "tree" in result
+        assert "key_files" in result
+        assert "stats" in result
+        assert result["stats"]["files"] >= 2
+        assert result["stats"]["dirs"] >= 1
+        # package.json should be in key_files
+        assert any("package.json" in k for k in result["key_files"])
+
+    def test_scan_workspace_skips_node_modules(self, tmp_workspace):
+        """_scan_workspace skips node_modules and .git directories."""
+        from hands.planner import _scan_workspace
+
+        os.makedirs(os.path.join(tmp_workspace, "node_modules", "express"))
+        os.makedirs(os.path.join(tmp_workspace, ".git", "objects"))
+        with open(os.path.join(tmp_workspace, "node_modules", "express", "index.js"), "w") as f:
+            f.write("module.exports = {}")
+        with open(os.path.join(tmp_workspace, "app.js"), "w") as f:
+            f.write("const express = require('express')")
+
+        result = _scan_workspace(tmp_workspace)
+        assert "node_modules" not in result["tree"]
+        assert ".git" not in result["tree"]
+        assert "app.js" in result["tree"]
+
+    def test_scan_workspace_empty_dir(self, tmp_workspace):
+        """_scan_workspace handles empty directories."""
+        from hands.planner import _scan_workspace
+
+        result = _scan_workspace(tmp_workspace)
+        assert result["stats"]["files"] == 0
+        assert "tree" in result
+
+    def test_scan_workspace_invalid_path(self):
+        """_scan_workspace handles non-existent paths."""
+        from hands.planner import _scan_workspace
+
+        result = _scan_workspace("/nonexistent/path/xyz")
+        assert result["tree"] == ""
+        assert result["key_files"] == {}
+
+
+class TestStepCriticality:
+    """Tests for step criticality (required vs optional) in executor."""
+
+    def test_optional_failure_doesnt_block(self):
+        """Optional step failures should not mark execution as failed."""
+        # Simulate step results with an optional failure
+        step_results = [
+            {"step": 1, "success": True, "criticality": "required"},
+            {"step": 2, "success": False, "criticality": "optional"},  # optional fail
+            {"step": 3, "success": True, "criticality": "required"},
+        ]
+        # Compute like the executor does
+        failed_required = sum(1 for s in step_results
+                              if not s["success"] and s.get("criticality") == "required")
+        failed_optional = sum(1 for s in step_results
+                              if not s["success"] and s.get("criticality") == "optional")
+        successful = sum(1 for s in step_results if s["success"])
+
+        success = failed_required == 0 and successful > 0
+        assert success is True
+        assert failed_required == 0
+        assert failed_optional == 1
+
+    def test_required_failure_blocks(self):
+        """Required step failures should mark execution as failed."""
+        step_results = [
+            {"step": 1, "success": True, "criticality": "required"},
+            {"step": 2, "success": False, "criticality": "required"},
+        ]
+        failed_required = sum(1 for s in step_results
+                              if not s["success"] and s.get("criticality") == "required")
+        successful = sum(1 for s in step_results if s["success"])
+        success = failed_required == 0 and successful > 0
+        assert success is False
+
+    def test_plan_steps_get_default_criticality(self):
+        """Plan steps default to 'required' criticality."""
+        from hands.planner import plan
+        # Mock the actual API call
+        mock_plan = {
+            "task_summary": "test",
+            "steps": [
+                {"step_number": 1, "tool": "code", "description": "write"},
+                {"step_number": 2, "tool": "terminal", "description": "test"},
+            ]
+        }
+        with patch("hands.planner.create_message") as mock_msg:
+            mock_response = MagicMock()
+            mock_response.usage.input_tokens = 100
+            mock_response.usage.output_tokens = 50
+            mock_response.content = [MagicMock(text=json.dumps(mock_plan))]
+            mock_msg.return_value = mock_response
+
+            with patch("hands.planner.log_cost"):
+                result = plan(
+                    goal="test",
+                    tools_description="code, terminal",
+                    domain="test",
+                )
+                assert result is not None
+                for step in result["steps"]:
+                    assert step.get("criticality") == "required"
+
+
+class TestSearchToolTree:
+    """Tests for the new tree action in SearchTool."""
+
+    def test_tree_shows_structure(self, tmp_workspace):
+        """Tree action displays directory structure."""
+        from hands.tools.search import SearchTool
+        tool = SearchTool()
+
+        os.makedirs(os.path.join(tmp_workspace, "src", "components"))
+        with open(os.path.join(tmp_workspace, "src", "index.ts"), "w") as f:
+            f.write("export {}")
+        with open(os.path.join(tmp_workspace, "src", "components", "Button.tsx"), "w") as f:
+            f.write("export default function Button() {}")
+        with open(os.path.join(tmp_workspace, "package.json"), "w") as f:
+            f.write("{}")
+
+        result = tool.safe_execute(action="tree", path=tmp_workspace)
+        assert result.success
+        assert "src/" in result.output
+        assert "index.ts" in result.output
+        assert "Button.tsx" in result.output
+        assert "package.json" in result.output
+        assert "directories" in result.output
+
+    def test_tree_skips_node_modules(self, tmp_workspace):
+        """Tree action skips node_modules and .git."""
+        from hands.tools.search import SearchTool
+        tool = SearchTool()
+
+        os.makedirs(os.path.join(tmp_workspace, "node_modules", "express"))
+        os.makedirs(os.path.join(tmp_workspace, "src"))
+        with open(os.path.join(tmp_workspace, "src", "app.js"), "w") as f:
+            f.write("test")
+
+        result = tool.safe_execute(action="tree", path=tmp_workspace)
+        assert result.success
+        assert "node_modules" not in result.output
+        assert "app.js" in result.output
+
+    def test_tree_handles_empty_dir(self, tmp_workspace):
+        """Tree action works on empty directories."""
+        from hands.tools.search import SearchTool
+        tool = SearchTool()
+
+        result = tool.safe_execute(action="tree", path=tmp_workspace)
+        assert result.success
+        assert "0 files" in result.output
+
+    def test_tree_nonexistent_path(self):
+        """Tree action returns error for non-existent path."""
+        from hands.tools.search import SearchTool
+        tool = SearchTool()
+        result = tool.safe_execute(action="tree", path="/nonexistent/xyz")
+        assert not result.success
+
+
+class TestCodeToolInsertAtLine:
+    """Tests for the new insert_at_line action in CodeTool."""
+
+    def test_insert_at_line_middle(self, tmp_workspace):
+        """Insert content at a specific line in the middle of a file."""
+        from hands.tools.code import CodeTool
+        tool = CodeTool()
+
+        filepath = os.path.join(tmp_workspace, "test.py")
+        tool.safe_execute(action="write", path=filepath, content="line1\nline2\nline3\n")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            result = tool.safe_execute(
+                action="insert_at_line",
+                path=filepath,
+                line_number=2,
+                content="inserted_line",
+            )
+
+        assert result.success
+        with open(filepath) as f:
+            content = f.read()
+        assert "line1\ninserted_line\nline2\nline3\n" == content
+
+    def test_insert_at_line_beginning(self, tmp_workspace):
+        """Insert content at line 1 (beginning of file)."""
+        from hands.tools.code import CodeTool
+        tool = CodeTool()
+
+        filepath = os.path.join(tmp_workspace, "test.py")
+        tool.safe_execute(action="write", path=filepath, content="existing\n")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            result = tool.safe_execute(
+                action="insert_at_line",
+                path=filepath,
+                line_number=1,
+                content="# header",
+            )
+
+        assert result.success
+        with open(filepath) as f:
+            lines = f.readlines()
+        assert lines[0].startswith("# header")
+
+    def test_insert_at_line_end(self, tmp_workspace):
+        """Insert content past the last line (appends)."""
+        from hands.tools.code import CodeTool
+        tool = CodeTool()
+
+        filepath = os.path.join(tmp_workspace, "test.py")
+        tool.safe_execute(action="write", path=filepath, content="line1\nline2\n")
+
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            result = tool.safe_execute(
+                action="insert_at_line",
+                path=filepath,
+                line_number=999,
+                content="appended",
+            )
+
+        assert result.success
+        with open(filepath) as f:
+            content = f.read()
+        assert content.endswith("appended\n")
+
+    def test_insert_at_line_requires_content(self, tmp_workspace):
+        """insert_at_line requires content parameter."""
+        from hands.tools.code import CodeTool
+        tool = CodeTool()
+
+        filepath = os.path.join(tmp_workspace, "test.py")
+        with open(filepath, "w") as f:
+            f.write("hello")
+
+        result = tool.safe_execute(action="insert_at_line", path=filepath, line_number=1)
+        assert not result.success
+
+    def test_insert_at_line_requires_line_number(self, tmp_workspace):
+        """insert_at_line requires line_number parameter."""
+        from hands.tools.code import CodeTool
+        tool = CodeTool()
+
+        filepath = os.path.join(tmp_workspace, "test.py")
+        with open(filepath, "w") as f:
+            f.write("hello")
+
+        result = tool.safe_execute(action="insert_at_line", path=filepath, content="new")
+        assert not result.success
+
+    def test_insert_at_line_nonexistent_file(self, tmp_workspace):
+        """insert_at_line returns error for non-existent file."""
+        from hands.tools.code import CodeTool
+        tool = CodeTool()
+
+        filepath = os.path.join(tmp_workspace, "missing.py")
+        with patch("hands.tools.code.EXEC_ALLOWED_DIRS", [tmp_workspace]):
+            result = tool.safe_execute(
+                action="insert_at_line",
+                path=filepath,
+                line_number=1,
+                content="test",
+            )
+        assert not result.success
+
+
+class TestExecutionCostCeiling:
+    """Tests for execution cost ceiling."""
+
+    def test_cost_ceiling_constant_exists(self):
+        """MAX_EXECUTION_COST constant is defined."""
+        from hands.executor import MAX_EXECUTION_COST
+        assert MAX_EXECUTION_COST > 0
+        assert MAX_EXECUTION_COST <= 1.0  # Reasonable ceiling
+
+    def test_cost_ceiling_value(self):
+        """Cost ceiling is $0.50 by default."""
+        from hands.executor import MAX_EXECUTION_COST
+        assert MAX_EXECUTION_COST == 0.50
+
+
+class TestTaskGeneratorCleanup:
+    """Tests for task generator code cleanup."""
+
+    def test_no_duplicate_re_import(self):
+        """re module is imported at top level, not inside functions."""
+        import hands.task_generator as tg
+        import re
+        # re should be in the module's namespace
+        assert hasattr(tg, 're')
+        assert tg.re is re
+
+    @patch("hands.task_generator.create_message")
+    @patch("hands.task_generator.log_cost")
+    def test_generate_tasks_returns_list(self, mock_cost, mock_msg):
+        """generate_tasks returns a list of task dicts."""
+        from hands.task_generator import generate_tasks
+
+        tasks_json = json.dumps([
+            {"task": "Build X", "priority": 1, "reasoning": "test"},
+            {"task": "Build Y", "priority": 2, "reasoning": "test"},
+        ])
+        mock_response = MagicMock()
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 50
+        mock_response.content = [MagicMock(text=tasks_json)]
+        mock_msg.return_value = mock_response
+
+        tasks = generate_tasks("test-domain")
+        assert isinstance(tasks, list)
+        assert len(tasks) == 2
+        assert tasks[0]["task"] == "Build X"

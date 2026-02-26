@@ -63,6 +63,7 @@ class CodeTool(BaseTool):
     description = (
         "Read, write, and edit code files. Actions: write (create/overwrite file), "
         "read (get file contents), edit (replace a string in file), "
+        "insert_at_line (insert content at a specific line number), "
         "append (add to end of file), delete (remove file), list_dir (list directory)."
     )
     input_schema = {
@@ -70,7 +71,7 @@ class CodeTool(BaseTool):
         "properties": {
             "action": {
                 "type": "string",
-                "enum": ["write", "read", "edit", "append", "delete", "list_dir"],
+                "enum": ["write", "read", "edit", "insert_at_line", "append", "delete", "list_dir"],
                 "description": "The file action to perform.",
             },
             "path": {
@@ -79,11 +80,15 @@ class CodeTool(BaseTool):
             },
             "content": {
                 "type": "string",
-                "description": "File content (for write/append) or new string (for edit).",
+                "description": "File content (for write/append/insert_at_line) or new string (for edit).",
             },
             "old_string": {
                 "type": "string",
                 "description": "String to replace (only for edit action).",
+            },
+            "line_number": {
+                "type": "integer",
+                "description": "Line number to insert at (1-based, for insert_at_line action).",
             },
         },
         "required": ["action", "path"],
@@ -101,6 +106,12 @@ class CodeTool(BaseTool):
         if action in ("write", "append") and "content" not in kwargs:
             return f"content is required for {action} action"
 
+        if action == "insert_at_line":
+            if "content" not in kwargs:
+                return "content is required for insert_at_line action"
+            if "line_number" not in kwargs:
+                return "line_number is required for insert_at_line action"
+
         if action == "edit":
             if "old_string" not in kwargs:
                 return "old_string is required for edit action"
@@ -108,13 +119,13 @@ class CodeTool(BaseTool):
                 return "content (new_string) is required for edit action"
 
         # Safety checks for write operations
-        if action in ("write", "append", "edit", "delete"):
+        if action in ("write", "append", "edit", "insert_at_line", "delete"):
             error = _is_safe_path(path)
             if error:
                 return error
 
         # Size check for writes
-        if action in ("write", "append"):
+        if action in ("write", "append", "insert_at_line"):
             content = kwargs.get("content", "")
             if len(content.encode("utf-8")) > EXEC_MAX_FILE_SIZE:
                 return f"Content exceeds max file size ({EXEC_MAX_FILE_SIZE} bytes)"
@@ -131,6 +142,8 @@ class CodeTool(BaseTool):
             return self._read(path)
         elif action == "edit":
             return self._edit(path, kwargs["old_string"], kwargs["content"])
+        elif action == "insert_at_line":
+            return self._insert_at_line(path, kwargs["line_number"], kwargs["content"])
         elif action == "append":
             return self._append(path, kwargs["content"])
         elif action == "delete":
@@ -198,6 +211,31 @@ class CodeTool(BaseTool):
             output=f"Edited {path}: replaced 1 occurrence",
             artifacts=[path],
             metadata={"action": "edit"},
+        )
+
+    def _insert_at_line(self, path: str, line_number: int, content: str) -> ToolResult:
+        """Insert content at a specific line number (1-based)."""
+        if not os.path.exists(path):
+            return ToolResult(success=False, error=f"File not found: {path}")
+
+        with open(path) as f:
+            lines = f.readlines()
+
+        # Clamp line_number to valid range
+        line_number = max(1, min(line_number, len(lines) + 1))
+
+        # Insert the content (add newline if missing)
+        insert_content = content if content.endswith("\n") else content + "\n"
+        lines.insert(line_number - 1, insert_content)
+
+        with open(path, "w") as f:
+            f.writelines(lines)
+
+        return ToolResult(
+            success=True,
+            output=f"Inserted {len(content)} chars at line {line_number} of {path}",
+            artifacts=[path],
+            metadata={"action": "insert_at_line", "line": line_number},
         )
 
     def _append(self, path: str, content: str) -> ToolResult:
