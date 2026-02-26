@@ -13,7 +13,7 @@ from datetime import date
 from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import ANTHROPIC_API_KEY, MODELS, MAX_TOOL_ROUNDS, MAX_SEARCHES
+from config import ANTHROPIC_API_KEY, MODELS, MAX_TOOL_ROUNDS, MAX_SEARCHES, MAX_FETCHES
 from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 from tools.web_fetcher import fetch_page, search_and_fetch, FETCH_TOOL_DEFINITION, SEARCH_AND_FETCH_TOOL_DEFINITION
 from cost_tracker import log_cost
@@ -49,6 +49,8 @@ The quality difference is enormous. Prioritize fetch_page over multiple web_sear
 RULES:
 - Cite concrete facts, numbers, dates, URLs from search results
 - Mark confidence: high (verified in multiple sources), medium (single source), low (inferred)
+- When you find an important claim, search for corroboration from a second independent source
+  before marking confidence as "high". Single-source claims are "medium" at best.
 - Flag knowledge gaps honestly
 - Keep it concise — quality over quantity
 - NEVER present future-dated information as established fact
@@ -80,7 +82,61 @@ Do NOT output markdown, tables, or prose — ONLY the JSON object.
 === END DOMAIN STRATEGY ===
 """
 
-# MAX_TOOL_ROUNDS and MAX_SEARCHES imported from config
+# MAX_TOOL_ROUNDS, MAX_SEARCHES, MAX_FETCHES imported from config
+
+# Context compression threshold (chars of tool result content)
+CONTEXT_COMPRESS_THRESHOLD = 30000
+
+
+def _estimate_messages_size(messages: list) -> int:
+    """Estimate total chars of tool result content in messages."""
+    total = 0
+    for msg in messages:
+        if msg.get("role") == "user" and isinstance(msg.get("content"), list):
+            for item in msg["content"]:
+                if isinstance(item, dict) and item.get("type") == "tool_result":
+                    content = item.get("content", "")
+                    total += len(content) if isinstance(content, str) else 0
+    return total
+
+
+def _compress_messages(messages: list) -> None:
+    """
+    Compress older tool results when context gets too large.
+    Summarizes older tool results to key facts (URLs, titles, key data points)
+    while keeping the most recent 2 tool result messages in full.
+    """
+    total_size = _estimate_messages_size(messages)
+    if total_size <= CONTEXT_COMPRESS_THRESHOLD:
+        return
+    
+    # Find all user messages with tool results (oldest first)
+    tool_msg_indices = []
+    for i, msg in enumerate(messages):
+        if msg.get("role") == "user" and isinstance(msg.get("content"), list):
+            has_tool = any(
+                isinstance(item, dict) and item.get("type") == "tool_result"
+                for item in msg["content"]
+            )
+            if has_tool:
+                tool_msg_indices.append(i)
+    
+    # Keep the last 2 tool result messages intact, compress older ones
+    to_compress = tool_msg_indices[:-2] if len(tool_msg_indices) > 2 else []
+    
+    for idx in to_compress:
+        msg = messages[idx]
+        compressed_content = []
+        for item in msg["content"]:
+            if isinstance(item, dict) and item.get("type") == "tool_result":
+                content = item.get("content", "")
+                if isinstance(content, str) and len(content) > 500:
+                    # Extract key info: URLs, first 200 chars, any numbers/dates
+                    lines = content.split("\n")[:5]  # First 5 lines
+                    summary = "\n".join(lines)[:400]
+                    item["content"] = f"[COMPRESSED] {summary}..."
+            compressed_content.append(item)
+        msg["content"] = compressed_content
 
 
 def research(question: str, strategy: str | None = None, critique: str | None = None, domain: str = "general") -> dict:
@@ -167,6 +223,14 @@ If prior knowledge conflicts with new search results, flag the contradiction.
                     # Handle fetch_page tool
                     if tool_name == "fetch_page":
                         fetch_count += 1
+                        if fetch_count > MAX_FETCHES:
+                            print(f"  [FETCH #{fetch_count}] SKIPPED — hit max fetches ({MAX_FETCHES})")
+                            tool_results.append({
+                                "type": "tool_result",
+                                "tool_use_id": block.id,
+                                "content": '{"error": "Fetch limit reached. Compile your findings now."}',
+                            })
+                            continue
                         url = block.input.get("url", "")
                         print(f"  [FETCH #{fetch_count}] {url[:80]}")
                         result = fetch_page(url)
@@ -195,6 +259,14 @@ If prior knowledge conflicts with new search results, flag the contradiction.
                     if tool_name == "search_and_fetch":
                         search_count += 1
                         fetch_count += 1
+                        if search_count > MAX_SEARCHES:
+                            print(f"  [SEARCH+FETCH] SKIPPED — hit max searches ({MAX_SEARCHES})")
+                            tool_results.append({
+                                "type": "tool_result",
+                                "tool_use_id": block.id,
+                                "content": '{"error": "Search limit reached. Compile your findings now."}',
+                            })
+                            continue
                         query = block.input.get("query", question)
                         max_fetch = min(block.input.get("max_fetch", 3), 5)
                         print(f"  [SEARCH+FETCH] \"{query}\" (fetch top {max_fetch})")
@@ -268,6 +340,11 @@ If prior knowledge conflicts with new search results, flag the contradiction.
 
             messages.append({"role": "assistant", "content": response.content})
             messages.append({"role": "user", "content": tool_results})
+            
+            # Context compression: keep total tool result text under ~30K chars
+            # to prevent quality degradation from context bloat.
+            # Summarize older tool results, keep recent ones in full.
+            _compress_messages(messages)
         else:
             break
     else:

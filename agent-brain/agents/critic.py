@@ -125,8 +125,6 @@ Be harsh but fair. A score of 6 means adequate. 8+ means genuinely good research
 Do NOT inflate scores to be nice. The system depends on honest evaluation.
 """
 
-CRITIC_SYSTEM_PROMPT = _build_critic_prompt()
-
 
 def critique(research_output: dict, domain: str = "") -> dict:
     """
@@ -141,7 +139,7 @@ def critique(research_output: dict, domain: str = "") -> dict:
     """
     # Load adaptive rubric weights for this domain
     weights = load_rubric(domain) if domain else DEFAULT_RUBRIC_WEIGHTS
-    system_prompt = _build_critic_prompt(weights) if domain else CRITIC_SYSTEM_PROMPT
+    system_prompt = _build_critic_prompt(weights)
     
     user_message = f"Evaluate this research output:\n\n{json.dumps(research_output, indent=2)}"
 
@@ -154,7 +152,7 @@ def critique(research_output: dict, domain: str = "") -> dict:
     )
 
     # Track cost
-    log_cost(MODELS["critic"], response.usage.input_tokens, response.usage.output_tokens, "critic", "critique")
+    log_cost(MODELS["critic"], response.usage.input_tokens, response.usage.output_tokens, "critic", domain or "general")
 
     raw_text = response.content[0].text.strip()
 

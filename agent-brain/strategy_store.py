@@ -359,10 +359,11 @@ def evaluate_trial(agent_role: str, domain: str) -> dict:
         elif extensions < TRIAL_EXTEND_LIMIT:
             # Drop looks bad but not statistically significant yet — extend
             _extend_trial(agent_role, domain, current, extensions)
+            p_str = f"p={p_value:.3f}" if p_value is not None else "p=N/A"
             result["action"] = "extend_trial"
             result["reason"] = (
                 f"Trial {current} avg {trial_avg:.1f} is {drop_pct:.0%} below previous {prev_version} avg {prev_avg:.1f}, "
-                f"but evidence is inconclusive (p={p_value:.3f} if p_value else 'N/A', need p<{TRIAL_P_VALUE_THRESHOLD}). "
+                f"but evidence is inconclusive ({p_str}, need p<{TRIAL_P_VALUE_THRESHOLD}). "
                 f"Extended trial (extension {extensions + 1}/{TRIAL_EXTEND_LIMIT})."
             )
         else:
