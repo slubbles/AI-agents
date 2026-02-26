@@ -183,7 +183,8 @@ class TestCriticDomainLogging:
         """Critic log_cost should pass the actual domain."""
         import inspect
         from agents import critic
-        source = inspect.getsource(critic.critique)
+        # critique() now delegates to _critique_single() — check the actual implementation
+        source = inspect.getsource(critic._critique_single)
         # Should NOT have hardcoded "critique"
         assert '"critique"' not in source
         # Should use domain parameter

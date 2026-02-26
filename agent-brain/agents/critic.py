@@ -5,19 +5,26 @@ Reviews researcher output → scores 1-10 with structured rubric → provides ac
 Supports adaptive rubric weights per domain. If strategies/{domain}/_rubric.json exists,
 its weights override the defaults. The meta-analyst can recommend rubric adjustments based
 on score patterns (e.g., bump Specificity weight if that dimension is consistently weak).
+
+Enhancements:
+  - Recency awareness: penalizes stale data when question implies current information
+  - Ensemble mode: runs 2 critics, averages scores (CRITIC_ENSEMBLE config flag)
+  - Confidence validation: post-hoc check that "high" claims cite 2+ distinct sources
+  - Parse failure logging: raw critic output written to logs/ for debugging
 """
 
 import json
+import logging
 import os
-from datetime import date
+from datetime import date, datetime
 
 from anthropic import Anthropic
-from config import ANTHROPIC_API_KEY, MODELS, STRATEGY_DIR
+from config import ANTHROPIC_API_KEY, MODELS, STRATEGY_DIR, LOG_DIR
 from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
-from utils.json_parser import extract_json
 
+logger = logging.getLogger("critic")
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
@@ -96,11 +103,16 @@ TODAY'S DATE: {today}
 The current year is {date.today().year}. Events and data from {date.today().year} or earlier are NOT future events.
 Do NOT penalize research for reporting on events that have already occurred as of {today}.
 
+RECENCY AWARENESS:
+- If the question asks about "current", "latest", "recent", or "2026" topics, data older than 6 months should be flagged.
+- Findings that cite outdated statistics when newer data is available should lose Accuracy and Specificity points.
+- Recent verification of older claims (e.g., "as of {today}, X is still true") adds value.
+
 You score on 5 dimensions (each 1-10):
-1. **Accuracy** — Are the claims factually correct? Are there hallucinations or unsupported assertions?
+1. **Accuracy** — Are the claims factually correct? Are there hallucinations or unsupported assertions? Are cited sources real and actually accessed?
 2. **Depth** — Does the research go beyond surface-level? Are mechanisms explained, not just facts listed?
 3. **Completeness** — Are important angles covered? Are there obvious gaps?
-4. **Specificity** — Are claims concrete with numbers, dates, sources? Or vague hand-waving?
+4. **Specificity** — Are claims concrete with numbers, dates, sources? Or vague hand-waving? Is the data recent enough?
 5. **Intellectual honesty** — Does it flag uncertainty? Does it distinguish established fact from speculation?
 
 Overall score = weighted average (Accuracy {acc_pct}%, Depth {dep_pct}%, Completeness {com_pct}%, Specificity {spe_pct}%, Honesty {hon_pct}%)
@@ -130,6 +142,10 @@ def critique(research_output: dict, domain: str = "", sources_summary: list[dict
     """
     Evaluate research findings and produce a structured score.
     
+    If CRITIC_ENSEMBLE is enabled, runs 2 independent evaluations and averages.
+    Applies post-hoc confidence validation if CONFIDENCE_VALIDATION is enabled.
+    Logs raw response on parse failure if CRITIC_LOG_PARSE_FAILURES is enabled.
+    
     Args:
         research_output: The researcher's structured findings dict
         domain: Optional domain name — loads per-domain rubric weights if available
@@ -139,10 +155,150 @@ def critique(research_output: dict, domain: str = "", sources_summary: list[dict
     Returns:
         Parsed JSON dict with scores, feedback, and verdict
     """
+    import config as _cfg
+    
     # Load adaptive rubric weights for this domain
     weights = load_rubric(domain) if domain else DEFAULT_RUBRIC_WEIGHTS
-    system_prompt = _build_critic_prompt(weights)
     
+    if getattr(_cfg, "CRITIC_ENSEMBLE", False):
+        result = _critique_ensemble(research_output, domain, weights, sources_summary)
+    else:
+        result = _critique_single(research_output, domain, weights, sources_summary)
+    
+    # Post-hoc confidence validation
+    if getattr(_cfg, "CONFIDENCE_VALIDATION", True) and result.get("overall_score", 0) > 0:
+        result = _validate_confidence_claims(research_output, result, sources_summary)
+    
+    return result
+
+
+def _critique_single(
+    research_output: dict,
+    domain: str,
+    weights: dict,
+    sources_summary: list[dict] | None,
+) -> dict:
+    """Run a single critic evaluation."""
+    import config as _cfg
+    
+    system_prompt = _build_critic_prompt(weights)
+    user_message = _build_user_message(research_output, sources_summary)
+
+    response = create_message(
+        client,
+        model=MODELS["critic"],
+        max_tokens=2048,
+        system=system_prompt,
+        messages=[{"role": "user", "content": user_message}],
+    )
+
+    # Track cost
+    log_cost(MODELS["critic"], response.usage.input_tokens, response.usage.output_tokens, "critic", domain or "general")
+
+    raw_text = response.content[0].text.strip()
+
+    # Robust JSON extraction (handles markdown fences, preamble, etc.)
+    EXPECTED_KEYS = {"scores", "overall_score", "verdict"}
+    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
+
+    if result is None:
+        # Log the raw response for debugging
+        if getattr(_cfg, "CRITIC_LOG_PARSE_FAILURES", True):
+            _log_parse_failure(domain, raw_text)
+        
+        # Fallback if critic response isn't valid JSON
+        result = {
+            "scores": {"accuracy": 0, "depth": 0, "completeness": 0, "specificity": 0, "intellectual_honesty": 0},
+            "overall_score": 0,
+            "strengths": [],
+            "weaknesses": ["Critic failed to produce structured output"],
+            "actionable_feedback": "Unable to evaluate — retry",
+            "verdict": "reject",
+            "_parse_error": True,
+        }
+
+    # Ensure verdict field exists and aligns with score
+    if "overall_score" in result and "verdict" not in result:
+        result["verdict"] = "accept" if result["overall_score"] >= 6 else "reject"
+
+    return result
+
+
+def _critique_ensemble(
+    research_output: dict,
+    domain: str,
+    weights: dict,
+    sources_summary: list[dict] | None,
+) -> dict:
+    """
+    Run 2 independent critic evaluations and average the scores.
+    
+    This catches single-critic hallucination and provides more calibrated
+    scoring. Cost: 2x critic API calls.
+    """
+    result_a = _critique_single(research_output, domain, weights, sources_summary)
+    result_b = _critique_single(research_output, domain, weights, sources_summary)
+    
+    # If either had a parse error, use the other
+    if result_a.get("_parse_error"):
+        result_b["_ensemble"] = "fallback_b"
+        return result_b
+    if result_b.get("_parse_error"):
+        result_a["_ensemble"] = "fallback_a"
+        return result_a
+    
+    # Average the scores
+    scores_a = result_a.get("scores", {})
+    scores_b = result_b.get("scores", {})
+    
+    avg_scores = {}
+    for dim in DEFAULT_RUBRIC_WEIGHTS:
+        sa = scores_a.get(dim, 0)
+        sb = scores_b.get(dim, 0)
+        avg_scores[dim] = round((sa + sb) / 2, 1)
+    
+    # Recalculate overall from averaged dimension scores
+    w = weights or DEFAULT_RUBRIC_WEIGHTS
+    overall = sum(avg_scores.get(dim, 0) * weight for dim, weight in w.items())
+    overall = round(overall, 2)
+    
+    # Merge strengths/weaknesses (deduplicated)
+    strengths = list(dict.fromkeys(result_a.get("strengths", []) + result_b.get("strengths", [])))
+    weaknesses = list(dict.fromkeys(result_a.get("weaknesses", []) + result_b.get("weaknesses", [])))
+    
+    # Use the more detailed feedback
+    feedback_a = result_a.get("actionable_feedback", "")
+    feedback_b = result_b.get("actionable_feedback", "")
+    feedback = feedback_a if len(feedback_a) >= len(feedback_b) else feedback_b
+    
+    # Score divergence tracking
+    score_a = result_a.get("overall_score", 0)
+    score_b = result_b.get("overall_score", 0)
+    divergence = abs(score_a - score_b)
+    
+    result = {
+        "scores": avg_scores,
+        "overall_score": overall,
+        "strengths": strengths[:6],
+        "weaknesses": weaknesses[:6],
+        "actionable_feedback": feedback,
+        "verdict": "accept" if overall >= 6 else "reject",
+        "_ensemble": True,
+        "_ensemble_scores": [score_a, score_b],
+        "_ensemble_divergence": round(divergence, 2),
+    }
+    
+    if divergence > 2.0:
+        result["weaknesses"].append(
+            f"[ENSEMBLE WARNING] Critics diverged by {divergence:.1f} points "
+            f"({score_a:.1f} vs {score_b:.1f}) — reliability uncertain"
+        )
+    
+    return result
+
+
+def _build_user_message(research_output: dict, sources_summary: list[dict] | None) -> str:
+    """Build the user message for the critic, including source verification if available."""
     user_message = f"Evaluate this research output:\n\n{json.dumps(research_output, indent=2)}"
     
     # If we have source data, append it so the critic can verify accuracy
@@ -168,38 +324,95 @@ def critique(research_output: dict, domain: str = "", sources_summary: list[dict
                          "If findings include specific data not traceable to any fetched page, flag it.\n"
                          "=== END SOURCE VERIFICATION ===")
         user_message += source_block
+    
+    return user_message
 
-    response = create_message(
-        client,
-        model=MODELS["critic"],
-        max_tokens=2048,
-        system=system_prompt,
-        messages=[{"role": "user", "content": user_message}],
-    )
 
-    # Track cost
-    log_cost(MODELS["critic"], response.usage.input_tokens, response.usage.output_tokens, "critic", domain or "general")
-
-    raw_text = response.content[0].text.strip()
-
-    # Robust JSON extraction (handles markdown fences, preamble, etc.)
-    EXPECTED_KEYS = {"scores", "overall_score", "verdict"}
-    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
-
-    if result is None:
-        # Fallback if critic response isn't valid JSON
-        result = {
-            "scores": {"accuracy": 0, "depth": 0, "completeness": 0, "specificity": 0, "intellectual_honesty": 0},
-            "overall_score": 0,
-            "strengths": [],
-            "weaknesses": ["Critic failed to produce structured output"],
-            "actionable_feedback": "Unable to evaluate — retry",
-            "verdict": "reject",
-            "_parse_error": True,
+def _validate_confidence_claims(
+    research_output: dict,
+    critique_result: dict,
+    sources_summary: list[dict] | None,
+) -> dict:
+    """
+    Post-hoc validation: check that 'high' confidence claims actually cite 2+ sources.
+    
+    If a claim is marked 'high' confidence but cites only 1 or 0 sources,
+    apply an accuracy penalty and add a weakness note.
+    """
+    import config as _cfg
+    
+    findings = research_output.get("findings", [])
+    if not findings:
+        return critique_result
+    
+    # Collect all fetched URLs for cross-reference
+    fetched_urls = set()
+    if sources_summary:
+        for s in sources_summary:
+            if s.get("tool") in ("fetch_page", "search_and_fetch") and s.get("success"):
+                url = s.get("url", s.get("query", ""))
+                if url:
+                    fetched_urls.add(url.lower().rstrip("/"))
+    
+    # Check each high-confidence claim
+    invalid_high = []
+    for finding in findings:
+        if finding.get("confidence", "").lower() != "high":
+            continue
+        
+        # Check source count
+        source = finding.get("source", "")
+        sources_cited = [s.strip() for s in source.split(",") if s.strip()] if source else []
+        
+        # A high-confidence claim should cite at least 2 sources
+        if len(sources_cited) < 2:
+            claim_preview = finding.get("claim", "")[:80]
+            invalid_high.append(f"'{claim_preview}...' (high confidence, only {len(sources_cited)} source(s))")
+    
+    if invalid_high:
+        penalty = getattr(_cfg, "CONFIDENCE_PENALTY", 1.0)
+        
+        # Apply accuracy penalty
+        scores = critique_result.get("scores", {})
+        original_accuracy = scores.get("accuracy", 0)
+        new_accuracy = max(1, original_accuracy - penalty)
+        scores["accuracy"] = new_accuracy
+        
+        # Recalculate overall
+        weights = DEFAULT_RUBRIC_WEIGHTS
+        overall = sum(scores.get(dim, 0) * w for dim, w in weights.items())
+        critique_result["overall_score"] = round(overall, 2)
+        critique_result["verdict"] = "accept" if critique_result["overall_score"] >= 6 else "reject"
+        
+        # Add weakness note
+        weaknesses = critique_result.get("weaknesses", [])
+        weaknesses.append(
+            f"[CONFIDENCE CHECK] {len(invalid_high)} 'high' confidence claim(s) lack multi-source backing "
+            f"(accuracy -{penalty}): {invalid_high[0]}"
+        )
+        critique_result["weaknesses"] = weaknesses
+        critique_result["_confidence_penalty"] = {
+            "count": len(invalid_high),
+            "penalty_applied": penalty,
+            "original_accuracy": original_accuracy,
+            "new_accuracy": new_accuracy,
         }
+    
+    return critique_result
 
-    # Ensure verdict field exists and aligns with score
-    if "overall_score" in result and "verdict" not in result:
-        result["verdict"] = "accept" if result["overall_score"] >= 6 else "reject"
 
-    return result
+def _log_parse_failure(domain: str, raw_text: str) -> None:
+    """Write raw critic response to a debug log on parse failure."""
+    try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+        log_path = os.path.join(LOG_DIR, "critic_parse_failures.jsonl")
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "domain": domain,
+            "raw_text": raw_text[:5000],
+        }
+        with open(log_path, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+        logger.warning(f"Critic parse failure logged to {log_path}")
+    except Exception as e:
+        logger.error(f"Failed to log critic parse failure: {e}")
