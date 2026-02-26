@@ -352,4 +352,72 @@ def plan(
     plan_data.setdefault("estimated_complexity", "medium")
     plan_data.setdefault("risks", [])
 
+    # Validate and fix dependency graph
+    _validate_dependencies(plan_data["steps"])
+
     return plan_data
+
+
+def _validate_dependencies(steps: list[dict]) -> None:
+    """
+    Validate and sanitize the dependency graph of plan steps.
+    
+    Fixes:
+    - References to non-existent step numbers
+    - Circular dependencies (breaks cycles)
+    - Self-references
+    
+    Modifies steps in-place.
+    """
+    valid_steps = {s.get("step_number", i + 1) for i, s in enumerate(steps)}
+    
+    for step in steps:
+        step_num = step.get("step_number", 0)
+        deps = step.get("depends_on", [])
+        
+        if not isinstance(deps, list):
+            step["depends_on"] = []
+            continue
+        
+        # Remove self-references and invalid step numbers
+        cleaned = [d for d in deps if d != step_num and d in valid_steps]
+        
+        # Remove forward references (can't depend on a later step)
+        cleaned = [d for d in cleaned if d < step_num]
+        
+        if len(cleaned) != len(deps):
+            step["depends_on"] = cleaned
+    
+    # Detect and break circular dependencies using topological sort attempt
+    # Build adjacency list
+    graph = {}
+    for step in steps:
+        sn = step.get("step_number", 0)
+        graph[sn] = step.get("depends_on", [])
+    
+    # Simple cycle detection via DFS
+    visited = set()
+    in_stack = set()
+    
+    def has_cycle(node: int) -> bool:
+        if node in in_stack:
+            return True
+        if node in visited:
+            return False
+        visited.add(node)
+        in_stack.add(node)
+        for dep in graph.get(node, []):
+            if has_cycle(dep):
+                return True
+        in_stack.discard(node)
+        return False
+    
+    for step in steps:
+        sn = step.get("step_number", 0)
+        visited.clear()
+        in_stack.clear()
+        if has_cycle(sn):
+            # Break cycle by clearing this step's dependencies
+            print(f"  [PLANNER] ⚠ Circular dependency detected at step {sn} — clearing deps")
+            step["depends_on"] = []
+            graph[sn] = []

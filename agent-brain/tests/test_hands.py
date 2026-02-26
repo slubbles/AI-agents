@@ -2256,3 +2256,275 @@ class TestExecCrossDomain:
         assert "Python" in result or "PEP 8" in result  # Template part
         assert "Always validate JSON config" in result  # Principles part
 
+
+# ============================================================
+# v5: Workspace Diff Tracking
+# ============================================================
+
+class TestWorkspaceDiff:
+    """Tests for workspace diff tracking."""
+
+    def test_snapshot_empty_dir(self, tmp_path):
+        """Snapshot of empty dir returns empty dict."""
+        from hands.workspace_diff import snapshot_workspace
+        result = snapshot_workspace(str(tmp_path))
+        assert result == {}
+
+    def test_snapshot_with_files(self, tmp_path):
+        """Snapshot captures files."""
+        from hands.workspace_diff import snapshot_workspace
+        (tmp_path / "hello.py").write_text("print('hi')")
+        (tmp_path / "data.json").write_text("{}")
+        result = snapshot_workspace(str(tmp_path))
+        assert "hello.py" in result
+        assert "data.json" in result
+
+    def test_snapshot_skips_node_modules(self, tmp_path):
+        """Snapshot skips node_modules directory."""
+        from hands.workspace_diff import snapshot_workspace
+        nm = tmp_path / "node_modules" / "express"
+        nm.mkdir(parents=True)
+        (nm / "index.js").write_text("module.exports = {}")
+        (tmp_path / "app.js").write_text("const express = require('express')")
+        result = snapshot_workspace(str(tmp_path))
+        assert "app.js" in result
+        assert not any("node_modules" in k for k in result)
+
+    def test_diff_created_files(self, tmp_path):
+        """Diff detects newly created files."""
+        from hands.workspace_diff import snapshot_workspace, compute_diff
+        before = snapshot_workspace(str(tmp_path))
+        (tmp_path / "new_file.py").write_text("# new")
+        after = snapshot_workspace(str(tmp_path))
+        diff = compute_diff(before, after)
+        assert "new_file.py" in diff["created"]
+        assert len(diff["modified"]) == 0
+        assert len(diff["deleted"]) == 0
+
+    def test_diff_modified_files(self, tmp_path):
+        """Diff detects modified files."""
+        from hands.workspace_diff import snapshot_workspace, compute_diff
+        f = tmp_path / "config.json"
+        f.write_text("{}")
+        before = snapshot_workspace(str(tmp_path))
+        # Modify the file (different size = different fingerprint)
+        f.write_text('{"key": "value", "extra": true}')
+        after = snapshot_workspace(str(tmp_path))
+        diff = compute_diff(before, after)
+        assert "config.json" in diff["modified"]
+
+    def test_diff_deleted_files(self, tmp_path):
+        """Diff detects deleted files."""
+        from hands.workspace_diff import snapshot_workspace, compute_diff
+        f = tmp_path / "temp.txt"
+        f.write_text("temporary")
+        before = snapshot_workspace(str(tmp_path))
+        f.unlink()
+        after = snapshot_workspace(str(tmp_path))
+        diff = compute_diff(before, after)
+        assert "temp.txt" in diff["deleted"]
+
+    def test_format_diff_no_changes(self):
+        """Format diff with no changes."""
+        from hands.workspace_diff import format_diff_summary
+        diff = {"created": [], "modified": [], "deleted": [], "unchanged": 5}
+        result = format_diff_summary(diff)
+        assert "No file changes" in result
+
+    def test_format_diff_with_changes(self):
+        """Format diff with mixed changes."""
+        from hands.workspace_diff import format_diff_summary
+        diff = {
+            "created": ["new.py"],
+            "modified": ["old.py"],
+            "deleted": ["removed.txt"],
+            "unchanged": 3,
+        }
+        result = format_diff_summary(diff)
+        assert "Created (1)" in result
+        assert "new.py" in result
+        assert "Modified (1)" in result
+        assert "Deleted (1)" in result
+
+    def test_snapshot_nonexistent_dir(self):
+        """Snapshot of nonexistent directory returns empty dict."""
+        from hands.workspace_diff import snapshot_workspace
+        result = snapshot_workspace("/nonexistent/path")
+        assert result == {}
+
+
+# ============================================================
+# v5: Plan Dependency Validation
+# ============================================================
+
+class TestPlanDependencyValidation:
+    """Tests for plan dependency graph validation."""
+
+    def test_removes_self_reference(self):
+        """Self-references in depends_on are removed."""
+        from hands.planner import _validate_dependencies
+        steps = [
+            {"step_number": 1, "depends_on": [1]},
+            {"step_number": 2, "depends_on": [1]},
+        ]
+        _validate_dependencies(steps)
+        assert 1 not in steps[0]["depends_on"]
+        assert steps[1]["depends_on"] == [1]
+
+    def test_removes_invalid_step_refs(self):
+        """References to non-existent steps are removed."""
+        from hands.planner import _validate_dependencies
+        steps = [
+            {"step_number": 1, "depends_on": []},
+            {"step_number": 2, "depends_on": [1, 99]},
+        ]
+        _validate_dependencies(steps)
+        assert steps[1]["depends_on"] == [1]
+
+    def test_removes_forward_references(self):
+        """Forward references (depending on later steps) are removed."""
+        from hands.planner import _validate_dependencies
+        steps = [
+            {"step_number": 1, "depends_on": [3]},
+            {"step_number": 2, "depends_on": [1]},
+            {"step_number": 3, "depends_on": [2]},
+        ]
+        _validate_dependencies(steps)
+        assert steps[0]["depends_on"] == []  # Can't depend on step 3
+
+    def test_breaks_circular_dependency(self):
+        """Circular dependencies are detected and broken."""
+        from hands.planner import _validate_dependencies
+        steps = [
+            {"step_number": 1, "depends_on": [2]},
+            {"step_number": 2, "depends_on": [1]},
+        ]
+        _validate_dependencies(steps)
+        # After forward-ref removal, step 1 can't depend on 2 (forward)
+        # and step 2's dep on 1 is valid
+        # So forward-ref cleaning handles this case
+        assert steps[0]["depends_on"] == []
+
+    def test_valid_deps_unchanged(self):
+        """Valid dependency chains are left intact."""
+        from hands.planner import _validate_dependencies
+        steps = [
+            {"step_number": 1, "depends_on": []},
+            {"step_number": 2, "depends_on": [1]},
+            {"step_number": 3, "depends_on": [1, 2]},
+        ]
+        _validate_dependencies(steps)
+        assert steps[0]["depends_on"] == []
+        assert steps[1]["depends_on"] == [1]
+        assert steps[2]["depends_on"] == [1, 2]
+
+    def test_non_list_deps_converted(self):
+        """Non-list depends_on is converted to empty list."""
+        from hands.planner import _validate_dependencies
+        steps = [
+            {"step_number": 1, "depends_on": "step1"},
+        ]
+        _validate_dependencies(steps)
+        assert steps[0]["depends_on"] == []
+
+
+# ============================================================
+# v5: Error Analyzer
+# ============================================================
+
+class TestErrorAnalyzer:
+    """Tests for the smart error categorization system."""
+
+    def test_module_not_found(self):
+        """ModuleNotFoundError is categorized correctly."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("ModuleNotFoundError: No module named 'flask'")
+        assert result["category"] == "missing_dependency"
+        assert result["retryable"] is True
+        assert "install" in result["advice"].lower()
+
+    def test_file_not_found(self):
+        """FileNotFoundError is categorized correctly."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("FileNotFoundError: [Errno 2] No such file or directory: 'config.json'")
+        assert result["category"] == "missing_file"
+        assert result["retryable"] is True
+
+    def test_permission_denied(self):
+        """PermissionError is categorized correctly."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("PermissionError: [Errno 13] Permission denied: '/etc/passwd'")
+        assert result["category"] == "permission"
+        assert result["retryable"] is True
+
+    def test_syntax_error(self):
+        """SyntaxError is categorized correctly."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("SyntaxError: invalid syntax at line 42")
+        assert result["category"] == "syntax_error"
+        assert result["retryable"] is True
+
+    def test_command_not_found(self):
+        """Command not found errors are categorized."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("bash: tsc: command not found")
+        assert result["category"] == "missing_tool"
+        assert result["retryable"] is True
+
+    def test_network_error(self):
+        """Network errors are categorized."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("ConnectionError: Connection refused for localhost:5000")
+        assert result["category"] == "network"
+
+    def test_out_of_memory(self):
+        """OOM errors are not retryable."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("FATAL ERROR: JavaScript heap out of memory")
+        assert result["category"] == "resource"
+        assert result["retryable"] is False
+
+    def test_unknown_error(self):
+        """Unknown errors get generic advice."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("Something completely unexpected happened")
+        assert result["category"] == "unknown"
+        assert result["retryable"] is True
+
+    def test_json_error(self):
+        """JSON parse errors are categorized."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("JSONDecodeError: Expecting ',' delimiter")
+        assert result["category"] == "json_error"
+        assert result["retryable"] is True
+
+    def test_port_conflict(self):
+        """Port conflict errors are categorized."""
+        from hands.error_analyzer import analyze_error
+        result = analyze_error("Error: EADDRINUSE: address already in use :::3000")
+        assert result["category"] == "port_conflict"
+        assert result["retryable"] is True
+
+    def test_format_retry_guidance(self):
+        """Retry guidance formatting works."""
+        from hands.error_analyzer import format_retry_guidance
+        analysis = {
+            "category": "missing_dependency",
+            "advice": "Install the missing package first.",
+            "retryable": True,
+        }
+        msg = format_retry_guidance(analysis, retries_left=2)
+        assert "missing_dependency" in msg
+        assert "2 retries" in msg
+
+    def test_format_non_retryable(self):
+        """Non-retryable errors say so in guidance."""
+        from hands.error_analyzer import format_retry_guidance
+        analysis = {
+            "category": "resource",
+            "advice": "Out of memory.",
+            "retryable": False,
+        }
+        msg = format_retry_guidance(analysis, retries_left=1)
+        assert "unlikely" in msg.lower() or "not" in msg.lower()
+
