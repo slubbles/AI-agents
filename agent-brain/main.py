@@ -531,6 +531,36 @@ def main():
     parser.add_argument("--mcp-stop", action="store_true", help="Stop all MCP servers")
     parser.add_argument("--mcp-tools", action="store_true", help="List all available MCP tools")
     parser.add_argument("--mcp-health", action="store_true", help="Run health checks on MCP servers")
+
+    # Credential Vault — Encrypted secret storage
+    parser.add_argument("--vault-store", nargs=2, metavar=("KEY", "VALUE"), help="Store a credential (e.g. --vault-store linkedin_com '{\"email\":...,\"password\":...}')")
+    parser.add_argument("--vault-get", metavar="KEY", help="Retrieve a credential (prints value)")
+    parser.add_argument("--vault-delete", metavar="KEY", help="Delete a credential")
+    parser.add_argument("--vault-list", action="store_true", help="List all credential keys")
+    parser.add_argument("--vault-stats", action="store_true", help="Show vault statistics")
+
+    # Stealth Browser
+    parser.add_argument("--browser-fetch", metavar="URL", help="Fetch a URL using stealth browser (JS rendering)")
+    parser.add_argument("--browser-test", action="store_true", help="Test browser stealth detection")
+
+    # Project Orchestrator — Large project management
+    parser.add_argument("--project", metavar="DESCRIPTION", help="Decompose and execute a large project")
+    parser.add_argument("--project-status", metavar="PROJECT_ID", help="Show project status", nargs="?", const="latest")
+    parser.add_argument("--project-resume", metavar="PROJECT_ID", help="Resume a paused project", nargs="?", const="latest")
+    parser.add_argument("--project-approve", metavar="PROJECT_ID", help="Approve current phase of a project", nargs="?", const="latest")
+    parser.add_argument("--project-list", action="store_true", help="List all projects")
+
+    # VPS Deploy
+    parser.add_argument("--deploy", action="store_true", help="Deploy Agent Brain to VPS")
+    parser.add_argument("--deploy-dry-run", action="store_true", help="Show what deploy would do (no changes)")
+    parser.add_argument("--deploy-health", action="store_true", help="Run health check on remote VPS")
+    parser.add_argument("--deploy-logs", action="store_true", help="View remote VPS logs")
+    parser.add_argument("--deploy-schedule", action="store_true", help="Setup/update cron schedule on VPS")
+    parser.add_argument("--deploy-unschedule", action="store_true", help="Remove cron schedule from VPS")
+    parser.add_argument("--deploy-configure", action="store_true", help="Configure VPS connection")
+    parser.add_argument("--deploy-host", default="", help="VPS hostname/IP (use with --deploy-configure)")
+    parser.add_argument("--deploy-user", default="", help="SSH user (use with --deploy-configure)")
+
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -720,6 +750,68 @@ def main():
         return
     if getattr(args, 'mcp_health', False):
         _mcp_health_check()
+        return
+
+    # Credential Vault commands
+    if getattr(args, 'vault_store', None):
+        _vault_store(args.vault_store[0], args.vault_store[1])
+        return
+    if getattr(args, 'vault_get', None):
+        _vault_get(args.vault_get)
+        return
+    if getattr(args, 'vault_delete', None):
+        _vault_delete(args.vault_delete)
+        return
+    if getattr(args, 'vault_list', False):
+        _vault_list()
+        return
+    if getattr(args, 'vault_stats', False):
+        _vault_stats()
+        return
+
+    # Stealth Browser commands
+    if getattr(args, 'browser_fetch', None):
+        _browser_fetch_url(args.browser_fetch)
+        return
+    if getattr(args, 'browser_test', False):
+        _browser_test_stealth()
+        return
+
+    # Project Orchestrator commands
+    if getattr(args, 'project', None):
+        _run_project(args.project, args.domain, workspace_dir=args.workspace)
+        return
+    if getattr(args, 'project_status', None):
+        _show_project_status(args.project_status)
+        return
+    if getattr(args, 'project_resume', None):
+        _resume_project(args.project_resume)
+        return
+    if getattr(args, 'project_approve', None):
+        _approve_project_phase(args.project_approve)
+        return
+    if getattr(args, 'project_list', False):
+        _list_projects()
+        return
+
+    # VPS Deploy commands
+    if getattr(args, 'deploy', False) or getattr(args, 'deploy_dry_run', False):
+        _run_deploy(dry_run=getattr(args, 'deploy_dry_run', False))
+        return
+    if getattr(args, 'deploy_health', False):
+        _run_deploy_health()
+        return
+    if getattr(args, 'deploy_logs', False):
+        _run_deploy_logs(domain=args.domain)
+        return
+    if getattr(args, 'deploy_schedule', False):
+        _run_deploy_schedule()
+        return
+    if getattr(args, 'deploy_unschedule', False):
+        _run_deploy_unschedule()
+        return
+    if getattr(args, 'deploy_configure', False):
+        _run_deploy_configure(host=args.deploy_host, user=args.deploy_user)
         return
 
     if args.evolve:
@@ -3348,6 +3440,478 @@ def _mcp_health_check():
 
     except Exception as e:
         print(f"  Error: {e}")
+
+
+# ============================================================
+# Credential Vault Handlers
+# ============================================================
+
+def _get_vault():
+    """Get an unlocked CredentialVault instance."""
+    import os
+    passphrase = os.environ.get("VAULT_PASSPHRASE", "")
+    if not passphrase:
+        import getpass
+        passphrase = getpass.getpass("Vault passphrase: ")
+    if not passphrase:
+        print("  ERROR: No vault passphrase provided.")
+        print("  Set VAULT_PASSPHRASE env var or enter it when prompted.")
+        return None
+    try:
+        from utils.credential_vault import CredentialVault
+        return CredentialVault(passphrase=passphrase)
+    except Exception as e:
+        print(f"  ERROR: {e}")
+        return None
+
+
+def _vault_store(key: str, value: str):
+    """Store a credential in the vault."""
+    print(f"\n{'='*60}")
+    print(f"  VAULT — Store Credential")
+    print(f"{'='*60}\n")
+
+    vault = _get_vault()
+    if not vault:
+        return
+
+    # Try parsing as JSON (for structured creds like {email, password})
+    import json
+    try:
+        parsed = json.loads(value)
+        vault.store(key, parsed)
+        print(f"  Stored '{key}' (JSON object with {len(parsed)} keys)")
+    except json.JSONDecodeError:
+        vault.store(key, value)
+        print(f"  Stored '{key}' (string, {len(value)} chars)")
+
+
+def _vault_get(key: str):
+    """Retrieve a credential from the vault."""
+    vault = _get_vault()
+    if not vault:
+        return
+
+    try:
+        val = vault.retrieve(key)
+        import json
+        if isinstance(val, dict):
+            # Mask passwords in display
+            display = {}
+            for k, v in val.items():
+                if "password" in k.lower() or "secret" in k.lower() or "token" in k.lower():
+                    display[k] = f"{str(v)[:3]}{'*' * max(0, len(str(v))-3)}"
+                else:
+                    display[k] = v
+            print(json.dumps(display, indent=2))
+        else:
+            # Mask if it looks like a secret
+            print(f"  {key}: {str(val)[:5]}{'*' * max(0, len(str(val))-5)}")
+    except KeyError:
+        print(f"  Key '{key}' not found in vault.")
+
+
+def _vault_delete(key: str):
+    """Delete a credential from the vault."""
+    vault = _get_vault()
+    if not vault:
+        return
+
+    if vault.delete(key):
+        print(f"  Deleted '{key}'")
+    else:
+        print(f"  Key '{key}' not found.")
+
+
+def _vault_list():
+    """List all vault credential keys."""
+    print(f"\n{'='*60}")
+    print(f"  VAULT — Stored Credentials")
+    print(f"{'='*60}\n")
+
+    vault = _get_vault()
+    if not vault:
+        return
+
+    keys = vault.list_keys()
+    if keys:
+        for k in keys:
+            entry = vault.retrieve_full(k)
+            updated = entry.get("updated_at", "?")[:10]
+            accesses = entry.get("access_count", 0)
+            print(f"  {k:30s}  updated: {updated}  accesses: {accesses}")
+    else:
+        print("  (vault is empty)")
+    print()
+
+
+def _vault_stats():
+    """Show vault statistics."""
+    print(f"\n{'='*60}")
+    print(f"  VAULT — Statistics")
+    print(f"{'='*60}\n")
+
+    vault = _get_vault()
+    if not vault:
+        return
+
+    import json
+    stats = vault.stats()
+    print(f"  Total credentials: {stats['total_credentials']}")
+    print(f"  Vault file size: {stats['vault_file_size']} bytes")
+    if stats["keys"]:
+        print(f"  Keys: {', '.join(stats['keys'])}")
+    print()
+
+
+# ============================================================
+# Stealth Browser Handlers
+# ============================================================
+
+def _browser_fetch_url(url: str):
+    """Fetch a URL using the stealth browser."""
+    print(f"\n{'='*60}")
+    print(f"  BROWSER FETCH")
+    print(f"{'='*60}\n")
+    print(f"  URL: {url}")
+
+    try:
+        from browser.session_manager import fetch_with_browser
+        vault = _get_vault()
+        result = fetch_with_browser(url, vault=vault, headless=True)
+
+        if result["success"]:
+            print(f"  Title: {result.get('title', 'N/A')}")
+            print(f"  Characters: {result.get('char_count', 0)}")
+            print(f"  Domain: {result.get('domain', 'N/A')}")
+            print(f"\n--- Content (first 2000 chars) ---")
+            print(result.get("content", "")[:2000])
+        else:
+            print(f"  FAILED: {result.get('error', 'Unknown error')}")
+    except ImportError as e:
+        print(f"  ERROR: Browser dependencies not installed: {e}")
+        print("  Run: pip install playwright && playwright install chromium")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    print()
+
+
+def _browser_test_stealth():
+    """Test browser stealth detection."""
+    print(f"\n{'='*60}")
+    print(f"  BROWSER STEALTH TEST")
+    print(f"{'='*60}\n")
+
+    try:
+        import asyncio
+        from browser.stealth_browser import StealthBrowser
+
+        async def _test():
+            async with StealthBrowser(headless=True) as browser:
+                page = await browser.new_page()
+                await browser.navigate(page, "https://bot.sannysoft.com")
+                detection = await browser.check_detection(page)
+                await page.close()
+                return detection
+
+        result = asyncio.run(_test())
+        stealth_ok = result.pop("stealth_ok", False)
+        print(f"  Stealth: {'PASS' if stealth_ok else 'FAIL'}")
+        for key, val in result.items():
+            print(f"    {key}: {val}")
+    except ImportError as e:
+        print(f"  ERROR: Browser dependencies not installed: {e}")
+        print("  Run: pip install playwright && playwright install chromium")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    print()
+
+
+# ============================================================
+# Project Orchestrator Handlers
+# ============================================================
+
+def _run_project(description: str, domain: str, workspace_dir: str = ""):
+    """Decompose and start executing a large project."""
+    print(f"\n{'='*60}")
+    print(f"  PROJECT ORCHESTRATOR")
+    print(f"{'='*60}\n")
+    print(f"  Description: {description}")
+    print(f"  Domain: {domain}")
+
+    try:
+        from hands.project_orchestrator import decompose_project, execute_project
+
+        print("\n  Phase 1: Decomposing project...")
+        project = decompose_project(description)
+
+        if not project:
+            print("  ERROR: Failed to decompose project")
+            return
+
+        project_id = project.get("id", "unknown")
+        phases = project.get("phases", [])
+        total_tasks = sum(len(p.get("tasks", [])) for p in phases)
+
+        print(f"  Project ID: {project_id}")
+        print(f"  Phases: {len(phases)}")
+        print(f"  Total tasks: {total_tasks}")
+        print()
+
+        for i, phase in enumerate(phases):
+            name = phase.get("name", f"Phase {i+1}")
+            tasks = phase.get("tasks", [])
+            review = phase.get("requires_review", False)
+            print(f"    {i+1}. {name} ({len(tasks)} tasks){' [REVIEW NEEDED]' if review else ''}")
+
+        print(f"\n  Phase 2: Executing project...")
+        result = execute_project(project, workspace_dir=workspace_dir or None)
+
+        status = result.get("status", "unknown")
+        completed_phases = sum(1 for p in result.get("phases", []) if p.get("status") == "completed")
+        print(f"\n  Result: {status}")
+        print(f"  Completed phases: {completed_phases}/{len(phases)}")
+
+        if status == "paused":
+            print(f"  Project paused (review needed). Resume with: --project-resume {project_id}")
+
+    except ImportError as e:
+        print(f"  ERROR: Missing dependency: {e}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    print()
+
+
+def _show_project_status(project_id: str):
+    """Show status of a project."""
+    print(f"\n{'='*60}")
+    print(f"  PROJECT STATUS")
+    print(f"{'='*60}\n")
+
+    try:
+        from hands.project_orchestrator import load_project, list_projects, PROJECTS_DIR
+        import json
+
+        if project_id == "latest":
+            projects = list_projects()
+            if not projects:
+                print("  No projects found.")
+                return
+            project_id = projects[-1]["id"]
+
+        project = load_project(project_id)
+        if not project:
+            print(f"  Project '{project_id}' not found.")
+            return
+
+        print(f"  ID: {project.get('id')}")
+        print(f"  Description: {project.get('description', 'N/A')[:80]}")
+        print(f"  Status: {project.get('status', 'unknown')}")
+        print(f"  Created: {project.get('created_at', 'N/A')[:19]}")
+        print()
+
+        for i, phase in enumerate(project.get("phases", [])):
+            name = phase.get("name", f"Phase {i+1}")
+            status = phase.get("status", "pending")
+            tasks_done = sum(1 for t in phase.get("tasks", []) if t.get("completed"))
+            total = len(phase.get("tasks", []))
+            icon = {"completed": "✓", "in_progress": "▶", "failed": "✗", "review_needed": "⚠", "skipped": "○"}.get(status, "·")
+            print(f"    {icon} {name}: {status} ({tasks_done}/{total} tasks)")
+
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    print()
+
+
+def _resume_project(project_id: str):
+    """Resume a paused project."""
+    print(f"\n  Resuming project: {project_id}")
+
+    try:
+        from hands.project_orchestrator import load_project, execute_project, list_projects
+
+        if project_id == "latest":
+            projects = list_projects()
+            if not projects:
+                print("  No projects found.")
+                return
+            project_id = projects[-1]["id"]
+
+        project = load_project(project_id)
+        if not project:
+            print(f"  Project '{project_id}' not found.")
+            return
+
+        result = execute_project(project)
+        print(f"  Result: {result.get('status', 'unknown')}")
+
+    except Exception as e:
+        print(f"  ERROR: {e}")
+
+
+def _approve_project_phase(project_id: str):
+    """Approve the current phase of a project needing review."""
+    try:
+        from hands.project_orchestrator import load_project, approve_phase, list_projects
+
+        if project_id == "latest":
+            projects = list_projects()
+            if not projects:
+                print("  No projects found.")
+                return
+            project_id = projects[-1]["id"]
+
+        project = load_project(project_id)
+        if not project:
+            print(f"  Project '{project_id}' not found.")
+            return
+
+        # Find the phase needing review
+        for i, phase in enumerate(project.get("phases", [])):
+            if phase.get("status") == "review_needed":
+                approve_phase(project, i)
+                print(f"  Approved phase {i+1}: {phase.get('name', 'unknown')}")
+                return
+
+        print("  No phases are waiting for review.")
+
+    except Exception as e:
+        print(f"  ERROR: {e}")
+
+
+def _list_projects():
+    """List all projects."""
+    print(f"\n{'='*60}")
+    print(f"  PROJECTS")
+    print(f"{'='*60}\n")
+
+    try:
+        from hands.project_orchestrator import list_projects
+
+        projects = list_projects()
+        if not projects:
+            print("  No projects found.")
+            return
+
+        for p in projects:
+            status = p.get("status", "unknown")
+            desc = p.get("description", "N/A")[:60]
+            phases = len(p.get("phases", []))
+            icon = {"completed": "✓", "in_progress": "▶", "paused": "⏸", "failed": "✗"}.get(status, "·")
+            print(f"  {icon} {p['id'][:12]}  {status:12s}  {phases} phases  {desc}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    print()
+
+
+# ============================================================
+# VPS Deploy Handlers
+# ============================================================
+
+def _run_deploy(dry_run: bool = False):
+    """Deploy Agent Brain to VPS."""
+    print(f"\n{'='*60}")
+    print(f"  VPS DEPLOYMENT {'(DRY RUN)' if dry_run else ''}")
+    print(f"{'='*60}\n")
+
+    try:
+        from deploy.deployer import deploy
+        vault = _get_vault()
+
+        result = deploy(vault=vault, dry_run=dry_run)
+        for step in result.get("steps", []):
+            icon = "✓" if step["status"] == "done" else "○" if step["status"] == "dry_run" else "✗"
+            extra = f" ({step['archive_size_mb']} MB)" if "archive_size_mb" in step else ""
+            print(f"  {icon} {step['name']}{extra}")
+
+        print(f"\n  Deployment: {result['status']}")
+        if result.get("error"):
+            print(f"  Error: {result['error']}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    print()
+
+
+def _run_deploy_health():
+    """Run health check on remote VPS."""
+    print(f"\n{'='*60}")
+    print(f"  VPS HEALTH CHECK")
+    print(f"{'='*60}\n")
+
+    try:
+        from deploy.deployer import health_check
+        vault = _get_vault()
+
+        checks = health_check(vault=vault)
+        for key, val in checks.items():
+            print(f"  {key}: {val}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    print()
+
+
+def _run_deploy_logs(domain: str = ""):
+    """View remote VPS logs."""
+    try:
+        from deploy.deployer import get_remote_logs
+        vault = _get_vault()
+
+        logs = get_remote_logs(vault=vault, domain=domain if domain != DEFAULT_DOMAIN else None)
+        print(logs)
+    except Exception as e:
+        print(f"  ERROR: {e}")
+
+
+def _run_deploy_schedule():
+    """Setup cron schedule on VPS."""
+    try:
+        from deploy.deployer import setup_schedule
+        vault = _get_vault()
+
+        result = setup_schedule(vault=vault)
+        print(f"  Schedule: {result.get('status')}")
+        if result.get("cron_entry"):
+            print(f"  Entry: {result['cron_entry']}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+
+
+def _run_deploy_unschedule():
+    """Remove cron schedule from VPS."""
+    try:
+        from deploy.deployer import remove_schedule
+        vault = _get_vault()
+
+        result = remove_schedule(vault=vault)
+        print(f"  {result.get('message', result.get('error'))}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+
+
+def _run_deploy_configure(host: str = "", user: str = ""):
+    """Configure VPS connection."""
+    print(f"\n{'='*60}")
+    print(f"  VPS CONFIGURATION")
+    print(f"{'='*60}\n")
+
+    try:
+        from deploy.vps_config import load_config, save_config
+
+        config = load_config()
+        if host:
+            config.host = host
+        if user:
+            config.user = user
+
+        save_config(config)
+        print(f"  Host: {config.host or '(not set)'}")
+        print(f"  User: {config.user}")
+        print(f"  Port: {config.port}")
+        print(f"  Schedule: {config.schedule_cron}")
+        print(f"  Remote dir: {config.remote_dir}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    print()
 
 
 if __name__ == "__main__":
