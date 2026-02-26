@@ -2528,3 +2528,173 @@ class TestErrorAnalyzer:
         msg = format_retry_guidance(analysis, retries_left=1)
         assert "unlikely" in msg.lower() or "not" in msg.lower()
 
+
+# ============================================================
+# v6: Execution Analytics
+# ============================================================
+
+class TestExecAnalytics:
+    """Tests for the execution analytics module."""
+
+    def _make_exec_output(self, score=7.0, goal="Test task", domain="test",
+                          tools=None, complexity="medium", accepted=True):
+        """Helper to create a mock execution output record."""
+        if tools is None:
+            tools = [("code", True), ("terminal", True)]
+
+        step_results = [
+            {"step": i+1, "tool": t, "success": s, "output": "ok", "error": ""}
+            for i, (t, s) in enumerate(tools)
+        ]
+
+        return {
+            "timestamp": "2026-03-01T12:00:00+00:00",
+            "domain": domain,
+            "goal": goal,
+            "overall_score": score,
+            "accepted": accepted,
+            "verdict": "accept" if accepted else "reject",
+            "plan": {
+                "task_summary": goal,
+                "steps_count": len(tools),
+                "estimated_complexity": complexity,
+            },
+            "execution": {
+                "success": accepted,
+                "completed_steps": sum(1 for _, s in tools if s),
+                "failed_steps": sum(1 for _, s in tools if not s),
+                "total_steps": len(tools),
+                "artifacts": [],
+                "step_results": step_results,
+            },
+            "validation": {
+                "scores": {
+                    "correctness": score,
+                    "completeness": score - 0.5,
+                    "code_quality": score - 1.0,
+                    "security": 8.0,
+                    "kb_alignment": 6.0,
+                },
+                "overall_score": score,
+                "strengths": ["clean code"],
+                "weaknesses": ["missing tests"],
+                "critical_issues": [],
+                "static_checks": {"checks_run": 2, "issues": [], "passes": []}
+            },
+        }
+
+    def test_empty_domain(self):
+        """Analytics for empty domain returns no data."""
+        from hands.exec_analytics import analyze_executions
+        with patch("hands.exec_analytics.load_exec_outputs", return_value=[]):
+            result = analyze_executions("empty-domain")
+        assert not result["has_data"]
+
+    def test_basic_summary(self):
+        """Analytics computes basic summary stats."""
+        from hands.exec_analytics import analyze_executions
+        outputs = [
+            self._make_exec_output(score=6.0, accepted=False),
+            self._make_exec_output(score=7.5),
+            self._make_exec_output(score=8.0),
+        ]
+        with patch("hands.exec_analytics.load_exec_outputs", return_value=outputs):
+            result = analyze_executions("test")
+
+        assert result["has_data"]
+        assert result["summary"]["count"] == 3
+        assert 7.0 <= result["summary"]["avg_score"] <= 7.5
+        assert result["summary"]["min_score"] == 6.0
+        assert result["summary"]["max_score"] == 8.0
+        assert result["summary"]["accepted"] == 2
+
+    def test_tool_stats(self):
+        """Analytics computes per-tool success rates."""
+        from hands.exec_analytics import analyze_executions
+        outputs = [
+            self._make_exec_output(tools=[("code", True), ("terminal", False)]),
+            self._make_exec_output(tools=[("code", True), ("terminal", True)]),
+        ]
+        with patch("hands.exec_analytics.load_exec_outputs", return_value=outputs):
+            result = analyze_executions("test")
+
+        assert "code" in result["tool_stats"]
+        assert result["tool_stats"]["code"]["success_rate"] == 1.0
+        assert result["tool_stats"]["terminal"]["success_rate"] == 0.5
+
+    def test_score_trajectory(self):
+        """Analytics detects score trends."""
+        from hands.exec_analytics import analyze_executions
+        outputs = [
+            self._make_exec_output(score=5.0),
+            self._make_exec_output(score=5.5),
+            self._make_exec_output(score=6.0),
+            self._make_exec_output(score=7.0),
+            self._make_exec_output(score=7.5),
+            self._make_exec_output(score=8.0),
+        ]
+        with patch("hands.exec_analytics.load_exec_outputs", return_value=outputs):
+            result = analyze_executions("test")
+
+        assert result["score_trajectory"]["trend"] == "improving"
+
+    def test_complexity_breakdown(self):
+        """Analytics breaks scores down by complexity."""
+        from hands.exec_analytics import analyze_executions
+        outputs = [
+            self._make_exec_output(score=8.0, complexity="low"),
+            self._make_exec_output(score=6.0, complexity="high"),
+        ]
+        with patch("hands.exec_analytics.load_exec_outputs", return_value=outputs):
+            result = analyze_executions("test")
+
+        assert "low" in result["complexity_breakdown"]
+        assert "high" in result["complexity_breakdown"]
+        assert result["complexity_breakdown"]["low"]["avg_score"] == 8.0
+        assert result["complexity_breakdown"]["high"]["avg_score"] == 6.0
+
+    def test_dimension_averages(self):
+        """Analytics computes per-dimension score averages."""
+        from hands.exec_analytics import analyze_executions
+        outputs = [self._make_exec_output(score=7.0)]
+        with patch("hands.exec_analytics.load_exec_outputs", return_value=outputs):
+            result = analyze_executions("test")
+
+        assert "correctness" in result["dimension_averages"]
+        assert "security" in result["dimension_averages"]
+
+    def test_format_report(self):
+        """Format report produces readable output."""
+        from hands.exec_analytics import analyze_executions, format_analytics_report
+        outputs = [
+            self._make_exec_output(score=7.0),
+            self._make_exec_output(score=7.5),
+            self._make_exec_output(score=8.0),
+        ]
+        with patch("hands.exec_analytics.load_exec_outputs", return_value=outputs):
+            analytics = analyze_executions("test")
+
+        report = format_analytics_report(analytics)
+        assert "Executions: 3" in report
+        assert "Tool Usage:" in report
+
+    def test_format_empty_report(self):
+        """Format empty report handles missing data."""
+        from hands.exec_analytics import format_analytics_report
+        result = format_analytics_report({"has_data": False})
+        assert "No execution data" in result
+
+    def test_efficiency_metrics(self):
+        """Analytics computes step efficiency metrics."""
+        from hands.exec_analytics import analyze_executions
+        outputs = [
+            self._make_exec_output(tools=[("code", True), ("terminal", True), ("git", True)]),
+            self._make_exec_output(tools=[("code", True), ("terminal", False)]),
+        ]
+        with patch("hands.exec_analytics.load_exec_outputs", return_value=outputs):
+            result = analyze_executions("test")
+
+        eff = result["efficiency"]
+        assert eff["avg_steps_per_task"] == 2.5  # (3+2)/2
+        assert eff["total_steps_executed"] == 5  # 3+1 successes + 1 failure
+

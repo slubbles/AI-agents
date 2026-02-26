@@ -2495,8 +2495,9 @@ def _run_execute(domain: str, goal: str, workspace_dir: str = ""):
 
 
 def _show_exec_status(domain: str):
-    """Show execution memory stats."""
+    """Show execution memory stats with full analytics."""
     from hands.exec_memory import get_exec_stats, load_exec_outputs
+    from hands.exec_analytics import analyze_executions, format_analytics_report
 
     print(f"\n{'='*60}")
     print(f"  EXECUTION STATUS — Domain: {domain}")
@@ -2508,11 +2509,9 @@ def _show_exec_status(domain: str):
         print(f"  Run: python main.py --domain {domain} --execute --goal 'Your task here'")
         return
 
-    print(f"  Total executions: {stats['count']}")
-    print(f"  Average score: {stats['avg_score']:.1f}")
-    print(f"  Accepted: {stats['accepted']}")
-    print(f"  Rejected: {stats['rejected']}")
-    print(f"  Total artifacts: {stats['total_artifacts']}")
+    # Full analytics
+    analytics = analyze_executions(domain)
+    print(format_analytics_report(analytics))
 
     # Show recent outputs
     outputs = load_exec_outputs(domain)
