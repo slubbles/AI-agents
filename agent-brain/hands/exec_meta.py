@@ -111,7 +111,7 @@ STRATEGY WRITING RULES:
 
 
 def _prepare_exec_analysis_data(outputs: list[dict], current_strategy: str | None) -> str:
-    """Format execution outputs + strategy for the meta-analyst."""
+    """Format execution outputs + strategy + analytics for the meta-analyst."""
     data_parts = []
 
     # Current strategy
@@ -128,6 +128,44 @@ def _prepare_exec_analysis_data(outputs: list[dict], current_strategy: str | Non
             f"avg {sum(scores)/len(scores):.1f}, "
             f"min {min(scores):.1f}, max {max(scores):.1f}\n"
         )
+
+    # Inject analytics summary (if available)
+    domain = outputs[0].get("domain", "general") if outputs else "general"
+    try:
+        from hands.exec_analytics import analyze_executions
+        analytics = analyze_executions(domain)
+        if analytics.get("has_data"):
+            # Tool success rates
+            tool_stats = analytics.get("tool_stats", {})
+            if tool_stats:
+                tool_lines = [f"  {t}: {s['success_rate']:.0%} ({s['total_uses']} uses)"
+                             for t, s in list(tool_stats.items())[:5]]
+                data_parts.append("TOOL SUCCESS RATES:\n" + "\n".join(tool_lines) + "\n")
+            
+            # Score trend
+            traj = analytics.get("score_trajectory", {})
+            if traj.get("trend"):
+                data_parts.append(
+                    f"SCORE TREND: {traj['trend']} "
+                    f"({traj['first_third_avg']} → {traj['last_third_avg']})\n"
+                )
+            
+            # Dimension weaknesses
+            dims = analytics.get("dimension_averages", {})
+            if dims:
+                weakest = min(dims, key=dims.get)
+                data_parts.append(
+                    f"WEAKEST DIMENSION: {weakest} ({dims[weakest]:.1f}/10)\n"
+                )
+            
+            # Efficiency
+            eff = analytics.get("efficiency", {})
+            if eff.get("failure_rate", 0) > 0.1:
+                data_parts.append(
+                    f"⚠ HIGH STEP FAILURE RATE: {eff['failure_rate']:.0%}\n"
+                )
+    except Exception:
+        pass  # Analytics are optional enrichment
 
     # Individual outputs (capped)
     for i, output in enumerate(outputs[-MAX_EXEC_OUTPUTS_TO_ANALYZE:]):
