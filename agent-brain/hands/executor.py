@@ -51,7 +51,20 @@ MAX_EXECUTION_COST = 0.50  # Hard cost ceiling per execution ($0.50)
 
 def _estimate_conversation_size(conversation: list[dict]) -> int:
     """Estimate the total character count of a conversation."""
-    return sum(len(msg.get("content", "")) for msg in conversation)
+    total = 0
+    for msg in conversation:
+        content = msg.get("content", "")
+        if isinstance(content, str):
+            total += len(content)
+        elif isinstance(content, list):
+            # Native tool_use/tool_result blocks
+            for block in content:
+                if isinstance(block, dict):
+                    total += len(str(block.get("content", ""))) + len(str(block.get("text", "")))
+                else:
+                    # Anthropic SDK objects (TextBlock, ToolUseBlock, etc.)
+                    total += len(getattr(block, "text", "")) + len(str(getattr(block, "input", "")))
+    return total
 
 
 def _summarize_old_steps(conversation: list[dict], keep_recent: int = 6) -> list[dict]:
@@ -67,11 +80,26 @@ def _summarize_old_steps(conversation: list[dict], keep_recent: int = 6) -> list
     recent = conversation[-keep_recent:]
     middle = conversation[1:-keep_recent]
 
+    # Extract string content from a message (handles both str and list formats)
+    def _content_str(msg: dict) -> str:
+        c = msg.get("content", "")
+        if isinstance(c, str):
+            return c
+        if isinstance(c, list):
+            parts = []
+            for block in c:
+                if isinstance(block, dict):
+                    parts.append(str(block.get("content", "")))
+                elif hasattr(block, "text"):
+                    parts.append(block.text)
+            return " ".join(parts)
+        return str(c)
+
     # Summarize middle messages
     summary_parts = []
     step_num = 0
     for msg in middle:
-        content = msg.get("content", "")
+        content = _content_str(msg)
         if msg["role"] == "user" and "TOOL RESULT" in content:
             step_num += 1
             # Extract just success/failure and truncated output
@@ -238,7 +266,7 @@ class DependencyResolver:
 
 
 def _build_system_prompt(tools_description: str, execution_strategy: str = "") -> str:
-    """Build the executor's system prompt."""
+    """Build the executor's system prompt. Lean — tool definitions handled by Claude tools API."""
     today = date.today().isoformat()
 
     base = f"""\
@@ -247,45 +275,17 @@ using the available tools. You are precise, careful, and follow the plan exactly
 
 TODAY'S DATE: {today}
 
-AVAILABLE TOOLS:
-{tools_description}
-
 EXECUTION RULES:
 1. Execute each step using the specified tool with the specified parameters.
-2. If a step fails, describe the error and decide whether to:
-   a) Retry with adjusted parameters
-   b) Skip and note the failure
-   c) Abort if the failure blocks subsequent steps
+2. If a step fails, decide whether to retry with adjusted parameters, skip, or abort.
 3. You may adapt parameters based on earlier step results (e.g., using generated file paths).
 4. NEVER deviate from the plan's intent — you can adjust HOW but not WHAT.
-5. After each step, report the result clearly.
-6. Write COMPLETE file contents — never use placeholders like "// rest of code here".
-7. Include proper error handling, imports, and types in all generated code.
-8. For config files (package.json, tsconfig.json, etc.) use the right format for the ecosystem.
-9. IMPORTANT: You MUST execute tools one at a time. Do NOT describe what you would do — actually DO it by outputting the JSON action.
-10. You are NOT allowed to use the "complete" action until you have executed at least one tool.
-
-When you need to execute a tool, respond with ONLY this JSON:
-{{
-  "action": "execute_tool",
-  "tool": "tool_name",
-  "params": {{"param1": "value1"}},
-  "reasoning": "Why this action"
-}}
-
-When you are done with all steps, respond with:
-{{
-  "action": "complete",
-  "summary": "What was accomplished",
-  "artifacts": ["list", "of", "created", "files"]
-}}
-
-If you need to abort, respond with:
-{{
-  "action": "abort",
-  "reason": "Why execution cannot continue",
-  "completed_steps": 3
-}}
+5. Write COMPLETE file contents — never use placeholders like "// rest of code here".
+6. Include proper error handling, imports, and types in all generated code.
+7. For config files (package.json, tsconfig.json, etc.) use the right format for the ecosystem.
+8. Execute tools one at a time. After each result, proceed to the next step.
+9. Call _complete when all steps are done. Call _abort if execution cannot continue.
+10. You MUST execute at least one real tool before calling _complete.
 """
 
     if execution_strategy:
@@ -324,6 +324,9 @@ def execute_plan(
     """
     tools_desc = registry.get_tool_descriptions()
     system = _build_system_prompt(tools_desc, execution_strategy)
+
+    # Get native Claude tool definitions (includes _complete and _abort)
+    claude_tools = registry.get_execution_tools()
 
     steps = plan.get("steps", [])
     if not steps:
@@ -423,65 +426,69 @@ def execute_plan(
         if new_size < prev_size * 0.7:
             print(f"  [EXECUTOR] Sliding window: {prev_size // 1000}K → {new_size // 1000}K chars")
 
-        # Call the model
+        # Call model with native tool definitions (guaranteed structured output)
         response = create_message(
             client,
             model=MODELS["executor"],
             max_tokens=4096,
             system=system,
             messages=conversation,
+            tools=claude_tools,
         )
 
         total_input_tokens += response.usage.input_tokens
         total_output_tokens += response.usage.output_tokens
 
-        # Extract response text
-        text = ""
+        # Dispatch on response content blocks (native tool_use API)
+        tool_use_block = None
+        text_content = ""
         for block in response.content:
-            if hasattr(block, "text"):
-                text += block.text
+            if hasattr(block, "type") and block.type == "tool_use":
+                tool_use_block = block
+            elif hasattr(block, "text"):
+                text_content += block.text
 
-        # Parse the action
-        action_data = extract_json(text, expected_keys={"action"})
-
-        if not action_data:
-            # Model didn't return valid JSON — try to recover
-            conversation.append({"role": "assistant", "content": text})
+        # If no tool_use block, the model sent text — might need to handle it
+        # Also try extract_json as fallback for compatibility
+        if not tool_use_block:
+            # Fallback: try to parse text as JSON (for backward compatibility)
+            action_data = extract_json(text_content, expected_keys={"action"})
+            if action_data and action_data.get("action") == "complete" and step_results:
+                print(f"  [EXECUTOR] ✓ Complete: {action_data.get('summary', 'done')}")
+                all_artifacts.extend(action_data.get("artifacts", []))
+                break
+            # Model is thinking aloud — nudge it to use tools
+            conversation.append({"role": "assistant", "content": text_content or "..."})
             conversation.append({
                 "role": "user",
-                "content": (
-                    "Your response was not valid JSON. Please respond with the exact JSON format "
-                    "specified in your instructions. Execute the next step."
-                ),
+                "content": "Please execute the next step by calling the appropriate tool.",
             })
             continue
 
-        action = action_data.get("action", "")
+        tool_name = tool_use_block.name
+        tool_input = tool_use_block.input if hasattr(tool_use_block, "input") else {}
+        tool_use_id = tool_use_block.id if hasattr(tool_use_block, "id") else "unknown"
 
-        if action == "complete":
+        # --- Handle control tools ---
+        if tool_name == "_complete":
             # Prevent premature completion without any tool use
             if not step_results:
-                conversation.append({"role": "assistant", "content": text})
+                # Append the full response and reject
+                conversation.append({"role": "assistant", "content": response.content})
                 conversation.append({
                     "role": "user",
-                    "content": (
-                        "You cannot mark as complete without executing any tools. "
-                        "You MUST use the tools to create files, run commands, etc. "
-                        "Start with Step 1 from the plan."
-                    ),
+                    "content": [{"type": "tool_result", "tool_use_id": tool_use_id,
+                                 "content": "Cannot complete without executing any tools. Start with Step 1."}],
                 })
                 continue
 
-            # Execution finished
-            print(f"  [EXECUTOR] ✓ Complete: {action_data.get('summary', 'done')}")
-            all_artifacts.extend(action_data.get("artifacts", []))
+            print(f"  [EXECUTOR] ✓ Complete: {tool_input.get('summary', 'done')}")
+            all_artifacts.extend(tool_input.get("artifacts", []))
             break
 
-        elif action == "abort":
-            # Execution aborted
-            reason = action_data.get("reason", "unknown")
+        elif tool_name == "_abort":
+            reason = tool_input.get("reason", "unknown")
             print(f"  [EXECUTOR] ✗ Aborted: {reason}")
-            # Log cost before returning
             log_cost(
                 model=MODELS["executor"],
                 input_tokens=total_input_tokens,
@@ -494,169 +501,154 @@ def execute_plan(
                 "error": f"Execution aborted: {reason}",
                 "step_results": step_results,
                 "artifacts": all_artifacts,
-                "completed_steps": action_data.get("completed_steps", len(step_results)),
+                "completed_steps": tool_input.get("completed_steps", len(step_results)),
                 "total_steps": len(steps),
             }
 
-        elif action == "execute_tool":
-            # Execute a tool
-            tool_name = action_data.get("tool", "")
-            params = action_data.get("params", {})
-            reasoning = action_data.get("reasoning", "")
-            step_num = len(step_results) + 1
+        # --- Handle real tool execution ---
+        params = dict(tool_input) if isinstance(tool_input, dict) else {}
+        reasoning = text_content[:200] if text_content else ""
+        step_num = len(step_results) + 1
 
-            # Dependency-aware fail-fast: skip blocked steps without LLM cost
-            can_run, blockers = dep_resolver.can_execute(step_num, step_results)
-            if not can_run:
-                blocked_step_count += 1
-                print(f"  [STEP {step_num}] BLOCKED by failed dependencies: {blockers}")
-                step_results.append({
-                    "step": step_num,
-                    "tool": tool_name,
-                    "params": {},
-                    "reasoning": reasoning,
-                    "success": False,
-                    "output": "",
-                    "error": f"Blocked by failed dependency step(s): {blockers}",
-                    "artifacts": [],
-                    "status": "blocked_by_dependency",
-                    "blocked_by": blockers,
-                    "criticality": steps[step_num - 1].get("criticality", "required") if step_num <= len(steps) else "required",
-                })
-                # Tell the LLM to skip to next step
-                conversation.append({"role": "assistant", "content": text})
-                conversation.append({
-                    "role": "user",
-                    "content": (
-                        f"Step {step_num} SKIPPED — blocked by failed dependency "
-                        f"step(s) {blockers}. Proceed to the next step."
-                    ),
-                })
-                # Check: if all remaining required steps are blocked, early-terminate
-                if dep_resolver.all_remaining_blocked(step_num, step_results):
-                    print(f"  [EXECUTOR] All remaining required steps blocked — early termination")
-                    break
-                continue
-
-            # Look up step criticality from the plan
-            criticality = "required"  # default
-            if step_num <= len(steps):
-                criticality = steps[step_num - 1].get("criticality", "required")
-
-            print(f"  [STEP {step_num}] {tool_name}: {reasoning[:80]}")
-
-            # Check tool health and inject warnings if degraded
-            if health_monitor.is_degraded(tool_name):
-                health_ctx = health_monitor.get_health_context()
-                if health_ctx:
-                    print(f"           ⚠ Tool '{tool_name}' is degraded — consider alternatives")
-
-            # Get adaptive timeout for this tool + params
-            step_timeout = timeout_adapter.suggest(tool_name, params)
-
-            # Execute the tool through the registry (with timeout for terminal)
-            if tool_name == "terminal":
-                params["timeout"] = step_timeout
-            result = registry.execute(tool_name, **params)
-
-            # Record duration in timeout adapter for future improvement
-            duration_ms = result.metadata.get("duration_ms", 0)
-            if duration_ms > 0:
-                timeout_adapter.record(tool_name, duration_ms / 1000.0)
-
-            # Record in health monitor
-            health_monitor.record(tool_name, result.success, result.error)
-
-            step_result = {
+        # Dependency-aware fail-fast: skip blocked steps without LLM cost
+        can_run, blockers = dep_resolver.can_execute(step_num, step_results)
+        if not can_run:
+            blocked_step_count += 1
+            print(f"  [STEP {step_num}] BLOCKED by failed dependencies: {blockers}")
+            step_results.append({
                 "step": step_num,
                 "tool": tool_name,
-                "params": {k: (v[:200] if isinstance(v, str) and len(v) > 200 else v) for k, v in params.items()},
+                "params": {},
                 "reasoning": reasoning,
-                "success": result.success,
-                "output": result.output[:2000],
-                "error": result.error,
-                "artifacts": result.artifacts,
-                "criticality": criticality,
-            }
-            step_results.append(step_result)
-            all_artifacts.extend(result.artifacts)
-
-            status = "✓" if result.success else "✗"
-            print(f"           {status} {result.output[:100] if result.success else result.error[:100]}")
-
-            # Mid-execution quality gate check
-            gate_correction = ""
-            if mid_validator and result.success and mid_validator.should_gate(step_num, step_result):
-                gate_issues = mid_validator.quick_validate(all_artifacts)
-                if gate_issues:
-                    gate_correction = mid_validator.get_correction_prompt(gate_issues)
-                    mid_gate_corrections += 1
-                    print(f"           [GATE] Quality check at step {step_num}: {len(gate_issues)} issue(s) found")
-                    for gi in gate_issues[:3]:
-                        print(f"             • {os.path.basename(gi['file'])}: {gi['detail'][:80]}")
-                else:
-                    print(f"           [GATE] Step {step_num}: ✓ passed")
-
-            # Step-level retry tracking with smart error analysis
-            retry_msg = ""
-            if not result.success:
-                step_failures[step_num] = step_failures.get(step_num, 0) + 1
-                retries_left = STEP_RETRY_LIMIT - step_failures[step_num]
-                
-                # Analyze the error for targeted retry guidance
-                error_analysis = analyze_error(result.error, result.output)
-                
-                if criticality == "optional":
-                    retry_msg = (
-                        f"\nThis optional step failed ({error_analysis['category']}). "
-                        f"You may retry once or skip to the next step. "
-                        f"Optional step failures do not block execution."
-                    )
-                    print(f"           [OPTIONAL] Step failed — non-blocking ({error_analysis['category']})")
-                elif retries_left > 0 and error_analysis["retryable"]:
-                    retry_msg = format_retry_guidance(error_analysis, retries_left)
-                    print(f"           [RETRY] {retries_left} retries — {error_analysis['category']}")
-                elif not error_analysis["retryable"]:
-                    retry_msg = format_retry_guidance(error_analysis, 0)
-                    print(f"           [SKIP] Non-retryable error: {error_analysis['category']}")
-                else:
-                    retry_msg = (
-                        f"\nThis step has failed {STEP_RETRY_LIMIT} times ({error_analysis['category']}). "
-                        f"Move on to the next step or abort if this blocks progress."
-                    )
-
-                # Add tool health warnings if degraded
-                health_ctx = health_monitor.get_health_context()
-                if health_ctx:
-                    retry_msg += health_ctx
-
-            # Feed result back into conversation
-            conversation.append({"role": "assistant", "content": text})
-            result_msg = f"TOOL RESULT (step {step_num}):\n"
-            if result.success:
-                result_msg += f"SUCCESS: {result.output[:3000]}"
-            else:
-                result_msg += f"FAILED: {result.error}\nOutput: {result.output[:1000]}"
-
-            if result.artifacts:
-                result_msg += f"\nArtifacts: {result.artifacts}"
-
-            result_msg += retry_msg
-
-            # Inject mid-execution gate correction if any
-            if gate_correction:
-                result_msg += f"\n\n{gate_correction}"
-
-            result_msg += "\n\nProceed to the next step (or 'complete' if all steps are done)."
-            conversation.append({"role": "user", "content": result_msg})
-
-        else:
-            # Unknown action
-            conversation.append({"role": "assistant", "content": text})
+                "success": False,
+                "output": "",
+                "error": f"Blocked by failed dependency step(s): {blockers}",
+                "artifacts": [],
+                "status": "blocked_by_dependency",
+                "blocked_by": blockers,
+                "criticality": steps[step_num - 1].get("criticality", "required") if step_num <= len(steps) else "required",
+            })
+            conversation.append({"role": "assistant", "content": response.content})
             conversation.append({
                 "role": "user",
-                "content": f"Unknown action '{action}'. Use 'execute_tool', 'complete', or 'abort'.",
+                "content": [{"type": "tool_result", "tool_use_id": tool_use_id,
+                             "content": f"Step {step_num} SKIPPED — blocked by failed dependency step(s) {blockers}. Proceed to the next step."}],
             })
+            if dep_resolver.all_remaining_blocked(step_num, step_results):
+                print(f"  [EXECUTOR] All remaining required steps blocked — early termination")
+                break
+            continue
+
+        # Look up step criticality from the plan
+        criticality = "required"  # default
+        if step_num <= len(steps):
+            criticality = steps[step_num - 1].get("criticality", "required")
+
+        print(f"  [STEP {step_num}] {tool_name}: {reasoning[:80]}")
+
+        # Check tool health and inject warnings if degraded
+        if health_monitor.is_degraded(tool_name):
+            health_ctx = health_monitor.get_health_context()
+            if health_ctx:
+                print(f"           ⚠ Tool '{tool_name}' is degraded — consider alternatives")
+
+        # Get adaptive timeout for this tool + params
+        step_timeout = timeout_adapter.suggest(tool_name, params)
+
+        # Execute the tool through the registry (with timeout for terminal)
+        if tool_name == "terminal":
+            params["timeout"] = step_timeout
+        result = registry.execute(tool_name, **params)
+
+        # Record duration in timeout adapter for future improvement
+        duration_ms = result.metadata.get("duration_ms", 0)
+        if duration_ms > 0:
+            timeout_adapter.record(tool_name, duration_ms / 1000.0)
+
+        # Record in health monitor
+        health_monitor.record(tool_name, result.success, result.error)
+
+        step_result = {
+            "step": step_num,
+            "tool": tool_name,
+            "params": {k: (v[:200] if isinstance(v, str) and len(v) > 200 else v) for k, v in params.items()},
+            "reasoning": reasoning,
+            "success": result.success,
+            "output": result.output[:2000],
+            "error": result.error,
+            "artifacts": result.artifacts,
+            "criticality": criticality,
+        }
+        step_results.append(step_result)
+        all_artifacts.extend(result.artifacts)
+
+        status = "✓" if result.success else "✗"
+        print(f"           {status} {result.output[:100] if result.success else result.error[:100]}")
+
+        # Mid-execution quality gate check
+        gate_correction = ""
+        if mid_validator and result.success and mid_validator.should_gate(step_num, step_result):
+            gate_issues = mid_validator.quick_validate(all_artifacts)
+            if gate_issues:
+                gate_correction = mid_validator.get_correction_prompt(gate_issues)
+                mid_gate_corrections += 1
+                print(f"           [GATE] Quality check at step {step_num}: {len(gate_issues)} issue(s) found")
+                for gi in gate_issues[:3]:
+                    print(f"             • {os.path.basename(gi['file'])}: {gi['detail'][:80]}")
+            else:
+                print(f"           [GATE] Step {step_num}: ✓ passed")
+
+        # Step-level retry tracking with smart error analysis
+        retry_msg = ""
+        if not result.success:
+            step_failures[step_num] = step_failures.get(step_num, 0) + 1
+            retries_left = STEP_RETRY_LIMIT - step_failures[step_num]
+            
+            error_analysis = analyze_error(result.error, result.output)
+            
+            if criticality == "optional":
+                retry_msg = (
+                    f"\nThis optional step failed ({error_analysis['category']}). "
+                    f"You may retry once or skip to the next step. "
+                    f"Optional step failures do not block execution."
+                )
+                print(f"           [OPTIONAL] Step failed — non-blocking ({error_analysis['category']})")
+            elif retries_left > 0 and error_analysis["retryable"]:
+                retry_msg = format_retry_guidance(error_analysis, retries_left)
+                print(f"           [RETRY] {retries_left} retries — {error_analysis['category']}")
+            elif not error_analysis["retryable"]:
+                retry_msg = format_retry_guidance(error_analysis, 0)
+                print(f"           [SKIP] Non-retryable error: {error_analysis['category']}")
+            else:
+                retry_msg = (
+                    f"\nThis step has failed {STEP_RETRY_LIMIT} times ({error_analysis['category']}). "
+                    f"Move on to the next step or abort if this blocks progress."
+                )
+
+            health_ctx = health_monitor.get_health_context()
+            if health_ctx:
+                retry_msg += health_ctx
+
+        # Build tool result message (native tool_result format)
+        result_text = f"TOOL RESULT (step {step_num}):\n"
+        if result.success:
+            result_text += f"SUCCESS: {result.output[:3000]}"
+        else:
+            result_text += f"FAILED: {result.error}\nOutput: {result.output[:1000]}"
+
+        if result.artifacts:
+            result_text += f"\nArtifacts: {result.artifacts}"
+        result_text += retry_msg
+        if gate_correction:
+            result_text += f"\n\n{gate_correction}"
+        result_text += "\n\nProceed to the next step (or call _complete if all steps are done)."
+
+        # Append assistant response + tool result in proper format
+        conversation.append({"role": "assistant", "content": response.content})
+        conversation.append({
+            "role": "user",
+            "content": [{"type": "tool_result", "tool_use_id": tool_use_id, "content": result_text}],
+        })
 
     # Log total cost
     log_cost(

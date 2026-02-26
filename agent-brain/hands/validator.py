@@ -124,11 +124,19 @@ _MAX_ARTIFACT_CHARS = 40_000
 _MAX_FILE_CHARS = 8_000
 
 
-def _read_artifact_files(artifacts: list[str]) -> dict[str, str]:
+def _read_artifact_files(artifacts: list[str], suspect_files: set[str] | None = None) -> dict[str, str]:
     """
     Read actual file contents from artifact paths.
+    
+    For suspect files (static check failures, failed step outputs): full content.
+    For clean files: digest (first 20 + last 20 lines) to save ~40-60% tokens.
+    
     Prioritizes key files (package.json, entry points, configs, tests).
     Skips binary files. Caps total size to stay within context limits.
+
+    Args:
+        artifacts: List of artifact file paths
+        suspect_files: Set of file paths that deserve full content (have issues)
 
     Returns:
         Dict mapping file path to content string
@@ -136,6 +144,7 @@ def _read_artifact_files(artifacts: list[str]) -> dict[str, str]:
     if not artifacts:
         return {}
 
+    suspect = suspect_files or set()
     contents = {}
     total_chars = 0
 
@@ -162,6 +171,7 @@ def _read_artifact_files(artifacts: list[str]) -> dict[str, str]:
             other_files.append(path)
 
     # Read priority files first, then others
+    DIGEST_LINES = 20  # First/last N lines for clean file digests
     for path in priority_files + other_files:
         if total_chars >= _MAX_ARTIFACT_CHARS:
             break
@@ -170,6 +180,20 @@ def _read_artifact_files(artifacts: list[str]) -> dict[str, str]:
                 content = f.read(_MAX_FILE_CHARS + 100)
             if len(content) > _MAX_FILE_CHARS:
                 content = content[:_MAX_FILE_CHARS] + f"\n... (truncated at {_MAX_FILE_CHARS} chars)"
+
+            # Digest mode: only first/last N lines for clean (non-suspect) files
+            is_suspect = path in suspect
+            if not is_suspect and content.count("\n") > DIGEST_LINES * 3:
+                lines = content.split("\n")
+                head = lines[:DIGEST_LINES]
+                tail = lines[-DIGEST_LINES:]
+                omitted = len(lines) - DIGEST_LINES * 2
+                content = (
+                    "\n".join(head)
+                    + f"\n\n... ({omitted} lines omitted — file passed static checks) ...\n\n"
+                    + "\n".join(tail)
+                )
+
             contents[path] = content
             total_chars += len(content)
         except (OSError, UnicodeDecodeError):
@@ -435,23 +459,45 @@ def validate_execution(
         }
 
     # Include step details (capped to avoid huge payloads)
+    # Compact format: successful steps get 1-line summary, failed steps get full detail
     step_details = []
     for step in execution_report.get("step_results", [])[:20]:
-        step_details.append({
-            "step": step.get("step", 0),
-            "tool": step.get("tool", ""),
-            "success": step.get("success", False),
-            "output": step.get("output", "")[:500],
-            "error": step.get("error", ""),
-        })
+        if step.get("success"):
+            step_details.append({
+                "step": step.get("step", 0),
+                "tool": step.get("tool", ""),
+                "success": True,
+                "output": step.get("output", "")[:200],  # 200 chars for successes (was 500)
+            })
+        else:
+            step_details.append({
+                "step": step.get("step", 0),
+                "tool": step.get("tool", ""),
+                "success": False,
+                "output": step.get("output", "")[:500],
+                "error": step.get("error", ""),
+            })
     eval_context["step_details"] = step_details
 
+    # Identify suspect files: those with static check issues + failed step artifacts
+    suspect_files = set()
+    for issue in static_results.get("issues", []):
+        suspect_files.add(issue.get("file", ""))
+    for step in execution_report.get("step_results", []):
+        if not step.get("success") and step.get("artifacts"):
+            suspect_files.update(step["artifacts"])
+
     # Read actual artifact file contents for accurate evaluation
-    artifact_contents = _read_artifact_files(execution_report.get("artifacts", []))
+    # Suspect files get full content; clean files get digest (first/last 20 lines)
+    artifact_contents = _read_artifact_files(
+        execution_report.get("artifacts", []),
+        suspect_files=suspect_files,
+    )
     if artifact_contents:
         eval_context["file_contents"] = artifact_contents
 
-    user_message = f"Evaluate this execution:\n\n{json.dumps(eval_context, indent=2)}"
+    # Compact JSON: no indentation, minimal separators (~25-35% smaller)
+    user_message = f"Evaluate this execution:\n\n{json.dumps(eval_context, separators=(',', ':'))}"
 
     if domain_knowledge:
         user_message += f"\n\nDOMAIN KNOWLEDGE (best practices):\n{domain_knowledge[:3000]}"

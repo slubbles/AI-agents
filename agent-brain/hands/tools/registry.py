@@ -237,6 +237,50 @@ class ToolRegistry:
         """Get all tools as Claude tool_use definitions."""
         return [tool.to_claude_tool() for tool in self._tools.values()]
 
+    def get_execution_tools(self) -> list[dict]:
+        """
+        Get all tools as Claude tool_use definitions, plus synthetic control tools
+        (_complete and _abort) for the executor to signal execution state.
+        """
+        tools = self.get_claude_tools()
+
+        # Synthetic control tools
+        tools.append({
+            "name": "_complete",
+            "description": (
+                "Signal that execution is complete. Call this after all plan steps have been executed."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "summary": {"type": "string", "description": "What was accomplished"},
+                    "artifacts": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of created file paths",
+                    },
+                },
+                "required": ["summary"],
+            },
+        })
+
+        tools.append({
+            "name": "_abort",
+            "description": (
+                "Abort execution when a required step has failed and cannot be recovered."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "reason": {"type": "string", "description": "Why execution cannot continue"},
+                    "completed_steps": {"type": "integer", "description": "Number of steps completed"},
+                },
+                "required": ["reason"],
+            },
+        })
+
+        return tools
+
     def get_tool_descriptions(self) -> str:
         """Get a human-readable list of tools and their descriptions."""
         lines = []
