@@ -3421,3 +3421,139 @@ class TestToolHealth:
         assert not monitor.is_degraded("nonexistent")
         assert monitor.get_failure_rate("nonexistent") == 0.0
 
+
+# ============================================================
+# v9: Pattern Learner
+# ============================================================
+
+class TestPatternLearner:
+    """Test execution pattern learning and lesson distillation."""
+
+    def _make_exec_output(self, score=7.0, accepted=True, step_results=None, domain="test"):
+        """Helper to create mock execution output."""
+        if step_results is None:
+            step_results = [
+                {"step": 1, "tool": "code", "success": True, "error": ""},
+                {"step": 2, "tool": "terminal", "success": True, "error": ""},
+            ]
+        return {
+            "domain": domain,
+            "goal": "Build a test project",
+            "overall_score": score,
+            "accepted": accepted,
+            "execution_report": {"step_results": step_results},
+            "plan": {"steps": [{"step": 1}, {"step": 2}]},
+            "validation": {"weaknesses": [], "strengths": []},
+        }
+
+    def test_analyze_extracts_lessons(self, tmp_path):
+        """analyze_execution extracts patterns from execution data."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "patterns.json"))
+
+        output = self._make_exec_output(score=5.0, accepted=False, step_results=[
+            {"step": 1, "tool": "terminal", "success": False, "error": "ENOENT: no such file"},
+            {"step": 2, "tool": "code", "success": True, "error": ""},
+        ])
+
+        lessons = learner.analyze_execution(output)
+        assert len(lessons) > 0
+
+    def test_consecutive_failures_detected(self, tmp_path):
+        """Detects consecutive failure patterns."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "patterns.json"))
+
+        output = self._make_exec_output(score=4.0, accepted=False, step_results=[
+            {"step": 1, "tool": "terminal", "success": False, "error": "timeout"},
+            {"step": 2, "tool": "terminal", "success": False, "error": "timeout"},
+            {"step": 3, "tool": "terminal", "success": False, "error": "timeout"},
+        ])
+
+        lessons = learner.analyze_execution(output)
+        assert any("consecutive" in l.lower() or "terminal" in l.lower() for l in lessons)
+
+    def test_persistence(self, tmp_path):
+        """Lessons persist across instances."""
+        from hands.pattern_learner import PatternLearner
+        path = str(tmp_path / "patterns.json")
+
+        learner1 = PatternLearner(path)
+        output = self._make_exec_output(score=4.0, accepted=False, step_results=[
+            {"step": 1, "tool": "terminal", "success": False, "error": "ENOENT error"},
+            {"step": 2, "tool": "code", "success": True, "error": ""},
+        ])
+        learner1.analyze_execution(output)
+
+        learner2 = PatternLearner(path)
+        assert len(learner2._lessons) > 0
+
+    def test_evidence_accumulation(self, tmp_path):
+        """Same pattern appearing multiple times increases evidence count."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "patterns.json"))
+
+        for _ in range(3):
+            output = self._make_exec_output(score=5.0, step_results=[
+                {"step": 1, "tool": "terminal", "success": False, "error": "ENOENT"},
+                {"step": 2, "tool": "code", "success": True, "error": ""},
+            ])
+            learner.analyze_execution(output)
+
+        enoent_lessons = [l for l in learner._lessons if "ENOENT" in l.pattern or "missing_file" in l.pattern]
+        assert len(enoent_lessons) > 0
+        assert enoent_lessons[0].evidence_count >= 3
+
+    def test_format_for_prompt(self, tmp_path):
+        """format_lessons_for_prompt creates injectable text."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "patterns.json"))
+
+        for _ in range(3):
+            learner.analyze_execution(self._make_exec_output(
+                score=4.0, step_results=[
+                    {"step": 1, "tool": "terminal", "success": False, "error": "ENOENT"},
+                    {"step": 2, "tool": "code", "success": True, "error": ""},
+                ]))
+
+        text = learner.format_lessons_for_prompt(domain="test")
+        if text:
+            assert "LESSONS" in text
+
+    def test_stats(self, tmp_path):
+        """Stats returns correct information."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "patterns.json"))
+
+        learner.analyze_execution(self._make_exec_output(
+            score=4.0, step_results=[
+                {"step": 1, "tool": "terminal", "success": False, "error": "timeout"},
+            ]))
+
+        stats = learner.stats()
+        assert stats["total_lessons"] > 0
+
+    def test_plan_explosion_detected(self, tmp_path):
+        """Detects when execution uses far more steps than planned."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "patterns.json"))
+
+        output = self._make_exec_output(score=5.0)
+        output["execution_report"]["step_results"] = [
+            {"step": i, "tool": "code", "success": True, "error": ""}
+            for i in range(1, 7)
+        ]
+        output["plan"] = {"steps": [{"step": 1}, {"step": 2}]}
+
+        lessons = learner.analyze_execution(output)
+        assert any("explosion" in l.lower() or "plan" in l.lower() for l in lessons)
+
+    def test_empty_execution_no_crash(self, tmp_path):
+        """Analyzing empty execution doesn't crash."""
+        from hands.pattern_learner import PatternLearner
+        learner = PatternLearner(str(tmp_path / "patterns.json"))
+
+        output = {"domain": "test", "execution_report": {}, "plan": {}, "validation": {}}
+        lessons = learner.analyze_execution(output)
+        assert lessons == []
+
