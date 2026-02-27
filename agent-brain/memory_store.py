@@ -443,6 +443,11 @@ def get_knowledge_base_path(domain: str) -> str:
     return os.path.join(MEMORY_DIR, domain, "_knowledge_base.json")
 
 
+def _kb_versions_dir(domain: str) -> str:
+    """Return path to KB version history directory."""
+    return os.path.join(MEMORY_DIR, domain, "_kb_versions")
+
+
 def load_knowledge_base(domain: str) -> dict | None:
     """Load the synthesized knowledge base for a domain, if it exists."""
     path = get_knowledge_base_path(domain)
@@ -453,10 +458,15 @@ def load_knowledge_base(domain: str) -> dict | None:
 
 
 def save_knowledge_base(domain: str, knowledge_base: dict) -> str:
-    """Save a synthesized knowledge base for a domain."""
+    """Save a synthesized knowledge base for a domain, with version history."""
     from utils.atomic_write import atomic_json_write
     path = get_knowledge_base_path(domain)
     os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    # Version the previous KB before overwriting
+    if os.path.exists(path):
+        _version_knowledge_base(domain, path)
+
     atomic_json_write(path, knowledge_base)
     
     # Auto-index KB claims in RAG vector store (non-blocking)
@@ -471,6 +481,117 @@ def save_knowledge_base(domain: str, knowledge_base: dict) -> str:
         pass
     
     return path
+
+
+def _version_knowledge_base(domain: str, current_path: str):
+    """Copy current KB to versioned backup before overwriting."""
+    versions_dir = _kb_versions_dir(domain)
+    os.makedirs(versions_dir, exist_ok=True)
+
+    # Generate version filename with timestamp
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    version_path = os.path.join(versions_dir, f"kb_v{ts}.json")
+    shutil.copy2(current_path, version_path)
+
+    # Keep only last 10 versions
+    MAX_KB_VERSIONS = 10
+    versions = sorted(
+        [f for f in os.listdir(versions_dir) if f.startswith("kb_v") and f.endswith(".json")]
+    )
+    while len(versions) > MAX_KB_VERSIONS:
+        oldest = versions.pop(0)
+        try:
+            os.remove(os.path.join(versions_dir, oldest))
+        except OSError:
+            pass
+
+
+def list_kb_versions(domain: str) -> list[dict]:
+    """List all available KB versions for a domain.
+
+    Returns list of {version, timestamp, path, claims_count} sorted newest first.
+    """
+    versions_dir = _kb_versions_dir(domain)
+    if not os.path.isdir(versions_dir):
+        return []
+
+    versions = []
+    for fname in sorted(os.listdir(versions_dir), reverse=True):
+        if not (fname.startswith("kb_v") and fname.endswith(".json")):
+            continue
+        fpath = os.path.join(versions_dir, fname)
+        # Extract timestamp from filename: kb_vYYYYMMDD_HHMMSS.json
+        ts_str = fname[4:-5]  # strip "kb_v" and ".json"
+        claims = 0
+        try:
+            with open(fpath) as f:
+                kb = json.load(f)
+                claims = len(kb.get("claims", []))
+        except (json.JSONDecodeError, OSError):
+            pass
+        versions.append({
+            "version": fname,
+            "timestamp": ts_str,
+            "path": fpath,
+            "claims_count": claims,
+        })
+    return versions
+
+
+def rollback_knowledge_base(domain: str, version: str = None) -> dict:
+    """Roll back the knowledge base to a previous version.
+
+    Args:
+        domain: The domain to rollback.
+        version: Specific version filename (e.g., kb_v20260227_143000.json).
+                 If None, rolls back to the most recent previous version.
+
+    Returns:
+        {status, version, claims_count} or {status, error}.
+    """
+    from utils.atomic_write import atomic_json_write
+    versions = list_kb_versions(domain)
+    if not versions:
+        return {"status": "error", "error": "No previous KB versions found"}
+
+    if version:
+        target = next((v for v in versions if v["version"] == version), None)
+        if not target:
+            return {"status": "error", "error": f"Version {version} not found"}
+    else:
+        target = versions[0]  # most recent
+
+    # Load the target version
+    try:
+        with open(target["path"]) as f:
+            old_kb = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        return {"status": "error", "error": f"Failed to load version: {e}"}
+
+    # Save current as version (before overwriting with rollback)
+    path = get_knowledge_base_path(domain)
+    if os.path.exists(path):
+        _version_knowledge_base(domain, path)
+
+    # Write the rolled-back version as current
+    atomic_json_write(path, old_kb)
+
+    # Re-index in RAG
+    try:
+        from config import RAG_ENABLED
+        if RAG_ENABLED:
+            from rag.vector_store import index_knowledge_base
+            index_knowledge_base(domain, old_kb)
+    except Exception:
+        pass
+
+    claims = len(old_kb.get("claims", []))
+    return {
+        "status": "success",
+        "version": target["version"],
+        "timestamp": target["timestamp"],
+        "claims_count": claims,
+    }
 
 
 # ============================================================

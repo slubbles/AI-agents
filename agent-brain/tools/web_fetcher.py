@@ -201,10 +201,20 @@ def _extract_content(page, url: str) -> dict:
 def fetch_page(url: str, timeout: int = FETCH_TIMEOUT) -> Optional[dict]:
     """
     Fetch a single page and extract its content.
+    Rate-limited globally to prevent rapid-fire abuse across runs.
     
     Returns:
         Content dict or None if fetch failed.
     """
+    # Global rate limiting
+    try:
+        from utils.rate_limiter import wait_for_slot
+        if not wait_for_slot("fetch", timeout=30):
+            logger.warning(f"Rate limited, skipping fetch for {url}")
+            return None
+    except ImportError:
+        pass
+
     if _should_skip(url):
         logger.debug(f"Skipping {url} (blocked domain)")
         return None

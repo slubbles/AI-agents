@@ -59,6 +59,7 @@ from config import (
     MIN_OUTPUTS_FOR_ANALYSIS, EVOLVE_EVERY_N,
     MIN_OUTPUTS_FOR_SYNTHESIS, SYNTHESIZE_EVERY_N,
     CONSENSUS_ENABLED, CONSENSUS_RESEARCHERS,
+    AUTO_PRUNE_ENABLED, AUTO_PRUNE_EVERY_N,
 )
 from memory_store import save_output, load_outputs, get_stats, prune_domain, get_archive_stats
 from strategy_store import (
@@ -404,6 +405,19 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
                 next_evolve = EVOLVE_EVERY_N - (output_count % EVOLVE_EVERY_N)
                 print(f"\n[META-ANALYST] Next evolution in {next_evolve} output(s)")
 
+    # Step 8: Auto-prune — periodically clean low-quality outputs
+    if AUTO_PRUNE_ENABLED and final_verdict == "accept":
+        stats = get_stats(domain)
+        total_accepted = stats.get("accepted", 0)
+        if total_accepted > 0 and total_accepted % AUTO_PRUNE_EVERY_N == 0:
+            print(f"\n[AUTO-PRUNE] Trigger: {total_accepted} accepted outputs (every {AUTO_PRUNE_EVERY_N}). Pruning...")
+            prune_result = prune_domain(domain)
+            archived = prune_result.get("archived", 0) if prune_result else 0
+            if archived > 0:
+                print(f"[AUTO-PRUNE] Archived {archived} low-scoring output(s)")
+            else:
+                print(f"[AUTO-PRUNE] Nothing to prune — all outputs above threshold")
+
     # Print summary
     print(f"\n{'='*60}")
     print(f"  SUMMARY")
@@ -475,6 +489,8 @@ def main():
     parser.add_argument("--rounds", type=int, default=1, help="Number of auto rounds to run (default: 1)")
     parser.add_argument("--synthesize", action="store_true", help="Synthesize domain outputs into knowledge base")
     parser.add_argument("--kb", action="store_true", help="Show the synthesized knowledge base for a domain")
+    parser.add_argument("--kb-versions", action="store_true", help="List knowledge base version history")
+    parser.add_argument("--kb-rollback", nargs="?", const="latest", metavar="VERSION", help="Rollback KB to previous version")
     parser.add_argument("--prune", action="store_true", help="Run memory hygiene: archive rejected/low outputs")
     parser.add_argument("--prune-dry", action="store_true", help="Show what --prune would archive without doing it")
     parser.add_argument("--dashboard", action="store_true", help="Show full system dashboard (all domains, strategies, budget)")
@@ -618,6 +634,12 @@ def main():
         return
     if args.kb:
         _show_kb(args.domain)
+        return
+    if getattr(args, 'kb_versions', False):
+        _show_kb_versions(args.domain)
+        return
+    if getattr(args, 'kb_rollback', None):
+        _run_kb_rollback(args.domain, args.kb_rollback)
         return
     if args.prune or getattr(args, 'prune_dry', False):
         _run_prune(args.domain, dry_run=getattr(args, 'prune_dry', False))
@@ -2041,6 +2063,48 @@ def _show_kb(domain: str):
     print(f"{'='*60}")
 
     show_knowledge_base(domain)
+    print()
+
+
+def _show_kb_versions(domain: str):
+    """List knowledge base version history."""
+    from memory_store import list_kb_versions
+    print(f"\n{'='*60}")
+    print(f"  KB VERSION HISTORY — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    versions = list_kb_versions(domain)
+    if not versions:
+        print("  No previous versions found.")
+        print("  Versions are created automatically each time the KB is synthesized.")
+    else:
+        print(f"  {len(versions)} version(s) available:\n")
+        for v in versions:
+            print(f"    {v['version']}  ({v['claims_count']} claims)")
+    print()
+
+
+def _run_kb_rollback(domain: str, version: str):
+    """Roll back knowledge base to a previous version."""
+    from memory_store import rollback_knowledge_base, list_kb_versions
+    print(f"\n{'='*60}")
+    print(f"  KB ROLLBACK — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    if version == "latest":
+        versions = list_kb_versions(domain)
+        if not versions:
+            print("  No previous versions found. Nothing to roll back to.")
+            print()
+            return
+        version = None  # rollback_knowledge_base defaults to most recent
+
+    result = rollback_knowledge_base(domain, version)
+    if result["status"] == "success":
+        print(f"  Rolled back to: {result['version']}")
+        print(f"  Claims restored: {result['claims_count']}")
+    else:
+        print(f"  Error: {result['error']}")
     print()
 
 
