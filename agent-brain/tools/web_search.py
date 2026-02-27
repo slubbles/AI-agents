@@ -15,10 +15,19 @@ def web_search(query: str, max_results: int = 5, max_retries: int = 3) -> list[d
     
     DuckDuckGo rate-limits and occasionally returns 5xx errors. Retrying with
     backoff prevents a single transient failure from wasting an entire run.
+    Rate-limited globally to prevent rapid-fire abuse across runs.
     
     Returns:
         List of {title, url, snippet} dicts
     """
+    # Global rate limiting
+    try:
+        from utils.rate_limiter import wait_for_slot
+        if not wait_for_slot("search", timeout=30):
+            return [{"title": "Rate limited", "url": "", "snippet": "Global search rate limit reached. Try again shortly.", "error": True}]
+    except ImportError:
+        pass
+
     last_error = None
     for attempt in range(max_retries):
         try:

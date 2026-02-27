@@ -75,6 +75,11 @@ VAULT_PASSPHRASE_ENV = "VAULT_PASSPHRASE"  # env var name for vault master passp
 # --- VPS Deploy ---
 DEPLOY_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "deploy", "vps_config.json")
 
+# --- LLM Response Cache ---
+LLM_CACHE_ENABLED = True
+LLM_CACHE_TTL = 3600             # seconds before cached response expires (1 hour)
+LLM_CACHE_DIR = os.path.join(os.path.dirname(__file__), "logs", "_llm_cache")
+
 # --- MCP (Model Context Protocol) Gateway ---
 MCP_ENABLED = True                # enable Docker MCP server integration
 MCP_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "mcp_servers.json")
@@ -135,6 +140,16 @@ AUTO_DEDUP_RETRIES = 2           # retry question generation when dedup skips
 MAX_OUTPUTS_PER_DOMAIN = 100          # archive overflow beyond this
 ARCHIVE_REJECTED_AFTER_DAYS = 7       # archive rejected outputs after N days
 ARCHIVE_SCORE_THRESHOLD = 5           # archive outputs below this score after N days
+AUTO_PRUNE_ENABLED = True             # auto-prune after every Nth accepted output
+AUTO_PRUNE_EVERY_N = 10               # prune frequency (every N accepted outputs)
+
+# --- Dashboard API ---
+DASHBOARD_API_KEY = os.environ.get("DASHBOARD_API_KEY", "")  # empty = no auth
+DASHBOARD_CORS_ORIGINS = os.environ.get("DASHBOARD_CORS_ORIGINS", "*")
+
+# --- Global Rate Limiter ---
+RATE_LIMIT_SEARCHES_PER_MINUTE = 15   # max web searches per minute
+RATE_LIMIT_FETCHES_PER_MINUTE = 20    # max page fetches per minute
 
 # ============================================================
 # Agent Hands — Execution Layer

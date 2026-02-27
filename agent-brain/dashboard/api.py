@@ -13,9 +13,10 @@ import queue
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # Add parent to path so we can import agent-brain modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -36,7 +37,10 @@ from strategy_store import (
 from cost_tracker import get_daily_spend, get_all_time_spend, check_budget
 from validator import validate_all
 from agents.question_generator import get_next_question
-from config import MEMORY_DIR, QUALITY_THRESHOLD, CONSENSUS_ENABLED, CONSENSUS_RESEARCHERS
+from config import (
+    MEMORY_DIR, QUALITY_THRESHOLD, CONSENSUS_ENABLED, CONSENSUS_RESEARCHERS,
+    DASHBOARD_API_KEY, DASHBOARD_CORS_ORIGINS,
+)
 
 
 # ── Global event bus for SSE ──────────────────────────────────────────────
@@ -71,9 +75,40 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+# ── API Key Authentication Middleware ─────────────────────────────────────
+
+_PUBLIC_PATHS = {"/", "/docs", "/openapi.json", "/redoc"}
+
+
+class APIKeyMiddleware(BaseHTTPMiddleware):
+    """Require X-API-Key header when DASHBOARD_API_KEY is configured.
+
+    When the env var is empty or unset, all requests pass through (dev mode).
+    Public paths (root, docs) are always accessible.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        if not DASHBOARD_API_KEY:
+            return await call_next(request)  # no key configured → open access
+        if request.url.path in _PUBLIC_PATHS:
+            return await call_next(request)
+        # Accept key via header or query param
+        key = request.headers.get("x-api-key") or request.query_params.get("api_key")
+        if key != DASHBOARD_API_KEY:
+            return JSONResponse(status_code=401, content={"detail": "Invalid or missing API key"})
+        return await call_next(request)
+
+
+app.add_middleware(APIKeyMiddleware)
+
+# ── CORS ──────────────────────────────────────────────────────────────────
+
+_cors_origins = [o.strip() for o in DASHBOARD_CORS_ORIGINS.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
