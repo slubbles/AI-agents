@@ -492,6 +492,9 @@ def main():
     parser.add_argument("--kb", action="store_true", help="Show the synthesized knowledge base for a domain")
     parser.add_argument("--kb-versions", action="store_true", help="List knowledge base version history")
     parser.add_argument("--kb-rollback", nargs="?", const="latest", metavar="VERSION", help="Rollback KB to previous version")
+    parser.add_argument("--predictions", action="store_true", help="Extract time-bound predictions from KB for verification")
+    parser.add_argument("--verify", action="store_true", help="Verify past-deadline predictions against reality")
+    parser.add_argument("--prediction-stats", action="store_true", help="Show prediction accuracy stats for a domain")
     parser.add_argument("--prune", action="store_true", help="Run memory hygiene: archive rejected/low outputs")
     parser.add_argument("--prune-dry", action="store_true", help="Show what --prune would archive without doing it")
     parser.add_argument("--dashboard", action="store_true", help="Show full system dashboard (all domains, strategies, budget)")
@@ -641,6 +644,15 @@ def main():
         return
     if getattr(args, 'kb_rollback', None):
         _run_kb_rollback(args.domain, args.kb_rollback)
+        return
+    if getattr(args, 'predictions', False):
+        _run_predictions_extract(args.domain)
+        return
+    if getattr(args, 'verify', False):
+        _run_predictions_verify(args.domain)
+        return
+    if getattr(args, 'prediction_stats', False):
+        _show_prediction_stats(args.domain)
         return
     if args.prune or getattr(args, 'prune_dry', False):
         _run_prune(args.domain, dry_run=getattr(args, 'prune_dry', False))
@@ -2116,6 +2128,96 @@ def _run_kb_rollback(domain: str, version: str):
         print(f"  Claims restored: {result['claims_count']}")
     else:
         print(f"  Error: {result['error']}")
+    print()
+
+
+def _run_predictions_extract(domain: str):
+    """Extract time-bound predictions from KB for later verification."""
+    from agents.verifier import extract_predictions, load_predictions
+    print(f"\n{'='*60}")
+    print(f"  PREDICTION EXTRACTION — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    if not check_budget():
+        print("  ✗ Budget exceeded. Use --budget to see details.")
+        return
+
+    new = extract_predictions(domain)
+    all_preds = load_predictions(domain)
+    
+    print(f"\n  Predictions tracked: {len(all_preds)}")
+    if new:
+        print(f"  New this run: {len(new)}")
+        for p in new[:5]:
+            deadline = p.get("deadline", "?")
+            print(f"    → {p.get('prediction', '?')[:70]}... (due {deadline})")
+        if len(new) > 5:
+            print(f"    ... and {len(new) - 5} more")
+    print()
+
+
+def _run_predictions_verify(domain: str):
+    """Verify past-deadline predictions against external reality."""
+    from agents.verifier import verify_predictions, get_verification_stats
+    print(f"\n{'='*60}")
+    print(f"  PREDICTION VERIFICATION — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    if not check_budget():
+        print("  ✗ Budget exceeded. Use --budget to see details.")
+        return
+
+    results = verify_predictions(domain, max_checks=5)
+    
+    if results:
+        print(f"\n  Verification Summary:")
+        stats = get_verification_stats(domain)
+        print(f"    Total tracked: {stats['total']}")
+        print(f"    Pending: {stats['pending']}")
+        print(f"    Confirmed: {stats['confirmed']}")
+        print(f"    Refuted: {stats['refuted']}")
+        if stats.get('accuracy_rate') is not None:
+            print(f"    Accuracy rate: {stats['accuracy_rate']:.1%}")
+    print()
+
+
+def _show_prediction_stats(domain: str):
+    """Show prediction accuracy statistics for a domain."""
+    from agents.verifier import load_predictions, get_verification_stats
+    print(f"\n{'='*60}")
+    print(f"  PREDICTION STATS — Domain: {domain}")
+    print(f"{'='*60}\n")
+
+    predictions = load_predictions(domain)
+    if not predictions:
+        print("  No predictions tracked for this domain.")
+        print("  Use --predictions to extract predictions from the KB.")
+        print()
+        return
+
+    stats = get_verification_stats(domain)
+    print(f"  Total tracked: {stats['total']}")
+    print(f"  Pending: {stats['pending']}")
+    print(f"  Confirmed: {stats['confirmed']}")
+    print(f"  Refuted: {stats['refuted']}")
+    print(f"  Partially confirmed: {stats.get('partially_confirmed', 0)}")
+    print(f"  Inconclusive: {stats.get('inconclusive', 0)}")
+    
+    if stats.get('accuracy_rate') is not None:
+        print(f"\n  Accuracy rate: {stats['accuracy_rate']:.1%}")
+        print("  (confirmed / (confirmed + refuted))")
+    
+    # Show upcoming deadlines
+    from datetime import date
+    today = date.today()
+    pending = [p for p in predictions if p.get('status') == 'pending']
+    if pending:
+        print(f"\n  Upcoming deadlines:")
+        sorted_pending = sorted(pending, key=lambda x: x.get('deadline', '9999'))[:5]
+        for p in sorted_pending:
+            dl = p.get('deadline', '?')
+            pred_text = p.get('prediction', '?')[:60]
+            print(f"    {dl}: {pred_text}...")
     print()
 
 
