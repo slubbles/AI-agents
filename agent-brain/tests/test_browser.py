@@ -157,10 +157,31 @@ class TestSessionManager:
         from browser.session_manager import AUTH_REQUIRED_DOMAINS
         assert "linkedin.com" in AUTH_REQUIRED_DOMAINS
         assert "indeed.com" in AUTH_REQUIRED_DOMAINS
+        assert "glassdoor.com" in AUTH_REQUIRED_DOMAINS
+        assert "github.com" in AUTH_REQUIRED_DOMAINS
+        # New domains added Feb 28, 2026
+        assert "angel.co" in AUTH_REQUIRED_DOMAINS
+        assert "wellfound.com" in AUTH_REQUIRED_DOMAINS
 
     def test_js_required_domains(self):
         from browser.session_manager import JS_REQUIRED_DOMAINS
         assert "medium.com" in JS_REQUIRED_DOMAINS
+        assert "substack.com" in JS_REQUIRED_DOMAINS
+        assert "bloomberg.com" in JS_REQUIRED_DOMAINS
+        # New domains added Feb 28, 2026
+        assert "wsj.com" in JS_REQUIRED_DOMAINS
+        assert "nytimes.com" in JS_REQUIRED_DOMAINS
+        assert "reddit.com" in JS_REQUIRED_DOMAINS
+        assert "twitter.com" in JS_REQUIRED_DOMAINS
+        assert "x.com" in JS_REQUIRED_DOMAINS
+        assert "notion.so" in JS_REQUIRED_DOMAINS
+        assert "stackoverflow.com" in JS_REQUIRED_DOMAINS
+
+    def test_domain_lists_have_minimum_entries(self):
+        """Domain lists should have substantial coverage."""
+        from browser.session_manager import AUTH_REQUIRED_DOMAINS, JS_REQUIRED_DOMAINS
+        assert len(AUTH_REQUIRED_DOMAINS) >= 6
+        assert len(JS_REQUIRED_DOMAINS) >= 10
 
     def test_session_init_no_vault(self):
         from browser.session_manager import BrowserSession

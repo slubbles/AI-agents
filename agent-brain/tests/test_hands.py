@@ -2104,6 +2104,62 @@ class TestExecTemplates:
         assert "python" in templates
         assert len(templates) >= 4
 
+    def test_productized_services_template(self):
+        """productized-services template has domain-specific guidance."""
+        from hands.exec_templates import get_template
+        result = get_template("productized-services")
+        # Should contain KB-aware patterns
+        assert "risk" in result.lower() or "calculator" in result.lower()
+        assert "KB" in result or "claims" in result.lower()
+    
+    def test_cli_tools_template(self):
+        """cli-tools template has CLI patterns."""
+        from hands.exec_templates import get_template
+        result = get_template("cli-tools")
+        assert "argparse" in result or "click" in result
+        assert "--help" in result or "Unix" in result
+    
+    def test_web_dashboard_template(self):
+        """web-dashboard template has Next.js/React patterns."""
+        from hands.exec_templates import get_template
+        result = get_template("web-dashboard")
+        assert "Next.js" in result or "App Router" in result
+        assert "component" in result.lower()
+    
+    def test_growth_hacking_template(self):
+        """growth-hacking template exists."""
+        from hands.exec_templates import get_template
+        result = get_template("growth-hacking")
+        assert "pandas" in result or "data" in result.lower()
+    
+    def test_saas_building_template(self):
+        """saas-building template has API patterns."""
+        from hands.exec_templates import get_template
+        result = get_template("saas-building")
+        assert "API" in result or "REST" in result
+        assert "auth" in result.lower()
+    
+    def test_partial_match_productized(self):
+        """Partial match works for productized-services."""
+        from hands.exec_templates import get_template
+        # Domain containing 'productized' should match
+        result = get_template("my-productized-tool")
+        assert "risk" in result.lower() or "KB" in result
+    
+    def test_partial_match_dashboard(self):
+        """Partial match works for web-dashboard."""
+        from hands.exec_templates import get_template
+        result = get_template("analytics-dashboard")
+        assert "Next.js" in result or "component" in result.lower()
+    
+    def test_all_templates_have_validation_section(self):
+        """All templates should have a Validation section."""
+        from hands.exec_templates import DOMAIN_TEMPLATES, DEFAULT_TEMPLATE
+        
+        assert "Validation" in DEFAULT_TEMPLATE
+        for name, template in DOMAIN_TEMPLATES.items():
+            assert "Validation" in template, f"Template '{name}' missing Validation section"
+
 
 # ============================================================
 # v4: Validator Static Checks
