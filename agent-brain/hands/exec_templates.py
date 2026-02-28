@@ -134,6 +134,123 @@ DOMAIN_TEMPLATES = {
 - Check calculations with known test inputs
 - Ensure output files are written correctly
 """,
+
+    "productized-services": """# Execution Strategy — Productized Services Tools
+
+## Domain Context
+This domain focuses on tools that help founders evaluate, compare, and choose
+between freelancers vs. productized services. Key data points from KB:
+- Freelancer ghosting rates: 50-72%
+- Scope creep: 45-62% of projects
+- Platform data gaps: no completion rate transparency
+- SprintPage: only transparent productized service (48hr turnaround)
+
+## Planning Principles
+- Build calculator/assessment tools that use KB claims as input parameters
+- Emphasize data visualization and scoring outputs
+- Create comparison views: freelance vs productized vs in-house
+- Risk scoring should incorporate: ghosting risk, scope creep, payment delays
+
+## Code Patterns (prefer CLI + web)
+- Start with Python CLI for validation
+- Add Next.js/React frontend for user-facing tools
+- Use JSON for data interchange between CLI and web
+- Store calculated scores with reasoning trail
+
+## Risk Calculator Pattern
+```python
+def calculate_risk(
+    platform: str,           # upwork, toptal, fiverr
+    project_type: str,       # landing_page, webapp, api
+    budget_tier: str,        # low (<$500), medium ($500-2k), high (>$2k)
+    timeline_days: int,
+) -> RiskScore:
+    # Pull multipliers from KB claims
+    # Return score + reasoning + recommendation
+```
+
+## Comparison Tool Pattern
+- Show side-by-side: freelance total cost (including hidden costs) vs productized
+- Hidden costs from KB: retry costs (ghosting), float (late payment), scope creep
+- Always recommend based on score, not opinion
+
+## Validation
+- Test risk scoring with known edge cases
+- Verify recommendations match KB claims
+- Check that all cost factors are accounted for
+""",
+
+    "cli-tools": """# Execution Strategy — CLI Tools
+
+## Planning Principles
+- Use argparse or click for argument parsing
+- Follow Unix conventions: stdin/stdout, exit codes, -v/--verbose
+- Support both interactive and pipe-friendly modes
+- Add --help with clear examples
+
+## Code Patterns
+- Entry point: if __name__ == "__main__"
+- Separate CLI parsing from business logic
+- Use rich or colorama for colored output (optional)
+- JSON output mode for programmatic use: --json
+
+## File Structure
+```
+tool_name/
+├── __init__.py
+├── cli.py          # argparse/click setup
+├── core.py         # business logic
+├── models.py       # data classes
+└── tests/
+    └── test_cli.py
+```
+
+## Validation
+- Test --help works
+- Test with valid and invalid inputs
+- Test pipe mode: echo "input" | tool
+""",
+
+    "web-dashboard": """# Execution Strategy — Web Dashboards
+
+## Planning Principles
+- Start with data/API layer, then UI
+- Plan for: data fetching → state management → components → styling
+- Use server components for data fetching (Next.js 14+)
+- Client components only for interactivity
+
+## Tech Stack (default)
+- Next.js 14+ with App Router
+- TypeScript (strict)
+- Tailwind CSS
+- shadcn/ui components (optional)
+
+## Code Patterns
+- API routes in app/api/
+- Server components fetch data directly
+- Use React Query or SWR for client-side data
+- Skeleton loading states for async content
+
+## File Structure
+```
+src/
+├── app/
+│   ├── page.tsx           # main dashboard
+│   ├── api/
+│   │   └── data/route.ts  # data endpoints
+│   └── layout.tsx
+├── components/
+│   ├── charts/
+│   └── ui/
+└── lib/
+    └── data.ts            # data fetching utilities
+```
+
+## Validation
+- Verify data loads without errors
+- Check responsive layout (mobile, tablet, desktop)
+- Test loading and error states
+""",
 }
 
 

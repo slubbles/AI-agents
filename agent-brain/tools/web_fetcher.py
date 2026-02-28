@@ -78,14 +78,33 @@ SKIP_DOMAINS = {
 
 # Domains that require stealth browser (JS-heavy, anti-bot, or login-required)
 BROWSER_REQUIRED_DOMAINS = {
+    # Social media (heavy JS + anti-bot)
     "reddit.com",     # Heavy JS + anti-bot
     "twitter.com", "x.com",  # JS required
     "linkedin.com",   # Login + JS
+    "facebook.com",   # Heavy JS
+    "instagram.com",  # Heavy JS
+    # Content platforms (JS + paywalls)
     "medium.com",     # JS + paywall workaround
     "substack.com",   # JS
     "bloomberg.com",  # JS + anti-bot
+    "ft.com",         # Financial Times - JS + paywall
+    "wsj.com",        # Wall Street Journal - JS + paywall
+    "nytimes.com",    # NY Times - JS + paywall
+    # Job sites (JS + anti-bot)
     "indeed.com",     # JS + anti-bot
     "glassdoor.com",  # Login + anti-bot
+    "angel.co", "wellfound.com",  # Startup job boards
+    # SaaS/Product sites with heavy JS
+    "notion.so",      # Client-side rendering
+    "airtable.com",   # Client-side rendering
+    "figma.com",      # Client-side rendering
+    "miro.com",       # Client-side rendering
+    # E-commerce (anti-bot)
+    "amazon.com",     # Heavy anti-bot
+    "shopify.com",    # Client-side rendering
+    # Developer forums
+    "stackoverflow.com",  # Has anti-bot for heavy scraping
 }
 
 # Domains we can try Scrapling first, but fallback to browser if blocked

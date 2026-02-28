@@ -32,6 +32,8 @@ AUTH_REQUIRED_DOMAINS = {
     "indeed.com",
     "glassdoor.com",
     "github.com",  # private repos only
+    "angel.co",
+    "wellfound.com",
 }
 
 # Sites that need JS rendering but not auth
@@ -40,6 +42,14 @@ JS_REQUIRED_DOMAINS = {
     "substack.com",
     "bloomberg.com",
     "ft.com",
+    "wsj.com",
+    "nytimes.com",
+    "reddit.com",
+    "twitter.com",
+    "x.com",
+    "notion.so",
+    "airtable.com",
+    "stackoverflow.com",
 }
 
 
