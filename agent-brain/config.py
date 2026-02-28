@@ -49,8 +49,8 @@ COST_PER_1K = {
     "claude-haiku-4-5-20251001": {"input": 0.001, "output": 0.005},
     "claude-sonnet-4-20250514": {"input": 0.003, "output": 0.015},
 }
-DAILY_BUDGET_USD = 2.00  # Normal daily limit. Temporarily raised to $5 for Feb 28 session.
-TOTAL_BALANCE_USD = 11.74  # Synced from Claude console Feb 28 (post productized-services run). Previous: $11.95.
+DAILY_BUDGET_USD = 2.00  # Normal daily budget
+TOTAL_BALANCE_USD = 11.74  # Synced from Claude console Feb 28. Update after checking actual balance.
 
 # --- Loop ---
 DEFAULT_DOMAIN = "general"

@@ -70,14 +70,28 @@ GENERIC_SELECTORS = {
     "remove": "nav, footer, header, aside, .sidebar, .menu, .nav, script, style, .ad, .advertisement, .cookie-banner",
 }
 
-# Domains to skip fetching (search engines, paywalled, etc.)
+# Domains to always skip (search engines, not useful)
 SKIP_DOMAINS = {
     "google.com", "bing.com", "duckduckgo.com",
-    "youtube.com", "twitter.com", "x.com",
-    "facebook.com", "instagram.com", "linkedin.com",
-    "reddit.com",  # Heavy JS, needs browser
-    "github.com",  # API is better for this
-    "medium.com",  # Paywall
+    "youtube.com",
+}
+
+# Domains that require stealth browser (JS-heavy, anti-bot, or login-required)
+BROWSER_REQUIRED_DOMAINS = {
+    "reddit.com",     # Heavy JS + anti-bot
+    "twitter.com", "x.com",  # JS required
+    "linkedin.com",   # Login + JS
+    "medium.com",     # JS + paywall workaround
+    "substack.com",   # JS
+    "bloomberg.com",  # JS + anti-bot
+    "indeed.com",     # JS + anti-bot
+    "glassdoor.com",  # Login + anti-bot
+}
+
+# Domains we can try Scrapling first, but fallback to browser if blocked
+FALLBACK_DOMAINS = {
+    "facebook.com", "instagram.com",
+    "github.com",  # Public pages work, but may need browser for rate limits
 }
 
 # Max content per page (chars) to avoid token explosion
@@ -100,12 +114,76 @@ def _get_selectors(url: str) -> dict:
 
 
 def _should_skip(url: str) -> bool:
-    """Check if URL should be skipped (search engines, social media, etc.)."""
+    """Check if URL should be skipped entirely (search engines only)."""
     try:
         domain = urlparse(url).netloc.lower().replace("www.", "")
         return any(skip in domain for skip in SKIP_DOMAINS)
     except Exception:
         return True
+
+
+def _needs_browser(url: str) -> bool:
+    """Check if URL requires stealth browser (JS, anti-bot, auth)."""
+    try:
+        domain = urlparse(url).netloc.lower().replace("www.", "")
+        return any(bd in domain for bd in BROWSER_REQUIRED_DOMAINS)
+    except Exception:
+        return False
+
+
+def _is_fallback_domain(url: str) -> bool:
+    """Check if URL is in the list of domains that may need browser fallback."""
+    try:
+        domain = urlparse(url).netloc.lower().replace("www.", "")
+        return any(fd in domain for fd in FALLBACK_DOMAINS)
+    except Exception:
+        return False
+
+
+def _browser_fetch_sync(url: str, timeout: int = 30000) -> Optional[dict]:
+    """
+    Sync wrapper for stealth browser fetch.
+    
+    Returns content dict compatible with fetch_page output, or None on failure.
+    """
+    try:
+        import asyncio
+        from browser.session_manager import BrowserSession
+        
+        async def _do_fetch():
+            session = BrowserSession(headless=True)
+            try:
+                result = await session.fetch(url, extract_mode="text", timeout=timeout)
+                return result
+            finally:
+                await session.close_all()
+        
+        # Run in event loop
+        try:
+            loop = asyncio.get_running_loop()
+            # Already in async context — create task
+            result = asyncio.run_coroutine_threadsafe(_do_fetch(), loop).result(timeout=timeout/1000 + 10)
+        except RuntimeError:
+            # No running loop — create one
+            result = asyncio.run(_do_fetch())
+        
+        if result and result.get("success"):
+            return {
+                "url": url,
+                "title": result.get("title", ""),
+                "content": result.get("content", "")[:MAX_CONTENT_LENGTH],
+                "content_length": len(result.get("content", "")),
+                "headings": [],
+                "code_blocks": [],
+                "source": "browser",
+            }
+        else:
+            logger.debug(f"Browser fetch failed for {url}: {result.get('error', 'unknown')}")
+            return None
+            
+    except Exception as e:
+        logger.debug(f"Browser fetch error for {url}: {e}")
+        return None
 
 
 def _clean_text(text: str) -> str:
@@ -198,10 +276,19 @@ def _extract_content(page, url: str) -> dict:
     }
 
 
-def fetch_page(url: str, timeout: int = FETCH_TIMEOUT) -> Optional[dict]:
+def fetch_page(url: str, timeout: int = FETCH_TIMEOUT, allow_browser: bool = True) -> Optional[dict]:
     """
     Fetch a single page and extract its content.
-    Rate-limited globally to prevent rapid-fire abuse across runs.
+    
+    Strategy:
+    1. Skip search engine domains entirely
+    2. Use browser directly for JS-heavy / anti-bot sites
+    3. Try Scrapling first for others, fallback to browser if blocked
+    
+    Args:
+        url: Page URL to fetch
+        timeout: Timeout in seconds for Scrapling (browser uses 30s)
+        allow_browser: Allow stealth browser fallback (True default)
     
     Returns:
         Content dict or None if fetch failed.
@@ -216,31 +303,59 @@ def fetch_page(url: str, timeout: int = FETCH_TIMEOUT) -> Optional[dict]:
         pass
 
     if _should_skip(url):
-        logger.debug(f"Skipping {url} (blocked domain)")
+        logger.debug(f"Skipping {url} (search engine)")
         return None
     
-    Fetcher = _get_fetcher()
-    if not Fetcher:
-        logger.warning("Scrapling not available, cannot fetch pages")
-        return None
-    
-    try:
-        page = Fetcher.get(
-            url,
-            stealthy_headers=True,
-            timeout=timeout,
-            follow_redirects=True,
-        )
-        
-        if page.status != 200:
-            logger.debug(f"Non-200 status ({page.status}) for {url}")
+    # For browser-required domains, go straight to browser
+    if _needs_browser(url):
+        if allow_browser:
+            logger.info(f"Using browser for {url} (JS/anti-bot domain)")
+            return _browser_fetch_sync(url)
+        else:
+            logger.debug(f"Skipping {url} (needs browser but disabled)")
             return None
-        
-        return _extract_content(page, url)
-        
-    except Exception as e:
-        logger.debug(f"Fetch failed for {url}: {e}")
-        return None
+    
+    # Try Scrapling first
+    Fetcher = _get_fetcher()
+    scrapling_failed = False
+    
+    if Fetcher:
+        try:
+            page = Fetcher.get(
+                url,
+                stealthy_headers=True,
+                timeout=timeout,
+                follow_redirects=True,
+            )
+            
+            if page.status == 200:
+                result = _extract_content(page, url)
+                if result and result.get("content_length", 0) > 100:
+                    result["source"] = "scrapling"
+                    return result
+                else:
+                    scrapling_failed = True
+                    logger.debug(f"Scrapling returned empty content for {url}")
+            elif page.status in (403, 429, 503):
+                # Blocked — try browser
+                scrapling_failed = True
+                logger.debug(f"Blocked ({page.status}) for {url}, will try browser")
+            else:
+                logger.debug(f"Non-200 status ({page.status}) for {url}")
+                return None
+                
+        except Exception as e:
+            scrapling_failed = True
+            logger.debug(f"Scrapling failed for {url}: {e}")
+    else:
+        scrapling_failed = True
+    
+    # Try browser fallback if Scrapling failed and it's a fallback-eligible domain
+    if scrapling_failed and allow_browser and (_is_fallback_domain(url) or Fetcher is None):
+        logger.info(f"Trying browser fallback for {url}")
+        return _browser_fetch_sync(url)
+    
+    return None
 
 
 def fetch_pages(urls: list[str], max_pages: int = MAX_PAGES_PER_CYCLE) -> list[dict]:
