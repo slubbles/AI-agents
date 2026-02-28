@@ -439,3 +439,96 @@ class TestResearcherFetchIntegration:
         assert "web_search" in names
         assert "fetch_page" in names
         assert "search_and_fetch" in names
+
+
+# ============================================================
+# Browser Routing Tests (added Feb 28, 2026)
+# ============================================================
+
+class TestBrowserRouting:
+    """Tests for browser-required domain detection."""
+    
+    def test_needs_browser_reddit(self):
+        """Reddit requires stealth browser."""
+        from tools.web_fetcher import _needs_browser
+        assert _needs_browser("https://www.reddit.com/r/reactjs") is True
+        assert _needs_browser("https://reddit.com/r/python") is True
+    
+    def test_needs_browser_linkedin(self):
+        """LinkedIn requires stealth browser."""
+        from tools.web_fetcher import _needs_browser
+        assert _needs_browser("https://linkedin.com/in/someone") is True
+        assert _needs_browser("https://www.linkedin.com/company/test") is True
+    
+    def test_needs_browser_twitter(self):
+        """Twitter/X requires stealth browser."""
+        from tools.web_fetcher import _needs_browser
+        assert _needs_browser("https://twitter.com/user") is True
+        assert _needs_browser("https://x.com/user") is True
+    
+    def test_needs_browser_medium(self):
+        """Medium requires stealth browser."""
+        from tools.web_fetcher import _needs_browser
+        assert _needs_browser("https://medium.com/@author/post") is True
+    
+    def test_needs_browser_paywalls(self):
+        """Paywall sites require stealth browser."""
+        from tools.web_fetcher import _needs_browser
+        assert _needs_browser("https://bloomberg.com/article") is True
+        assert _needs_browser("https://ft.com/content/article") is True
+        assert _needs_browser("https://wsj.com/articles/test") is True
+        assert _needs_browser("https://nytimes.com/article") is True
+    
+    def test_needs_browser_job_sites(self):
+        """Job sites require stealth browser."""
+        from tools.web_fetcher import _needs_browser
+        assert _needs_browser("https://indeed.com/job/123") is True
+        assert _needs_browser("https://glassdoor.com/Reviews") is True
+        assert _needs_browser("https://angel.co/company/startup") is True
+        assert _needs_browser("https://wellfound.com/company/x") is True
+    
+    def test_needs_browser_saas_apps(self):
+        """SaaS apps with client-side rendering require stealth browser."""
+        from tools.web_fetcher import _needs_browser
+        assert _needs_browser("https://notion.so/page") is True
+        assert _needs_browser("https://airtable.com/workspace") is True
+        assert _needs_browser("https://figma.com/file/123") is True
+    
+    def test_needs_browser_stackoverflow(self):
+        """StackOverflow (anti-bot) requires stealth browser."""
+        from tools.web_fetcher import _needs_browser
+        assert _needs_browser("https://stackoverflow.com/questions/123") is True
+    
+    def test_no_browser_for_docs(self):
+        """Regular docs sites don't need browser."""
+        from tools.web_fetcher import _needs_browser
+        assert _needs_browser("https://nextjs.org/docs") is False
+        assert _needs_browser("https://react.dev/learn") is False
+        assert _needs_browser("https://docs.python.org/3/") is False
+        assert _needs_browser("https://developer.mozilla.org/en-US/") is False
+    
+    def test_fallback_domain_github(self):
+        """GitHub is a fallback domain (try HTTP first)."""
+        from tools.web_fetcher import _is_fallback_domain
+        assert _is_fallback_domain("https://github.com/user/repo") is True
+
+
+class TestBrowserDomainLists:
+    """Tests for browser domain list completeness."""
+    
+    def test_browser_required_domains_not_empty(self):
+        """BROWSER_REQUIRED_DOMAINS has entries."""
+        from tools.web_fetcher import BROWSER_REQUIRED_DOMAINS
+        assert len(BROWSER_REQUIRED_DOMAINS) >= 20  # We added 25+
+    
+    def test_fallback_domains_not_empty(self):
+        """FALLBACK_DOMAINS has entries."""
+        from tools.web_fetcher import FALLBACK_DOMAINS
+        assert len(FALLBACK_DOMAINS) >= 2
+    
+    def test_skip_domains_includes_search_engines(self):
+        """SKIP_DOMAINS includes major search engines."""
+        from tools.web_fetcher import SKIP_DOMAINS
+        assert "google.com" in SKIP_DOMAINS
+        assert "bing.com" in SKIP_DOMAINS
+        assert "duckduckgo.com" in SKIP_DOMAINS

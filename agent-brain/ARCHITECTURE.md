@@ -834,4 +834,145 @@ In autonomous mode (daemon, orchestrate), a single API failure shouldn't kill a 
 
 ---
 
-*Document generated from Agent Brain codebase, 15,302 lines across 34 Python modules.*
+## 17. Agent Hands (Execution Layer)
+
+> **Added:** February 2026  
+> **Purpose:** Code generation and execution capabilities
+
+### Overview
+
+Agent Hands is the execution layer — it turns KB knowledge into working code:
+
+```
+KB Claims → Task Generator → Planner → Executor → Artifacts
+```
+
+### Components
+
+| Component | Model | Purpose |
+|-----------|-------|---------|
+| **Task Generator** | Haiku 4.5 | Generate coding tasks from KB claims |
+| **Planner** | Sonnet 4 | Goal → step-by-step plan |
+| **Executor** | Haiku 4.5 | Plan → tool calls → artifacts |
+| **Validator** | Sonnet 4 | Score execution quality |
+
+### Execution Tools
+
+| Tool | Operations |
+|------|------------|
+| `code` | write, read, edit, append, delete, list_dir |
+| `terminal` | npm, pip, pytest, git, curl, docker (whitelisted) |
+| `git` | init, commit, push, branch, merge |
+| `http` | GET/POST for API testing |
+| `search` | find files/code in workspace |
+
+### Execution Templates
+
+Domain-specific execution guidance:
+
+- `nextjs-react`: create-next-app, TypeScript, App Router
+- `python`: venv, pytest, type hints, PEP 8
+- `saas-building`: REST API, auth, database patterns
+- `productized-services`: risk calculators, comparison tools (KB-aware)
+- `cli-tools`: argparse, Unix conventions, JSON output
+- `web-dashboard`: Next.js 14, server components, Tailwind
+
+### CLI Commands
+
+```bash
+python main.py --next-task --domain D         # Generate coding tasks
+python main.py --auto-build --domain D        # Brain→Hands pipeline
+python main.py --execute --goal "..."         # Direct execution
+python main.py --exec-status --domain D       # Execution history
+```
+
+---
+
+## 18. Tool Integrations
+
+> **Added:** February 2026  
+> **Purpose:** Enhanced web scraping, credential management, semantic search
+
+### Stealth Browser
+
+Playwright-based browser with anti-detection:
+
+- Human-like timing (typing, clicking, scrolling)
+- Fingerprint randomization (viewport, user-agent, locale)
+- Session persistence (cookies, localStorage)
+- Auto-auth via vault credentials
+
+**Browser-Required Domains** (auto-detected):
+```
+reddit, linkedin, twitter/x, medium, bloomberg, ft, wsj, nytimes,
+indeed, glassdoor, angel.co, wellfound, notion, airtable, figma,
+stackoverflow, amazon, shopify
+```
+
+### Credential Vault
+
+Encrypted credential storage (Fernet encryption):
+
+- Passphrase-protected (`VAULT_PASSPHRASE` env var)
+- Key format: `domain_com` (dots → underscores)
+- Auto-retrieved for browser auth
+
+```bash
+# Store credential
+python main.py --vault-store linkedin_com '{"email":"x","password":"y"}'
+
+# Browser automatically uses vault
+python main.py --browser-fetch 'https://linkedin.com/in/someone'
+```
+
+### RAG Vector Store
+
+ChromaDB + sentence-transformers for semantic search:
+
+- Model: `all-MiniLM-L6-v2` (384 dimensions, local, free)
+- Claims indexed per domain
+- Cross-domain semantic search
+- Currently: ~1,900+ claims indexed
+
+```bash
+python main.py --rag-search "landing page pricing"
+python main.py --rag-status
+```
+
+### Crawl-to-KB Pipeline
+
+Web scraping → claim extraction → KB injection:
+
+```bash
+# Crawl documentation site
+python main.py --crawl 'https://docs.example.com' --domain D --crawl-max 10
+
+# Inject extracted claims to KB
+python main.py --crawl-inject --domain D
+```
+
+Flow:
+```
+URL → Scrapling (HTTP) or Browser (JS sites) → Pages → 
+Extract Claims (heuristics) → KB → RAG Index
+```
+
+---
+
+## 19. Cortex System Naming
+
+> **Established:** February 2026
+
+**Cortex** is the name for the complete system:
+
+| Component | Purpose |
+|-----------|---------|
+| **Brain** | Research, scoring, strategy evolution |
+| **Hands** | Planning, execution, code generation |
+| **Tools** | Browser, vault, RAG, crawl |
+
+A **cycle** is one complete research or execution run.
+
+---
+
+*Document updated February 2026. Total codebase: ~20,000 lines Python across 40+ modules.*
