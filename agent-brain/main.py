@@ -68,7 +68,7 @@ from strategy_store import (
     get_active_version, list_versions, list_pending,
     approve_strategy, reject_strategy, get_strategy_diff,
 )
-from cost_tracker import check_budget, get_daily_spend, get_all_time_spend
+from cost_tracker import check_budget, check_balance, get_daily_spend, get_all_time_spend
 from agents.cross_domain import (
     extract_principles, load_principles, generate_seed_strategy,
     get_transfer_sources,
@@ -160,7 +160,8 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     print(f"  AGENT BRAIN — Research Loop")
     print(f"  Domain: {domain}")
     print(f"  Question: {question}")
-    print(f"  Budget: ${budget['remaining']:.4f} remaining today")
+    balance = check_balance()
+    print(f"  Budget: ${budget['remaining']:.4f} remaining today | Balance: ${balance['remaining_balance']:.4f} of ${balance['starting_balance']:.2f}")
     print(f"{'='*60}\n")
 
     # Load current strategy
@@ -1112,6 +1113,16 @@ def _show_budget():
             print(f"\n    Daily breakdown:")
             for d, cost in alltime["by_date"].items():
                 print(f"      {d}  ${cost:.4f}")
+
+    # Balance tracking — compare with Claude console
+    balance = check_balance()
+    print(f"\n  {'='*50}")
+    print(f"  API CREDIT BALANCE")
+    print(f"  {'='*50}")
+    print(f"    Starting:  ${balance['starting_balance']:.2f}")
+    print(f"    Spent:     ${balance['total_spent']:.4f} ({balance['total_calls']} calls)")
+    print(f"    Remaining: ${balance['remaining_balance']:.4f} (estimated)")
+    print(f"    ⚠ {balance['accuracy_note']}")
     print()
 
 

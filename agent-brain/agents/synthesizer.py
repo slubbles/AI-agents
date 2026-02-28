@@ -285,7 +285,7 @@ def synthesize(domain: str, force: bool = False) -> dict | None:
     response = create_message(
         client,
         model=MODELS["synthesizer"],  # Sonnet — needs strong reasoning for contradictions
-        max_tokens=8192,
+        max_tokens=16384,  # KBs are large — 8192 truncated mid-JSON
         system=system_prompt,
         messages=[{"role": "user", "content": user_message}],
     )

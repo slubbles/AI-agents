@@ -10,7 +10,7 @@ Dual-writes to both JSONL (backward compat) and SQLite (fast queries).
 import json
 import os
 from datetime import datetime, timezone, date
-from config import LOG_DIR, COST_PER_1K, DAILY_BUDGET_USD
+from config import LOG_DIR, COST_PER_1K, DAILY_BUDGET_USD, TOTAL_BALANCE_USD
 
 
 COST_LOG = os.path.join(LOG_DIR, "costs.jsonl")
@@ -111,6 +111,28 @@ def check_budget() -> dict:
         "spent": spent,
         "limit": DAILY_BUDGET_USD,
         "remaining": round(DAILY_BUDGET_USD - spent, 4),
+    }
+
+
+def check_balance() -> dict:
+    """
+    Check remaining API credit balance (total, not daily).
+
+    Subtracts all-time tracked spend from TOTAL_BALANCE_USD.
+    Compare with Claude console to verify accuracy.
+
+    Returns:
+        {starting_balance, total_spent, remaining_balance, accuracy_note}
+    """
+    alltime = get_all_time_spend()
+    total_spent = alltime["total_usd"]
+    remaining = round(TOTAL_BALANCE_USD - total_spent, 4)
+    return {
+        "starting_balance": TOTAL_BALANCE_USD,
+        "total_spent": total_spent,
+        "remaining_balance": remaining,
+        "total_calls": alltime["calls"],
+        "accuracy_note": "Compare with Claude console to verify. Update TOTAL_BALANCE_USD in config.py if drifted.",
     }
 
 

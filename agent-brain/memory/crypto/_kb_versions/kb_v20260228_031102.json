@@ -1,0 +1,432 @@
+{
+  "domain_summary": "As of February 2026, the crypto ecosystem is experiencing significant institutional adoption through Bitcoin ETFs (6% of Bitcoin's market cap) and regulatory maturation with the GENIUS Act implementation for stablecoins and pending CLARITY Act. DeFi faces emerging risks from AI-generated code vulnerabilities and governance failures, while the gaming sector shows revival after 2025's 75% decline. The regulatory environment has shifted from uncertainty to execution mode with clearer frameworks, though jurisdictional disputes persist between SEC and CFTC.",
+  "topics": [
+    {
+      "name": "Bitcoin ETFs",
+      "subtopics": [
+        "institutional flows",
+        "market penetration",
+        "custody arrangements",
+        "regulatory impact"
+      ]
+    },
+    {
+      "name": "Regulation",
+      "subtopics": [
+        "CLARITY Act",
+        "GENIUS Act",
+        "SEC policy",
+        "stablecoin framework",
+        "enforcement"
+      ]
+    },
+    {
+      "name": "DeFi",
+      "subtopics": [
+        "protocol exploits",
+        "AI security risks",
+        "governance failures",
+        "TVL metrics",
+        "protocol upgrades"
+      ]
+    },
+    {
+      "name": "Stablecoins",
+      "subtopics": [
+        "regulatory compliance",
+        "market share",
+        "institutional adoption",
+        "yield mechanisms"
+      ]
+    },
+    {
+      "name": "Web3 Gaming",
+      "subtopics": [
+        "token performance",
+        "play-to-earn",
+        "market recovery",
+        "infrastructure"
+      ]
+    },
+    {
+      "name": "Bitcoin Layer 2",
+      "subtopics": [
+        "Lightning Network",
+        "scaling solutions",
+        "institutional integration"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_001",
+      "claim": "U.S. spot Bitcoin ETFs recorded $1.71 billion in net inflows over three consecutive days in January 2026, with BlackRock's IBIT capturing $648 million in a single session",
+      "topic": "Bitcoin ETFs",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T09:59:38.253263+00:00",
+      "last_confirmed": "2026-02-23T09:59:38.253263+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.ainvest.com/news/institutional-adoption-bitcoin-etfs-implications-2026-era-regulatory-clarity-capital-inflows-2601/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_002",
+      "claim": "Bitcoin ETFs represent approximately 6% of Bitcoin's overall market cap as of February 2026",
+      "topic": "Bitcoin ETFs",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T09:59:38.253263+00:00",
+      "last_confirmed": "2026-02-23T09:59:38.253263+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://bitcoinke.io/2026/02/bitcoin-etfs-percentage-of-overall-market-cap/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_003",
+      "claim": "Mid-February 2026 saw approximately $123.4 million in net withdrawals from Bitcoin ETFs despite occasional inflow days",
+      "topic": "Bitcoin ETFs",
+      "confidence": "medium",
+      "status": "conflicted",
+      "first_seen": "2026-02-23T09:59:38.253263+00:00",
+      "last_confirmed": "2026-02-23T09:59:38.253263+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://bitcoinke.io/2026/02/bitcoin-etfs-percentage-of-overall-market-cap/"
+      ],
+      "supersedes": null,
+      "conflicted_by": "claim_004",
+      "notes": "Conflicts with specific daily inflow data from late February"
+    },
+    {
+      "id": "claim_004",
+      "claim": "On February 20, 2026, IBIT recorded $64.5M inflows and FBTC recorded $23.6M inflows",
+      "topic": "Bitcoin ETFs",
+      "confidence": "medium",
+      "status": "conflicted",
+      "first_seen": "2026-02-23T11:42:07.364976+00:00",
+      "last_confirmed": "2026-02-23T11:42:07.364976+00:00",
+      "source_count": 1,
+      "sources": [
+        "BingX financial news",
+        "Yahoo Finance"
+      ],
+      "supersedes": null,
+      "conflicted_by": "claim_003",
+      "notes": "Specific inflow data conflicts with broader February outflow trend"
+    },
+    {
+      "id": "claim_005",
+      "claim": "ETFs now drive U.S. Bitcoin trading more than spot exchanges",
+      "topic": "Bitcoin ETFs",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T09:59:38.253263+00:00",
+      "last_confirmed": "2026-02-23T09:59:38.253263+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://bitcoinke.io/2026/02/bitcoin-etfs-percentage-of-overall-market-cap/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_006",
+      "claim": "US crypto regulation is entering 'execution mode' in 2026 with Congress, regulators, and states rolling out clearer rules on market structure, stablecoins, and custody",
+      "topic": "Regulation",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:02:23.778129+00:00",
+      "last_confirmed": "2026-02-23T10:02:23.778129+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://coinpedia.org/news/us-crypto-regulation-in-2026-key-laws-sec-changes-and-what-comes-next/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_007",
+      "claim": "The CLARITY Act is a pending bill aimed at clarifying the legal status of cryptocurrencies by establishing a three-category framework for classifying digital assets",
+      "topic": "Regulation",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:02:23.778129+00:00",
+      "last_confirmed": "2026-02-23T10:02:23.778129+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://blog.mexc.com/news/u-s-crypto-regulation-advances-in-2026-clarity-act-update-every-trader-needs-to-know/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_008",
+      "claim": "The Senate postponed the CLARITY Act review, indicating legislative challenges persist despite bipartisan support for regulatory clarity",
+      "topic": "Regulation",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T10:02:23.778129+00:00",
+      "last_confirmed": "2026-02-23T10:02:23.778129+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://blockchain.bakermckenzie.com/2026/01/16/the-clarity-act-delay-and-what-it-reveals-about-u-s-crypto-regulation/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_009",
+      "claim": "Truebit protocol suffered $26.4-26.6 million exploit in early January 2026 due to pricing logic flaw in legacy smart contracts, causing TRU token to collapse approximately 99%",
+      "topic": "DeFi",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:04:39.477210+00:00",
+      "last_confirmed": "2026-02-23T10:04:39.477210+00:00",
+      "source_count": 5,
+      "sources": [
+        "Cointelegraph",
+        "AMBCrypto",
+        "CryptoPotato",
+        "Web3IsGoingGreat",
+        "Crypto Daily Roundup"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_010",
+      "claim": "Moonwell DeFi lending protocol suffered $1.78 million oracle exploit on February 15-19, 2026 when cbETH was mispriced at ~$1.12 instead of ~$2,200, attributed to AI-written code (Claude Opus 4.6)",
+      "topic": "DeFi",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:04:39.477210+00:00",
+      "last_confirmed": "2026-02-23T10:04:39.477210+00:00",
+      "source_count": 6,
+      "sources": [
+        "Cointelegraph",
+        "CoinAlert News",
+        "The Block",
+        "CryptoNews",
+        "Cryptopolitain",
+        "CryptoTimes"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_011",
+      "claim": "$86 million lost to DeFi hacks and exploits in January 2026 alone, with 7 separate incidents exceeding $1 million each",
+      "topic": "DeFi",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:04:39.477210+00:00",
+      "last_confirmed": "2026-02-23T10:04:39.477210+00:00",
+      "source_count": 4,
+      "sources": [
+        "Halborn Blog",
+        "Reddit r/DeFi",
+        "TRM Labs 2026 Crime Report",
+        "Chainalysis 2026 Report"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_012",
+      "claim": "SEC revised broker-dealer capital treatment rules on February 19, 2026, allowing 2% haircut on stablecoin holdings instead of 100% haircut",
+      "topic": "Stablecoins",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:29:16.418349+00:00",
+      "last_confirmed": "2026-02-23T10:29:16.418349+00:00",
+      "source_count": 3,
+      "sources": [
+        "SEC.gov - Commissioner Peirce Statement",
+        "CoinDesk",
+        "BlockOmomi"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_013",
+      "claim": "GENIUS Act (Guiding and Establishing National Innovation for U.S. Stablecoins Act) signed into law on July 18, 2025, requires 1:1 reserve backing and federal licensing for payment stablecoin issuers",
+      "topic": "Stablecoins",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:29:16.418349+00:00",
+      "last_confirmed": "2026-02-23T10:29:16.418349+00:00",
+      "source_count": 4,
+      "sources": [
+        "St. Louis Federal Reserve",
+        "K&L Gates",
+        "Conference Board",
+        "Treasury Today"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_014",
+      "claim": "ProShares launched IQMM, the first GENIUS Act-compliant money market ETF, on February 19, 2026, recording approximately $17 billion in first-day trading volume",
+      "topic": "Stablecoins",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:29:16.418349+00:00",
+      "last_confirmed": "2026-02-23T10:29:16.418349+00:00",
+      "source_count": 4,
+      "sources": [
+        "ProShares Official Press Release",
+        "Yahoo Finance",
+        "CoinDesk",
+        "Bloomberg"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_015",
+      "claim": "Axie Infinity (AXS) is experiencing major revival with 60%+ price surge in January 2026 and $380M trading volume surge",
+      "topic": "Web3 Gaming",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:43:46.380957+00:00",
+      "last_confirmed": "2026-02-23T10:43:46.380957+00:00",
+      "source_count": 5,
+      "sources": [
+        "CoinReporter",
+        "CoinEdition",
+        "Binance",
+        "CoinMarketCap",
+        "CoinGecko"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_016",
+      "claim": "GameFi sector declined approximately 75% in 2025 before showing recovery signs in early 2026",
+      "topic": "Web3 Gaming",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T10:43:46.380957+00:00",
+      "last_confirmed": "2026-02-23T10:43:46.380957+00:00",
+      "source_count": 3,
+      "sources": [
+        "Shine Magazine",
+        "Coinpedia",
+        "Multiple gaming token analysis articles"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_017",
+      "claim": "Lightning Network exceeded $1B in monthly transaction volume by February 2026",
+      "topic": "Bitcoin Layer 2",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T11:05:17.721080+00:00",
+      "last_confirmed": "2026-02-23T11:05:17.721080+00:00",
+      "source_count": 2,
+      "sources": [
+        "Tech Edu Byte",
+        "Bitcoin Lightning Network layer 2 reporting"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_018",
+      "claim": "Bitcoin L2 ecosystem has grown to 75+ projects as of 2026",
+      "topic": "Bitcoin Layer 2",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T11:05:17.721080+00:00",
+      "last_confirmed": "2026-02-23T11:05:17.721080+00:00",
+      "source_count": 2,
+      "sources": [
+        "Galaxy Research",
+        "SwapSpace blog"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    }
+  ],
+  "contradictions": [
+    {
+      "claim_a": "claim_003",
+      "claim_b": "claim_004",
+      "description": "Mid-February 2026 net withdrawals vs specific February 20 inflows",
+      "resolution": "unresolved - temporal specificity may allow both to be true (overall negative trend with specific positive days)"
+    }
+  ],
+  "knowledge_gaps": [
+    {
+      "gap": "Specific daily Bitcoin ETF flows for complete February 16-23 period with SEC filing verification",
+      "priority": "high",
+      "related_topic": "Bitcoin ETFs"
+    },
+    {
+      "gap": "Current status of CLARITY Act as of late February 2026 after January delay",
+      "priority": "high",
+      "related_topic": "Regulation"
+    },
+    {
+      "gap": "Total Value Locked across DeFi protocols as of February 2026 with protocol breakdown",
+      "priority": "medium",
+      "related_topic": "DeFi"
+    },
+    {
+      "gap": "Detailed GENIUS Act implementation timeline and agency-specific rule deadlines",
+      "priority": "medium",
+      "related_topic": "Stablecoins"
+    },
+    {
+      "gap": "Real-time daily active user counts for major Web3 gaming tokens in February 2026",
+      "priority": "low",
+      "related_topic": "Web3 Gaming"
+    },
+    {
+      "gap": "Comparative TVL metrics across Bitcoin Layer 2 solutions",
+      "priority": "medium",
+      "related_topic": "Bitcoin Layer 2"
+    }
+  ],
+  "synthesis_stats": {
+    "total_claims": 18,
+    "active_claims": 17,
+    "superseded_claims": 0,
+    "disputed_claims": 2,
+    "contradictions_found": 1,
+    "topics_covered": 6,
+    "outputs_synthesized": 7,
+    "synthesis_date": "2026-02-23"
+  },
+  "_synthesized_at": "2026-02-23T12:27:11.632176+00:00",
+  "_domain": "crypto",
+  "_outputs_count": 7
+}

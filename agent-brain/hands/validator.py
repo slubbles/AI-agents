@@ -202,7 +202,7 @@ def _read_artifact_files(artifacts: list[str], suspect_files: set[str] | None = 
     return contents
 
 
-_MAX_FILE_CHARS = 500_000  # Cap file reads for syntax checks
+_MAX_SYNTAX_CHECK_CHARS = 500_000  # Cap file reads for syntax checks
 
 
 def _check_js_ts_syntax(content: str, path: str) -> list[str]:
@@ -406,7 +406,7 @@ def _run_static_checks(artifacts: list[str]) -> dict:
             results["checks_run"] += 1
             try:
                 with open(path, "r", errors="replace") as f:
-                    content = f.read(_MAX_FILE_CHARS)
+                    content = f.read(_MAX_SYNTAX_CHECK_CHARS)
                 issues = _check_js_ts_syntax(content, path)
                 if issues:
                     results["issues"].append({

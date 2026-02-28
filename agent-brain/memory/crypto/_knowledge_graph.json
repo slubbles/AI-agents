@@ -1,0 +1,4449 @@
+{
+  "nodes": [
+    {
+      "id": "topic_bitcoin_etfs",
+      "type": "topic",
+      "label": "Bitcoin ETFs",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768461+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "institutional flows",
+          "market penetration",
+          "custody arrangements",
+          "regulatory impact"
+        ]
+      }
+    },
+    {
+      "id": "topic_regulation",
+      "type": "topic",
+      "label": "Regulation",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768480+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "CLARITY Act",
+          "GENIUS Act",
+          "SEC policy",
+          "enforcement actions",
+          "stablecoin framework"
+        ]
+      }
+    },
+    {
+      "id": "topic_defi",
+      "type": "topic",
+      "label": "DeFi",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768492+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "protocol exploits",
+          "AI security risks",
+          "governance failures",
+          "TVL metrics",
+          "protocol upgrades"
+        ]
+      }
+    },
+    {
+      "id": "topic_stablecoins",
+      "type": "topic",
+      "label": "Stablecoins",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768501+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "regulatory compliance",
+          "market share",
+          "institutional adoption",
+          "yield mechanisms",
+          "reserve requirements"
+        ]
+      }
+    },
+    {
+      "id": "topic_web3_gaming",
+      "type": "topic",
+      "label": "Web3 Gaming",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768511+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "token performance",
+          "play-to-earn",
+          "market recovery",
+          "infrastructure"
+        ]
+      }
+    },
+    {
+      "id": "topic_bitcoin_layer_2",
+      "type": "topic",
+      "label": "Bitcoin Layer 2",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768521+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "Lightning Network",
+          "scaling solutions",
+          "institutional integration"
+        ]
+      }
+    },
+    {
+      "id": "topic_sec_enforcement",
+      "type": "topic",
+      "label": "SEC Enforcement",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768531+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "Paul Atkins administration",
+          "case dismissals",
+          "regulatory guidance",
+          "examination priorities"
+        ]
+      }
+    },
+    {
+      "id": "claim_001",
+      "type": "claim",
+      "label": "U.S. spot Bitcoin ETFs recorded $1.71 billion in net inflows over three consecutive days in January 2026, with BlackRock's IBIT capturing $648 million in a single session",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T09:59:38.253263+00:00",
+      "last_updated": "2026-02-23T09:59:38.253263+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "U.S. spot Bitcoin ETFs recorded $1.71 billion in net inflows over three consecutive days in January 2026, with BlackRock's IBIT capturing $648 million in a single session",
+        "sources": [
+          "https://www.ainvest.com/news/institutional-adoption-bitcoin-etfs-implications-2026-era-regulatory-clarity-capital-inflows-2601/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_ainvest_com_news_institutional_adoption_bitcoin_et",
+      "type": "source",
+      "label": "https://www.ainvest.com/news/institutional-adoption-bitcoin-etfs-implications-2026-era-regulatory-clarity-capital-inflow",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768571+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.ainvest.com/news/institutional-adoption-bitcoin-etfs-implications-2026-era-regulatory-clarity-capital-inflows-2601/"
+      }
+    },
+    {
+      "id": "claim_002",
+      "type": "claim",
+      "label": "Bitcoin ETFs represent approximately 6% of Bitcoin's overall market cap as of February 2026",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T09:59:38.253263+00:00",
+      "last_updated": "2026-02-23T09:59:38.253263+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Bitcoin ETFs represent approximately 6% of Bitcoin's overall market cap as of February 2026",
+        "sources": [
+          "https://bitcoinke.io/2026/02/bitcoin-etfs-percentage-of-overall-market-cap/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_bitcoinke_io_2026_02_bitcoin_etfs_percentage_of_overal",
+      "type": "source",
+      "label": "https://bitcoinke.io/2026/02/bitcoin-etfs-percentage-of-overall-market-cap/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768609+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://bitcoinke.io/2026/02/bitcoin-etfs-percentage-of-overall-market-cap/"
+      }
+    },
+    {
+      "id": "claim_003",
+      "type": "claim",
+      "label": "Mid-February 2026 saw approximately $123.4 million in net withdrawals from Bitcoin ETFs despite occasional inflow days",
+      "confidence": "medium",
+      "status": "conflicted",
+      "first_seen": "2026-02-23T09:59:38.253263+00:00",
+      "last_updated": "2026-02-23T09:59:38.253263+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Mid-February 2026 saw approximately $123.4 million in net withdrawals from Bitcoin ETFs despite occasional inflow days",
+        "sources": [
+          "https://bitcoinke.io/2026/02/bitcoin-etfs-percentage-of-overall-market-cap/"
+        ],
+        "notes": "Conflicts with specific daily inflow data from late February"
+      }
+    },
+    {
+      "id": "claim_004",
+      "type": "claim",
+      "label": "On February 20, 2026, IBIT recorded $64.5M inflows and FBTC recorded $23.6M inflows",
+      "confidence": "medium",
+      "status": "conflicted",
+      "first_seen": "2026-02-23T11:42:07.364976+00:00",
+      "last_updated": "2026-02-23T11:42:07.364976+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "On February 20, 2026, IBIT recorded $64.5M inflows and FBTC recorded $23.6M inflows",
+        "sources": [
+          "BingX financial news",
+          "Yahoo Finance"
+        ],
+        "notes": "Specific inflow data conflicts with broader February outflow trend"
+      }
+    },
+    {
+      "id": "source_bingx_financial_news",
+      "type": "source",
+      "label": "BingX financial news",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768666+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "BingX financial news"
+      }
+    },
+    {
+      "id": "source_yahoo_finance",
+      "type": "source",
+      "label": "Yahoo Finance",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768680+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Yahoo Finance"
+      }
+    },
+    {
+      "id": "claim_005",
+      "type": "claim",
+      "label": "Bitcoin ETFs experienced net outflows of $165.8M on February 19, 2026",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T11:42:07.364976+00:00",
+      "last_updated": "2026-02-23T11:42:07.364976+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Bitcoin ETFs experienced net outflows of $165.8M on February 19, 2026",
+        "sources": [
+          "BingX financial news"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_006",
+      "type": "claim",
+      "label": "Bitcoin ETFs collectively experienced approximately $4.5B in outflows year-to-date through February 22, 2026",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T11:42:07.364976+00:00",
+      "last_updated": "2026-02-23T11:42:07.364976+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Bitcoin ETFs collectively experienced approximately $4.5B in outflows year-to-date through February 22, 2026",
+        "sources": [
+          "Yahoo Finance",
+          "TradingNews"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_tradingnews",
+      "type": "source",
+      "label": "TradingNews",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768737+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "TradingNews"
+      }
+    },
+    {
+      "id": "claim_007",
+      "type": "claim",
+      "label": "ETFs now drive U.S. Bitcoin trading more than spot exchanges",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T09:59:38.253263+00:00",
+      "last_updated": "2026-02-23T09:59:38.253263+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "ETFs now drive U.S. Bitcoin trading more than spot exchanges",
+        "sources": [
+          "https://bitcoinke.io/2026/02/bitcoin-etfs-percentage-of-overall-market-cap/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_008",
+      "type": "claim",
+      "label": "iShares Bitcoin Trust (IBIT) is custodied by Coinbase Prime",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T11:42:07.364976+00:00",
+      "last_updated": "2026-02-23T11:42:07.364976+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "iShares Bitcoin Trust (IBIT) is custodied by Coinbase Prime",
+        "sources": [
+          "BlackRock IBIT official product page",
+          "Coinbase Prime institutional assets"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_blackrock_ibit_official_product_page",
+      "type": "source",
+      "label": "BlackRock IBIT official product page",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768789+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "BlackRock IBIT official product page"
+      }
+    },
+    {
+      "id": "source_coinbase_prime_institutional_assets",
+      "type": "source",
+      "label": "Coinbase Prime institutional assets",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768804+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Coinbase Prime institutional assets"
+      }
+    },
+    {
+      "id": "claim_009",
+      "type": "claim",
+      "label": "US crypto regulation is entering 'execution mode' in 2026 with Congress, regulators, and states rolling out clearer rules on market structure, stablecoins, and custody",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:02:23.778129+00:00",
+      "last_updated": "2026-02-23T10:02:23.778129+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "US crypto regulation is entering 'execution mode' in 2026 with Congress, regulators, and states rolling out clearer rules on market structure, stablecoins, and custody",
+        "sources": [
+          "https://coinpedia.org/news/us-crypto-regulation-in-2026-key-laws-sec-changes-and-what-comes-next/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_coinpedia_org_news_us_crypto_regulation_in_2026_key_la",
+      "type": "source",
+      "label": "https://coinpedia.org/news/us-crypto-regulation-in-2026-key-laws-sec-changes-and-what-comes-next/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768834+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://coinpedia.org/news/us-crypto-regulation-in-2026-key-laws-sec-changes-and-what-comes-next/"
+      }
+    },
+    {
+      "id": "claim_010",
+      "type": "claim",
+      "label": "The CLARITY Act is a pending bill aimed at clarifying the legal status of cryptocurrencies by establishing a three-category framework for classifying digital assets",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:02:23.778129+00:00",
+      "last_updated": "2026-02-23T13:08:57.401858+00:00",
+      "source_count": 3,
+      "metadata": {
+        "full_text": "The CLARITY Act is a pending bill aimed at clarifying the legal status of cryptocurrencies by establishing a three-category framework for classifying digital assets",
+        "sources": [
+          "https://blog.mexc.com/news/u-s-crypto-regulation-advances-in-2026-clarity-act-update-every-trader-needs-to-know/",
+          "https://www.congress.gov/bill/119th-congress/house-bill/3633",
+          "https://blocklr.com/news/clarity-act-crypto-regulation-update/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_blog_mexc_com_news_u_s_crypto_regulation_advances_in_2",
+      "type": "source",
+      "label": "https://blog.mexc.com/news/u-s-crypto-regulation-advances-in-2026-clarity-act-update-every-trader-needs-to-know/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768864+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://blog.mexc.com/news/u-s-crypto-regulation-advances-in-2026-clarity-act-update-every-trader-needs-to-know/"
+      }
+    },
+    {
+      "id": "source_https_www_congress_gov_bill_119th_congress_house_bill_3633",
+      "type": "source",
+      "label": "https://www.congress.gov/bill/119th-congress/house-bill/3633",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768882+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.congress.gov/bill/119th-congress/house-bill/3633"
+      }
+    },
+    {
+      "id": "source_https_blocklr_com_news_clarity_act_crypto_regulation_update",
+      "type": "source",
+      "label": "https://blocklr.com/news/clarity-act-crypto-regulation-update/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768899+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://blocklr.com/news/clarity-act-crypto-regulation-update/"
+      }
+    },
+    {
+      "id": "claim_011",
+      "type": "claim",
+      "label": "CLARITY Act (H.R. 3633) is still pending\u2014not enacted as of February 23, 2026",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:08:57.401858+00:00",
+      "last_updated": "2026-02-23T13:08:57.401858+00:00",
+      "source_count": 3,
+      "metadata": {
+        "full_text": "CLARITY Act (H.R. 3633) is still pending\u2014not enacted as of February 23, 2026",
+        "sources": [
+          "https://www.congress.gov/bill/119th-congress/house-bill/3633",
+          "https://www.bakermckenzie.com/en/insight/publications/2026/02/us-what-clarity-act-delay-reveals-about-crypto-regulation",
+          "https://finance.yahoo.com/news/clarity-act-delayed-again-senate-lacks-votes-for-crypto-reform"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_bakermckenzie_com_en_insight_publications_2026_02_",
+      "type": "source",
+      "label": "https://www.bakermckenzie.com/en/insight/publications/2026/02/us-what-clarity-act-delay-reveals-about-crypto-regulation",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768945+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.bakermckenzie.com/en/insight/publications/2026/02/us-what-clarity-act-delay-reveals-about-crypto-regulation"
+      }
+    },
+    {
+      "id": "source_https_finance_yahoo_com_news_clarity_act_delayed_again_senat",
+      "type": "source",
+      "label": "https://finance.yahoo.com/news/clarity-act-delayed-again-senate-lacks-votes-for-crypto-reform",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768964+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://finance.yahoo.com/news/clarity-act-delayed-again-senate-lacks-votes-for-crypto-reform"
+      }
+    },
+    {
+      "id": "claim_012",
+      "type": "claim",
+      "label": "CLARITY Act committee markup was delayed on January 14, 2026 with no new date announced",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:02:23.778129+00:00",
+      "last_updated": "2026-02-23T13:08:57.401858+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "CLARITY Act committee markup was delayed on January 14, 2026 with no new date announced",
+        "sources": [
+          "https://blockchain.bakermckenzie.com/2026/01/16/the-clarity-act-delay-and-what-it-reveals-about-u-s-crypto-regulation/",
+          "https://www.bakermckenzie.com/en/insight/publications/2026/02/us-what-clarity-act-delay-reveals-about-crypto-regulation"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_blockchain_bakermckenzie_com_2026_01_16_the_clarity_ac",
+      "type": "source",
+      "label": "https://blockchain.bakermckenzie.com/2026/01/16/the-clarity-act-delay-and-what-it-reveals-about-u-s-crypto-regulation/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.768997+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://blockchain.bakermckenzie.com/2026/01/16/the-clarity-act-delay-and-what-it-reveals-about-u-s-crypto-regulation/"
+      }
+    },
+    {
+      "id": "claim_013",
+      "type": "claim",
+      "label": "Paul Atkins is SEC Chair and has been since April 10, 2025",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T12:29:48.688795+00:00",
+      "last_updated": "2026-02-23T12:29:48.688795+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Paul Atkins is SEC Chair and has been since April 10, 2025",
+        "sources": [
+          "SEC.gov testimony before House Financial Services Committee",
+          "TheCorporateCounsel.net"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_sec_gov_testimony_before_house_financial_services_committee",
+      "type": "source",
+      "label": "SEC.gov testimony before House Financial Services Committee",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771077+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "SEC.gov testimony before House Financial Services Committee"
+      }
+    },
+    {
+      "id": "source_thecorporatecounsel_net",
+      "type": "source",
+      "label": "TheCorporateCounsel.net",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771103+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "TheCorporateCounsel.net"
+      }
+    },
+    {
+      "id": "claim_014",
+      "type": "claim",
+      "label": "Cryptocurrency removed from SEC's 2026 examination priorities list",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T12:29:48.688795+00:00",
+      "last_updated": "2026-02-23T12:29:48.688795+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Cryptocurrency removed from SEC's 2026 examination priorities list",
+        "sources": [
+          "CryptoCaptialNews",
+          "PRNewswire report"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_cryptocaptialnews",
+      "type": "source",
+      "label": "CryptoCaptialNews",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771134+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CryptoCaptialNews"
+      }
+    },
+    {
+      "id": "source_prnewswire_report",
+      "type": "source",
+      "label": "PRNewswire report",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771150+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "PRNewswire report"
+      }
+    },
+    {
+      "id": "claim_015",
+      "type": "claim",
+      "label": "SEC dropped major crypto enforcement cases against Binance, Coinbase, and Kraken",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T12:29:48.688795+00:00",
+      "last_updated": "2026-02-23T12:29:48.688795+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "SEC dropped major crypto enforcement cases against Binance, Coinbase, and Kraken",
+        "sources": [
+          "House Democrats Financial Services letter",
+          "Parameter"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_house_democrats_financial_services_letter",
+      "type": "source",
+      "label": "House Democrats Financial Services letter",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771180+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "House Democrats Financial Services letter"
+      }
+    },
+    {
+      "id": "source_parameter",
+      "type": "source",
+      "label": "Parameter",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771196+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Parameter"
+      }
+    },
+    {
+      "id": "claim_016",
+      "type": "claim",
+      "label": "SEC issued joint statement on January 28, 2026 clarifying application of federal securities laws to tokenized securities",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T12:29:48.688795+00:00",
+      "last_updated": "2026-02-23T12:29:48.688795+00:00",
+      "source_count": 4,
+      "metadata": {
+        "full_text": "SEC issued joint statement on January 28, 2026 clarifying application of federal securities laws to tokenized securities",
+        "sources": [
+          "Morgan Lewis",
+          "Sidley Austin",
+          "SEC.gov staff statement",
+          "McGuireWoods"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_morgan_lewis",
+      "type": "source",
+      "label": "Morgan Lewis",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771224+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Morgan Lewis"
+      }
+    },
+    {
+      "id": "source_sidley_austin",
+      "type": "source",
+      "label": "Sidley Austin",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771240+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Sidley Austin"
+      }
+    },
+    {
+      "id": "source_sec_gov_staff_statement",
+      "type": "source",
+      "label": "SEC.gov staff statement",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771256+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "SEC.gov staff statement"
+      }
+    },
+    {
+      "id": "source_mcguirewoods",
+      "type": "source",
+      "label": "McGuireWoods",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771272+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "McGuireWoods"
+      }
+    },
+    {
+      "id": "claim_017",
+      "type": "claim",
+      "label": "SEC issued FAQ on February 19, 2026 allowing 2% haircut on broker-dealer stablecoin holdings instead of 100% haircut",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:29:16.418349+00:00",
+      "last_updated": "2026-02-23T12:29:48.688795+00:00",
+      "source_count": 6,
+      "metadata": {
+        "full_text": "SEC issued FAQ on February 19, 2026 allowing 2% haircut on broker-dealer stablecoin holdings instead of 100% haircut",
+        "sources": [
+          "SEC.gov - Commissioner Peirce Statement",
+          "Forbes",
+          "CoinDesk",
+          "CoinTelegraph",
+          "CoinEdition",
+          "BlockOmomi"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_sec_gov_commissioner_peirce_statement",
+      "type": "source",
+      "label": "SEC.gov - Commissioner Peirce Statement",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771303+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "SEC.gov - Commissioner Peirce Statement"
+      }
+    },
+    {
+      "id": "source_forbes",
+      "type": "source",
+      "label": "Forbes",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771319+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Forbes"
+      }
+    },
+    {
+      "id": "source_coindesk",
+      "type": "source",
+      "label": "CoinDesk",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771334+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinDesk"
+      }
+    },
+    {
+      "id": "source_cointelegraph",
+      "type": "source",
+      "label": "CoinTelegraph",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771349+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinTelegraph"
+      }
+    },
+    {
+      "id": "source_coinedition",
+      "type": "source",
+      "label": "CoinEdition",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771365+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinEdition"
+      }
+    },
+    {
+      "id": "claim_018",
+      "type": "claim",
+      "label": "GENIUS Act (Guiding and Establishing National Innovation for U.S. Stablecoins Act) signed into law on July 18, 2025, requires 1:1 reserve backing and federal licensing for payment stablecoin issuers",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T10:29:16.418349+00:00",
+      "last_updated": "2026-02-23T15:49:30.595037+00:00",
+      "source_count": 8,
+      "metadata": {
+        "full_text": "GENIUS Act (Guiding and Establishing National Innovation for U.S. Stablecoins Act) signed into law on July 18, 2025, requires 1:1 reserve backing and federal licensing for payment stablecoin issuers",
+        "sources": [
+          "St. Louis Federal Reserve",
+          "K&L Gates",
+          "Conference Board",
+          "Treasury Today",
+          "Paul Hastings",
+          "Congress.gov",
+          "Richmond Federal Reserve",
+          "Georgetown Law"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_st_louis_federal_reserve",
+      "type": "source",
+      "label": "St. Louis Federal Reserve",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771395+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "St. Louis Federal Reserve"
+      }
+    },
+    {
+      "id": "source_k_l_gates",
+      "type": "source",
+      "label": "K&L Gates",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771412+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "K&L Gates"
+      }
+    },
+    {
+      "id": "source_conference_board",
+      "type": "source",
+      "label": "Conference Board",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771429+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Conference Board"
+      }
+    },
+    {
+      "id": "source_treasury_today",
+      "type": "source",
+      "label": "Treasury Today",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771444+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Treasury Today"
+      }
+    },
+    {
+      "id": "source_paul_hastings",
+      "type": "source",
+      "label": "Paul Hastings",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771460+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Paul Hastings"
+      }
+    },
+    {
+      "id": "claim_019",
+      "type": "claim",
+      "label": "GENIUS Act requires 100% reserve backing (1:1 ratio) with high-quality liquid assets including: cash, Treasury securities \u226493 days, insured deposits, overnight repos, and government MMFs",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T15:14:48.861470+00:00",
+      "last_updated": "2026-02-23T15:49:30.595037+00:00",
+      "source_count": 6,
+      "metadata": {
+        "full_text": "GENIUS Act requires 100% reserve backing (1:1 ratio) with high-quality liquid assets including: cash, Treasury securities \u226493 days, insured deposits, overnight repos, and government MMFs",
+        "sources": [
+          "Georgetown Law",
+          "Dechert",
+          "State Street Global Advisors",
+          "Richmond Federal Reserve",
+          "White House Fact Sheet",
+          "Paul Hastings"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_georgetown_law",
+      "type": "source",
+      "label": "Georgetown Law",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771488+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Georgetown Law"
+      }
+    },
+    {
+      "id": "source_dechert",
+      "type": "source",
+      "label": "Dechert",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771503+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Dechert"
+      }
+    },
+    {
+      "id": "source_state_street_global_advisors",
+      "type": "source",
+      "label": "State Street Global Advisors",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771521+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "State Street Global Advisors"
+      }
+    },
+    {
+      "id": "source_richmond_federal_reserve",
+      "type": "source",
+      "label": "Richmond Federal Reserve",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771537+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Richmond Federal Reserve"
+      }
+    },
+    {
+      "id": "source_white_house_fact_sheet",
+      "type": "source",
+      "label": "White House Fact Sheet",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771554+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "White House Fact Sheet"
+      }
+    },
+    {
+      "id": "claim_020",
+      "type": "claim",
+      "label": "GENIUS Act civil penalties include fines of up to $100,000 per day for unauthorized issuance or reserve violations, with enhanced penalty of up to $200,000 per day in certain cases",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:49:30.595037+00:00",
+      "last_updated": "2026-02-23T15:49:30.595037+00:00",
+      "source_count": 5,
+      "metadata": {
+        "full_text": "GENIUS Act civil penalties include fines of up to $100,000 per day for unauthorized issuance or reserve violations, with enhanced penalty of up to $200,000 per day in certain cases",
+        "sources": [
+          "DC Bar",
+          "DotFile",
+          "Troutman law firm",
+          "BakerHostetler",
+          "Winston & Strawn"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_dc_bar",
+      "type": "source",
+      "label": "DC Bar",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771585+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "DC Bar"
+      }
+    },
+    {
+      "id": "source_dotfile",
+      "type": "source",
+      "label": "DotFile",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771602+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "DotFile"
+      }
+    },
+    {
+      "id": "source_troutman_law_firm",
+      "type": "source",
+      "label": "Troutman law firm",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771620+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Troutman law firm"
+      }
+    },
+    {
+      "id": "source_bakerhostetler",
+      "type": "source",
+      "label": "BakerHostetler",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771638+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "BakerHostetler"
+      }
+    },
+    {
+      "id": "source_winston_strawn",
+      "type": "source",
+      "label": "Winston & Strawn",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771656+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Winston & Strawn"
+      }
+    },
+    {
+      "id": "claim_021",
+      "type": "claim",
+      "label": "GENIUS Act criminal penalties include imprisonment of up to 5 years and civil fines up to $1,000,000 per violation for serious breaches",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:49:30.595037+00:00",
+      "last_updated": "2026-02-23T15:49:30.595037+00:00",
+      "source_count": 3,
+      "metadata": {
+        "full_text": "GENIUS Act criminal penalties include imprisonment of up to 5 years and civil fines up to $1,000,000 per violation for serious breaches",
+        "sources": [
+          "CCH analysis",
+          "DC Bar",
+          "BakerHostetler"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_cch_analysis",
+      "type": "source",
+      "label": "CCH analysis",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771686+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CCH analysis"
+      }
+    },
+    {
+      "id": "claim_022",
+      "type": "claim",
+      "label": "GENIUS Act requires monthly public disclosure of reserve composition including total outstanding shares, specific asset types held, and geographic locations",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:49:30.595037+00:00",
+      "last_updated": "2026-02-23T15:49:30.595037+00:00",
+      "source_count": 4,
+      "metadata": {
+        "full_text": "GENIUS Act requires monthly public disclosure of reserve composition including total outstanding shares, specific asset types held, and geographic locations",
+        "sources": [
+          "White House Fact Sheet",
+          "Richmond Federal Reserve",
+          "DLA Piper",
+          "Moore & Van Allen"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_dla_piper",
+      "type": "source",
+      "label": "DLA Piper",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771772+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "DLA Piper"
+      }
+    },
+    {
+      "id": "source_moore_van_allen",
+      "type": "source",
+      "label": "Moore & Van Allen",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771791+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Moore & Van Allen"
+      }
+    },
+    {
+      "id": "claim_023",
+      "type": "claim",
+      "label": "ProShares launched IQMM, the first GENIUS Act-compliant money market ETF, on February 19, 2026, recording approximately $17 billion in first-day trading volume",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:29:16.418349+00:00",
+      "last_updated": "2026-02-23T10:29:16.418349+00:00",
+      "source_count": 4,
+      "metadata": {
+        "full_text": "ProShares launched IQMM, the first GENIUS Act-compliant money market ETF, on February 19, 2026, recording approximately $17 billion in first-day trading volume",
+        "sources": [
+          "ProShares Official Press Release",
+          "Yahoo Finance",
+          "CoinDesk",
+          "Bloomberg"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_proshares_official_press_release",
+      "type": "source",
+      "label": "ProShares Official Press Release",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771823+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "ProShares Official Press Release"
+      }
+    },
+    {
+      "id": "source_bloomberg",
+      "type": "source",
+      "label": "Bloomberg",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771861+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Bloomberg"
+      }
+    },
+    {
+      "id": "claim_024",
+      "type": "claim",
+      "label": "USDC market share growth outpaced USDT for second consecutive year through early 2026, driven by regulatory clarity and Polymarket adoption",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:29:16.418349+00:00",
+      "last_updated": "2026-02-23T10:29:16.418349+00:00",
+      "source_count": 3,
+      "metadata": {
+        "full_text": "USDC market share growth outpaced USDT for second consecutive year through early 2026, driven by regulatory clarity and Polymarket adoption",
+        "sources": [
+          "CoinDesk - USDC growth",
+          "CoinDesk - Polymarket",
+          "Bitget"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_coindesk_usdc_growth",
+      "type": "source",
+      "label": "CoinDesk - USDC growth",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771892+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinDesk - USDC growth"
+      }
+    },
+    {
+      "id": "source_coindesk_polymarket",
+      "type": "source",
+      "label": "CoinDesk - Polymarket",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771909+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinDesk - Polymarket"
+      }
+    },
+    {
+      "id": "source_bitget",
+      "type": "source",
+      "label": "Bitget",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771926+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Bitget"
+      }
+    },
+    {
+      "id": "claim_025",
+      "type": "claim",
+      "label": "White House held multiple high-level meetings on stablecoin yields on February 2, 10, 19-20, 2026, with industry and banking sector representatives",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:29:16.418349+00:00",
+      "last_updated": "2026-02-23T10:29:16.418349+00:00",
+      "source_count": 3,
+      "metadata": {
+        "full_text": "White House held multiple high-level meetings on stablecoin yields on February 2, 10, 19-20, 2026, with industry and banking sector representatives",
+        "sources": [
+          "CoinDesk",
+          "CoinAlert",
+          "TheCryptoBasic"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_coinalert",
+      "type": "source",
+      "label": "CoinAlert",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771966+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinAlert"
+      }
+    },
+    {
+      "id": "source_thecryptobasic",
+      "type": "source",
+      "label": "TheCryptoBasic",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.771985+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "TheCryptoBasic"
+      }
+    },
+    {
+      "id": "claim_026",
+      "type": "claim",
+      "label": "Truebit protocol suffered $26.4-26.6 million exploit in early January 2026 due to pricing logic flaw in legacy smart contracts, causing TRU token to collapse approximately 99%",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:04:39.477210+00:00",
+      "last_updated": "2026-02-23T10:04:39.477210+00:00",
+      "source_count": 5,
+      "metadata": {
+        "full_text": "Truebit protocol suffered $26.4-26.6 million exploit in early January 2026 due to pricing logic flaw in legacy smart contracts, causing TRU token to collapse approximately 99%",
+        "sources": [
+          "Cointelegraph",
+          "AMBCrypto",
+          "CryptoPotato",
+          "Web3IsGoingGreat",
+          "Crypto Daily Roundup"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_ambcrypto",
+      "type": "source",
+      "label": "AMBCrypto",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772026+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "AMBCrypto"
+      }
+    },
+    {
+      "id": "source_cryptopotato",
+      "type": "source",
+      "label": "CryptoPotato",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772065+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CryptoPotato"
+      }
+    },
+    {
+      "id": "source_web3isgoinggreat",
+      "type": "source",
+      "label": "Web3IsGoingGreat",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772085+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Web3IsGoingGreat"
+      }
+    },
+    {
+      "id": "source_crypto_daily_roundup",
+      "type": "source",
+      "label": "Crypto Daily Roundup",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772107+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Crypto Daily Roundup"
+      }
+    },
+    {
+      "id": "claim_027",
+      "type": "claim",
+      "label": "Moonwell DeFi lending protocol suffered $1.78 million oracle exploit on February 15-19, 2026 when cbETH was mispriced at ~$1.12 instead of ~$2,200, attributed to AI-written code (Claude Opus 4.6)",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:04:39.477210+00:00",
+      "last_updated": "2026-02-23T10:04:39.477210+00:00",
+      "source_count": 6,
+      "metadata": {
+        "full_text": "Moonwell DeFi lending protocol suffered $1.78 million oracle exploit on February 15-19, 2026 when cbETH was mispriced at ~$1.12 instead of ~$2,200, attributed to AI-written code (Claude Opus 4.6)",
+        "sources": [
+          "Cointelegraph",
+          "CoinAlert News",
+          "The Block",
+          "CryptoNews",
+          "Cryptopolitain",
+          "CryptoTimes"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_coinalert_news",
+      "type": "source",
+      "label": "CoinAlert News",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772153+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinAlert News"
+      }
+    },
+    {
+      "id": "source_the_block",
+      "type": "source",
+      "label": "The Block",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772173+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "The Block"
+      }
+    },
+    {
+      "id": "source_cryptonews",
+      "type": "source",
+      "label": "CryptoNews",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772192+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CryptoNews"
+      }
+    },
+    {
+      "id": "source_cryptopolitain",
+      "type": "source",
+      "label": "Cryptopolitain",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772210+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Cryptopolitain"
+      }
+    },
+    {
+      "id": "claim_028",
+      "type": "claim",
+      "label": "$86 million lost to DeFi hacks and exploits in January 2026 alone, with 7 separate incidents exceeding $1 million each",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:04:39.477210+00:00",
+      "last_updated": "2026-02-23T10:04:39.477210+00:00",
+      "source_count": 4,
+      "metadata": {
+        "full_text": "$86 million lost to DeFi hacks and exploits in January 2026 alone, with 7 separate incidents exceeding $1 million each",
+        "sources": [
+          "Halborn Blog",
+          "Reddit r/DeFi",
+          "TRM Labs 2026 Crime Report",
+          "Chainalysis 2026 Report"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_halborn_blog",
+      "type": "source",
+      "label": "Halborn Blog",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772242+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Halborn Blog"
+      }
+    },
+    {
+      "id": "source_reddit_r_defi",
+      "type": "source",
+      "label": "Reddit r/DeFi",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772263+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Reddit r/DeFi"
+      }
+    },
+    {
+      "id": "source_trm_labs_2026_crime_report",
+      "type": "source",
+      "label": "TRM Labs 2026 Crime Report",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772284+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "TRM Labs 2026 Crime Report"
+      }
+    },
+    {
+      "id": "source_chainalysis_2026_report",
+      "type": "source",
+      "label": "Chainalysis 2026 Report",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772305+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Chainalysis 2026 Report"
+      }
+    },
+    {
+      "id": "claim_029",
+      "type": "claim",
+      "label": "OpenAI and Paradigm launched EVMbench on February 18, 2026, showing GPT-5.3-Codex can exploit 72.2% of critical smart contract vulnerabilities, up from <20% months prior",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:04:39.477210+00:00",
+      "last_updated": "2026-02-23T10:04:39.477210+00:00",
+      "source_count": 6,
+      "metadata": {
+        "full_text": "OpenAI and Paradigm launched EVMbench on February 18, 2026, showing GPT-5.3-Codex can exploit 72.2% of critical smart contract vulnerabilities, up from <20% months prior",
+        "sources": [
+          "CoinDesk",
+          "Coin Genius",
+          "The Block",
+          "Bankless Times",
+          "CryptoTimes",
+          "Natural20"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_coin_genius",
+      "type": "source",
+      "label": "Coin Genius",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772348+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Coin Genius"
+      }
+    },
+    {
+      "id": "source_bankless_times",
+      "type": "source",
+      "label": "Bankless Times",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772383+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Bankless Times"
+      }
+    },
+    {
+      "id": "source_cryptotimes",
+      "type": "source",
+      "label": "CryptoTimes",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772402+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CryptoTimes"
+      }
+    },
+    {
+      "id": "claim_030",
+      "type": "claim",
+      "label": "OWASP released 2026 Smart Contract Top 10 on February 19, 2026 revealing governance and access control failures now pose greatest risk to DeFi protocols",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:04:39.477210+00:00",
+      "last_updated": "2026-02-23T10:04:39.477210+00:00",
+      "source_count": 5,
+      "metadata": {
+        "full_text": "OWASP released 2026 Smart Contract Top 10 on February 19, 2026 revealing governance and access control failures now pose greatest risk to DeFi protocols",
+        "sources": [
+          "Chainwire",
+          "The Block Press Release",
+          "NetCrook",
+          "OWASP SCS Top 10 2026",
+          "Gate.io"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_chainwire",
+      "type": "source",
+      "label": "Chainwire",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772433+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Chainwire"
+      }
+    },
+    {
+      "id": "source_the_block_press_release",
+      "type": "source",
+      "label": "The Block Press Release",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772452+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "The Block Press Release"
+      }
+    },
+    {
+      "id": "source_netcrook",
+      "type": "source",
+      "label": "NetCrook",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772471+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "NetCrook"
+      }
+    },
+    {
+      "id": "source_owasp_scs_top_10_2026",
+      "type": "source",
+      "label": "OWASP SCS Top 10 2026",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772492+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "OWASP SCS Top 10 2026"
+      }
+    },
+    {
+      "id": "source_gate_io",
+      "type": "source",
+      "label": "Gate.io",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772512+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Gate.io"
+      }
+    },
+    {
+      "id": "claim_031",
+      "type": "claim",
+      "label": "DeFi Total Value Locked (TVL) stood at $105-140 billion in early February 2026, declining from $120 billion but outperforming broader crypto market",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T10:04:39.477210+00:00",
+      "last_updated": "2026-02-23T10:04:39.477210+00:00",
+      "source_count": 4,
+      "metadata": {
+        "full_text": "DeFi Total Value Locked (TVL) stood at $105-140 billion in early February 2026, declining from $120 billion but outperforming broader crypto market",
+        "sources": [
+          "CoinDesk",
+          "CoinLaw.io",
+          "DefiLlama",
+          "NOWPayments"
+        ],
+        "notes": "Range discrepancy likely reflects different measurement methodologies"
+      }
+    },
+    {
+      "id": "source_coinlaw_io",
+      "type": "source",
+      "label": "CoinLaw.io",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772560+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinLaw.io"
+      }
+    },
+    {
+      "id": "source_defillama",
+      "type": "source",
+      "label": "DefiLlama",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772581+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "DefiLlama"
+      }
+    },
+    {
+      "id": "source_nowpayments",
+      "type": "source",
+      "label": "NOWPayments",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772603+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "NOWPayments"
+      }
+    },
+    {
+      "id": "claim_032",
+      "type": "claim",
+      "label": "Axie Infinity (AXS) is experiencing major revival with 60%+ price surge in January 2026 and $380M trading volume surge",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:43:46.380957+00:00",
+      "last_updated": "2026-02-23T10:43:46.380957+00:00",
+      "source_count": 5,
+      "metadata": {
+        "full_text": "Axie Infinity (AXS) is experiencing major revival with 60%+ price surge in January 2026 and $380M trading volume surge",
+        "sources": [
+          "CoinReporter",
+          "CoinEdition",
+          "Binance",
+          "CoinMarketCap",
+          "CoinGecko"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_coinreporter",
+      "type": "source",
+      "label": "CoinReporter",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772638+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinReporter"
+      }
+    },
+    {
+      "id": "source_binance",
+      "type": "source",
+      "label": "Binance",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772672+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Binance"
+      }
+    },
+    {
+      "id": "source_coinmarketcap",
+      "type": "source",
+      "label": "CoinMarketCap",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772692+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinMarketCap"
+      }
+    },
+    {
+      "id": "source_coingecko",
+      "type": "source",
+      "label": "CoinGecko",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772713+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinGecko"
+      }
+    },
+    {
+      "id": "claim_033",
+      "type": "claim",
+      "label": "Axie Infinity's current market cap is approximately $218-228 million USD with 170M circulating tokens",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:43:46.380957+00:00",
+      "last_updated": "2026-02-23T10:43:46.380957+00:00",
+      "source_count": 4,
+      "metadata": {
+        "full_text": "Axie Infinity's current market cap is approximately $218-228 million USD with 170M circulating tokens",
+        "sources": [
+          "CoinMarketCap",
+          "CoinGecko",
+          "Binance",
+          "CoinCodex"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_coincodex",
+      "type": "source",
+      "label": "CoinCodex",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772798+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "CoinCodex"
+      }
+    },
+    {
+      "id": "claim_034",
+      "type": "claim",
+      "label": "GameFi sector declined approximately 75% in 2025 before showing recovery signs in early 2026",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T10:43:46.380957+00:00",
+      "last_updated": "2026-02-23T10:43:46.380957+00:00",
+      "source_count": 3,
+      "metadata": {
+        "full_text": "GameFi sector declined approximately 75% in 2025 before showing recovery signs in early 2026",
+        "sources": [
+          "Shine Magazine",
+          "Coinpedia",
+          "Multiple gaming token analysis articles"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_shine_magazine",
+      "type": "source",
+      "label": "Shine Magazine",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772831+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Shine Magazine"
+      }
+    },
+    {
+      "id": "source_coinpedia",
+      "type": "source",
+      "label": "Coinpedia",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772851+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Coinpedia"
+      }
+    },
+    {
+      "id": "source_multiple_gaming_token_analysis_articles",
+      "type": "source",
+      "label": "Multiple gaming token analysis articles",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772873+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Multiple gaming token analysis articles"
+      }
+    },
+    {
+      "id": "claim_035",
+      "type": "claim",
+      "label": "Web3 games market is projected to grow from $39.65-48.55 billion in 2026 to $85-211 billion by 2033-2035 with CAGR of 16.87%-69.4%",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T10:43:46.380957+00:00",
+      "last_updated": "2026-02-23T10:43:46.380957+00:00",
+      "source_count": 6,
+      "metadata": {
+        "full_text": "Web3 games market is projected to grow from $39.65-48.55 billion in 2026 to $85-211 billion by 2033-2035 with CAGR of 16.87%-69.4%",
+        "sources": [
+          "Business Research Company",
+          "Market Research Update",
+          "Mordor Intelligence",
+          "Grand View Research",
+          "Industry Research Co",
+          "Global Market Statistics"
+        ],
+        "notes": "Significant variance in projections likely due to different market definitions"
+      }
+    },
+    {
+      "id": "source_business_research_company",
+      "type": "source",
+      "label": "Business Research Company",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772907+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Business Research Company"
+      }
+    },
+    {
+      "id": "source_market_research_update",
+      "type": "source",
+      "label": "Market Research Update",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772927+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Market Research Update"
+      }
+    },
+    {
+      "id": "source_mordor_intelligence",
+      "type": "source",
+      "label": "Mordor Intelligence",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772949+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Mordor Intelligence"
+      }
+    },
+    {
+      "id": "source_grand_view_research",
+      "type": "source",
+      "label": "Grand View Research",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772972+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Grand View Research"
+      }
+    },
+    {
+      "id": "source_industry_research_co",
+      "type": "source",
+      "label": "Industry Research Co",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.772994+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Industry Research Co"
+      }
+    },
+    {
+      "id": "claim_036",
+      "type": "claim",
+      "label": "Lightning Network exceeded $1B in monthly transaction volume by February 2026",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T11:05:17.721080+00:00",
+      "last_updated": "2026-02-23T11:05:17.721080+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Lightning Network exceeded $1B in monthly transaction volume by February 2026",
+        "sources": [
+          "Tech Edu Byte",
+          "Bitcoin Lightning Network layer 2 reporting"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_tech_edu_byte",
+      "type": "source",
+      "label": "Tech Edu Byte",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773028+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Tech Edu Byte"
+      }
+    },
+    {
+      "id": "source_bitcoin_lightning_network_layer_2_reporting",
+      "type": "source",
+      "label": "Bitcoin Lightning Network layer 2 reporting",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773072+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Bitcoin Lightning Network layer 2 reporting"
+      }
+    },
+    {
+      "id": "claim_037",
+      "type": "claim",
+      "label": "Bitcoin L2 ecosystem has grown to 75+ projects as of 2026",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T11:05:17.721080+00:00",
+      "last_updated": "2026-02-23T11:05:17.721080+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Bitcoin L2 ecosystem has grown to 75+ projects as of 2026",
+        "sources": [
+          "Galaxy Research",
+          "SwapSpace blog"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_galaxy_research",
+      "type": "source",
+      "label": "Galaxy Research",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773108+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Galaxy Research"
+      }
+    },
+    {
+      "id": "source_swapspace_blog",
+      "type": "source",
+      "label": "SwapSpace blog",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773131+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "SwapSpace blog"
+      }
+    },
+    {
+      "id": "claim_038",
+      "type": "claim",
+      "label": "Stacks announced Fireblocks institutional integration on February 4, 2026",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T11:05:17.721080+00:00",
+      "last_updated": "2026-02-23T11:05:17.721080+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Stacks announced Fireblocks institutional integration on February 4, 2026",
+        "sources": [
+          "Stacks official website",
+          "Fireblocks institutional integration news"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_stacks_official_website",
+      "type": "source",
+      "label": "Stacks official website",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773166+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Stacks official website"
+      }
+    },
+    {
+      "id": "source_fireblocks_institutional_integration_news",
+      "type": "source",
+      "label": "Fireblocks institutional integration news",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773192+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Fireblocks institutional integration news"
+      }
+    },
+    {
+      "id": "claim_039",
+      "type": "claim",
+      "label": "Tether led $8M investment in Speed, a Lightning-based stablecoin solution",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T11:05:17.721080+00:00",
+      "last_updated": "2026-02-23T11:05:17.721080+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Tether led $8M investment in Speed, a Lightning-based stablecoin solution",
+        "sources": [
+          "Tether News"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_tether_news",
+      "type": "source",
+      "label": "Tether News",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773229+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Tether News"
+      }
+    },
+    {
+      "id": "gap_000",
+      "type": "gap",
+      "label": "Specific daily Bitcoin ETF flows for complete February 16-23 period with SEC filing verification",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773254+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Bitcoin ETFs",
+        "full_text": "Specific daily Bitcoin ETF flows for complete February 16-23 period with SEC filing verification"
+      }
+    },
+    {
+      "id": "gap_001",
+      "type": "gap",
+      "label": "Current status of CLARITY Act as of late February 2026 after January delay",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773268+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Regulation",
+        "full_text": "Current status of CLARITY Act as of late February 2026 after January delay"
+      }
+    },
+    {
+      "id": "gap_002",
+      "type": "gap",
+      "label": "Treasury Department's NPRM text for GENIUS Act implementation - only ANPRM published as of February 2026",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773280+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Stablecoins",
+        "full_text": "Treasury Department's NPRM text for GENIUS Act implementation - only ANPRM published as of February 2026"
+      }
+    },
+    {
+      "id": "gap_003",
+      "type": "gap",
+      "label": "Specific penalty calculation methodology and enforcement thresholds for GENIUS Act violations",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773291+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Stablecoins",
+        "full_text": "Specific penalty calculation methodology and enforcement thresholds for GENIUS Act violations"
+      }
+    },
+    {
+      "id": "gap_004",
+      "type": "gap",
+      "label": "Total Value Locked across DeFi protocols as of February 2026 with protocol breakdown",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773302+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "DeFi",
+        "full_text": "Total Value Locked across DeFi protocols as of February 2026 with protocol breakdown"
+      }
+    },
+    {
+      "id": "gap_005",
+      "type": "gap",
+      "label": "Real-time daily active user counts for major Web3 gaming tokens in February 2026",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773313+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "low",
+        "related_topic": "Web3 Gaming",
+        "full_text": "Real-time daily active user counts for major Web3 gaming tokens in February 2026"
+      }
+    },
+    {
+      "id": "gap_006",
+      "type": "gap",
+      "label": "Comparative TVL metrics across Bitcoin Layer 2 solutions",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773323+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Bitcoin Layer 2",
+        "full_text": "Comparative TVL metrics across Bitcoin Layer 2 solutions"
+      }
+    },
+    {
+      "id": "gap_007",
+      "type": "gap",
+      "label": "Detailed breakdown of SEC enforcement dismissals under Atkins administration beyond major exchange cases",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T03:12:23.773334+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "SEC Enforcement",
+        "full_text": "Detailed breakdown of SEC enforcement dismissals under Atkins administration beyond major exchange cases"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "claim_001",
+      "target": "topic_bitcoin_etfs",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768550+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_www_ainvest_com_news_institutional_adoption_bitcoin_et",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768577+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "topic_bitcoin_etfs",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768592+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_bitcoinke_io_2026_02_bitcoin_etfs_percentage_of_overal",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768614+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "topic_bitcoin_etfs",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768626+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_bitcoinke_io_2026_02_bitcoin_etfs_percentage_of_overal",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768643+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "topic_bitcoin_etfs",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768655+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_bingx_financial_news",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768671+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_yahoo_finance",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768685+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "topic_bitcoin_etfs",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768696+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_bingx_financial_news",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768706+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "topic_bitcoin_etfs",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768718+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_yahoo_finance",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768728+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_tradingnews",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768742+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "topic_bitcoin_etfs",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768753+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_bitcoinke_io_2026_02_bitcoin_etfs_percentage_of_overal",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768766+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "topic_bitcoin_etfs",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768778+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_blackrock_ibit_official_product_page",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768793+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_coinbase_prime_institutional_assets",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768808+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "topic_regulation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768819+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "source_https_coinpedia_org_news_us_crypto_regulation_in_2026_key_la",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768838+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "topic_regulation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768849+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_blog_mexc_com_news_u_s_crypto_regulation_advances_in_2",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768869+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_www_congress_gov_bill_119th_congress_house_bill_3633",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768886+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_blocklr_com_news_clarity_act_crypto_regulation_update",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768904+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "topic_regulation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768915+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_www_congress_gov_bill_119th_congress_house_bill_3633",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768930+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_www_bakermckenzie_com_en_insight_publications_2026_02_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768950+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_finance_yahoo_com_news_clarity_act_delayed_again_senat",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768969+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "topic_regulation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.768980+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_blockchain_bakermckenzie_com_2026_01_16_the_clarity_ac",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.769001+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_www_bakermckenzie_com_en_insight_publications_2026_02_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.769016+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "topic_sec_enforcement",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.769027+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_sec_gov_testimony_before_house_financial_services_committee",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771088+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_thecorporatecounsel_net",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771109+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "topic_sec_enforcement",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771122+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_cryptocaptialnews",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771139+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_prnewswire_report",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771155+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "topic_sec_enforcement",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771167+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_house_democrats_financial_services_letter",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771185+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_parameter",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771201+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "topic_sec_enforcement",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771212+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "source_morgan_lewis",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771229+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "source_sidley_austin",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771244+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "source_sec_gov_staff_statement",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771261+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "source_mcguirewoods",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771277+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "topic_stablecoins",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771289+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "source_sec_gov_commissioner_peirce_statement",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771308+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "source_forbes",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771323+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "source_coindesk",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771338+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "source_cointelegraph",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771354+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "source_coinedition",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771369+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "topic_stablecoins",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771381+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "source_st_louis_federal_reserve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771399+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "source_k_l_gates",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771416+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "source_conference_board",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771433+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "source_treasury_today",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771448+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "source_paul_hastings",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771464+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "topic_stablecoins",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771475+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "source_georgetown_law",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771492+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "source_dechert",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771508+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "source_state_street_global_advisors",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771525+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "source_richmond_federal_reserve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771541+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "source_white_house_fact_sheet",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771559+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "topic_stablecoins",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771573+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "source_dc_bar",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771589+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "source_dotfile",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771606+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "source_troutman_law_firm",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771624+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "source_bakerhostetler",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771642+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "source_winston_strawn",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771661+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "topic_stablecoins",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771672+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "source_cch_analysis",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771691+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "source_dc_bar",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771705+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "source_bakerhostetler",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771718+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "topic_stablecoins",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771730+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "source_white_house_fact_sheet",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771744+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "source_richmond_federal_reserve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771758+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "source_dla_piper",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771777+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "source_moore_van_allen",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771795+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "topic_stablecoins",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771806+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "source_proshares_official_press_release",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771827+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "source_yahoo_finance",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771837+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "source_coindesk",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771848+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "source_bloomberg",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771865+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_024",
+      "target": "topic_stablecoins",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771877+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_024",
+      "target": "source_coindesk_usdc_growth",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771896+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_024",
+      "target": "source_coindesk_polymarket",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771914+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_024",
+      "target": "source_bitget",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771930+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_025",
+      "target": "topic_stablecoins",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771941+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_025",
+      "target": "source_coindesk",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771953+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_025",
+      "target": "source_coinalert",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771971+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_025",
+      "target": "source_thecryptobasic",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.771989+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "topic_defi",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772000+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "source_cointelegraph",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772013+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "source_ambcrypto",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772047+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "source_cryptopotato",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772069+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "source_web3isgoinggreat",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772090+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "source_crypto_daily_roundup",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772112+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "topic_defi",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772123+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "source_cointelegraph",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772137+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "source_coinalert_news",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772157+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "source_the_block",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772177+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "source_cryptonews",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772196+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "source_cryptopolitain",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772214+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "topic_defi",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772226+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "source_halborn_blog",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772247+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "source_reddit_r_defi",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772268+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "source_trm_labs_2026_crime_report",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772288+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "source_chainalysis_2026_report",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772309+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "topic_defi",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772320+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "source_coindesk",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772333+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "source_coin_genius",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772352+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "source_the_block",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772367+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "source_bankless_times",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772387+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "source_cryptotimes",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772407+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_030",
+      "target": "topic_defi",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772417+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_030",
+      "target": "source_chainwire",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772437+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_030",
+      "target": "source_the_block_press_release",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772456+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_030",
+      "target": "source_netcrook",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772476+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_030",
+      "target": "source_owasp_scs_top_10_2026",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772496+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_030",
+      "target": "source_gate_io",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772516+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_031",
+      "target": "topic_defi",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772528+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_031",
+      "target": "source_coindesk",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772541+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_031",
+      "target": "source_coinlaw_io",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772565+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_031",
+      "target": "source_defillama",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772586+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_031",
+      "target": "source_nowpayments",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772608+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_032",
+      "target": "topic_web3_gaming",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772620+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_032",
+      "target": "source_coinreporter",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772643+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_032",
+      "target": "source_coinedition",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772655+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_032",
+      "target": "source_binance",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772676+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_032",
+      "target": "source_coinmarketcap",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772697+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_032",
+      "target": "source_coingecko",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772718+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_033",
+      "target": "topic_web3_gaming",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772729+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_033",
+      "target": "source_coinmarketcap",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772747+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_033",
+      "target": "source_coingecko",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772765+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_033",
+      "target": "source_binance",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772781+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_033",
+      "target": "source_coincodex",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772802+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_034",
+      "target": "topic_web3_gaming",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772813+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_034",
+      "target": "source_shine_magazine",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772835+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_034",
+      "target": "source_coinpedia",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772855+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_034",
+      "target": "source_multiple_gaming_token_analysis_articles",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772877+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_035",
+      "target": "topic_web3_gaming",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772888+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_035",
+      "target": "source_business_research_company",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772911+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_035",
+      "target": "source_market_research_update",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772932+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_035",
+      "target": "source_mordor_intelligence",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772954+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_035",
+      "target": "source_grand_view_research",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772976+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_035",
+      "target": "source_industry_research_co",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.772998+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_036",
+      "target": "topic_bitcoin_layer_2",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773009+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_036",
+      "target": "source_tech_edu_byte",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773049+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_036",
+      "target": "source_bitcoin_lightning_network_layer_2_reporting",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773077+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_037",
+      "target": "topic_bitcoin_layer_2",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773088+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_037",
+      "target": "source_galaxy_research",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773112+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_037",
+      "target": "source_swapspace_blog",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773136+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_038",
+      "target": "topic_bitcoin_layer_2",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773147+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_038",
+      "target": "source_stacks_official_website",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773170+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_038",
+      "target": "source_fireblocks_institutional_integration_news",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773197+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_039",
+      "target": "topic_bitcoin_layer_2",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773208+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_039",
+      "target": "source_tether_news",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773233+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_004",
+      "type": "contradicts",
+      "weight": 1.5,
+      "created_at": "2026-02-28T03:12:23.773240+00:00",
+      "metadata": {
+        "description": "Mid-February 2026 net withdrawals vs specific February 20 inflows",
+        "resolution": "unresolved - temporal specificity may allow both to be true (overall negative trend with specific positive days)"
+      }
+    },
+    {
+      "source": "gap_000",
+      "target": "topic_bitcoin_etfs",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773260+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_001",
+      "target": "topic_regulation",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773274+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_002",
+      "target": "topic_stablecoins",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773285+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_003",
+      "target": "topic_stablecoins",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773296+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_004",
+      "target": "topic_defi",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773307+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_005",
+      "target": "topic_web3_gaming",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773317+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_006",
+      "target": "topic_bitcoin_layer_2",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773328+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_007",
+      "target": "topic_sec_enforcement",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T03:12:23.773339+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_002",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773418+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773434+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773447+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_007",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773460+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773473+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773487+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773501+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_007",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773514+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773527+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773541+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_007",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773555+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773568+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_007",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773581+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773595+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773608+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773641+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773655+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773669+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773683+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773696+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773710+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773748+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773764+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773783+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773804+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773825+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773847+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_018",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773934+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_019",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773950+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773965+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773980+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.773995+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.774010+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.774025+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776066+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_019",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776090+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776105+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776119+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776134+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776148+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776163+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776177+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776197+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776213+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776227+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776242+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776257+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776271+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776285+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776302+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776319+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776334+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776350+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776365+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776380+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776394+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776409+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776425+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776439+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776453+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776553+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776570+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_024",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776586+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776663+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776681+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776696+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "claim_030",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776711+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "claim_031",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776726+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776743+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776760+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "claim_030",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776777+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "claim_031",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776793+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776810+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "claim_030",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776827+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "claim_031",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776844+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "claim_030",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776861+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "claim_031",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776878+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_030",
+      "target": "claim_031",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776895+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_032",
+      "target": "claim_033",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.776978+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_032",
+      "target": "claim_034",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777004+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_032",
+      "target": "claim_035",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777024+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_033",
+      "target": "claim_034",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777055+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_033",
+      "target": "claim_035",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777073+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_034",
+      "target": "claim_035",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777091+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_036",
+      "target": "claim_037",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777166+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_036",
+      "target": "claim_038",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777186+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_036",
+      "target": "claim_039",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777205+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_037",
+      "target": "claim_038",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777224+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_037",
+      "target": "claim_039",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777242+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_038",
+      "target": "claim_039",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T03:12:23.777259+00:00",
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "domain": "crypto",
+    "created_at": "2026-02-28T03:12:23.768281+00:00",
+    "updated_at": "2026-02-28T03:12:23.768281+00:00",
+    "node_count": 151,
+    "edge_count": 257,
+    "cluster_count": 7
+  },
+  "clusters": [
+    {
+      "id": "cluster_4",
+      "topics": [
+        "topic_stablecoins"
+      ],
+      "claims": [
+        "claim_025",
+        "claim_017",
+        "claim_019",
+        "claim_018",
+        "claim_021",
+        "claim_020",
+        "claim_024",
+        "claim_022",
+        "claim_023"
+      ],
+      "size": 10,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_0",
+      "topics": [
+        "topic_bitcoin_etfs"
+      ],
+      "claims": [
+        "claim_008",
+        "claim_004",
+        "claim_003",
+        "claim_007",
+        "claim_006",
+        "claim_005",
+        "claim_001",
+        "claim_002"
+      ],
+      "size": 9,
+      "density": 0.667
+    },
+    {
+      "id": "cluster_6",
+      "topics": [
+        "topic_defi"
+      ],
+      "claims": [
+        "claim_030",
+        "claim_026",
+        "claim_028",
+        "claim_027",
+        "claim_029",
+        "claim_031"
+      ],
+      "size": 7,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_1",
+      "topics": [
+        "topic_bitcoin_layer_2"
+      ],
+      "claims": [
+        "claim_038",
+        "claim_036",
+        "claim_037",
+        "claim_039"
+      ],
+      "size": 5,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_2",
+      "topics": [
+        "topic_sec_enforcement"
+      ],
+      "claims": [
+        "claim_015",
+        "claim_014",
+        "claim_016",
+        "claim_013"
+      ],
+      "size": 5,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_3",
+      "topics": [
+        "topic_regulation"
+      ],
+      "claims": [
+        "claim_009",
+        "claim_012",
+        "claim_010",
+        "claim_011"
+      ],
+      "size": 5,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_5",
+      "topics": [
+        "topic_web3_gaming"
+      ],
+      "claims": [
+        "claim_035",
+        "claim_034",
+        "claim_033",
+        "claim_032"
+      ],
+      "size": 5,
+      "density": 1.0
+    }
+  ],
+  "gap_analysis": {
+    "isolated_nodes": [],
+    "weak_clusters": [],
+    "missing_connections": []
+  }
+}
