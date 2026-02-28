@@ -49,7 +49,8 @@ COST_PER_1K = {
     "claude-haiku-4-5-20251001": {"input": 0.001, "output": 0.005},
     "claude-sonnet-4-20250514": {"input": 0.003, "output": 0.015},
 }
-DAILY_BUDGET_USD = 5.00  # Hard stop — refuse to run if daily spend exceeds this
+DAILY_BUDGET_USD = 2.00  # Hard stop — refuse to run if daily spend exceeds this
+TOTAL_BALANCE_USD = 11.95  # Synced from Claude console Feb 28. Tracker estimated $12.19, actual $11.95 (drift: $0.24 = ~25% underestimate)
 
 # --- Loop ---
 DEFAULT_DOMAIN = "general"

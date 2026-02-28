@@ -1,0 +1,1461 @@
+# Agent Brain — Complete System Documentation
+
+**Generated:** February 27, 2026  
+**Codebase Version:** Commit `e2cba16` (main branch)  
+**Total Production Code:** 33,282 lines across 98 Python modules  
+**Total Test Code:** 16,611 lines across 21 test files  
+**Total Tests:** 1,151 (all passing, zero warnings)  
+**API Spend to Date:** $9.50 across 768 calls  
+**Research Outputs:** 71 across 7 domains  
+
+
+---
+
+# PART I: SYSTEM IDENTITY
+
+## What This Is
+
+Agent Brain is an autonomous, self-improving multi-agent research system. It is not a chatbot. It is not an LLM wrapper. It is not a personal assistant. It is a closed-loop system where:
+
+1. AI agents research topics using web search and page fetching
+2. An independent critic agent scores the research on a structured rubric
+3. A meta-analyst agent analyzes scored outputs and rewrites the operating instructions (strategies) based on what works
+4. The system transfers proven patterns across domains as general principles
+5. An execution layer (Agent Hands) turns research into working code
+
+The improvement signal comes from empirical performance data — not from human feedback or model weight updates. The strategies are natural language documents. The system reads them, reasons about them, and rewrites them based on outcomes.
+
+## The Five Learning Layers
+
+| Layer | Name | Purpose | Status |
+|-------|------|---------|--------|
+| 1 | Knowledge Accumulation | Agent acts, output stored, retrieved later | **DONE** |
+| 2 | Evaluated Knowledge | Critic scores output on structured rubric, score stored | **DONE** |
+| 3 | Behavioral Adaptation | Meta-analyst extracts patterns, rewrites strategies | **DONE** |
+| 4 | Strategy Evolution | Strategy rewriting becomes autonomous with trials and rollback | **DONE** |
+| 5 | Cross-Domain Transfer | Insights abstracted into principles, transferred to new domains | **DONE** |
+
+Each layer earns the right to exist by building on the previous one. No layer is wasted.
+
+## Score Trajectory (Proof It Works)
+
+In the crypto domain across 4 strategy generations:
+
+- **v1 (default):** 5.4 average
+- **v2 (evolved):** 7.1 average
+- **v3 (evolved):** 7.7 average
+- **v4 (evolved):** 8.0 average
+
+The system demonstrably improves its own performance through strategy evolution.
+
+
+---
+
+# PART II: THE TEN AGENTS
+
+## Agent 1: Researcher
+
+**File:** [agents/researcher.py](agent-brain/agents/researcher.py) (567 lines)  
+**Model:** Claude Haiku 4.5 (`claude-haiku-4-5-20251001`)  
+**Cost per call:** ~$0.005–$0.015  
+
+### Purpose
+
+The researcher is the primary knowledge-gathering agent. Given a question and domain, it searches the web, fetches pages, and produces structured JSON findings with citations, confidence levels, and identified knowledge gaps.
+
+### How It Works
+
+The researcher operates as an agentic tool-use loop:
+
+1. Receives question + domain + strategy document + relevant past findings
+2. Has access to tools: `web_search`, `fetch_page`, `search_and_fetch`, optionally `browser_fetch`
+3. Claude decides which tools to call, processes results, decides whether to call more tools
+4. Loop continues until Claude returns `stop_reason: "end_turn"` or max rounds reached
+5. Final response parsed as structured JSON
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `research(question, domain, prior_critique)` | Main entry — runs the full research loop |
+| `_build_system_prompt(strategy, memory_context)` | Constructs the researcher's system prompt with strategy injection |
+| `_process_tool_calls(response, conversation)` | Dispatches tool_use blocks to actual tool implementations |
+| `_compress_conversation(conversation)` | Truncates old conversation turns when context approaches limit |
+
+### Tool Access
+
+| Tool | Source | Purpose |
+|------|--------|---------|
+| `web_search` | tools/web_search.py | DuckDuckGo search (free) |
+| `fetch_page` | tools/web_fetcher.py | Full page content via Scrapling |
+| `search_and_fetch` | tools/web_fetcher.py | Combined search + fetch pipeline |
+| `browser_fetch` | browser/tools.py | Stealth browser for JS-heavy sites (optional) |
+
+### Output Structure
+
+```
+{
+  "findings": [
+    {
+      "claim": "string — the factual claim",
+      "source": "URL",
+      "confidence": "high|medium|low",
+      "date_context": "when the information is from"
+    }
+  ],
+  "insights": ["string — synthesis or interpretation"],
+  "knowledge_gaps": ["string — what couldn't be determined"],
+  "search_queries_used": ["string"],
+  "sources_consulted": ["URL"]
+}
+```
+
+### Constants and Thresholds
+
+| Name | Value | Purpose |
+|------|-------|---------|
+| `MAX_TOOL_ROUNDS` | 8 | Maximum tool-use iterations per research |
+| `MAX_SEARCHES` | 10 | Hard cap on web searches per run |
+| `MAX_FETCHES` | 8 | Hard cap on page fetches per run |
+| `CONTEXT_COMPRESS_THRESHOLD` | 30,000 chars | Trigger conversation compression |
+| Fetch content cap | 6,000–15,000 chars | Per-page content truncation |
+
+### Limitations
+
+1. Uses `asyncio.run()` inside a sync function — cannot be called from within an existing async context
+2. No timeout on individual network calls — a slow page can block indefinitely
+3. Strategy injection happens once at prompt construction — mid-research strategy changes have no effect
+4. Tool dispatch is sequential — parallel fetches would improve latency
+
+
+---
+
+## Agent 2: Critic
+
+**File:** [agents/critic.py](agent-brain/agents/critic.py) (419 lines)  
+**Model:** Claude Sonnet 4 (`claude-sonnet-4-20250514`)  
+**Cost per call:** ~$0.02–$0.04  
+
+### Purpose
+
+The critic is the quality gate. It scores research outputs on a structured 5-dimension rubric, provides detailed feedback, and renders an accept/reject verdict. The critic is sacred — it is both the cost control mechanism (rejecting wastes API calls, so the system learns to produce acceptable output) and the self-improvement signal (scores drive strategy evolution).
+
+### Scoring Rubric
+
+| Dimension | Weight | What It Measures |
+|-----------|--------|------------------|
+| Accuracy | 30% | Factual correctness, citation validity |
+| Depth | 20% | Beyond surface-level, underlying mechanisms |
+| Completeness | 20% | Important angles covered |
+| Specificity | 15% | Concrete data, numbers, named sources |
+| Intellectual Honesty | 15% | Flags uncertainty, distinguishes fact from speculation |
+
+Each dimension scored 1–10. Weighted average determines overall score.
+
+### Accept/Reject Logic
+
+- **Score ≥ 6:** Accepted
+- **Score < 6:** Rejected (triggers retry with critique feedback)
+- **Max retries:** 2 (so up to 3 total attempts)
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `critique(research_output, question, domain)` | Main entry — returns scored critique |
+| `_build_system_prompt()` | Constructs critic system prompt with rubric |
+| `_validate_high_confidence_claims(output, critique)` | Penalizes high-confidence claims with insufficient sources |
+| `_run_ensemble_critique(output, question, domain)` | Runs 2 critics and averages (optional) |
+
+### Output Structure
+
+```
+{
+  "overall_score": 7.2,
+  "dimension_scores": {
+    "accuracy": 8,
+    "depth": 7,
+    "completeness": 7,
+    "specificity": 6,
+    "intellectual_honesty": 8
+  },
+  "strengths": ["string"],
+  "weaknesses": ["string"],
+  "actionable_feedback": ["string — specific improvements"],
+  "accepted": true,
+  "confidence_validation": {
+    "high_confidence_claims": 3,
+    "adequately_sourced": 2,
+    "penalty_applied": 0.5
+  }
+}
+```
+
+### Special Features
+
+**Confidence Validation:** Claims marked "high confidence" must have ≥2 distinct sources. If not, a penalty is applied to the accuracy dimension.
+
+**Ensemble Mode:** When enabled, runs 2 independent critics and averages their scores. Reduces scoring variance but doubles cost.
+
+**Domain Weights:** Different domains can have custom dimension weights (e.g., cybersecurity might weight accuracy at 40%).
+
+### Limitations
+
+1. Ensemble mode always runs both critics — no short-circuit if first critic gives extreme score
+2. Confidence validation uses DEFAULT weights even when domain-specific weights are configured
+3. No retry on JSON parse failure — returns None
+4. The critic judges LLM output using another LLM — circular unless grounded by external verification
+
+
+---
+
+## Agent 3: Meta-Analyst
+
+**File:** [agents/meta_analyst.py](agent-brain/agents/meta_analyst.py) (384 lines)  
+**Model:** Claude Sonnet 4 (`claude-sonnet-4-20250514`)  
+**Cost per call:** ~$0.03–$0.05  
+
+### Purpose
+
+The meta-analyst is the strategy evolution engine. It reads all scored outputs for a domain, identifies patterns in what works and what fails, and rewrites the researcher's strategy document. This is Layer 3 — behavioral adaptation from empirical data.
+
+### How It Works
+
+1. Loads recent scored outputs for a domain (both accepted and rejected)
+2. Loads the current strategy document
+3. Loads the evolution log (past strategy changes and their outcomes)
+4. Asks Claude to analyze patterns and propose strategy modifications
+5. Enforces constraints: max 2 changes, no removal of immutable clauses, drift guard
+6. Saves new strategy as "pending" (requires human approval)
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `analyze_and_evolve(domain)` | Main entry — produces evolved strategy |
+| `_build_meta_prompt(outputs, strategy, evolution_log)` | Constructs analysis prompt |
+| `_enforce_immutable_clauses(new_strategy, old_strategy)` | Prevents removal of safety clauses |
+| `_check_drift_guard(new_strategy, old_strategy)` | Detects excessive changes |
+| `update_evolution_outcome(domain, version, outcome)` | Records whether a strategy change worked |
+
+### Immutable Strategy Clauses
+
+These can never be removed by the meta-analyst:
+
+1. "Output must be valid JSON"
+2. "Include date context for time-sensitive claims"
+3. "Do not exceed MAX_SEARCHES web searches"
+
+These are constitutional constraints — the system cannot evolve away its own safety rails.
+
+### Drift Guard
+
+If the proposed strategy differs from the current strategy by more than a threshold (measured by token overlap), a warning is appended. This prevents runaway strategy mutations.
+
+### Evolution Log
+
+The meta-analyst sees its own past decisions:
+
+```
+{
+  "version": "v3",
+  "changes": ["Added requirement to cite primary sources"],
+  "score_before": 5.8,
+  "score_after": 7.1,
+  "outcome": "improved"
+}
+```
+
+This makes the meta-analyst a self-improving optimizer — it learns from what worked.
+
+### Constants
+
+| Name | Value | Purpose |
+|------|-------|---------|
+| `EVOLVE_EVERY_N` | 3 | Only evolve after 3 new outputs (cooldown) |
+| `MIN_OUTPUTS_FOR_ANALYSIS` | 3 | Minimum data required |
+| `MAX_OUTPUTS_TO_ANALYZE` | 15 | Context limit |
+| Max changes per evolution | 2 | Keeps attribution clear |
+
+### Limitations
+
+1. No retry on parse failure — returns None
+2. Drift guard appends warning text rather than blocking or rewriting
+3. Cannot recommend structural changes (add tool, change workflow) — only prompt text
+4. Late import of `memory_store` to avoid circular dependency
+
+
+---
+
+## Agent 4: Synthesizer
+
+**File:** [agents/synthesizer.py](agent-brain/agents/synthesizer.py) (440 lines)  
+**Model:** Claude Sonnet 4 (`claude-sonnet-4-20250514`)  
+**Cost per call:** ~$0.04–$0.08  
+
+### Purpose
+
+The synthesizer turns isolated research outputs into a compounding knowledge base. It reads all accepted outputs for a domain, extracts individual claims, detects contradictions, marks superseded claims, and produces a unified KB organized by topics.
+
+### Output Structure
+
+```
+{
+  "domain_summary": "string — overall domain state",
+  "topics": ["string — major topic areas"],
+  "claims": [
+    {
+      "id": "claim_001",
+      "claim": "string — the factual statement",
+      "topic": "string — which topic it belongs to",
+      "confidence": "established|corroborated|high|medium|low|disputed",
+      "status": "active|superseded|expired",
+      "sources": ["output_id"],
+      "supersedes": ["claim_id"],
+      "conflicted_by": ["claim_id"]
+    }
+  ],
+  "contradictions": [
+    {
+      "claim_a": "claim_id",
+      "claim_b": "claim_id",
+      "nature": "string — what the contradiction is"
+    }
+  ],
+  "knowledge_gaps": ["string — what is still unknown"],
+  "synthesis_stats": {
+    "total_claims": 45,
+    "active_claims": 38,
+    "contradiction_count": 3
+  }
+}
+```
+
+### Confidence Levels
+
+| Level | Meaning |
+|-------|---------|
+| established | 3+ outputs agree, high confidence |
+| corroborated | 2+ outputs agree |
+| high | Single output, high confidence |
+| medium | Single output, medium confidence |
+| low | Single output, low confidence |
+| disputed | Contradicted by another claim |
+
+### Two Modes
+
+**Full Synthesis:** Rebuilds KB from all outputs. Used when forced or when incremental would be unreliable.
+
+**Incremental Synthesis:** Merges only new outputs into existing KB. Cheaper. Used when ≤10 new outputs and existing KB is substantial.
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `synthesize(domain, force)` | Main entry |
+| `_build_synthesis_prompt()` | Full synthesis prompt |
+| `_build_incremental_prompt()` | Incremental merge prompt |
+| `show_knowledge_base(domain)` | CLI display of KB |
+
+### Constants
+
+| Name | Value | Purpose |
+|------|-------|---------|
+| `MIN_OUTPUTS_FOR_SYNTHESIS` | 5 | Minimum outputs required |
+| `MAX_OUTPUTS_TO_SYNTHESIZE` | 50 | Context limit |
+| `SYNTHESIZE_EVERY_N` | 5 | Auto-trigger cooldown |
+| `max_tokens` | 8192 | Highest among agents — KBs are large |
+
+### Limitations
+
+1. No retry on parse failure — returns None
+2. Incremental mode trusts LLM to merge correctly — no programmatic diff
+3. Full synthesis on 50+ outputs may exceed context window
+4. `show_knowledge_base` is a display function mixed into the agent module (should be in CLI)
+
+
+---
+
+## Agent 5: Question Generator
+
+**File:** [agents/question_generator.py](agent-brain/agents/question_generator.py) (389 lines)  
+**Model:** Claude Haiku 4.5 (`claude-haiku-4-5-20251001`)  
+**Cost per call:** ~$0.003–$0.008  
+
+### Purpose
+
+Closes the self-learning loop. Reads the system's own knowledge gaps (from researcher outputs + critic weaknesses + synthesized KB) and generates the next best questions to research. This is Stages 1+2 of self-directed learning: diagnose needs and set goals.
+
+### How It Works
+
+1. Loads recent outputs for domain (max 30)
+2. Extracts all `knowledge_gaps` from outputs
+3. Extracts all `weaknesses` from critic feedback
+4. Loads KB gaps if available
+5. Asks Claude to diagnose the knowledge state and generate prioritized questions
+6. Falls back to KB gaps, then to curated seeds if generation fails
+
+### Output Structure
+
+```
+{
+  "diagnosis": {
+    "total_gaps_found": 23,
+    "most_critical_gaps": ["string"],
+    "recurring_weaknesses": ["string"],
+    "coverage_assessment": "string"
+  },
+  "questions": [
+    {
+      "question": "string",
+      "targets_gap": "string — which gap this addresses",
+      "priority": "high|medium|low",
+      "reasoning": "string — why this question matters",
+      "builds_on": ["output_id — related past research"]
+    }
+  ]
+}
+```
+
+### Three-Tier Fallback
+
+1. **LLM Generation:** Claude analyzes gaps and generates questions
+2. **KB Gaps:** If generation fails, use gaps directly from knowledge base
+3. **Curated Seeds:** If no gaps, use domain_seeder's curated starting questions
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `generate_questions(domain)` | Main entry — returns diagnosis + questions |
+| `get_next_question(domain)` | Convenience — returns single top question |
+| `_collect_knowledge_gaps(outputs)` | Extract gaps from outputs |
+| `_fallback_question_from_kb(domain)` | Fallback to KB gaps |
+
+### Constants
+
+| Name | Value | Purpose |
+|------|-------|---------|
+| `MAX_OUTPUTS_TO_SCAN` | 30 | Cap on outputs to analyze |
+| `MAX_QUESTIONS` | 5 | Questions to generate |
+| `CLAIM_EXPIRY_DAYS` | 30 | Filter out stale outputs |
+
+### Limitations
+
+1. Requires at least 1 output to run — cannot generate for empty domains (falls back to seeds)
+2. Gap deduplication uses simple string equality — near-duplicates pass through
+3. Only one retry on parse failure
+4. Date filtering silently falls through on parse errors
+
+
+---
+
+## Agent 6: Verifier
+
+**File:** [agents/verifier.py](agent-brain/agents/verifier.py) (338 lines)  
+**Model:** Claude Sonnet 4 (`claude-sonnet-4-20250514`)  
+**Cost per call:** ~$0.01–$0.02  
+
+### Purpose
+
+Breaks the circular LLM-judging-LLM problem by introducing external ground truth. The verifier:
+
+1. Extracts time-bound predictions from KB claims
+2. Waits for deadlines to pass
+3. Searches the web for actual outcomes
+4. Marks predictions as confirmed/refuted/partially_confirmed/inconclusive
+
+This is the system's reality check — the only agent that compares internal beliefs against external facts after the fact.
+
+### Prediction Structure
+
+```
+{
+  "prediction": "Bitcoin will reach $100k by end of 2026",
+  "deadline": "2026-12-31",
+  "source_claim_id": "claim_017",
+  "verification_query": "Bitcoin price December 2026",
+  "category": "price|policy|adoption|technology|regulation|other",
+  "status": "pending|confirmed|refuted|partially_confirmed|inconclusive",
+  "extracted_at": "2026-02-15T10:30:00Z",
+  "verified_at": null,
+  "evidence": null
+}
+```
+
+### Verification Verdicts
+
+| Verdict | Meaning |
+|---------|---------|
+| confirmed | External evidence supports the prediction |
+| refuted | External evidence contradicts the prediction |
+| partially_confirmed | Some aspects correct, others not |
+| inconclusive | Cannot determine from available evidence |
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `extract_predictions(domain)` | Find time-bound claims in KB |
+| `verify_predictions(domain, max_checks)` | Check predictions past deadline |
+| `get_verification_stats(domain)` | Accuracy rate and counts |
+
+### Constants
+
+| Name | Value | Purpose |
+|------|-------|---------|
+| `max_checks` | 5 | Predictions verified per run (cost control) |
+| Predictions file | `memory/{domain}/_predictions.json` | Storage location |
+
+### Limitations
+
+1. Only uses `web_search`, not `fetch_page` — relies on search snippets, not full page content
+2. Verified predictions don't propagate back to KB claim confidence
+3. No retry on parse failure
+4. Deadline parsing requires ISO format — fuzzy deadlines may not parse
+5. No limit on `_predictions.json` growth over time
+
+
+---
+
+## Agent 7: Consensus Researcher
+
+**File:** [agents/consensus.py](agent-brain/agents/consensus.py) (237 lines)  
+**Model:** Multiple Haiku (research) + Sonnet (merge)  
+**Cost per call:** ~$0.03–$0.05 (3x single researcher)  
+
+### Purpose
+
+Multi-researcher agreement for higher confidence. Runs N independent researcher agents in parallel on the same question, then merges their findings with agreement levels.
+
+### How It Works
+
+1. Launch N researcher agents via ThreadPoolExecutor (default N=3)
+2. Each researcher works independently (different tool call patterns)
+3. Merge agent (Sonnet) combines findings, tagging each claim with agreement level
+4. Falls back to most-findings output if merge fails
+
+### Agreement Levels
+
+| Level | Meaning |
+|-------|---------|
+| unanimous | All researchers found this |
+| majority | Most researchers found this |
+| single | Only one researcher found this |
+| disputed | Researchers disagreed |
+
+### Consensus Levels
+
+| Level | Threshold |
+|-------|-----------|
+| strong | 80%+ finding agreement |
+| moderate | 50–79% agreement |
+| weak | <50% agreement |
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `consensus_research(question, domain, n_researchers)` | Main entry |
+| `_merge_findings(outputs, question)` | Sonnet merges outputs |
+
+### Limitations
+
+1. Falls back to most-findings (quantity) rather than highest-quality if merge fails
+2. Cost is ~3x single researcher
+3. ThreadPoolExecutor threads share GIL — true parallelism only during I/O
+
+
+---
+
+## Agent 8: Cross-Domain Transfer
+
+**File:** [agents/cross_domain.py](agent-brain/agents/cross_domain.py) (630 lines)  
+**Model:** Claude Sonnet 4 (`claude-sonnet-4-20250514`)  
+**Cost per call:** ~$0.03–$0.06  
+
+### Purpose
+
+Layer 5 — the compounding mechanism. Extracts general principles from proven strategies across domains, stores them in a principle registry, and uses them to seed strategies for new domains.
+
+### Principle Categories
+
+| Category | Examples |
+|----------|----------|
+| search_strategy | Query formulation, source diversity |
+| output_structure | Claim format, citation style |
+| source_quality | Authority assessment, recency weighting |
+| temporal_awareness | Date context, staleness handling |
+| depth_vs_breadth | When to go deep vs. wide |
+| honesty_calibration | Confidence expression, uncertainty flagging |
+
+### Principle Structure
+
+```
+{
+  "principle": "Always include date context for time-sensitive claims",
+  "category": "temporal_awareness",
+  "source_domains": ["crypto", "cybersecurity"],
+  "evidence": [
+    {
+      "domain": "crypto",
+      "strategy_version": "v3",
+      "score_lift": 1.3
+    }
+  ],
+  "confidence": 0.85,
+  "transfer_count": 4,
+  "avg_transfer_lift": 0.8
+}
+```
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `extract_principles(min_score)` | Extract principles from high-scoring strategies |
+| `load_principles()` | Load principle registry |
+| `save_principles(principles)` | Save registry |
+| `generate_seed_strategy(domain, hint)` | Generate strategy from principles |
+| `record_transfer_outcome(domain, lift)` | Update principle confidence based on transfer |
+
+### Transfer Lift Measurement
+
+When a seed strategy is deployed:
+1. Record baseline average score before transfer
+2. After N outputs with new strategy, compute post-transfer average
+3. Lift = post_average - baseline
+4. Update principle confidence scores based on lift
+
+### Limitations
+
+1. No version control on principles file
+2. No limit on transfer log growth
+3. Principle extraction requires strategies with `score_lift` metadata
+
+
+---
+
+## Agent 9: Orchestrator
+
+**File:** [agents/orchestrator.py](agent-brain/agents/orchestrator.py) (583 lines)  
+**Model:** Haiku (smart mode only) or pure Python (deterministic mode)  
+**Cost per call:** $0 (deterministic) or ~$0.003 (smart mode)  
+
+### Purpose
+
+Multi-domain coordination. Decides which domains need attention, how many rounds to allocate, and when to trigger synthesis/evolution/transfers.
+
+### Two Modes
+
+**Deterministic Mode:** Pure Python scoring logic. Fast, cheap, predictable.
+
+**LLM-Reasoned Mode (--smart-orchestrate):** Feeds full system state to Claude for nuanced allocation reasoning.
+
+### Priority Scoring (Deterministic)
+
+| Factor | Points | Condition |
+|--------|--------|-----------|
+| Data scarcity | +50 | 0 outputs |
+| Data scarcity | +40 | 1–2 outputs |
+| Data scarcity | +25 | 3–4 outputs |
+| Data scarcity | +10 | 5–9 outputs |
+| Low acceptance | +15 | Acceptance rate <50% |
+| Default strategy | +15 | Still on v1 |
+| Trial in progress | +10 | Strategy in trial |
+| Near evolution | +20 | 1 output from EVOLVE_EVERY_N |
+| Near synthesis | +10 | 1 output from SYNTHESIZE_EVERY_N |
+| Stale domain | +boost | No output in 7+ days |
+| Score plateau | -10 | Scores flat for 5+ outputs |
+| Pending approval | -100 | Blocked on human |
+
+### System Health Score
+
+Computed 0–100:
+- Data volume: max 30 points
+- Quality (acceptance rate): max 20 points
+- Strategy coverage: max 15 points
+- KB coverage: max 15 points
+- Cross-domain learning: max 10 points
+- Domain breadth: max 10 points
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `discover_domains()` | List all domains with data |
+| `prioritize_domains(target_domains)` | Rank by priority |
+| `allocate_rounds(priorities, total_rounds)` | Distribute rounds |
+| `get_post_run_actions(domain)` | What to do after research |
+| `get_system_health()` | Overall health score |
+| `smart_orchestrate(total_rounds)` | LLM-reasoned allocation |
+
+### Limitations
+
+1. `get_archive_stats` imported but never called
+2. Smart mode creates new Anthropic client (should reuse)
+3. Health score formula is arbitrary — not calibrated
+4. Plateau detection loads all outputs even when only last N needed
+
+
+---
+
+## Agent 10: Execution Agents (Agent Hands)
+
+Agent Hands is a parallel agent system for code execution. It has its own set of agents:
+
+### Planner (hands/planner.py, 546 lines)
+- **Model:** Sonnet
+- **Purpose:** Decomposes coding tasks into tool-using steps
+- **Output:** Ordered plan with file targets, tool requirements, dependencies
+
+### Executor (hands/executor.py, 831 lines)
+- **Model:** Haiku
+- **Purpose:** Executes plan steps using 5 tools
+- **Features:** Retry per step, mid-execution validation, sliding context window
+
+### Validator (hands/validator.py, 798 lines)
+- **Model:** Sonnet
+- **Purpose:** Scores execution on correctness, completeness, quality, security, KB alignment
+- **Features:** Static pre-checks, fast-reject for obvious failures
+
+### Execution Meta-Analyst (hands/exec_meta.py, 506 lines)
+- **Model:** Sonnet
+- **Purpose:** Evolves execution strategies based on outcomes
+- **Features:** Targeted dimension evolution (improves weakest dimension)
+
+
+---
+
+# PART III: THE TOOL ECOSYSTEM
+
+## Web Tools
+
+### web_search.py (82 lines)
+
+DuckDuckGo search with retry logic.
+
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `max_retries` | 3 | Retry on transient errors |
+| Backoff | 3 × 2^attempt + jitter | Exponential with randomization |
+| Timeout | 10s | Per-search timeout |
+
+**Limitations:** Error detection is string-matching on exception text. No cap enforced on `max_results` despite tool description.
+
+### web_fetcher.py (445 lines)
+
+Full page content extraction via Scrapling.
+
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `MAX_CONTENT_LENGTH` | 8,000 chars | Per-page truncation |
+| `MAX_PAGES_PER_CYCLE` | 3 | Fetches per research |
+| `FETCH_TIMEOUT` | 12s | HTTP timeout |
+| `SKIP_DOMAINS` | 15 domains | Never fetch (Google, Reddit, etc.) |
+
+**Features:** Site-specific CSS selectors for clean extraction (nextjs.org, react.dev, MDN, etc.). Generic fallback selectors for unknown sites.
+
+**Limitations:** `SKIP_DOMAINS` blocks github.com entirely — can't fetch README pages.
+
+### crawl_to_kb.py (149 lines)
+
+Converts crawled documentation into KB claims without LLM.
+
+**Algorithm:**
+1. Split page text into sentences
+2. Score each sentence on heuristic indicators (contains "should", "must", specific numbers, etc.)
+3. Keep top-scoring sentences as claims
+4. Deduplicate via MD5 hash
+5. Inject into domain KB with synthetic score of 7
+
+**Limitations:** English-centric regex patterns. Simple sentence splitting fails on abbreviations.
+
+
+## Execution Tools (Agent Hands)
+
+### CodeTool (hands/tools/code.py, 394 lines)
+
+File I/O with safety and rollback.
+
+**Actions:** write, read, edit, insert_at_line, append, delete, list_dir
+
+**Safety:** Blocks writes to system directories. Automatic backups before each write. `rollback_session()` restores all files changed in current session.
+
+### TerminalTool (hands/tools/terminal.py, 258 lines)
+
+Shell command execution with sandboxing.
+
+**Allowed commands:** 30+ whitelisted (ls, cat, npm, python, git, etc.)
+
+**Blocked patterns:** `rm -rf /`, fork bombs, `sudo`, `chmod 777`, credential access
+
+**Safety:** Environment sanitized (API keys stripped). Stdout capped at 10,000 chars.
+
+### GitTool (hands/tools/git.py, 206 lines)
+
+VCS operations: init, status, add, commit, log, branch, checkout, diff, clone
+
+**Blocked:** force push, rebase, reset --hard, clean -fd
+
+### HttpTool (hands/tools/http.py, 229 lines)
+
+HTTP requests for testing APIs.
+
+**SSRF Protection:** Blocks requests to private IP ranges (10.x, 172.16.x, 192.168.x, localhost)
+
+### SearchTool (hands/tools/search.py, 352 lines)
+
+Code and text search: grep (regex/literal), find (glob), count_lines, tree
+
+
+## Browser Tools
+
+### stealth_browser.py (373 lines)
+
+Playwright Chromium with anti-detection.
+
+**Stealth features:**
+- playwright-stealth plugin
+- Random viewport (6 presets)
+- Random user agent (5 Chrome variants)
+- Random locale/timezone per profile
+- Block images/fonts for speed
+
+**Human simulation:**
+- Per-character typing (50–150ms delay)
+- Random pre/post click delays
+- Incremental scrolling with pauses
+- Random mouse movements
+
+### auth.py (313 lines)
+
+Site-specific login flows.
+
+| Site | Features |
+|------|----------|
+| LinkedIn | Specific selectors, challenge detection |
+| Indeed | Multi-step login |
+| GitHub | TOTP 2FA support via pyotp |
+| Generic | Auto-detect email/password inputs |
+
+### session_manager.py (352 lines)
+
+High-level browser orchestration.
+
+- Auto-detects if URL needs auth or JavaScript
+- Pulls credentials from vault
+- Concurrent fetches with semaphore
+- Sync wrappers for non-async code
+
+
+## MCP Tools
+
+### gateway.py (399 lines)
+
+Multi-server MCP gateway.
+
+- Aggregates tools from all running servers
+- Prefixes tool names to prevent collisions (`github__create_issue`)
+- Routes calls to correct server
+- Auto-restart on server failure
+
+### context_router.py (344 lines)
+
+Intelligent tool filtering.
+
+**Scoring formula:**
+- Category match: 0.4
+- Keyword overlap: 0.3
+- Historical success: 0.2
+- Base: 0.1
+
+Default cap: 15 tools per Claude call (saves context tokens)
+
+### Available MCP Servers
+
+| Server | Tools | Status |
+|--------|-------|--------|
+| GitHub | 41 | **Enabled** |
+| Filesystem | TBD | Disabled |
+| Fetch | TBD | Disabled |
+| PostgreSQL | TBD | Disabled |
+| Puppeteer | TBD | Disabled |
+
+
+---
+
+# PART IV: DATA LAYER
+
+## memory_store.py (905 lines)
+
+Scored research output storage with relevance retrieval.
+
+### Storage
+
+- JSON files: `memory/{domain}/{timestamp}_{hash}.json`
+- SQLite: `logs/agent_brain.db` table `outputs`
+- Dual-write: every save goes to both
+
+### Retrieval Pipeline
+
+1. **RAG (if available):** ChromaDB semantic search
+2. **TF-IDF (fallback):** Sklearn vectorizer with cosine similarity
+3. **Keyword (last resort):** Simple token overlap
+
+### Relevance Scoring
+
+```
+final_score = (0.50 × relevance) + (0.35 × quality) + (0.15 × recency)
+```
+
+- Relevance: TF-IDF or RAG similarity
+- Quality: 0–1, with 0.3× penalty for rejected outputs
+- Recency: 0–1, decays to 0 over 90 days
+
+### Memory Hygiene
+
+`prune_domain()` archives:
+- All rejected outputs older than 30 days
+- Low-score outputs (< 5.0) older than 60 days
+- Overflow beyond `MAX_OUTPUTS_PER_DOMAIN` (100)
+
+### Knowledge Base Versioning
+
+- Before each KB save, current KB copied to `memory/{domain}/_kb_versions/`
+- Max 10 versions retained
+- `rollback_knowledge_base(domain, version)` restores
+
+### Claim Expiry
+
+- Claims older than 30 days: flagged as "stale"
+- Claims older than 90 days: flagged as "expired"
+
+
+## strategy_store.py (566 lines)
+
+Versioned strategy management with statistical evaluation.
+
+### Strategy Lifecycle
+
+```
+pending → (approve) → trial → (evaluate) → active
+                             → (rollback) → rolled_back
+       → (reject) → rejected
+```
+
+### Trial Evaluation
+
+Uses Welch's t-test to compare trial scores against previous strategy scores.
+
+| Outcome | Condition | Action |
+|---------|-----------|--------|
+| Promote | p < 0.10, trial avg > prev avg | Strategy becomes active |
+| Rollback | trial avg drops > 1.0 | Revert to previous |
+| Extend | inconclusive | Up to 3 extensions |
+
+### Safety Thresholds
+
+| Name | Value | Purpose |
+|------|-------|---------|
+| `SAFETY_DROP_THRESHOLD` | 0.20 | Block if >20% below best |
+| `TRIAL_PERIOD` | 5 | Outputs before evaluation |
+| `TRIAL_EXTEND_LIMIT` | 3 | Max trial extensions |
+| `TRIAL_P_VALUE_THRESHOLD` | 0.10 | Statistical significance |
+
+
+## db.py (646 lines)
+
+SQLite backend with WAL mode.
+
+### Tables
+
+| Table | Purpose |
+|-------|---------|
+| outputs | Research outputs with scores |
+| costs | API call costs |
+| alerts | Monitoring alerts |
+| health_snapshots | System health over time |
+| run_log | Research run history |
+
+### Migration
+
+`migrate_from_json()` imports existing JSON/JSONL files into SQLite. Idempotent — safe to run multiple times.
+
+
+## RAG Layer (rag/, 901 lines)
+
+### vector_store.py (565 lines)
+
+ChromaDB-backed semantic search.
+
+**Two collections:**
+- `claims`: Research findings and KB claims at claim granularity
+- `questions`: Past questions for deduplication
+
+**Embedding:** all-MiniLM-L6-v2 (384 dimensions, local, zero API cost)
+
+**Graceful degradation:** Falls back to TF-IDF if chromadb not installed
+
+### retrieval.py (239 lines)
+
+Drop-in replacement for memory_store's TF-IDF retrieval.
+
+- `retrieve_relevant_rag()` — semantic retrieval with original return format
+- `is_duplicate_question_rag()` — catches paraphrases that keyword matching misses
+
+
+---
+
+# PART V: INFRASTRUCTURE
+
+## config.py (168 lines)
+
+Central configuration.
+
+### Models
+
+| Role | Model | Why |
+|------|-------|-----|
+| researcher | Haiku 4.5 | Cheap, adequate for search+synthesis |
+| critic | Sonnet 4 | Critical judgment, don't cut corners |
+| meta_analyst | Sonnet 4 | Pattern extraction needs reasoning |
+| synthesizer | Sonnet 4 | Contradiction detection needs reasoning |
+| verifier | Sonnet 4 | Reality checking is high-stakes |
+| question_generator | Haiku 4.5 | Routing task, cheap is fine |
+| planner | Sonnet 4 | Plan quality drives everything |
+| executor | Haiku 4.5 | Step execution is routine |
+
+### Key Thresholds
+
+| Name | Value | Purpose |
+|------|-------|---------|
+| `QUALITY_THRESHOLD` | 6 | Accept/reject boundary |
+| `MAX_RETRIES` | 2 | Researcher retry attempts |
+| `DAILY_BUDGET_USD` | $5.00 | Hard daily cap |
+| `MAX_TOOL_ROUNDS` | 8 | Tool-use iterations |
+| `MAX_SEARCHES` | 10 | Searches per run |
+| `MAX_OUTPUTS_PER_DOMAIN` | 100 | Archive overflow trigger |
+
+
+## cost_tracker.py (128 lines)
+
+API cost tracking.
+
+- Every call logged with model, tokens, agent role, domain
+- Daily budget enforcement
+- Dual-write to JSONL and SQLite
+
+
+## scheduler.py (717 lines)
+
+Adaptive round planning and autonomous daemon.
+
+### Planning
+
+`create_plan()` builds budget-aware research plan:
+1. Estimate cost per round per domain (historical average)
+2. Allocate rounds proportionally to priority
+3. Stop when budget exhausted
+
+### Daemon
+
+`run_daemon()` runs continuously:
+1. Sleep for interval (default 60 minutes)
+2. Create plan for remaining budget
+3. Execute allocated rounds
+4. Repeat until max_cycles or shutdown signal
+
+State persisted to `logs/daemon_state.json` for resume after restart.
+
+
+## monitoring.py (275 lines)
+
+Health checks and alert generation.
+
+| Check | Alert Condition |
+|-------|-----------------|
+| Score trend | Declining classification |
+| Sudden drop | Latest score ≥2 below rolling avg |
+| Budget | >80% consumed |
+| Stale domain | No output in 14+ days |
+| Rejection rate | >50% of last 10 rejected |
+| Error rate | >5 errors in 24h |
+
+
+## analytics.py (816 lines)
+
+Pure computation analytics.
+
+- Score trajectory with trend detection
+- Score distribution histograms
+- Strategy version comparison
+- Cost efficiency (per output, per agent, per domain)
+- Critic dimension analysis
+- Research patterns (retry rates, search usage)
+- Knowledge velocity rating
+- Cross-domain comparison
+
+
+## Credential Vault (utils/credential_vault.py, 431 lines)
+
+Encrypted secret storage.
+
+- Fernet AES-128-CBC with HMAC
+- PBKDF2 key derivation (480,000 iterations)
+- Auto-lock after 5 minutes
+- Never deployed to VPS (excluded from archives)
+
+
+## VPS Deployment (deploy/, 939 lines)
+
+SSH-based remote deployment.
+
+### Pipeline
+
+1. Test SSH connectivity
+2. Create .tar.gz archive (excludes secrets, memory, vault)
+3. Prepare remote directories
+4. Upload via rsync (fallback: scp)
+5. Extract and pip install
+6. Setup cron schedule
+7. Verify deployment
+
+### Health Check
+
+- SSH connectivity
+- Process status
+- Cron entry status
+- Disk usage
+- Last log entry
+- Recent output count
+- Budget remaining
+
+
+---
+
+# PART VI: CLI AND API
+
+## CLI Commands (88 flags in main.py)
+
+### Core Research
+- `python main.py "question" --domain crypto` — Single research run
+- `--consensus` — Multi-researcher mode
+- `--next` — Show next auto-generated question
+- `--auto --rounds 5` — Self-directed mode
+
+### Strategy Management
+- `--status` — Current strategy status
+- `--evolve` — Force strategy evolution
+- `--approve v3` — Approve pending strategy
+- `--reject v3` — Reject pending strategy
+- `--rollback` — Revert to previous strategy
+- `--diff v2 v3` — Compare versions
+
+### Knowledge
+- `--synthesize` — Build/update KB
+- `--kb` — Display KB
+- `--kb-versions` — List KB versions
+- `--kb-rollback v2` — Restore KB version
+- `--graph` — Build/display knowledge graph
+
+### Cross-Domain
+- `--principles` — Show extracted principles
+- `--principles --extract` — Extract new principles
+- `--transfer newdomain --hint "description"` — Generate seed strategy
+
+### Memory
+- `--prune` — Archive old/low-quality outputs
+- `--search "query"` — Search across memory
+
+### Analytics
+- `--analytics` — Deep analytics report
+- `--audit` — Full audit trail
+- `--budget` — Cost tracking
+- `--validate` — Data integrity check
+
+### Scheduling
+- `--plan` — Generate research plan
+- `--run-plan` — Execute planned rounds
+- `--daemon` — Start autonomous daemon
+- `--daemon-stop` — Stop daemon
+
+### Agent Hands
+- `--execute "task"` — Run execution pipeline
+- `--exec-status` — Execution layer status
+- `--project "description"` — Multi-phase project
+- `--next-task` — Get next coding task from research
+
+
+## Dashboard API (dashboard/api.py, 784 lines)
+
+FastAPI backend with 25+ endpoints.
+
+### Key Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/health` | System health |
+| `GET /api/domains` | List all domains |
+| `GET /api/domains/{d}/outputs` | Research outputs |
+| `GET /api/domains/{d}/kb` | Knowledge base |
+| `GET /api/domains/{d}/strategy` | Strategy + history |
+| `POST /api/domains/{d}/strategy/approve` | Approve pending |
+| `POST /api/run` | Start research (SSE stream) |
+| `POST /api/auto` | Autonomous mode (SSE stream) |
+| `GET /api/daemon/status` | Daemon state |
+
+### Real-Time Streaming
+
+Server-Sent Events (SSE) for live loop monitoring:
+- Researcher progress
+- Critic scoring
+- Quality gate decisions
+- Memory updates
+- Strategy changes
+
+
+---
+
+# PART VII: CURRENT STATE
+
+## Statistics (as of February 27, 2026)
+
+| Metric | Value |
+|--------|-------|
+| Production code | 33,282 lines |
+| Test code | 16,611 lines |
+| Tests | 1,151 (all passing) |
+| Python modules | 98 |
+| Packages | 12 |
+| CLI flags | 88 |
+| API endpoints | 25+ |
+| MCP tools | 41 (GitHub) |
+| API spend | $9.50 |
+| API calls | 768 |
+| Research outputs | 71 |
+| Active domains | 7 |
+
+## Domain Status
+
+| Domain | Outputs | Avg Score | Accepted | Has KB | Has Strategy |
+|--------|---------|-----------|----------|--------|--------------|
+| crypto | 16 | 5.8 | 11 | No | Yes |
+| cybersecurity | 10 | 5.1 | 4 | No | Yes |
+| ai | 6 | 5.9 | 5 | No | Yes |
+| geopolitics | 5 | 6.0 | 4 | No | Yes |
+| physics | 5 | 5.9 | 4 | No | No |
+| general | 1 | 7.4 | 1 | No | No |
+| nextjs-react | 28 | 6.2 | 21 | No | Yes |
+
+## What's Working
+
+1. **Research loop** — Proven reliable
+2. **Strategy evolution** — Score trajectory 5.4 → 8.0
+3. **Cross-domain transfer** — Principles extracted and applied
+4. **Self-directed learning** — System generates own questions
+5. **Agent Hands** — End-to-end execution scoring 7.4/10
+6. **Stealth browser** — Passes bot detection
+7. **MCP GitHub** — 41 tools live
+8. **Atomic writes** — Applied to 25 sites across 20 files
+9. **Test coverage** — 1,151 tests, zero warnings
+
+## Current Limitations
+
+1. **No KB synthesized** — 71 outputs but 0 knowledge bases built
+2. **No predictions verified** — Verifier infrastructure unused
+3. **Mediocre scores** — Most domains 5.1–6.2 average
+4. **No dashboard UI** — Backend exists, no frontend
+5. **No VPS deployed** — Runs only in Codespaces
+6. **Vault empty** — No credentials stored
+7. **Browser disabled** — BROWSER_ENABLED=False
+8. **Most MCP disabled** — Only GitHub enabled
+9. **No Supabase** — Local JSON/SQLite only
+10. **No API auth** — Dashboard endpoints open
+11. **No scheduled cron** — Daemon not running
+
+## Known Bugs
+
+1. **hands/validator.py** — `_MAX_FILE_CHARS` defined twice (8,000 then overwritten to 500,000)
+2. **config.py** — `DAILY_BUDGET_USD` is $5.00 but docs say $2/day
+3. **knowledge_graph.py** — O(n) linear scans for node/edge lookups
+4. **main.py** — 4,006 lines in single file (god module)
+
+
+---
+
+# PART VIII: WHAT NEEDS TO HAPPEN
+
+## Immediate (Commands Only)
+
+```bash
+# Synthesize knowledge bases
+python main.py --synthesize --domain crypto
+python main.py --synthesize --domain cybersecurity
+python main.py --synthesize --domain ai
+python main.py --synthesize --domain nextjs-react
+
+# Extract cross-domain principles
+python main.py --principles --extract
+
+# Run self-directed cycles to trigger evolution
+python main.py --auto --rounds 5 --domain crypto
+
+# Approve pending strategies
+python main.py --status --domain crypto
+python main.py --approve <version> --domain crypto
+```
+
+## Short-Term (Days)
+
+1. Build dashboard frontend (React/Next.js)
+2. Enable browser integration (BROWSER_ENABLED=True)
+3. Deploy to VPS ($5/month, start daemon)
+4. Add dashboard API authentication
+5. Configure webhook notifications
+
+## Medium-Term (Weeks)
+
+1. Migrate to Supabase (multi-instance)
+2. Add orchestrator agent (persistent agenda)
+3. Implement recursive strategy evolution
+4. Add real-time alerting pipeline
+5. Build strategy playground
+
+## Long-Term (Months)
+
+1. Multi-model support (OpenAI, Gemini, open-source)
+2. Federated learning across instances
+3. Automated domain discovery
+4. Natural language system control
+5. Continuous learning from deployed software
+
+
+---
+
+# APPENDIX: FILE INVENTORY
+
+## Root Modules (12 files, 11,097 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| main.py | 4,006 | CLI entry point, research loop |
+| memory_store.py | 905 | Scored output storage, retrieval |
+| strategy_store.py | 566 | Versioned strategies, trials |
+| knowledge_graph.py | 551 | Structured relationship graph |
+| analytics.py | 816 | Performance analytics |
+| scheduler.py | 717 | Planning, daemon |
+| db.py | 646 | SQLite backend |
+| validator.py | 506 | Data integrity |
+| monitoring.py | 275 | Health checks, alerts |
+| domain_seeder.py | 175 | Seed questions |
+| config.py | 168 | Configuration |
+| cost_tracker.py | 128 | API cost tracking |
+
+## Agents (10 files, 4,587 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| cross_domain.py | 630 | Layer 5 transfer |
+| orchestrator.py | 583 | Multi-domain coordination |
+| researcher.py | 567 | Primary research |
+| synthesizer.py | 440 | KB synthesis |
+| critic.py | 419 | Quality scoring |
+| question_generator.py | 389 | Self-directed learning |
+| meta_analyst.py | 384 | Strategy evolution |
+| verifier.py | 338 | Prediction verification |
+| consensus.py | 237 | Multi-researcher |
+
+## Hands (33 files, 8,095 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| project_orchestrator.py | 832 | Multi-phase projects |
+| executor.py | 831 | Plan execution |
+| validator.py | 798 | Execution scoring |
+| planner.py | 546 | Task decomposition |
+| exec_meta.py | 506 | Execution strategy evolution |
+| pattern_learner.py | 497 | Reusable pattern extraction |
+| tools/code.py | 394 | File operations |
+| artifact_tracker.py | 365 | Per-file quality |
+| tools/search.py | 352 | Code search |
+| task_generator.py | 332 | KB→tasks |
+| (23 more files) | ... | ... |
+
+## Browser (5 files, 1,241 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| stealth_browser.py | 373 | Anti-detection browser |
+| session_manager.py | 352 | Orchestration |
+| auth.py | 313 | Site-specific login |
+| tools.py | 182 | Claude tool integration |
+
+## Deploy (4 files, 939 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| deployer.py | 571 | Deployment pipeline |
+| ssh_manager.py | 265 | Remote execution |
+| vps_config.py | 87 | Config dataclass |
+
+## MCP (6 files, 1,759 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| docker_manager.py | 478 | Container lifecycle |
+| gateway.py | 399 | Multi-server aggregation |
+| context_router.py | 344 | Intelligent filtering |
+| tool_bridge.py | 283 | Integration |
+| protocol.py | 235 | JSON-RPC 2.0 |
+
+## RAG (4 files, 901 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| vector_store.py | 565 | ChromaDB indexing |
+| retrieval.py | 239 | Drop-in replacement |
+| embeddings.py | 86 | Model management |
+
+## Utils (6 files, 1,261 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| credential_vault.py | 431 | Encrypted secrets |
+| llm_cache.py | 315 | Response caching |
+| rate_limiter.py | 143 | Token bucket |
+| retry.py | 129 | Exponential backoff |
+| json_parser.py | 102 | Robust JSON extraction |
+| atomic_write.py | 37 | Crash-safe writes |
+
+## Tools (4 files, 1,015 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| web_fetcher.py | 445 | Page fetching |
+| dataset_loader.py | 339 | HuggingFace/GitHub |
+| crawl_to_kb.py | 149 | Crawl→claims |
+| web_search.py | 82 | DuckDuckGo |
+
+## CLI (8 files, 1,381 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| tools_cmd.py | 360 | Crawl, fetch, RAG, MCP |
+| strategy.py | 358 | Strategy management |
+| project.py | 172 | Project orchestrator |
+| knowledge.py | 166 | KB, synthesis, graph |
+| deploy_cmd.py | 126 | VPS deployment |
+| vault.py | 115 | Credential vault |
+| browser_cmd.py | 61 | Browser CLI |
+
+## Dashboard (1 file, 784 lines)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| api.py | 784 | FastAPI backend |
+
+
+---
+
+*End of document. Last updated: February 27, 2026.*
