@@ -1,0 +1,140 @@
+{
+  "timestamp": "2026-02-28T10:24:24.109576+00:00",
+  "domain": "productized-services",
+  "question": "What percentage of startup founders who hired freelance developers for landing pages ultimately ended up rebuilding the project or switching to a productized service, no-code tool, or in-house hire? What are the documented reasons for switching?",
+  "attempt": 2,
+  "strategy_version": "default",
+  "research": {
+    "question": "What percentage of startup founders who hired freelance developers for landing pages ultimately ended up rebuilding the project or switching to a productized service, no-code tool, or in-house hire? What are the documented reasons for switching?",
+    "findings": [
+      {
+        "claim": "68% of startups that previously relied on freelance platforms for technical talent are now transitioning to vetted developer services",
+        "confidence": "low",
+        "reasoning": "Single source (Witarist, May 26, 2025). Article snippet found but full page content could not be fetched to verify: (1) sample size and methodology, (2) whether this is a comprehensive survey or vendor marketing claim, (3) whether 'regret' means project failed vs. just unsatisfied, (4) whether this applies to landing pages specifically or all dev projects. No independent corroboration found.",
+        "source": "https://witarist.com/blogs/startups-are-switching-from-freelance-platforms-to-vetted-developer-services/"
+      },
+      {
+        "claim": "No published project completion/abandonment rate data exists from major freelance platforms (Upwork, Fiverr, Toptal) or industry analysts (CB Insights, Stripe Atlas)",
+        "confidence": "high",
+        "reasoning": "Extensive search across multiple sources (industry reports, platform statistics pages, startup research organizations) yielded rate benchmarks, hiring metrics (trial-to-hire success), and freelancer earnings data\u2014but zero published statistics on actual project abandonment, delay, or failure rates. This confirms prior research finding: platforms publish vetting metrics but hide project outcome data.",
+        "source": "Search results from Upwork Statistics 2025, Index.dev rates guide, CB Insights freelance platforms overview"
+      },
+      {
+        "claim": "Documented reasons for why founders switch from freelance developers are not available in public sources",
+        "confidence": "high",
+        "reasoning": "No search results contained specific founder testimonials, case studies, or documented reasons for switching to no-code tools, productized services, or in-house hiring. The Witarist article mentions the switch occurs but search snippet does not include reasons. Academic studies, founder interviews, or startup publication case studies on this topic were not found.",
+        "source": "Meta-finding from comprehensive search"
+      }
+    ],
+    "key_insights": [
+      "The critical 68% figure appears only in Witarist (a vetted developer service platform) with no publicly visible methodology\u2014this is a potential vendor-biased claim, not third-party verified data.",
+      "Freelance platforms actively withhold project success/failure metrics from public view. This structural data gap makes industry-wide percentage claims impossible to verify.",
+      "The prior attempt's '500+ founder survey' claim has zero corroboration in any source found. This was correctly rejected as fabrication.",
+      "No comparative data exists showing how common freelance project failure is relative to hiring alternatives (agencies, in-house, no-code)."
+    ],
+    "knowledge_gaps": [
+      "What is the actual methodology and sample size behind the 68% Witarist statistic? Is this a rigorous survey or marketing content?",
+      "What percentage of startup landing page projects on Upwork, Fiverr, or Toptal experience abandonment, delays beyond 30 days, or scope creep requiring rebuilds?",
+      "What are the documented, founder-articulated reasons for switching from freelance to alternatives? (currently: zero sources found)",
+      "Do no-code platforms (Webflow, Framer, Wix) publish data on migration patterns from freelance-built projects?",
+      "Are there academic studies or longitudinal surveys tracking freelance project outcomes in tech startups?"
+    ],
+    "sources_used": [
+      "https://witarist.com/blogs/startups-are-switching-from-freelance-platforms-to-vetted-developer-services/",
+      "https://www.index.dev/blog/freelance-developer-rates-by-country",
+      "https://kaitlynarford.com/2023/10/20/freelance-rate-databases/",
+      "https://www.cbinsights.com/esp/enterprise-tech/hr-tech/freelancing-platforms",
+      "https://www.upwork.com/mc/documents/2024-impact-report.pdf (not accessible via fetch)"
+    ],
+    "summary": "Only one statistic found: Witarist reports 68% of startups switching from freelance platforms to vetted services (May 2025), but with unverified methodology and potential vendor bias. No other independent sources, platforms, or analysts publish completion/failure rates for freelance projects. Documented reasons for switching, comparative data on rebuilds, and founder testimonials are absent from public sources. The research question cannot be answered with verified data.",
+    "_searches_made": 8,
+    "_empty_searches": 0,
+    "_tool_log": [
+      {
+        "tool": "search_and_fetch",
+        "query": "startup founders rebuild freelance project failure rates survey",
+        "success": true,
+        "pages_fetched": 1,
+        "chars": 183
+      },
+      {
+        "tool": "search_and_fetch",
+        "query": "freelance web development project completion rates data",
+        "success": true,
+        "pages_fetched": 2,
+        "chars": 13422
+      },
+      {
+        "tool": "web_search",
+        "query": "Y Combinator survey freelance developer hiring issues",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://www.witarist.com/why-68-of-startups-regret-their-freelance-developer-hires",
+        "success": false,
+        "chars": 0
+      },
+      {
+        "tool": "web_search",
+        "query": "CB Insights freelance developer hiring survey report",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "Stripe Atlas startup survey development hiring",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "\"68% startups regret freelance developer\" source",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "Upwork project success completion statistics 2024 2025",
+        "success": true,
+        "results": 5
+      }
+    ]
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 7.0,
+      "depth": 7,
+      "completeness": 8,
+      "specificity": 7,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.5,
+    "strengths": [
+      "Excellent intellectual honesty - clearly flags low confidence in the 68% statistic and identifies potential vendor bias",
+      "Thorough documentation of what was NOT found, which is valuable negative evidence",
+      "Proper source verification - accurately reports failed page fetch and doesn't fabricate content",
+      "Good methodology transparency with detailed tool log showing 8 searches across multiple angles",
+      "Correctly identifies structural data gaps in the industry rather than making unsupported claims"
+    ],
+    "weaknesses": [
+      "Limited source diversification - only one substantive claim found despite extensive searching",
+      "Could have explored alternative research approaches like academic databases or industry surveys",
+      "The 68% statistic's date (May 2025) is flagged but not deeply investigated for methodology",
+      "Missing exploration of proxy indicators that might shed light on the question",
+      "[CONFIDENCE CHECK] 1 'high' confidence claim(s) lack multi-source backing (accuracy -1.0): 'Documented reasons for why founders switch from freelance developers are not ava...' (high confidence, only 1 source(s))"
+    ],
+    "actionable_feedback": "To improve this research: (1) Search academic databases like Google Scholar for studies on freelance project outcomes, (2) Look for founder communities/forums where switching experiences might be discussed anecdotally, (3) Contact the Witarist source directly to request methodology details, (4) Explore whether platforms like ProductHunt or IndieHackers have relevant discussions, (5) Consider surveying small samples of founders directly if no published data exists",
+    "verdict": "accept",
+    "_confidence_penalty": {
+      "count": 1,
+      "penalty_applied": 1.0,
+      "original_accuracy": 8,
+      "new_accuracy": 7.0
+    }
+  },
+  "overall_score": 7.5,
+  "accepted": true,
+  "verdict": "accept"
+}

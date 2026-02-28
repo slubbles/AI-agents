@@ -1,0 +1,2341 @@
+{
+  "nodes": [
+    {
+      "id": "topic_freelance_developer_problems",
+      "type": "topic",
+      "label": "Freelance Developer Problems",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.171795+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "ghosting and abandonment",
+          "communication issues",
+          "quality control",
+          "vetting challenges",
+          "management overhead"
+        ]
+      }
+    },
+    {
+      "id": "topic_platform_transparency",
+      "type": "topic",
+      "label": "Platform Transparency",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.171815+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "completion rates",
+          "pricing structures",
+          "review data",
+          "platform metrics",
+          "industry research gaps"
+        ]
+      }
+    },
+    {
+      "id": "topic_productized_service_operations",
+      "type": "topic",
+      "label": "Productized Service Operations",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.171827+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "workflows",
+          "delivery guarantees",
+          "revision policies",
+          "scope management",
+          "turnaround times"
+        ]
+      }
+    },
+    {
+      "id": "topic_market_trends",
+      "type": "topic",
+      "label": "Market Trends",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.171837+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "switching patterns",
+          "platform adoption",
+          "service evolution"
+        ]
+      }
+    },
+    {
+      "id": "topic_project_success_metrics",
+      "type": "topic",
+      "label": "Project Success Metrics",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.171847+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "completion rates",
+          "scope creep statistics",
+          "delay percentages",
+          "client satisfaction",
+          "abandonment rates"
+        ]
+      }
+    },
+    {
+      "id": "claim_001",
+      "type": "claim",
+      "label": "Freelancer ghosting and project abandonment are major issues\u2014developers disappear mid-project leaving incomplete code and wasted budgets",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T09:41:33.265905+00:00",
+      "last_updated": "2026-02-28T09:41:33.265905+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Freelancer ghosting and project abandonment are major issues\u2014developers disappear mid-project leaving incomplete code and wasted budgets",
+        "sources": [
+          "https://3innovative.com/insights/problems-with-freelance-developers"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_3innovative_com_insights_problems_with_freelance_devel",
+      "type": "source",
+      "label": "https://3innovative.com/insights/problems-with-freelance-developers",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.171888+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://3innovative.com/insights/problems-with-freelance-developers"
+      }
+    },
+    {
+      "id": "claim_002",
+      "type": "claim",
+      "label": "Communication breakdowns and inconsistent availability are prevalent\u2014freelancers juggle multiple clients simultaneously, causing delays when other projects take priority",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T09:41:33.265905+00:00",
+      "last_updated": "2026-02-28T09:41:33.265905+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Communication breakdowns and inconsistent availability are prevalent\u2014freelancers juggle multiple clients simultaneously, causing delays when other projects take priority",
+        "sources": [
+          "https://3innovative.com/insights/problems-with-freelance-developers"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_003",
+      "type": "claim",
+      "label": "70% of freelancers are under 35, lacking professional maturity and long-term commitment despite having modern technical skills",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T09:41:33.265905+00:00",
+      "last_updated": "2026-02-28T09:41:33.265905+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "70% of freelancers are under 35, lacking professional maturity and long-term commitment despite having modern technical skills",
+        "sources": [
+          "https://3innovative.com/insights/problems-with-freelance-developers"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_004",
+      "type": "claim",
+      "label": "Toptal reports a 98% trial-to-hire success rate for developer engagements",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_updated": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Toptal reports a 98% trial-to-hire success rate for developer engagements",
+        "sources": [
+          "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
+        ],
+        "notes": "Measures hiring success, not project completion rates"
+      }
+    },
+    {
+      "id": "source_https_bestjobsearchapps_com_articles_en_upwork_vs_toptal_vs_",
+      "type": "source",
+      "label": "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-deve",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.171977+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
+      }
+    },
+    {
+      "id": "claim_005",
+      "type": "claim",
+      "label": "Toptal has a 3% acceptance rate, meaning only top 3% of applicants get into the platform",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_updated": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Toptal has a 3% acceptance rate, meaning only top 3% of applicants get into the platform",
+        "sources": [
+          "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_006",
+      "type": "claim",
+      "label": "No publicly available data exists on React/Next.js landing page specific completion rates, delays, scope creep percentages, or average timelines from Upwork, Toptal, or Fiverr",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_updated": "2026-02-28T10:59:56.492423+00:00",
+      "source_count": 7,
+      "metadata": {
+        "full_text": "No publicly available data exists on React/Next.js landing page specific completion rates, delays, scope creep percentages, or average timelines from Upwork, Toptal, or Fiverr",
+        "sources": [
+          "Multiple sources searched; no data found",
+          "Comprehensive search across industry reports, platform disclosures, and research studies",
+          "Academic databases and industry analysts"
+        ],
+        "notes": "Confirmed across multiple research approaches including academic databases, industry analysts, SEC filings, and transparency reports"
+      }
+    },
+    {
+      "id": "source_multiple_sources_searched_no_data_found",
+      "type": "source",
+      "label": "Multiple sources searched; no data found",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172031+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Multiple sources searched; no data found"
+      }
+    },
+    {
+      "id": "source_comprehensive_search_across_industry_reports_platform_disclo",
+      "type": "source",
+      "label": "Comprehensive search across industry reports, platform disclosures, and research studies",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172050+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Comprehensive search across industry reports, platform disclosures, and research studies"
+      }
+    },
+    {
+      "id": "source_academic_databases_and_industry_analysts",
+      "type": "source",
+      "label": "Academic databases and industry analysts",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172067+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Academic databases and industry analysts"
+      }
+    },
+    {
+      "id": "claim_007",
+      "type": "claim",
+      "label": "Webflow does NOT offer a dedicated productized landing page service. Webflow Agency Partners is a certification/partner directory program, not a productized service",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:20:27.497537+00:00",
+      "last_updated": "2026-02-28T10:20:27.497537+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Webflow does NOT offer a dedicated productized landing page service. Webflow Agency Partners is a certification/partner directory program, not a productized service",
+        "sources": [
+          "https://webflow.com/certified-partners/browse"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_webflow_com_certified_partners_browse",
+      "type": "source",
+      "label": "https://webflow.com/certified-partners/browse",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172099+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://webflow.com/certified-partners/browse"
+      }
+    },
+    {
+      "id": "claim_008",
+      "type": "claim",
+      "label": "ConvertKit (now rebranded to Kit) does NOT offer dedicated design services. The platform is an email marketing/creator monetization tool",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:20:27.497537+00:00",
+      "last_updated": "2026-02-28T10:20:27.497537+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "ConvertKit (now rebranded to Kit) does NOT offer dedicated design services. The platform is an email marketing/creator monetization tool",
+        "sources": [
+          "https://kit.com/news/convertkit-rebrands-kit"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_kit_com_news_convertkit_rebrands_kit",
+      "type": "source",
+      "label": "https://kit.com/news/convertkit-rebrands-kit",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172154+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://kit.com/news/convertkit-rebrands-kit"
+      }
+    },
+    {
+      "id": "claim_009",
+      "type": "claim",
+      "label": "68% of startups that previously relied on freelance platforms for technical talent are now transitioning to vetted developer services",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "2026-02-28T10:24:24.109576+00:00",
+      "last_updated": "2026-02-28T10:24:24.109576+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "68% of startups that previously relied on freelance platforms for technical talent are now transitioning to vetted developer services",
+        "sources": [
+          "https://witarist.com/blogs/startups-are-switching-from-freelance-platforms-to-vetted-developer-services/"
+        ],
+        "notes": "Single source with unverified methodology and potential vendor bias"
+      }
+    },
+    {
+      "id": "source_https_witarist_com_blogs_startups_are_switching_from_freelan",
+      "type": "source",
+      "label": "https://witarist.com/blogs/startups-are-switching-from-freelance-platforms-to-vetted-developer-services/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172187+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://witarist.com/blogs/startups-are-switching-from-freelance-platforms-to-vetted-developer-services/"
+      }
+    },
+    {
+      "id": "claim_010",
+      "type": "claim",
+      "label": "SprintPage offers 48-hour turnaround for Webflow landing pages after onboarding completion",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:32:48.286489+00:00",
+      "last_updated": "2026-02-28T10:32:48.286489+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "SprintPage offers 48-hour turnaround for Webflow landing pages after onboarding completion",
+        "sources": [
+          "https://www.sprintpage.io/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_sprintpage_io",
+      "type": "source",
+      "label": "https://www.sprintpage.io/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172215+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.sprintpage.io/"
+      }
+    },
+    {
+      "id": "claim_011",
+      "type": "claim",
+      "label": "SprintPage provides unlimited revisions during the 48-hour project window via Slack channel",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:32:48.286489+00:00",
+      "last_updated": "2026-02-28T10:32:48.286489+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "SprintPage provides unlimited revisions during the 48-hour project window via Slack channel",
+        "sources": [
+          "https://www.sprintpage.io/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_012",
+      "type": "claim",
+      "label": "Upwork has approximately 12 million freelancers on the platform",
+      "confidence": "medium",
+      "status": "superseded",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_updated": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Upwork has approximately 12 million freelancers on the platform",
+        "sources": [
+          "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
+        ],
+        "notes": "2022 data, superseded by newer 18M+ figure"
+      }
+    },
+    {
+      "id": "claim_013",
+      "type": "claim",
+      "label": "Upwork has 18M+ freelancers on the platform as of October 2025",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_updated": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Upwork has 18M+ freelancers on the platform as of October 2025",
+        "sources": [
+          "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
+        ],
+        "notes": "More recent data from ElectroIQ Oct 2025"
+      }
+    },
+    {
+      "id": "claim_014",
+      "type": "claim",
+      "label": "Fiverr has 3.5 million active buyers as of 2025",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_updated": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Fiverr has 3.5 million active buyers as of 2025",
+        "sources": [
+          "https://backlinko.com/fiverr-users"
+        ],
+        "notes": "Down from 4.28 million in 2022, indicating 18% decline"
+      }
+    },
+    {
+      "id": "source_https_backlinko_com_fiverr_users",
+      "type": "source",
+      "label": "https://backlinko.com/fiverr-users",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172331+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://backlinko.com/fiverr-users"
+      }
+    },
+    {
+      "id": "claim_015",
+      "type": "claim",
+      "label": "No published project completion, abandonment, or delay rate benchmarks exist from major freelance platforms (Upwork, Toptal, Fiverr) or comparable industry analysts",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-28T10:35:09.426443+00:00",
+      "last_updated": "2026-02-28T10:59:56.492423+00:00",
+      "source_count": 6,
+      "metadata": {
+        "full_text": "No published project completion, abandonment, or delay rate benchmarks exist from major freelance platforms (Upwork, Toptal, Fiverr) or comparable industry analysts",
+        "sources": [
+          "Prior knowledge base + exhaustive search attempts",
+          "Upwork 2025 Transparency Report",
+          "Comprehensive search across academic databases and analyst firms",
+          "SEC filings",
+          "Earnings calls"
+        ],
+        "notes": "Confirmed across multiple research approaches including official transparency reports, SEC filings, and academic institutions"
+      }
+    },
+    {
+      "id": "source_prior_knowledge_base_exhaustive_search_attempts",
+      "type": "source",
+      "label": "Prior knowledge base + exhaustive search attempts",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172358+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Prior knowledge base + exhaustive search attempts"
+      }
+    },
+    {
+      "id": "source_upwork_2025_transparency_report",
+      "type": "source",
+      "label": "Upwork 2025 Transparency Report",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172374+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Upwork 2025 Transparency Report"
+      }
+    },
+    {
+      "id": "source_comprehensive_search_across_academic_databases_and_analyst_f",
+      "type": "source",
+      "label": "Comprehensive search across academic databases and analyst firms",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172392+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Comprehensive search across academic databases and analyst firms"
+      }
+    },
+    {
+      "id": "source_sec_filings",
+      "type": "source",
+      "label": "SEC filings",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172407+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "SEC filings"
+      }
+    },
+    {
+      "id": "source_earnings_calls",
+      "type": "source",
+      "label": "Earnings calls",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172421+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Earnings calls"
+      }
+    },
+    {
+      "id": "claim_016",
+      "type": "claim",
+      "label": "Major research firms (Gartner, Forrester, McKinsey, Deloitte, Accenture) publish benchmarks for business process outsourcing (BPO) and finance/accounting services, but NOT for website/landing page pro",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-02-28T10:35:09.426443+00:00",
+      "last_updated": "2026-02-28T10:52:14.769406+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Major research firms (Gartner, Forrester, McKinsey, Deloitte, Accenture) publish benchmarks for business process outsourcing (BPO) and finance/accounting services, but NOT for website/landing page projects or freelance platform performance",
+        "sources": [
+          "https://www.gartner.com/en/insights/benchmarking",
+          "Academic and analyst firm searches"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_gartner_com_en_insights_benchmarking",
+      "type": "source",
+      "label": "https://www.gartner.com/en/insights/benchmarking",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172449+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.gartner.com/en/insights/benchmarking"
+      }
+    },
+    {
+      "id": "source_academic_and_analyst_firm_searches",
+      "type": "source",
+      "label": "Academic and analyst firm searches",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172465+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Academic and analyst firm searches"
+      }
+    },
+    {
+      "id": "claim_017",
+      "type": "claim",
+      "label": "72% of freelancers experienced client ghosting in 2024, according to Leapers' annual mental health study",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:50:34.716926+00:00",
+      "last_updated": "2026-02-28T10:50:34.716926+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "72% of freelancers experienced client ghosting in 2024, according to Leapers' annual mental health study",
+        "sources": [
+          "https://www.leapers.co/research/2024/"
+        ],
+        "notes": "Measures clients ghosting freelancers, not freelancers abandoning projects"
+      }
+    },
+    {
+      "id": "source_https_www_leapers_co_research_2024",
+      "type": "source",
+      "label": "https://www.leapers.co/research/2024/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172495+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.leapers.co/research/2024/"
+      }
+    },
+    {
+      "id": "claim_018",
+      "type": "claim",
+      "label": "Approximately 50% of freelancers experienced client ghosting in 2025, a decrease from 2024's 72%",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:50:34.716926+00:00",
+      "last_updated": "2026-02-28T10:50:34.716926+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Approximately 50% of freelancers experienced client ghosting in 2025, a decrease from 2024's 72%",
+        "sources": [
+          "https://www.leapers.co/research/2025/report/"
+        ],
+        "notes": "Shows improvement from previous year"
+      }
+    },
+    {
+      "id": "source_https_www_leapers_co_research_2025_report",
+      "type": "source",
+      "label": "https://www.leapers.co/research/2025/report/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172525+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.leapers.co/research/2025/report/"
+      }
+    },
+    {
+      "id": "claim_019",
+      "type": "claim",
+      "label": "67.5% of freelancers dealt with late payments in 2025, and 81.2% of those affected reported it as a direct source of stress",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:50:34.716926+00:00",
+      "last_updated": "2026-02-28T10:50:34.716926+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "67.5% of freelancers dealt with late payments in 2025, and 81.2% of those affected reported it as a direct source of stress",
+        "sources": [
+          "https://www.leapers.co/research/2025/report/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_020",
+      "type": "claim",
+      "label": "62% of solo tech contractors experience scope creep (work beyond initial outlines without corresponding compensation)",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T10:55:06.873809+00:00",
+      "last_updated": "2026-02-28T10:55:06.873809+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "62% of solo tech contractors experience scope creep (work beyond initial outlines without corresponding compensation)",
+        "sources": [
+          "https://moldstud.com/articles/p-freelance-developer-dilemmas-how-to-tackle-project-scope-creep-effectively"
+        ],
+        "notes": "General tech contractors, not specifically landing page projects"
+      }
+    },
+    {
+      "id": "source_https_moldstud_com_articles_p_freelance_developer_dilemmas_h",
+      "type": "source",
+      "label": "https://moldstud.com/articles/p-freelance-developer-dilemmas-how-to-tackle-project-scope-creep-effectively",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172584+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://moldstud.com/articles/p-freelance-developer-dilemmas-how-to-tackle-project-scope-creep-effectively"
+      }
+    },
+    {
+      "id": "claim_021",
+      "type": "claim",
+      "label": "45% of tech engagements run over budget due to vague or shifting deliverables",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T10:55:06.873809+00:00",
+      "last_updated": "2026-02-28T10:55:06.873809+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "45% of tech engagements run over budget due to vague or shifting deliverables",
+        "sources": [
+          "https://moldstud.com/articles/p-freelance-developer-dilemmas-how-to-tackle-project-scope-creep-effectively"
+        ],
+        "notes": "From Standish Group study"
+      }
+    },
+    {
+      "id": "claim_022",
+      "type": "claim",
+      "label": "52% of software projects experience scope additions beyond original plan (require at least 20% more work)",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T10:55:06.873809+00:00",
+      "last_updated": "2026-02-28T10:55:06.873809+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "52% of software projects experience scope additions beyond original plan (require at least 20% more work)",
+        "sources": [
+          "https://moldstud.com/articles/p-freelance-developer-dilemmas-how-to-tackle-project-scope-creep-effectively"
+        ],
+        "notes": "From Standish Group CHAOS report"
+      }
+    },
+    {
+      "id": "claim_023",
+      "type": "claim",
+      "label": "Upwork published a 2025 Transparency Report but it does not disclose project completion rates, abandonment rates, or delay percentages",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-02-28T10:41:45.644867+00:00",
+      "last_updated": "2026-02-28T10:55:06.873809+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Upwork published a 2025 Transparency Report but it does not disclose project completion rates, abandonment rates, or delay percentages",
+        "sources": [
+          "https://www.upwork.com/blog/upworks-2025-transparency-report-our-ongoing-work-to-protect-yours"
+        ],
+        "notes": "Report focuses on fraud prevention and security rather than marketplace outcome transparency"
+      }
+    },
+    {
+      "id": "source_https_www_upwork_com_blog_upworks_2025_transparency_report_o",
+      "type": "source",
+      "label": "https://www.upwork.com/blog/upworks-2025-transparency-report-our-ongoing-work-to-protect-yours",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172667+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.upwork.com/blog/upworks-2025-transparency-report-our-ongoing-work-to-protect-yours"
+      }
+    },
+    {
+      "id": "claim_024",
+      "type": "claim",
+      "label": "Superside offers modular and fully custom landing page design services built on Webflow with CRO optimization",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:32:48.286489+00:00",
+      "last_updated": "2026-02-28T10:32:48.286489+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Superside offers modular and fully custom landing page design services built on Webflow with CRO optimization",
+        "sources": [
+          "https://www.superside.com/landing-page-design"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_superside_com_landing_page_design",
+      "type": "source",
+      "label": "https://www.superside.com/landing-page-design",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172696+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.superside.com/landing-page-design"
+      }
+    },
+    {
+      "id": "claim_025",
+      "type": "claim",
+      "label": "Flowout operates as Webflow subscription agency with flat monthly rate and no-contract model",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:32:48.286489+00:00",
+      "last_updated": "2026-02-28T10:32:48.286489+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Flowout operates as Webflow subscription agency with flat monthly rate and no-contract model",
+        "sources": [
+          "https://www.flowout.com/pricing"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_flowout_com_pricing",
+      "type": "source",
+      "label": "https://www.flowout.com/pricing",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172724+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.flowout.com/pricing"
+      }
+    },
+    {
+      "id": "claim_026",
+      "type": "claim",
+      "label": "No quantitative data exists in academic databases (JSTOR, Google Scholar), analyst firms (Gartner, Forrester, McKinsey), or gig economy research institutions for project completion, abandonment, or ti",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-28T10:52:14.769406+00:00",
+      "last_updated": "2026-02-28T10:58:25.859412+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "No quantitative data exists in academic databases (JSTOR, Google Scholar), analyst firms (Gartner, Forrester, McKinsey), or gig economy research institutions for project completion, abandonment, or timeline metrics on Upwork, Toptal, or Fiverr",
+        "sources": [
+          "Academic database searches",
+          "Labor research organization searches"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_academic_database_searches",
+      "type": "source",
+      "label": "Academic database searches",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172752+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Academic database searches"
+      }
+    },
+    {
+      "id": "source_labor_research_organization_searches",
+      "type": "source",
+      "label": "Labor research organization searches",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172769+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Labor research organization searches"
+      }
+    },
+    {
+      "id": "claim_027",
+      "type": "claim",
+      "label": "Upwork published a 'Human+Agent Productivity Index' in November 2025 referencing 'project completion rates' increasing up to 70% when AI agents collaborate with humans, but this metric is relative per",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:59:56.492423+00:00",
+      "last_updated": "2026-02-28T10:59:56.492423+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Upwork published a 'Human+Agent Productivity Index' in November 2025 referencing 'project completion rates' increasing up to 70% when AI agents collaborate with humans, but this metric is relative performance (AI + human vs. AI alone), not an absolute platform-wide project completion rate disclosure",
+        "sources": [
+          "https://investors.upwork.com/news-releases/news-release-details/upwork-humanagent-productivity-index-reveals-70-boost-work"
+        ],
+        "notes": "Measures comparative productivity gains, not baseline platform completion rates"
+      }
+    },
+    {
+      "id": "source_https_investors_upwork_com_news_releases_news_release_detail",
+      "type": "source",
+      "label": "https://investors.upwork.com/news-releases/news-release-details/upwork-humanagent-productivity-index-reveals-70-boost-wo",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172802+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://investors.upwork.com/news-releases/news-release-details/upwork-humanagent-productivity-index-reveals-70-boost-work"
+      }
+    },
+    {
+      "id": "gap_000",
+      "type": "gap",
+      "label": "Percentage of freelance projects abandoned/incomplete due to freelancer ghosting or withdrawal\u2014NO publicly available quantified data found",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172819+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Project Success Metrics",
+        "full_text": "Percentage of freelance projects abandoned/incomplete due to freelancer ghosting or withdrawal\u2014NO publicly available quantified data found"
+      }
+    },
+    {
+      "id": "gap_001",
+      "type": "gap",
+      "label": "Platform-specific project completion rates from Upwork, Toptal, Fiverr disaggregated by project type, budget tier, or timeline",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172833+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Project Success Metrics",
+        "full_text": "Platform-specific project completion rates from Upwork, Toptal, Fiverr disaggregated by project type, budget tier, or timeline"
+      }
+    },
+    {
+      "id": "gap_002",
+      "type": "gap",
+      "label": "Specific completion, delay, or abandonment rate data for React/Next.js or Webflow landing page projects on any major platform",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172845+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Project Success Metrics",
+        "full_text": "Specific completion, delay, or abandonment rate data for React/Next.js or Webflow landing page projects on any major platform"
+      }
+    },
+    {
+      "id": "gap_003",
+      "type": "gap",
+      "label": "Comparative completion rates: freelance vs agency vs in-house vs productized services",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172855+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Market Trends",
+        "full_text": "Comparative completion rates: freelance vs agency vs in-house vs productized services"
+      }
+    },
+    {
+      "id": "gap_004",
+      "type": "gap",
+      "label": "Whether any academic institutions or independent research firms have attempted to measure freelance platform completion rates through surveys or data collection",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172865+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Platform Transparency",
+        "full_text": "Whether any academic institutions or independent research firms have attempted to measure freelance platform completion rates through surveys or data collection"
+      }
+    },
+    {
+      "id": "gap_005",
+      "type": "gap",
+      "label": "Documented reasons from founders for switching from freelance to productized services with verified testimonials",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172876+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Market Trends",
+        "full_text": "Documented reasons from founders for switching from freelance to productized services with verified testimonials"
+      }
+    },
+    {
+      "id": "gap_006",
+      "type": "gap",
+      "label": "Pricing information for most productized landing page services (SprintPage, Superside, etc.)",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172886+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Productized Service Operations",
+        "full_text": "Pricing information for most productized landing page services (SprintPage, Superside, etc.)"
+      }
+    },
+    {
+      "id": "gap_007",
+      "type": "gap",
+      "label": "Full content analysis of Fiverr's 2025 earnings results and SEC filings to confirm absence of completion metrics",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172897+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Platform Transparency",
+        "full_text": "Full content analysis of Fiverr's 2025 earnings results and SEC filings to confirm absence of completion metrics"
+      }
+    },
+    {
+      "id": "gap_008",
+      "type": "gap",
+      "label": "Formal QA processes and revision round limits for most productized services beyond SprintPage",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T11:02:29.172906+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "low",
+        "related_topic": "Productized Service Operations",
+        "full_text": "Formal QA processes and revision round limits for most productized services beyond SprintPage"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "claim_001",
+      "target": "topic_freelance_developer_problems",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.171868+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_3innovative_com_insights_problems_with_freelance_devel",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.171894+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "topic_freelance_developer_problems",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.171907+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_3innovative_com_insights_problems_with_freelance_devel",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.171923+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "topic_freelance_developer_problems",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.171936+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_3innovative_com_insights_problems_with_freelance_devel",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.171949+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.171962+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_https_bestjobsearchapps_com_articles_en_upwork_vs_toptal_vs_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.171981+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.171993+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_https_bestjobsearchapps_com_articles_en_upwork_vs_toptal_vs_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172006+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172018+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_multiple_sources_searched_no_data_found",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172036+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_comprehensive_search_across_industry_reports_platform_disclo",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172055+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_academic_databases_and_industry_analysts",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172072+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "topic_productized_service_operations",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172085+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_webflow_com_certified_partners_browse",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172124+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "topic_productized_service_operations",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172138+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_https_kit_com_news_convertkit_rebrands_kit",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172159+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "topic_market_trends",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172171+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "source_https_witarist_com_blogs_startups_are_switching_from_freelan",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172192+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "topic_productized_service_operations",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172203+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_www_sprintpage_io",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172219+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "topic_productized_service_operations",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172232+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_www_sprintpage_io",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172244+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172257+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_bestjobsearchapps_com_articles_en_upwork_vs_toptal_vs_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172272+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172284+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_bestjobsearchapps_com_articles_en_upwork_vs_toptal_vs_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172299+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_012",
+      "type": "supersedes",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172305+00:00",
+      "metadata": {
+        "reason": "newer data replaces older"
+      }
+    },
+    {
+      "source": "claim_014",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172317+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_https_backlinko_com_fiverr_users",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172335+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172346+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_prior_knowledge_base_exhaustive_search_attempts",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172362+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_upwork_2025_transparency_report",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172378+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_comprehensive_search_across_academic_databases_and_analyst_f",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172397+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_sec_filings",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172412+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_earnings_calls",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172425+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172437+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "source_https_www_gartner_com_en_insights_benchmarking",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172454+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "source_academic_and_analyst_firm_searches",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172470+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "topic_project_success_metrics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172482+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "source_https_www_leapers_co_research_2024",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172500+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "topic_project_success_metrics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172512+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "source_https_www_leapers_co_research_2025_report",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172529+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "topic_project_success_metrics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172541+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "source_https_www_leapers_co_research_2025_report",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172555+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "topic_project_success_metrics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172567+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "source_https_moldstud_com_articles_p_freelance_developer_dilemmas_h",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172588+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "topic_project_success_metrics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172599+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "source_https_moldstud_com_articles_p_freelance_developer_dilemmas_h",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172614+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "topic_project_success_metrics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172626+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "source_https_moldstud_com_articles_p_freelance_developer_dilemmas_h",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172641+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172651+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "source_https_www_upwork_com_blog_upworks_2025_transparency_report_o",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172672+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_024",
+      "target": "topic_productized_service_operations",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172683+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_024",
+      "target": "source_https_www_superside_com_landing_page_design",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172701+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_025",
+      "target": "topic_productized_service_operations",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172711+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_025",
+      "target": "source_https_www_flowout_com_pricing",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172728+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172739+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "source_academic_database_searches",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172756+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "source_labor_research_organization_searches",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172773+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172785+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "source_https_investors_upwork_com_news_releases_news_release_detail",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172806+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_000",
+      "target": "topic_project_success_metrics",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172826+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_001",
+      "target": "topic_project_success_metrics",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172838+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_002",
+      "target": "topic_project_success_metrics",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172849+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_003",
+      "target": "topic_market_trends",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172860+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_004",
+      "target": "topic_platform_transparency",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172870+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_005",
+      "target": "topic_market_trends",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172880+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_006",
+      "target": "topic_productized_service_operations",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172890+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_007",
+      "target": "topic_platform_transparency",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172901+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_008",
+      "target": "topic_productized_service_operations",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T11:02:29.172911+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_002",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.172935+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_003",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.172944+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_003",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.172955+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173008+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173017+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173025+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173033+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173041+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173049+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173057+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_026",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173065+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173074+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173082+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173090+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.173099+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174332+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174344+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174354+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_026",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174363+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174371+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174381+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174391+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174400+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174409+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174418+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_026",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174427+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174437+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174449+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174461+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174473+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174484+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_026",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174496+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174507+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174518+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174528+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174538+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_026",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174548+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174558+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174568+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174578+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_026",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174588+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174598+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174608+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "claim_026",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174618+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174628+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "claim_026",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174639+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174649+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "claim_027",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174659+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174699+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174710+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174720+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174731+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174741+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174752+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174763+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174774+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174784+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174795+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174806+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174817+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174828+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174839+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_024",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174849+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_018",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174898+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_019",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174913+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174927+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174941+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174957+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_019",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.174971+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.175072+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.175087+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.175100+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.175134+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.175148+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.175161+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.175175+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.175187+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T11:02:29.175201+00:00",
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "domain": "productized-services",
+    "created_at": "2026-02-28T11:02:29.171612+00:00",
+    "updated_at": "2026-02-28T11:02:29.171612+00:00",
+    "node_count": 67,
+    "edge_count": 150,
+    "cluster_count": 5
+  },
+  "clusters": [
+    {
+      "id": "cluster_0",
+      "topics": [
+        "topic_platform_transparency"
+      ],
+      "claims": [
+        "claim_013",
+        "claim_015",
+        "claim_014",
+        "claim_012",
+        "claim_023",
+        "claim_006",
+        "claim_026",
+        "claim_005",
+        "claim_016",
+        "claim_027",
+        "claim_004"
+      ],
+      "size": 12,
+      "density": 0.864
+    },
+    {
+      "id": "cluster_1",
+      "topics": [
+        "topic_productized_service_operations"
+      ],
+      "claims": [
+        "claim_011",
+        "claim_008",
+        "claim_010",
+        "claim_025",
+        "claim_024",
+        "claim_007"
+      ],
+      "size": 7,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_2",
+      "topics": [
+        "topic_project_success_metrics"
+      ],
+      "claims": [
+        "claim_022",
+        "claim_020",
+        "claim_019",
+        "claim_017",
+        "claim_021",
+        "claim_018"
+      ],
+      "size": 7,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_4",
+      "topics": [
+        "topic_freelance_developer_problems"
+      ],
+      "claims": [
+        "claim_001",
+        "claim_002",
+        "claim_003"
+      ],
+      "size": 4,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_3",
+      "topics": [
+        "topic_market_trends"
+      ],
+      "claims": [
+        "claim_009"
+      ],
+      "size": 2,
+      "density": 1.0
+    }
+  ],
+  "gap_analysis": {
+    "isolated_nodes": [],
+    "weak_clusters": [
+      {
+        "cluster_id": "cluster_3",
+        "size": 2,
+        "topics": [
+          "topic_market_trends"
+        ]
+      }
+    ],
+    "missing_connections": []
+  }
+}
