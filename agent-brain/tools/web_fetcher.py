@@ -420,13 +420,13 @@ FETCH_TOOL_DEFINITION = {
 
 SEARCH_AND_FETCH_TOOL_DEFINITION = {
     "name": "search_and_fetch",
-    "description": "Search the web AND read the top results in one step. Combines web_search (DuckDuckGo) with page fetching (Scrapling). Returns both search snippets and full page content of the top 3 results. Use this for comprehensive research on a topic.",
+    "description": "Search the web AND read the top results in one step. Combines web_search with page fetching. Returns both search snippets and full page content of the top results. Use SHORT, FOCUSED queries (3-6 words) — same rules as web_search.",
     "input_schema": {
         "type": "object",
         "properties": {
             "query": {
                 "type": "string",
-                "description": "The search query. Be specific and include relevant keywords.",
+                "description": "Short focused search query (3-6 words ideal). Do NOT use the full research question as the query — break it into targeted sub-queries.",
             },
             "max_results": {
                 "type": "integer",

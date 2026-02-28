@@ -61,13 +61,13 @@ def web_search(query: str, max_results: int = 5, max_retries: int = 3) -> list[d
 # Claude tool definition for tool_use
 SEARCH_TOOL_DEFINITION = {
     "name": "web_search",
-    "description": "Search the web for current information. Use this for any question about recent events, current state of things, or data you don't have in training. Returns titles, URLs, and snippets from search results.",
+    "description": "Search the web for current information. Returns titles, URLs, and snippets. Use SHORT, FOCUSED queries (3-6 words work best). Do NOT dump the entire research question into the query — decompose it into targeted sub-queries instead.",
     "input_schema": {
         "type": "object",
         "properties": {
             "query": {
                 "type": "string",
-                "description": "The search query. Be specific and include relevant keywords, dates, or context.",
+                "description": "Short focused search query (3-6 words ideal). BAD: 'startup complaints hiring freelance Next.js React developers'. GOOD: 'hiring freelance developers complaints'. Add source hints like 'reddit' or 'survey' to target specific content types.",
             },
             "max_results": {
                 "type": "integer",

@@ -68,16 +68,38 @@ ANTI-HALLUCINATION RULES (violating these WILL get your output rejected):
 - When citing file paths, function names, or code: ONLY cite what you read from a fetched page.
   If you haven't fetched the source, say "based on documentation" not "the code at path/to/file.js shows..."
 
-WORKFLOW:
-1. Use web_search 1-2 times to find relevant URLs.
+SEARCH PLANNING (think BEFORE you search):
+Before using ANY tools, plan your search approach:
+1. DECOMPOSE the research question into 2-3 specific sub-questions.
+   Example: "What are the pain points of hiring freelance React developers?"
+   → Sub-Q1: What do founders complain about when hiring freelancers?
+   → Sub-Q2: What are common freelance developer quality issues?
+   → Sub-Q3: What does the market data say about freelancer satisfaction?
+
+2. For each sub-question, design a SHORT, FOCUSED search query (3-6 words).
+   DuckDuckGo works best with concise queries. Long queries return garbage.
+   - BAD:  "startup founders complaints hiring freelance Next.js React developers landing pages"
+   - GOOD: "hiring freelance developers complaints"
+   - GOOD: "freelance developer quality issues reddit"
+   - GOOD: "freelancer hiring pain points survey"
+
+3. Think about WHERE the best answers live and target those sources:
+   - Community experience → add "reddit" or "hacker news" to query
+   - Technical facts → add "docs" or "stackoverflow" to query
+   - Market/industry data → add "survey" or "report 2025" to query
+   - Tutorials/guides → add "guide" or "tutorial" to query
+
+EXECUTION:
+1. Execute 2-3 PLANNED searches (not 8 variations of the same thing).
 2. Use fetch_page on the 2-3 most promising URLs to read full page content.
-   This gives you 10-50x more information than search snippets alone.
+   Search snippets are ~100 words; full pages are 3000-8000 words — 10-50x more info.
 3. OR use search_and_fetch for a combined search+read in one step.
-4. After reading pages, compile your findings with SPECIFIC details from the actual content.
+4. After reading pages, compile findings with SPECIFIC details from actual content.
 5. Respond with ONLY a JSON object. No preamble text, no explanation, no markdown fencing.
 
-IMPORTANT: ALWAYS fetch pages when possible. Search snippets are 100 words; full pages are 3000-8000 words.
-The quality difference is enormous. Prioritize fetch_page over multiple web_search calls.
+IMPORTANT: ALWAYS fetch pages when possible. Prioritize fetch_page over multiple web_search calls.
+If your first 2-3 searches don't find what you need, STOP and report what you found honestly.
+Do NOT keep searching with slight variations — it wastes rounds and produces nothing new.
 """
     # Add browser instructions when browser tools are available
     if BROWSER_ENABLED and _browser_tools_loaded:
@@ -449,7 +471,12 @@ Research question: {question}"""
                         continue
                     query = block.input.get("query", question)
                     max_res = min(block.input.get("max_results", 5), 8)
-                    print(f"  [SEARCH #{search_count}] \"{query}\"")
+                    # Warn on overly long queries (symptom of keyword-stuffing)
+                    word_count = len(query.split())
+                    if word_count > 8:
+                        print(f"  [SEARCH #{search_count}] ⚠ Long query ({word_count} words): \"{query}\"")
+                    else:
+                        print(f"  [SEARCH #{search_count}] \"{query}\"")
                     results = web_search(query, max_results=max_res)
                     
                     # Detect search failures (error marker in result)
