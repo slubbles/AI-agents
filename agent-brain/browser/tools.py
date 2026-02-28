@@ -63,7 +63,7 @@ BROWSER_SEARCH_TOOL = {
         "properties": {
             "query": {
                 "type": "string",
-                "description": "The search query",
+                "description": "Short focused search query (3-6 words). Do NOT use the full research question.",
             },
             "site": {
                 "type": "string",

@@ -50,7 +50,7 @@ COST_PER_1K = {
     "claude-sonnet-4-20250514": {"input": 0.003, "output": 0.015},
 }
 DAILY_BUDGET_USD = 2.00  # Hard stop — refuse to run if daily spend exceeds this
-TOTAL_BALANCE_USD = 11.95  # Synced from Claude console Feb 28. Tracker estimated $12.19, actual $11.95 (drift: $0.24 = ~25% underestimate)
+TOTAL_BALANCE_USD = 11.74  # Synced from Claude console Feb 28 (post productized-services run). Previous: $11.95.
 
 # --- Loop ---
 DEFAULT_DOMAIN = "general"
