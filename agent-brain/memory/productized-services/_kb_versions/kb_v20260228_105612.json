@@ -1,0 +1,316 @@
+{
+  "domain_summary": "The productized-services domain reveals significant pain points with freelance developers including ghosting, communication breakdowns, and quality control issues, while established productized landing page services offer structured alternatives. Major freelance platforms (Upwork, Toptal, Fiverr) publish vetting metrics but hide project completion/abandonment rates, creating a transparency gap. Only limited productized landing page services exist with transparent operations, with SprintPage being the sole service offering fixed 48-hour turnaround and published workflows. The market shows a potential shift from freelance to vetted/productized services, though verification data is limited.",
+  "topics": [
+    {
+      "name": "Freelance Developer Problems",
+      "subtopics": [
+        "ghosting and abandonment",
+        "communication issues",
+        "quality control",
+        "vetting challenges",
+        "management overhead"
+      ]
+    },
+    {
+      "name": "Platform Transparency",
+      "subtopics": [
+        "completion rates",
+        "pricing structures",
+        "review data",
+        "platform metrics"
+      ]
+    },
+    {
+      "name": "Productized Service Operations",
+      "subtopics": [
+        "workflows",
+        "delivery guarantees",
+        "revision policies",
+        "scope management",
+        "turnaround times"
+      ]
+    },
+    {
+      "name": "Market Trends",
+      "subtopics": [
+        "switching patterns",
+        "platform adoption",
+        "service evolution"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_001",
+      "claim": "Freelancer ghosting and project abandonment are major issues\u2014developers disappear mid-project leaving incomplete code and wasted budgets",
+      "topic": "Freelance Developer Problems",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T09:41:33.265905+00:00",
+      "last_confirmed": "2026-02-28T09:41:33.265905+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://3innovative.com/insights/problems-with-freelance-developers"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_002",
+      "claim": "Communication breakdowns and inconsistent availability are prevalent\u2014freelancers juggle multiple clients simultaneously, causing delays when other projects take priority",
+      "topic": "Freelance Developer Problems",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T09:41:33.265905+00:00",
+      "last_confirmed": "2026-02-28T09:41:33.265905+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://3innovative.com/insights/problems-with-freelance-developers"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_003",
+      "claim": "70% of freelancers are under 35, lacking professional maturity and long-term commitment despite having modern technical skills",
+      "topic": "Freelance Developer Problems",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T09:41:33.265905+00:00",
+      "last_confirmed": "2026-02-28T09:41:33.265905+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://3innovative.com/insights/problems-with-freelance-developers"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_004",
+      "claim": "Toptal reports a 98% trial-to-hire success rate for developer engagements",
+      "topic": "Platform Transparency",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_confirmed": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Measures hiring success, not project completion rates"
+    },
+    {
+      "id": "claim_005",
+      "claim": "Toptal has a 3% acceptance rate, meaning only top 3% of applicants get into the platform",
+      "topic": "Platform Transparency",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_confirmed": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_006",
+      "claim": "No publicly available data exists on React/Next.js landing page specific completion rates, delays, scope creep percentages, or average timelines from Upwork, Toptal, or Fiverr",
+      "topic": "Platform Transparency",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_confirmed": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "sources": [
+        "Multiple sources searched; no data found"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_007",
+      "claim": "Webflow does NOT offer a dedicated productized landing page service. Webflow Agency Partners is a certification/partner directory program, not a productized service",
+      "topic": "Productized Service Operations",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:20:27.497537+00:00",
+      "last_confirmed": "2026-02-28T10:20:27.497537+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://webflow.com/certified-partners/browse"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_008",
+      "claim": "ConvertKit (now rebranded to Kit) does NOT offer dedicated design services. The platform is an email marketing/creator monetization tool",
+      "topic": "Productized Service Operations",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:20:27.497537+00:00",
+      "last_confirmed": "2026-02-28T10:20:27.497537+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://kit.com/news/convertkit-rebrands-kit"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_009",
+      "claim": "68% of startups that previously relied on freelance platforms for technical talent are now transitioning to vetted developer services",
+      "topic": "Market Trends",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "2026-02-28T10:24:24.109576+00:00",
+      "last_confirmed": "2026-02-28T10:24:24.109576+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://witarist.com/blogs/startups-are-switching-from-freelance-platforms-to-vetted-developer-services/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Single source with unverified methodology and potential vendor bias"
+    },
+    {
+      "id": "claim_010",
+      "claim": "SprintPage offers 48-hour turnaround for Webflow landing pages after onboarding completion",
+      "topic": "Productized Service Operations",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:32:48.286489+00:00",
+      "last_confirmed": "2026-02-28T10:32:48.286489+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.sprintpage.io/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_011",
+      "claim": "SprintPage provides unlimited revisions during the 48-hour project window via Slack channel",
+      "topic": "Productized Service Operations",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T10:32:48.286489+00:00",
+      "last_confirmed": "2026-02-28T10:32:48.286489+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.sprintpage.io/"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_012",
+      "claim": "Upwork has approximately 12 million freelancers on the platform",
+      "topic": "Platform Transparency",
+      "confidence": "medium",
+      "status": "superseded",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_confirmed": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "2022 data, superseded by newer 18M+ figure"
+    },
+    {
+      "id": "claim_013",
+      "claim": "Upwork has 18M+ freelancers on the platform as of October 2025",
+      "topic": "Platform Transparency",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_confirmed": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
+      ],
+      "supersedes": "claim_012",
+      "conflicted_by": null,
+      "notes": "More recent data from ElectroIQ Oct 2025"
+    },
+    {
+      "id": "claim_014",
+      "claim": "Fiverr has 3.5 million active buyers as of 2025",
+      "topic": "Platform Transparency",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T10:09:49.420609+00:00",
+      "last_confirmed": "2026-02-28T10:09:49.420609+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://backlinko.com/fiverr-users"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Down from 4.28 million in 2022, indicating 18% decline"
+    }
+  ],
+  "contradictions": [],
+  "knowledge_gaps": [
+    {
+      "gap": "Quantitative data on percentage of freelance projects experiencing ghosting or abandonment",
+      "priority": "high",
+      "related_topic": "Freelance Developer Problems"
+    },
+    {
+      "gap": "Specific project completion rates, delays, and scope creep percentages for landing page projects on major platforms",
+      "priority": "high",
+      "related_topic": "Platform Transparency"
+    },
+    {
+      "gap": "Documented reasons from founders for switching from freelance to productized services with verified testimonials",
+      "priority": "medium",
+      "related_topic": "Market Trends"
+    },
+    {
+      "gap": "Pricing information for most productized landing page services (SprintPage, Superside, etc.)",
+      "priority": "medium",
+      "related_topic": "Productized Service Operations"
+    },
+    {
+      "gap": "Comparative completion rates: freelance vs agency vs in-house vs productized services",
+      "priority": "high",
+      "related_topic": "Market Trends"
+    },
+    {
+      "gap": "Formal QA processes and revision round limits for most productized services beyond SprintPage",
+      "priority": "low",
+      "related_topic": "Productized Service Operations"
+    }
+  ],
+  "synthesis_stats": {
+    "total_claims": 14,
+    "active_claims": 13,
+    "superseded_claims": 1,
+    "disputed_claims": 0,
+    "contradictions_found": 0,
+    "topics_covered": 4,
+    "outputs_synthesized": 5,
+    "synthesis_date": "2026-02-28",
+    "incremental": false
+  },
+  "_synthesized_at": "2026-02-28T10:33:40.043250+00:00",
+  "_domain": "productized-services",
+  "_outputs_count": 5,
+  "_incremental": false
+}

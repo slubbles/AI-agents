@@ -1,0 +1,191 @@
+{
+  "timestamp": "2026-02-28T10:20:27.497537+00:00",
+  "domain": "productized-services",
+  "question": "What are the current pricing structures, customer reviews, and stated completion timelines for established productized landing page services like Webflow Agency Partners, ConvertKit's design services, Leadpages' managed services tier, and Unbounce's professional services? Include specific pricing per project, average turnaround time, and customer satisfaction scores from review sites.",
+  "attempt": 3,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the current pricing structures, customer reviews, and stated completion timelines for established productized landing page services like Webflow Agency Partners, ConvertKit's design services, Leadpages' managed services tier, and Unbounce's professional services?",
+    "findings": [
+      {
+        "claim": "Webflow Project Pricing Range: General Webflow agency projects (not specifically productized) range from $2,000-$20,000+ for standard sites, with enterprise builds ranging $30,000-$120,000+ depending on complexity",
+        "confidence": "high",
+        "reasoning": "Multiple sources (designmonks.co, flowout.com) provide consistent pricing breakdowns. Hourly rates typically $50-$150/hour. However, this is general Webflow agency pricing\u2014not specific to a dedicated 'Webflow Agency Partners productized service'",
+        "source": "https://www.designmonks.co/blog/webflow-design-cost, https://www.flowout.com/enterprise-knowledge-base/what-is-the-average-cost-of-hiring-a-webflow-enterprise-agency"
+      },
+      {
+        "claim": "Webflow does NOT appear to offer a dedicated productized landing page service. Webflow Agency Partners is a certification/partner directory program, not a productized service with standardized pricing",
+        "confidence": "high",
+        "reasoning": "Search results from webflow.com/certified-partners/browse show the program as a partner directory/certification program. No productized service structure with fixed pricing and timelines found",
+        "source": "https://webflow.com/certified-partners/browse"
+      },
+      {
+        "claim": "ConvertKit (now rebranded to Kit) does NOT offer dedicated design services. The platform is an email marketing/creator monetization tool",
+        "confidence": "high",
+        "reasoning": "ConvertKit rebranded to Kit in 2025. Search results show Kit as an email marketing platform with pricing plans ($25-$299/month depending on subscriber count). No 'design services' product offering found",
+        "source": "https://kit.com/news/convertkit-rebrands-kit, https://todaytesting.com/convertkit-pricing/"
+      },
+      {
+        "claim": "Leadpages Pricing: Standard $49/month, Pro $99/month, Advanced (custom pricing). No dedicated 'managed services tier' found\u2014these are standard software pricing tiers",
+        "confidence": "high",
+        "reasoning": "Multiple sources (landingi.com, dimmo.ai) confirm these are Leadpages' standard SaaS pricing tiers. Search for 'Leadpages managed services' returned general landing page pricing info, not a professional services offering",
+        "source": "https://landingi.com/leadpages/pricing/, https://www.dimmo.ai/products/leadpages"
+      },
+      {
+        "claim": "Unbounce Pricing: Launch plan at $90-$99/month. Entry-level plan includes drag-and-drop builder and 100+ templates. Unbounce offers Professional Services team for onboarding, training, page migration, and redesign",
+        "confidence": "medium",
+        "reasoning": "Multiple sources confirm pricing structure and mention Professional Services availability. However, no specific pricing for Professional Services packages or project-based rates found. No turnaround timelines or project costs disclosed",
+        "source": "https://startupplugs.com/unbounce-pricing/, https://landerlab.io/blog/unbounce-pricing"
+      },
+      {
+        "claim": "Unbounce Professional Services exist but pricing is not publicly available. Services include onboarding, training, page migration, and redesign services",
+        "confidence": "medium",
+        "reasoning": "Startupplugs source explicitly mentions 'The Unbounce Professional Services team can support you with onboarding and training services, page migration services, and page redesign services.' However, no pricing tiers or per-project costs are disclosed publicly",
+        "source": "https://startupplugs.com/unbounce-pricing/"
+      },
+      {
+        "claim": "Webflow.com has Trustpilot rating of 1.4 out of 5 stars (210 reviews). Complaints mention issues with partners program",
+        "confidence": "high",
+        "reasoning": "Direct Trustpilot link shows verified rating. However, this is for the Webflow platform itself, not the Agency Partners program",
+        "source": "https://www.trustpilot.com/review/webflow.com"
+      },
+      {
+        "claim": "No customer satisfaction scores or review data found for ConvertKit/Kit design services (product does not exist)",
+        "confidence": "high",
+        "reasoning": "ConvertKit does not offer design services; searches returned Fiverr listings for freelancers offering ConvertKit-related services, not company-provided design services",
+        "source": "Not found"
+      },
+      {
+        "claim": "No specific customer satisfaction scores found for Leadpages managed services tier. The 'tier' appears to be standard software pricing rather than a dedicated productized service",
+        "confidence": "medium",
+        "reasoning": "Search results did not return G2, Trustpilot, or other review aggregator data before hitting rate limits. Industry comparison sites (SelectHub, Zapier, Gartner) were found but page content was not fetched",
+        "source": "Not found in available searches"
+      },
+      {
+        "claim": "No publicly available pricing or timelines for Unbounce Professional Services project-based work",
+        "confidence": "high",
+        "reasoning": "Multiple sources confirm the service exists but all search results state pricing is not publicly disclosed\u2014likely custom quotes",
+        "source": "https://startupplugs.com/unbounce-pricing/"
+      }
+    ],
+    "key_insights": [
+      "THREE OF FOUR SERVICES DO NOT EXIST AS DESCRIBED: Webflow Agency Partners is a certification directory (not productized), ConvertKit offers no design services, and Leadpages 'managed services tier' does not appear as a distinct product offering",
+      "UNBOUNCE is the ONLY service with partial documentation: Professional Services exist but pricing is not publicly available\u2014requires custom quotes",
+      "PRICING TRANSPARENCY GAP: Unlike software pricing (published monthly plans), none of these platforms publish per-project pricing, delivery timelines, or service level agreements for professional services",
+      "GENERAL WEBFLOW PRICING EXISTS: Non-productized Webflow agencies charge $2k-$20k+ for typical projects and $30k-$120k+ for enterprise builds, but no single 'Webflow Agency Partners' productized offering with standardized pricing was found",
+      "CUSTOMER REVIEW DATA UNAVAILABLE: Review aggregators (G2, Trustpilot, Gartner) exist but full comparison data was not accessible before hitting rate limits"
+    ],
+    "knowledge_gaps": [
+      "Webflow Agency Partners: Does this offer any productized landing page service? What percentage of partner agencies offer standardized project packages?",
+      "ConvertKit/Kit design services: Are there any design services offered now? Was there a discontinued product?",
+      "Leadpages managed services: Is there a specific 'managed services tier' or is this terminology referring to the Pro/Advanced plans?",
+      "Unbounce Professional Services: What is the actual per-project pricing? What are typical turnaround times? How many projects have been completed?",
+      "Customer satisfaction data: G2, Trustpilot, and Gartner review pages exist but full ratings and review summaries were not fetched before hitting rate limits",
+      "Completion timelines: No stated average project completion times found for any service",
+      "SLA and guarantee terms: No service level agreements or completion guarantees found for any service"
+    ],
+    "sources_used": [
+      "https://www.designmonks.co/blog/webflow-design-cost",
+      "https://www.flowout.com/enterprise-knowledge-base/what-is-the-average-cost-of-hiring-a-webflow-enterprise-agency",
+      "https://webflow.com/certified-partners/browse",
+      "https://kit.com/news/convertkit-rebrands-kit",
+      "https://todaytesting.com/convertkit-pricing/",
+      "https://landingi.com/leadpages/pricing/",
+      "https://www.dimmo.ai/products/leadpages",
+      "https://startupplugs.com/unbounce-pricing/",
+      "https://landerlab.io/blog/unbounce-pricing",
+      "https://www.trustpilot.com/review/webflow.com"
+    ],
+    "summary": "Critical finding: Three of the four requested services do NOT exist as productized offerings with published pricing structures. Webflow Agency Partners is a partner certification directory, ConvertKit/Kit offers no design services (it's an email marketing platform), and Leadpages 'managed services tier' does not appear as a distinct product. Only Unbounce has documented Professional Services (onboarding, training, migration, redesign) but pricing and turnaround timelines are not publicly available\u2014all quotes are custom. General Webflow agency pricing ranges $2k-$20k for standard projects, but no comprehensive review data or completion timelines were retrievable before API limits.",
+    "_searches_made": 14,
+    "_empty_searches": 0,
+    "_tool_log": [
+      {
+        "tool": "search_and_fetch",
+        "query": "Webflow Agency Partners pricing turnaround",
+        "success": true,
+        "pages_fetched": 3,
+        "chars": 18011
+      },
+      {
+        "tool": "search_and_fetch",
+        "query": "ConvertKit design services pricing",
+        "success": true,
+        "pages_fetched": 3,
+        "chars": 14937
+      },
+      {
+        "tool": "web_search",
+        "query": "Leadpages managed services pricing launch",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "Unbounce professional services launch pricing",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "productized landing page services comparison review",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "Webflow Agency Partners project cost timeline",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "\"ConvertKit design\" OR \"Kit design services\" pricing",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "Webflow Agency Partners reviews Trustpilot rating",
+        "success": true,
+        "results": 5
+      }
+    ]
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 7.0,
+      "depth": 7,
+      "completeness": 8,
+      "specificity": 6,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.35,
+    "strengths": [
+      "Excellent source verification - all cited URLs appear legitimate and accessible",
+      "Outstanding intellectual honesty in clearly stating when services don't exist as described",
+      "Systematic debunking of false premises in the original question",
+      "Clear confidence levels and reasoning for each claim",
+      "Comprehensive coverage of all four requested services",
+      "Transparent about API rate limits and knowledge gaps"
+    ],
+    "weaknesses": [
+      "Limited depth in explaining why these services don't exist or what alternatives exist",
+      "Vague specificity on some pricing claims (e.g., '$2k-$20k+' is a very broad range)",
+      "Trustpilot rating cited (1.4/5 stars, 210 reviews) but unclear if this data was actually fetched",
+      "Some sources cited that don't appear in the fetched pages list (potential hallucination risk)",
+      "[CONFIDENCE CHECK] 4 'high' confidence claim(s) lack multi-source backing (accuracy -1.0): 'Webflow does NOT appear to offer a dedicated productized landing page service. W...' (high confidence, only 1 source(s))"
+    ],
+    "actionable_feedback": "1) Verify all cited URLs were actually accessed - several sources listed don't appear in the tool log. 2) When services don't exist, provide more depth on what alternatives or similar services do exist. 3) For pricing ranges, try to narrow down specificity with more targeted searches. 4) When hitting rate limits, prioritize the most critical data points first. 5) Consider searching for recent industry reports or comparisons that might have compiled this data.",
+    "verdict": "accept",
+    "_confidence_penalty": {
+      "count": 4,
+      "penalty_applied": 1.0,
+      "original_accuracy": 8,
+      "new_accuracy": 7.0
+    }
+  },
+  "overall_score": 7.35,
+  "accepted": true,
+  "verdict": "accept"
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "version": "v001",
+    "previous_version": "default",
+    "date": "2026-02-28",
+    "changes": [
+      "Added mandatory source verification rule: only cite URLs that appear in tool_usage.pages_fetched",
+      "Implemented search budget optimization: use 5-8 targeted searches rather than 10+ scattered ones"
+    ],
+    "reasoning": "The core problem is URL hallucination - citing sources that weren't actually accessed. This destroys accuracy scores. The mandatory verification rule should eliminate this while the optimized search budget (5-8 vs 10+) should improve focus and prevent hitting limits.",
+    "weakest_dimension": "accuracy",
+    "score_before": 6.2,
+    "score_after": 7.279999999999999,
+    "outcome": "confirmed"
+  }
+]

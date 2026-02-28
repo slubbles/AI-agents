@@ -1,0 +1,11 @@
+{
+  "weights": {
+    "accuracy": 0.35,
+    "depth": 0.2,
+    "completeness": 0.2,
+    "specificity": 0.15,
+    "intellectual_honesty": 0.1
+  },
+  "reason": "Accuracy is the biggest weakness and most critical for credibility - increasing weight from 0.25 to 0.35. Intellectual honesty is consistently high across all outputs, so reducing slightly from 0.15 to 0.10 to make room for accuracy emphasis.",
+  "updated_at": "2026-02-28"
+}
