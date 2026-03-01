@@ -172,7 +172,10 @@ def _build_system_context(domain: str) -> str:
         for o in recent:
             q = o.get("question", "?")[:80]
             s = o.get("critique", {}).get("overall_score", "?")
+            summary = o.get("research", {}).get("summary", "")[:120]
             recent_lines.append(f"  - [{s}] {q}")
+            if summary:
+                recent_lines.append(f"    → {summary}")
         recent_summary = "\n".join(recent_lines)
     
     # Pending strategies
@@ -318,10 +321,25 @@ STYLE:
 - Be direct. Be honest. No hype.
 - When you don't know something, say so. Offer to research it.
 - When describing capabilities, distinguish between "proven" and "code exists but unproven."
-- Cite confidence levels and sources when sharing from the KB.
 - If the user asks "can you do X?" — answer whether you ACTUALLY can right now, not theoretically.
 - Don't use phrases like "I can scale to clusters" or "vector DB" — that's not what this is yet.
-- Format with markdown when it helps readability, not for decoration.
+
+INTERPRETABILITY — THIS IS CRITICAL:
+When presenting research findings, knowledge, or cycle results to the user:
+- Lead with INSIGHTS, not data. "We learned that..." not "[High] Claim: ..."
+- Translate findings into plain language the user can act on
+- What did we learn? What's the takeaway? What should the user DO with this?
+- Skip raw scores, confidence brackets, and metric tables unless the user asks for them
+- Group insights by THEME, not by output/claim/score
+- If something is surprising or contradicts expectations, call it out
+- Always end with: what's still unknown, and what to research next
+- Think like a research analyst briefing the boss, not a database printing records
+
+BAD: "[High] 70% freelancers <35, lack maturity. [Medium] Ghosting: 72% (2024)"
+GOOD: "The biggest pain point for employers is reliability — ghosting rates were 72% in 2024 (down to 50% in 2025, but still high). This is YOUR opening: a productized service with guaranteed delivery directly addresses their #1 frustration."
+
+The user wants to UNDERSTAND what the system learned, not READ a database export.
+This applies to: search_knowledge results, show_knowledge_base, run_research results, run_cycle results, and any time you present findings.
 """
 
 
@@ -711,19 +729,37 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
     
     if name == "search_knowledge":
         from analytics import search_memory
+        from memory_store import load_outputs
         results = search_memory(args["query"], domains=[domain] if domain else None)
         if not results:
             return f"No results found for '{args['query']}' in {domain}."
         
-        lines = [f"Found {len(results)} results for '{args['query']}':"]
-        for r in results[:8]:
-            q = r.get("question", "?")[:80]
+        # Provide insight-rich context, not just scores
+        lines = [f"Found {len(results)} research outputs about '{args['query']}'. Here's what the system learned:\n"]
+        for r in results[:6]:
+            q = r.get("question", "?")
             s = r.get("score", "?")
-            d = r.get("domain", "?")
-            findings = r.get("findings", "")[:200]
-            lines.append(f"\n**[{s}] {q}** ({d})")
-            if findings:
-                lines.append(f"  {findings}")
+            summary = r.get("summary", "")[:300]
+            lines.append(f"**Researched:** {q}")
+            lines.append(f"  Quality: {s}/10 | {r.get('domain', '?')}")
+            if summary:
+                lines.append(f"  Summary: {summary}")
+            lines.append("")
+        
+        # Also pull key insights from full outputs for richer context
+        if domain:
+            recent = load_outputs(domain, min_score=5)
+            if recent:
+                insights = []
+                for o in recent[-8:]:
+                    for ki in o.get("research", {}).get("key_insights", []):
+                        if isinstance(ki, str) and len(ki) > 20:
+                            insights.append(ki)
+                if insights:
+                    lines.append("**Key insights from recent research:**")
+                    for ins in insights[-10:]:
+                        lines.append(f"  • {ins[:200]}")
+        
         return "\n".join(lines)
     
     elif name == "run_research":
@@ -733,27 +769,56 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             result = run_loop(question=question, domain=domain)
             score = result.get("critique", {}).get("overall_score", "?")
             verdict = result.get("critique", {}).get("verdict", "?")
-            findings = result.get("research", {}).get("findings", [])
+            research = result.get("research", {})
+            critique = result.get("critique", {})
             
-            lines = [f"**Research complete** — Score: {score}/10, Verdict: {verdict}"]
-            if findings:
-                lines.append("\nKey findings:")
-                for f_item in findings[:5]:
+            lines = [f"**Research complete** — Score: {score}/10, Verdict: {verdict}\n"]
+            
+            # Summary first — what did we learn?
+            summary = research.get("summary", "")
+            if summary:
+                lines.append(f"**What we learned:** {summary}\n")
+            
+            # Key insights — the most interpretable part
+            key_insights = research.get("key_insights", [])
+            if key_insights:
+                lines.append("**Key insights:**")
+                for ki in key_insights[:5]:
+                    if isinstance(ki, str):
+                        lines.append(f"  • {ki[:200]}")
+                lines.append("")
+            
+            # Findings as backup if no key_insights
+            elif research.get("findings"):
+                lines.append("**What was found:**")
+                for f_item in research["findings"][:4]:
                     claim = f_item.get("claim", "") if isinstance(f_item, dict) else str(f_item)
-                    lines.append(f"  - {claim[:150]}")
+                    confidence = f_item.get("confidence", "") if isinstance(f_item, dict) else ""
+                    lines.append(f"  • {claim[:200]}" + (f" ({confidence})" if confidence else ""))
+                lines.append("")
             
-            gaps = result.get("research", {}).get("knowledge_gaps", [])
+            # Critic feedback — what was good/bad about this research  
+            strengths = critique.get("strengths", [])
+            weaknesses = critique.get("weaknesses", [])
+            if strengths:
+                lines.append("**Strengths:** " + "; ".join(s[:80] for s in strengths[:3]))
+            if weaknesses:
+                lines.append("**Gaps:** " + "; ".join(w[:80] for w in weaknesses[:3]))
+            
+            # What to research next
+            gaps = research.get("knowledge_gaps", [])
             if gaps:
-                lines.append(f"\nKnowledge gaps identified: {len(gaps)}")
+                lines.append(f"\n**Still unknown ({len(gaps)} gaps):** " + "; ".join(str(g)[:60] for g in gaps[:3]))
             
             return "\n".join(lines)
         except Exception as e:
             return f"Research failed: {e}"
     
     elif name == "show_status":
-        from memory_store import get_stats
+        from memory_store import get_stats, load_outputs
         from strategy_store import get_active_version, get_strategy_status, list_pending
         from cost_tracker import get_daily_spend, check_balance
+        from domain_goals import get_goal
         
         stats = get_stats(domain)
         daily = get_daily_spend()
@@ -761,12 +826,14 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
         active_ver = get_active_version("researcher", domain)
         status = get_strategy_status("researcher", domain)
         pending = list_pending("researcher", domain)
+        goal = get_goal(domain)
         
         lines = [
             f"**Domain: {domain}**",
             f"  Outputs: {stats.get('count', 0)} total, {stats.get('accepted', 0)} accepted, {stats.get('rejected', 0)} rejected",
             f"  Avg score: {stats.get('avg_score', 0):.1f}",
             f"  Strategy: {active_ver} ({status})",
+            f"  Goal: {goal[:100] + '...' if goal and len(goal) > 100 else goal or 'NOT SET'}",
         ]
         if pending:
             ver_list = ', '.join(p.get('version', '?') for p in pending)
@@ -776,6 +843,19 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             f"  Today: ${daily.get('total_usd', 0):.2f} / ${DAILY_BUDGET_USD:.2f}",
             f"  Balance: ${balance.get('remaining', 0):.2f}",
         ])
+        
+        # Recent activity — what has the system done recently (CLI or chat)
+        recent = load_outputs(domain, min_score=0)
+        if recent:
+            last_5 = recent[-5:]
+            lines.append(f"\n**Recent activity (last {len(last_5)} outputs):**")
+            for o in reversed(last_5):
+                q = o.get("question", "?")[:80]
+                s = o.get("overall_score", o.get("critique", {}).get("overall_score", "?"))
+                accepted = "✓" if o.get("accepted") else "✗"
+                ts = o.get("timestamp", "?")[:16]
+                lines.append(f"  {accepted} [{s}] {q} ({ts})")
+        
         return "\n".join(lines)
     
     elif name == "show_knowledge_base":
@@ -786,7 +866,9 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
         
         claims = kb.get("claims", [])
         active = [c for c in claims if c.get("status") == "active"]
+        conflicted = [c for c in claims if c.get("status") == "conflicted"]
         gaps = kb.get("identified_gaps", [])
+        domain_summary = kb.get("domain_summary", "")
         
         # Group by topic
         topics = {}
@@ -796,21 +878,40 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
                 topics[topic] = []
             topics[topic].append(c)
         
-        lines = [f"**Knowledge Base: {domain}** — {len(active)} active claims\n"]
+        lines = [f"**Knowledge Base: {domain}** — {len(active)} established facts across {len(topics)} topics\n"]
+        
+        # Domain summary first — the big picture
+        if domain_summary:
+            lines.append(f"**Overview:** {domain_summary}\n")
+        
+        # Topics with claims — insight-oriented
         for topic, topic_claims in sorted(topics.items()):
-            lines.append(f"### {topic} ({len(topic_claims)} claims)")
-            for c in topic_claims[:5]:
-                conf = c.get("confidence", "?")
-                lines.append(f"  - [{conf}] {c.get('claim', '?')[:120]}")
-            if len(topic_claims) > 5:
-                lines.append(f"  ... and {len(topic_claims) - 5} more")
+            claims_text = []
+            for c in topic_claims[:6]:
+                claim_str = c.get('claim', '?')[:150]
+                conf = c.get('confidence', '')
+                if conf and conf.lower() not in ('high', 'established'):
+                    claim_str += f" ({conf})"
+                claims_text.append(claim_str)
+            lines.append(f"**{topic}** ({len(topic_claims)} facts):")
+            for ct in claims_text:
+                lines.append(f"  • {ct}")
+            if len(topic_claims) > 6:
+                lines.append(f"  ... and {len(topic_claims) - 6} more")
+            lines.append("")
+        
+        # Disputed/conflicting info — worth highlighting
+        if conflicted:
+            lines.append(f"**⚠ Conflicting information ({len(conflicted)}):**")
+            for c in conflicted[:3]:
+                lines.append(f"  • {c.get('claim', '?')[:120]}")
             lines.append("")
         
         if gaps:
-            lines.append(f"**Knowledge Gaps ({len(gaps)}):**")
+            lines.append(f"**Still unknown ({len(gaps)} gaps):**")
             for g in gaps[:5]:
                 gap_text = g if isinstance(g, str) else g.get("gap", str(g))
-                lines.append(f"  - {gap_text[:120]}")
+                lines.append(f"  • {gap_text[:120]}")
         
         return "\n".join(lines)
     
@@ -881,7 +982,7 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
         if not gaps:
             return f"No identified knowledge gaps in '{domain}'."
         
-        lines = [f"**Knowledge Gaps in {domain}** ({len(gaps)}):"]
+        lines = [f"**What we don't know yet about {domain}** ({len(gaps)} gaps):"]
         for i, g in enumerate(gaps, 1):
             gap_text = g if isinstance(g, str) else g.get("gap", str(g))
             lines.append(f"  {i}. {gap_text}")
@@ -1150,6 +1251,7 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
         try:
             from domain_goals import get_goal
             from cli.research import run_auto
+            from memory_store import load_outputs
             import io
             import contextlib
             
@@ -1163,17 +1265,64 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
                     f"Use set_domain_goal to define what you want to achieve with this domain."
                 )
             
-            # Capture output so we can return it to chat
+            # Snapshot outputs before cycle to identify what's new
+            before_count = len(load_outputs(domain, min_score=0))
+            
+            # Run the cycle (capture stdout for diagnostics)
             output_buffer = io.StringIO()
             with contextlib.redirect_stdout(output_buffer):
                 run_auto(domain, rounds)
             
-            raw_output = output_buffer.getvalue()
-            # Truncate if too long for chat context
-            if len(raw_output) > 4000:
-                raw_output = raw_output[:2000] + "\n...(truncated)...\n" + raw_output[-1500:]
+            # Get new outputs — what the system actually learned
+            all_outputs = load_outputs(domain, min_score=0)
+            new_outputs = all_outputs[before_count:]
             
-            return f"**Research cycle complete** — {rounds} round(s) in domain '{domain}'\n\n```\n{raw_output}\n```"
+            lines = [f"**Research cycle complete** — {rounds} round(s) in domain '{domain}'\n"]
+            
+            if not new_outputs:
+                lines.append("No new outputs produced (budget limit, dedup, or generation failure).")
+                return "\n".join(lines)
+            
+            lines.append(f"**{len(new_outputs)} new research output(s):**\n")
+            
+            for i, o in enumerate(new_outputs, 1):
+                score = o.get("overall_score", o.get("critique", {}).get("overall_score", "?"))
+                accepted = "✓ Accepted" if o.get("accepted") else "✗ Rejected"
+                question = o.get("question", "?")
+                research = o.get("research", {})
+                critique = o.get("critique", {})
+                
+                lines.append(f"**Round {i}: {question}**")
+                lines.append(f"  Score: {score}/10 ({accepted})")
+                
+                # Summary — what was learned
+                summary = research.get("summary", "")
+                if summary:
+                    lines.append(f"  Summary: {summary[:300]}")
+                
+                # Key insights
+                key_insights = research.get("key_insights", [])
+                if key_insights:
+                    for ki in key_insights[:3]:
+                        if isinstance(ki, str):
+                            lines.append(f"    • {ki[:200]}")
+                
+                # Critic feedback
+                weaknesses = critique.get("weaknesses", [])
+                if weaknesses:
+                    lines.append(f"  Gaps: {'; '.join(w[:60] for w in weaknesses[:2])}")
+                
+                lines.append("")
+            
+            # Overall what's still unknown
+            all_gaps = []
+            for o in new_outputs:
+                all_gaps.extend(o.get("research", {}).get("knowledge_gaps", []))
+            if all_gaps:
+                unique_gaps = list(dict.fromkeys(str(g)[:80] for g in all_gaps))[:5]
+                lines.append(f"**Still unknown:** {'; '.join(unique_gaps)}")
+            
+            return "\n".join(lines)
         except Exception as e:
             return f"Research cycle failed: {e}"
     

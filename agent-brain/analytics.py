@@ -780,7 +780,8 @@ def search_memory(query: str, domains: list[str] | None = None, min_score: float
                     "score": o.get("overall_score", 0),
                     "accepted": o.get("accepted", False),
                     "timestamp": o.get("timestamp", ""),
-                    "summary": o.get("research", {}).get("summary", "")[:200],
+                    "summary": o.get("research", {}).get("summary", "")[:400],
+                    "key_insights": o.get("research", {}).get("key_insights", [])[:5],
                     "relevance": round(score, 3),
                     "strategy": o.get("strategy_version", "default"),
                 })
