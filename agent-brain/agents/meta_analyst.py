@@ -27,6 +27,7 @@ from config import (
     DRIFT_WARNING_THRESHOLD,
 )
 from memory_store import load_outputs
+from analytics import score_trajectory
 from strategy_store import get_strategy, save_strategy, list_versions, get_strategy_performance
 from utils.atomic_write import atomic_json_write
 from cost_tracker import log_cost
@@ -259,9 +260,19 @@ def analyze_and_evolve(domain: str) -> dict | None:
     # Prepare analysis data
     analysis_data = _prepare_analysis_data(recent_outputs, current_strategy, evolution_history)
 
+    # Inject analytics: score trajectory for trend awareness
+    trajectory = score_trajectory(domain)
+    analytics_block = ""
+    if trajectory and trajectory.get("trend") != "insufficient":
+        analytics_block = f"\n\nANALYTICS (score trajectory):\n"
+        analytics_block += f"  Trend: {trajectory.get('trend', 'unknown')}\n"
+        analytics_block += f"  First score: {trajectory.get('first_score', '?')}, Last score: {trajectory.get('last_score', '?')}\n"
+        analytics_block += f"  Improvement: {trajectory.get('improvement', 0):+.1f} points\n"
+        analytics_block += f"  Rolling average (last 3): {trajectory.get('rolling_avg', [])[-3:]}\n"
+
     user_message = (
         f"Analyze these scored research outputs and generate an improved strategy.\n\n"
-        f"DATA:\n{analysis_data}"
+        f"DATA:\n{analysis_data}{analytics_block}"
     )
 
     # Call the meta-analyst model

@@ -66,7 +66,7 @@ EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # local, free, 384 dimensions
 VECTORDB_DIR = os.path.join(os.path.dirname(__file__), "memory", "_vectordb")
 
 # --- Browser (Playwright Stealth) ---
-BROWSER_ENABLED = False           # enable stealth browser for JS-rendered/auth-required sites
+BROWSER_ENABLED = True            # enable stealth browser for JS-rendered/auth-required sites
 BROWSER_HEADLESS = True           # run browser headless (True for server, False for debugging)
 BROWSER_MAX_FETCHES = 3           # max browser fetches per research run (browser is slower)
 

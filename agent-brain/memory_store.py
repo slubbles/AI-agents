@@ -209,6 +209,9 @@ def load_outputs(domain: str, min_score: float = 0) -> list[dict]:
     for filename in sorted(os.listdir(domain_dir)):
         if not filename.endswith(".json"):
             continue
+        # Skip underscore-prefixed files (_knowledge_base.json, _predictions.json, etc.)
+        if filename.startswith("_"):
+            continue
         filepath = os.path.join(domain_dir, filename)
         try:
             with open(filepath) as f:

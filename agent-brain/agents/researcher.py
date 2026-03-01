@@ -18,6 +18,7 @@ from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 from tools.web_fetcher import fetch_page, search_and_fetch, FETCH_TOOL_DEFINITION, SEARCH_AND_FETCH_TOOL_DEFINITION
 from cost_tracker import log_cost
 from memory_store import retrieve_relevant, load_knowledge_base
+from knowledge_graph import load_graph, get_graph_summary
 from utils.retry import create_message
 from utils.json_parser import extract_json
 
@@ -241,6 +242,22 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
             if kb.get("domain_summary"):
                 kb_summary = f"\nDOMAIN SUMMARY: {kb['domain_summary']}\n" + kb_summary
             prior_knowledge_block += kb_summary
+    
+    # 1b. Inject knowledge graph summary (claim connections, contradictions)
+    graph = load_graph(domain)
+    if graph and graph.get("nodes"):
+        graph_info = get_graph_summary(graph)
+        graph_block = f"\nKNOWLEDGE GRAPH ({graph_info['node_count']} nodes, {graph_info['edge_count']} edges):\n"
+        if graph_info.get("contradictions"):
+            graph_block += f"  CONTRADICTIONS TO RESOLVE: {len(graph_info['contradictions'])}\n"
+            for c in graph_info["contradictions"][:3]:
+                graph_block += f"    - {c.get('claim1_id', '?')} vs {c.get('claim2_id', '?')}\n"
+        if graph_info.get("clusters"):
+            graph_block += f"  TOPIC CLUSTERS: {', '.join(c.get('label', '?') for c in graph_info['clusters'][:5])}\n"
+        if graph_info.get("gap_analysis", {}).get("weak_clusters"):
+            weak = graph_info["gap_analysis"]["weak_clusters"][:3]
+            graph_block += f"  WEAK AREAS (need more research): {', '.join(str(w) for w in weak)}\n"
+        prior_knowledge_block += graph_block
     
     # 2. Retrieve relevant past findings — include concrete claims with sources
     relevant = retrieve_relevant(domain, question, max_results=3)

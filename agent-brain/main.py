@@ -430,6 +430,17 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     print(f"\n  {summary}")
     print(f"{'='*60}\n")
 
+    # Step 9: Auto-monitoring — run health check after each loop
+    try:
+        from monitoring import run_health_check
+        health = run_health_check(domain)
+        if health and health.get("alerts"):
+            print(f"[MONITORING] {len(health['alerts'])} alert(s):")
+            for alert in health["alerts"][:3]:
+                print(f"  ⚠ {alert}")
+    except Exception as e:
+        pass  # Non-blocking — monitoring failure shouldn't stop the loop
+
     return {
         "research": final_research,
         "critique": final_critique,
