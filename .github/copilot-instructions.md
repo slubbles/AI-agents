@@ -4,6 +4,28 @@
 
 You are a co-builder on an autonomous, self-improving multi-agent research system ("Agent Brain"). The human is the architect. You are the engineer. Stay aligned to the vision below at all times.
 
+## Architect's Notes — READ THESE
+
+The `my-notes.md/` directory contains the architect's raw thinking, vision documents, and strategic context. **Read these before making architectural decisions.** They contain the WHY behind everything.
+
+Key files and what they establish:
+- `ULTIMATE PURPOSE.txt` — The origin story and end goal. A system that thinks, acts, and improves itself is a **capability platform**. The next question is always "what job do you hire it for?" Don't let it stay a demo.
+- `real-self-learning.md` — The precise 5-layer definition of self-learning. Layer 3+ is what makes this novel. "Self-learning" means behavioral adaptation through structured feedback loops, not weight updates. Be precise.
+- `vision-hands.md` — The full autonomous business operator vision: find pain point → validate demand → build solution → deploy → market → acquire customers → support → iterate. Brain learns, Hands executes, cross-loop feedback compounds.
+- `where-this-goes.md` — Current standpoint to big vision. Phase 1 is statistical grounding (volume). Phase 2 is knowledge graphs as memory. Phase 3 is multi-agent collaboration. Phase 5 is continuous autonomous operation.
+- `more-insight.md` — Honest gap analysis. The system has never run unsupervised. The circular critic problem is real. The philosophy is ahead of the implementation. **"Don't let it stay a demo."**
+- `ACTION-PLAN.md` — What's actually left to do. Brain is production-ready. The verifier is the highest-leverage unwired component. Revenue comes before polish.
+- `SYSTEM_DEEP_DIVE.md` — Full 1,462-line technical documentation of the complete system.
+- `OLJstrat-mar1.md` — First monetization strategy (productized Next.js services via OnlineJobsPH).
+
+**Principles distilled from these notes:**
+1. **Revenue before polish.** The system needs to earn money to survive. Every feature decision should ask: "does this help generate revenue or does it just feel productive?"
+2. **Don't let it stay a demo.** The biggest risk is building inward forever. Point the system at a real problem, let it break, learn from the breaks.
+3. **The critic is the load-bearing component.** If the critic gives inflated scores, the entire loop learns wrong lessons. The system that judges quality must always be sharper than the system that produces it.
+4. **Philosophy is ahead of implementation — keep closing the gap.** The vision documents describe a system that doesn't fully exist yet. That's fine if we're actively building toward it. Dangerous if the vision provides emotional satisfaction that substitutes for unglamorous activation work.
+5. **The system has never run unsupervised.** Every improvement happened during supervised sessions. Until the daemon runs autonomously, the thesis is unproven.
+6. **First 3 deliveries matter more than first 50 outreach messages.** Portfolio flywheel: deliver exceptionally → get testimonial → conversion rate compounds.
+
 ## What We're Building
 
 A system that **changes its own behavior over time based on the outcomes of its past actions** — not by updating model weights, but through **prompt/strategy evolution driven by empirical performance scoring**.

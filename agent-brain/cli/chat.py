@@ -273,6 +273,17 @@ ALL DOMAINS:
 RECENT ACCEPTED OUTPUTS ({domain}):
 {recent_summary if recent_summary else '  (none yet)'}
 
+SOURCE CODE ACCESS (READ-ONLY):
+You can read the system's own source code using list_files, read_source, and search_code.
+You CANNOT modify files, run commands, or execute code. Read-only access for review and feedback.
+Use this when the user asks:
+- "How does X work?" — read the actual implementation
+- "What's wrong with this module?" — review the code and give specific feedback
+- "How can we improve the researcher?" — read agents/researcher.py and suggest changes
+- "Show me the strategy store" — read strategy_store.py
+When giving code feedback, be specific: cite the file, line numbers, and what you'd change.
+You are a code reviewer, not a code writer. Suggest improvements, the architect decides what ships.
+
 STYLE:
 - Be direct. Be honest. No hype.
 - When you don't know something, say so. Offer to research it.
@@ -547,6 +558,63 @@ CHAT_TOOLS = [
                 }
             },
             "required": ["domain"]
+        }
+    },
+    # === READ-ONLY SOURCE CODE ACCESS ===
+    # These tools let you READ the codebase to give feedback and suggestions.
+    # You CANNOT modify files, run commands, or execute code. Read-only.
+    {
+        "name": "list_files",
+        "description": "List files and directories in a path within the agent-brain codebase. READ-ONLY. Use to explore the project structure when giving feedback or suggestions.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Relative path within agent-brain (e.g. 'agents/', 'cli/', 'tools/', '.', 'config.py'). Defaults to root."
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "read_source",
+        "description": "Read the contents of a source file in the agent-brain codebase. READ-ONLY. Use to review code, understand implementation, and give improvement feedback. Cannot modify any file.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "type": "string",
+                    "description": "Relative file path within agent-brain (e.g. 'agents/researcher.py', 'config.py', 'main.py')"
+                },
+                "start_line": {
+                    "type": "integer",
+                    "description": "Start line number (1-based, optional). Use for large files to read specific sections."
+                },
+                "end_line": {
+                    "type": "integer",
+                    "description": "End line number (1-based, optional)."
+                }
+            },
+            "required": ["file"]
+        }
+    },
+    {
+        "name": "search_code",
+        "description": "Search for a text pattern across all Python files in the agent-brain codebase. READ-ONLY. Use to find implementations, trace function calls, or understand how components connect.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "pattern": {
+                    "type": "string",
+                    "description": "Text or pattern to search for (case-insensitive substring match)"
+                },
+                "file_pattern": {
+                    "type": "string",
+                    "description": "Optional glob filter (e.g. 'agents/*.py', '*.py'). Defaults to all .py files."
+                }
+            },
+            "required": ["pattern"]
         }
     },
 ]
@@ -859,6 +927,102 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             return "\n".join(lines)
         except Exception as e:
             return f"Failed to load lessons: {e}"
+    
+    # === READ-ONLY SOURCE CODE TOOLS ===
+    elif name == "list_files":
+        try:
+            base = os.path.dirname(os.path.dirname(__file__))  # agent-brain/
+            rel_path = args.get("path", ".") or "."
+            # Security: prevent path traversal outside agent-brain
+            target = os.path.normpath(os.path.join(base, rel_path))
+            if not target.startswith(base):
+                return "Access denied: cannot navigate outside agent-brain/"
+            if not os.path.exists(target):
+                return f"Path not found: {rel_path}"
+            if os.path.isfile(target):
+                size = os.path.getsize(target)
+                return f"{rel_path} — file, {size} bytes"
+            entries = sorted(os.listdir(target))
+            dirs = [e + "/" for e in entries if os.path.isdir(os.path.join(target, e)) and not e.startswith("__pycache")]
+            files = [e for e in entries if os.path.isfile(os.path.join(target, e)) and not e.endswith(".pyc")]
+            lines = [f"Contents of {rel_path}/ ({len(dirs)} dirs, {len(files)} files):"]
+            for d in dirs:
+                lines.append(f"  📁 {d}")
+            for f_name in files:
+                size = os.path.getsize(os.path.join(target, f_name))
+                lines.append(f"  📄 {f_name} ({size:,} bytes)")
+            return "\n".join(lines)
+        except Exception as e:
+            return f"Error listing files: {e}"
+    
+    elif name == "read_source":
+        try:
+            base = os.path.dirname(os.path.dirname(__file__))  # agent-brain/
+            rel_path = args["file"]
+            target = os.path.normpath(os.path.join(base, rel_path))
+            # Security: prevent path traversal outside agent-brain
+            if not target.startswith(base):
+                return "Access denied: cannot read files outside agent-brain/"
+            if not os.path.exists(target):
+                return f"File not found: {rel_path}"
+            if not os.path.isfile(target):
+                return f"Not a file: {rel_path} (use list_files to browse directories)"
+            
+            with open(target, "r", errors="replace") as f:
+                all_lines = f.readlines()
+            
+            total = len(all_lines)
+            start = max(1, args.get("start_line", 1)) - 1  # 0-indexed
+            end = min(total, args.get("end_line", total))
+            selected = all_lines[start:end]
+            
+            # Cap output to avoid blowing up context
+            content = "".join(selected)
+            if len(content) > 8000:
+                content = content[:8000] + f"\n... (truncated at 8000 chars, file has {total} lines total)"
+            
+            header = f"📄 {rel_path} — lines {start+1}-{end} of {total}:\n"
+            return header + "```\n" + content + "\n```"
+        except Exception as e:
+            return f"Error reading file: {e}"
+    
+    elif name == "search_code":
+        try:
+            import fnmatch
+            base = os.path.dirname(os.path.dirname(__file__))  # agent-brain/
+            pattern = args["pattern"].lower()
+            file_glob = args.get("file_pattern", "*.py") or "*.py"
+            
+            matches = []
+            for root, dirs, files in os.walk(base):
+                # Skip hidden dirs, __pycache__, node_modules, crawl_data
+                dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ("__pycache__", "node_modules", "crawl_data", ".git")]
+                for fname in files:
+                    if not fnmatch.fnmatch(fname, file_glob):
+                        continue
+                    filepath = os.path.join(root, fname)
+                    rel = os.path.relpath(filepath, base)
+                    try:
+                        with open(filepath, "r", errors="replace") as f:
+                            for i, line in enumerate(f, 1):
+                                if pattern in line.lower():
+                                    matches.append(f"  {rel}:{i}: {line.rstrip()[:120]}")
+                                    if len(matches) >= 50:
+                                        break
+                    except Exception:
+                        continue
+                    if len(matches) >= 50:
+                        break
+                if len(matches) >= 50:
+                    break
+            
+            if not matches:
+                return f"No matches for '{args['pattern']}' in {file_glob}"
+            
+            truncated = " (showing first 50)" if len(matches) >= 50 else ""
+            return f"Found {len(matches)} matches for '{args['pattern']}'{truncated}:\n" + "\n".join(matches)
+        except Exception as e:
+            return f"Error searching: {e}"
     
     return f"Unknown tool: {name}"
 
