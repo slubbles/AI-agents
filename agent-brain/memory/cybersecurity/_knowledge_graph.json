@@ -1,0 +1,1666 @@
+{
+  "nodes": [
+    {
+      "id": "topic_active_threats_and_zero_day_exploitation",
+      "type": "topic",
+      "label": "Active Threats and Zero-Day Exploitation",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243804+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "zero-day vulnerabilities",
+          "active exploitation",
+          "threat actors",
+          "vulnerability timelines"
+        ]
+      }
+    },
+    {
+      "id": "topic_vendor_patching_and_emergency_response",
+      "type": "topic",
+      "label": "Vendor Patching and Emergency Response",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243819+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "patch tuesday",
+          "emergency patches",
+          "vendor disclosure policies",
+          "government directives"
+        ]
+      }
+    },
+    {
+      "id": "topic_cve_publication_and_disclosure_processes",
+      "type": "topic",
+      "label": "CVE Publication and Disclosure Processes",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243828+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "embargo periods",
+          "coordinated vulnerability disclosure",
+          "CVE numbering authority",
+          "publication timelines"
+        ]
+      }
+    },
+    {
+      "id": "topic_vulnerability_research_methodology",
+      "type": "topic",
+      "label": "Vulnerability Research Methodology",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243835+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "research constraints",
+          "data availability",
+          "responsible disclosure",
+          "information asymmetry"
+        ]
+      }
+    },
+    {
+      "id": "topic_quantitative_vulnerability_trends",
+      "type": "topic",
+      "label": "Quantitative Vulnerability Trends",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243841+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "CVE volume trends",
+          "severity distributions",
+          "publication patterns",
+          "timeline analysis"
+        ]
+      }
+    },
+    {
+      "id": "claim_001",
+      "type": "claim",
+      "label": "CVE-2026-2441 (Chrome CSS use-after-free zero-day) is actively exploited in the wild and was patched in Chrome 145",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_updated": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "CVE-2026-2441 (Chrome CSS use-after-free zero-day) is actively exploited in the wild and was patched in Chrome 145",
+        "sources": [
+          "https://nvd.nist.gov/vuln/detail/cve-2026-2441"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_nvd_nist_gov_vuln_detail_cve_2026_2441",
+      "type": "source",
+      "label": "https://nvd.nist.gov/vuln/detail/cve-2026-2441",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243869+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://nvd.nist.gov/vuln/detail/cve-2026-2441"
+      }
+    },
+    {
+      "id": "claim_002",
+      "type": "claim",
+      "label": "CVE-2026-22769 (Dell RecoverPoint for Virtual Machines hardcoded credentials vulnerability, CVSS 10.0) is actively exploited by Chinese threat actor UNC6201 since mid-2024",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_updated": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "CVE-2026-22769 (Dell RecoverPoint for Virtual Machines hardcoded credentials vulnerability, CVSS 10.0) is actively exploited by Chinese threat actor UNC6201 since mid-2024",
+        "sources": [
+          "https://cloud.google.com/blog/topics/threat-intelligence/unc6201-exploiting-dell-recoverpoint-zero-day"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_cloud_google_com_blog_topics_threat_intelligence_unc62",
+      "type": "source",
+      "label": "https://cloud.google.com/blog/topics/threat-intelligence/unc6201-exploiting-dell-recoverpoint-zero-day",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243894+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://cloud.google.com/blog/topics/threat-intelligence/unc6201-exploiting-dell-recoverpoint-zero-day"
+      }
+    },
+    {
+      "id": "claim_003",
+      "type": "claim",
+      "label": "Microsoft February 2026 Patch Tuesday (Feb 10, 2026) addressed 58 vulnerabilities including 6 actively exploited zero-days and 3 publicly disclosed zero-days",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_updated": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Microsoft February 2026 Patch Tuesday (Feb 10, 2026) addressed 58 vulnerabilities including 6 actively exploited zero-days and 3 publicly disclosed zero-days",
+        "sources": [
+          "https://www.bleepingcomputer.com/news/microsoft/microsoft-february-2026-patch-tuesday-fixes-6-zero-days-58-flaws/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_bleepingcomputer_com_news_microsoft_microsoft_febr",
+      "type": "source",
+      "label": "https://www.bleepingcomputer.com/news/microsoft/microsoft-february-2026-patch-tuesday-fixes-6-zero-days-58-flaws/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243915+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-february-2026-patch-tuesday-fixes-6-zero-days-58-flaws/"
+      }
+    },
+    {
+      "id": "claim_004",
+      "type": "claim",
+      "label": "Apple released emergency security updates (Feb 12, 2026) for iOS, macOS, Safari, and other platforms fixing an actively exploited zero-day vulnerability in targeted attacks",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_updated": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Apple released emergency security updates (Feb 12, 2026) for iOS, macOS, Safari, and other platforms fixing an actively exploited zero-day vulnerability in targeted attacks",
+        "sources": [
+          "https://www.malwarebytes.com/blog/news/2026/02/apple-patches-zero-day-flaw-that-could-let-attackers-take-control-of-devices"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_malwarebytes_com_blog_news_2026_02_apple_patches_z",
+      "type": "source",
+      "label": "https://www.malwarebytes.com/blog/news/2026/02/apple-patches-zero-day-flaw-that-could-let-attackers-take-control-of-devi",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243936+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.malwarebytes.com/blog/news/2026/02/apple-patches-zero-day-flaw-that-could-let-attackers-take-control-of-devices"
+      }
+    },
+    {
+      "id": "claim_005",
+      "type": "claim",
+      "label": "BeyondTrust vulnerability was under active attack; CISA added it to KEV catalog on February 16, 2026 and issued binding operational directive for federal agencies to patch by end of day",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_updated": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "BeyondTrust vulnerability was under active attack; CISA added it to KEV catalog on February 16, 2026 and issued binding operational directive for federal agencies to patch by end of day",
+        "sources": [
+          "https://www.cybernewscentre.com/17th-february-2026-cyber-update-beyondtrust-flaw-under-active-attack-cisa-issues-urgent-patch-order/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_cybernewscentre_com_17th_february_2026_cyber_updat",
+      "type": "source",
+      "label": "https://www.cybernewscentre.com/17th-february-2026-cyber-update-beyondtrust-flaw-under-active-attack-cisa-issues-urgent-",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243959+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.cybernewscentre.com/17th-february-2026-cyber-update-beyondtrust-flaw-under-active-attack-cisa-issues-urgent-patch-order/"
+      }
+    },
+    {
+      "id": "claim_006",
+      "type": "claim",
+      "label": "CISA issued binding operational directive (February 2026) requiring federal agencies to identify and upgrade end-of-support edge devices within 12-18 months due to substantial security risk",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_updated": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "CISA issued binding operational directive (February 2026) requiring federal agencies to identify and upgrade end-of-support edge devices within 12-18 months due to substantial security risk",
+        "sources": [
+          "https://federalnewsnetwork.com/cybersecurity/2026/02/cisa-tells-agencies-to-identify-upgrade-unsupported-edge-devices/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_federalnewsnetwork_com_cybersecurity_2026_02_cisa_tell",
+      "type": "source",
+      "label": "https://federalnewsnetwork.com/cybersecurity/2026/02/cisa-tells-agencies-to-identify-upgrade-unsupported-edge-devices/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243980+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://federalnewsnetwork.com/cybersecurity/2026/02/cisa-tells-agencies-to-identify-upgrade-unsupported-edge-devices/"
+      }
+    },
+    {
+      "id": "claim_007",
+      "type": "claim",
+      "label": "Zero-day exploitation velocity increased significantly: 28.96% of known exploited vulnerabilities (KEVs) in 2025 were exploited before disclosure or on disclosure day; average time-to-exploit collapse",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_updated": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Zero-day exploitation velocity increased significantly: 28.96% of known exploited vulnerabilities (KEVs) in 2025 were exploited before disclosure or on disclosure day; average time-to-exploit collapsed to 5 days from 32 days",
+        "sources": [
+          "https://www.infosecurity-magazine.com/news/zeroday-exploits-vulncheck/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_infosecurity_magazine_com_news_zeroday_exploits_vu",
+      "type": "source",
+      "label": "https://www.infosecurity-magazine.com/news/zeroday-exploits-vulncheck/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.243999+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.infosecurity-magazine.com/news/zeroday-exploits-vulncheck/"
+      }
+    },
+    {
+      "id": "claim_008",
+      "type": "claim",
+      "label": "Zero-day exploits surged 46% year-over-year in 2025, with 32.1% weaponized on day zero",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:32.841035+00:00",
+      "last_updated": "2026-02-23T13:05:32.841035+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Zero-day exploits surged 46% year-over-year in 2025, with 32.1% weaponized on day zero",
+        "sources": [
+          "https://axis-intelligence.com/zero-day-vulnerabilities-2026-protection/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_axis_intelligence_com_zero_day_vulnerabilities_2026_pr",
+      "type": "source",
+      "label": "https://axis-intelligence.com/zero-day-vulnerabilities-2026-protection/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244017+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://axis-intelligence.com/zero-day-vulnerabilities-2026-protection/"
+      }
+    },
+    {
+      "id": "claim_009",
+      "type": "claim",
+      "label": "CVE publication is governed by coordinated vulnerability disclosure timelines with 24-hour publication expectation post-disclosure, but embargoes can delay public CVE record availability",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_updated": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "CVE publication is governed by coordinated vulnerability disclosure timelines with 24-hour publication expectation post-disclosure, but embargoes can delay public CVE record availability",
+        "sources": [
+          "https://www.cve.org/resourcessupport/allresources/cnarules"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_cve_org_resourcessupport_allresources_cnarules",
+      "type": "source",
+      "label": "https://www.cve.org/resourcessupport/allresources/cnarules",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244035+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.cve.org/resourcessupport/allresources/cnarules"
+      }
+    },
+    {
+      "id": "claim_010",
+      "type": "claim",
+      "label": "CISA enforces a 45-day mandatory disclosure window when vendors are unresponsive, but patches may not be available at disclosure time",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_updated": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "CISA enforces a 45-day mandatory disclosure window when vendors are unresponsive, but patches may not be available at disclosure time",
+        "sources": [
+          "https://www.cisa.gov/resources-tools/programs/coordinated-vulnerability-disclosure-program"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_cisa_gov_resources_tools_programs_coordinated_vuln",
+      "type": "source",
+      "label": "https://www.cisa.gov/resources-tools/programs/coordinated-vulnerability-disclosure-program",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244053+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.cisa.gov/resources-tools/programs/coordinated-vulnerability-disclosure-program"
+      }
+    },
+    {
+      "id": "claim_011",
+      "type": "claim",
+      "label": "Responsible disclosure protocols require researchers to withhold technical details during embargo periods, creating asymmetric information between threat actors and researchers",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_updated": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Responsible disclosure protocols require researchers to withhold technical details during embargo periods, creating asymmetric information between threat actors and researchers",
+        "sources": [
+          "https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_cheatsheetseries_owasp_org_cheatsheets_vulnerability_d",
+      "type": "source",
+      "label": "https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244078+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html"
+      }
+    },
+    {
+      "id": "claim_012",
+      "type": "claim",
+      "label": "Apple and Microsoft follow responsible disclosure protocols that do not disclose specific CVE numbers for patched zero-days until embargo lift, limiting real-time research attribution",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_updated": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Apple and Microsoft follow responsible disclosure protocols that do not disclose specific CVE numbers for patched zero-days until embargo lift, limiting real-time research attribution",
+        "sources": [
+          "https://sec.cloudapps.cisco.com/security/center/resources/vendor_vulnerability_policy.html"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_sec_cloudapps_cisco_com_security_center_resources_vend",
+      "type": "source",
+      "label": "https://sec.cloudapps.cisco.com/security/center/resources/vendor_vulnerability_policy.html",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244096+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://sec.cloudapps.cisco.com/security/center/resources/vendor_vulnerability_policy.html"
+      }
+    },
+    {
+      "id": "claim_013",
+      "type": "claim",
+      "label": "Real-time zero-day research in February 2026 shows 90%+ of actively exploited vulnerabilities are disclosed without available patches at announcement, creating data availability gap",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_updated": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Real-time zero-day research in February 2026 shows 90%+ of actively exploited vulnerabilities are disclosed without available patches at announcement, creating data availability gap",
+        "sources": [
+          "https://www.csoonline.com/article/4130446/february-2026-patch-tuesday-six-new-and-actively-exploited-microsoft-vulnerabilities-addressed.html"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_csoonline_com_article_4130446_february_2026_patch_",
+      "type": "source",
+      "label": "https://www.csoonline.com/article/4130446/february-2026-patch-tuesday-six-new-and-actively-exploited-microsoft-vulnerabi",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244181+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.csoonline.com/article/4130446/february-2026-patch-tuesday-six-new-and-actively-exploited-microsoft-vulnerabilities-addressed.html"
+      }
+    },
+    {
+      "id": "claim_014",
+      "type": "claim",
+      "label": "CVE number specificity is constrained by embargo status\u2014aggregate threat counts may be disclosed before individual CVE identifiers are released",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:43:07.660178+00:00",
+      "last_updated": "2026-02-23T15:43:07.660178+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "CVE number specificity is constrained by embargo status\u2014aggregate threat counts may be disclosed before individual CVE identifiers are released",
+        "sources": [
+          "https://www.cve.org/resourcessupport/allresources/cnarules"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_015",
+      "type": "claim",
+      "label": "CVE publication shows strong day-of-week patterns driven by vendor patch cycles, with Tuesday accounting for 11,754 CVEs in 2025 ('Patch Tuesday' industry standard), weekdays averaging 8,918 CVEs vs. ",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_updated": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "CVE publication shows strong day-of-week patterns driven by vendor patch cycles, with Tuesday accounting for 11,754 CVEs in 2025 ('Patch Tuesday' industry standard), weekdays averaging 8,918 CVEs vs. weekends averaging 1,796 CVEs",
+        "sources": [
+          "https://jerrygamblin.com/2026/01/01/2025-cve-data-review/"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_jerrygamblin_com_2026_01_01_2025_cve_data_review",
+      "type": "source",
+      "label": "https://jerrygamblin.com/2026/01/01/2025-cve-data-review/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244219+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://jerrygamblin.com/2026/01/01/2025-cve-data-review/"
+      }
+    },
+    {
+      "id": "claim_016",
+      "type": "claim",
+      "label": "Over 21,500 CVEs were disclosed in H1 2025, representing a record surge in vulnerability volume, with 38% rated High or Critical severity",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_updated": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Over 21,500 CVEs were disclosed in H1 2025, representing a record surge in vulnerability volume, with 38% rated High or Critical severity",
+        "sources": [
+          "https://deepstrike.io/blog/vulnerability-statistics-2025"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_deepstrike_io_blog_vulnerability_statistics_2025",
+      "type": "source",
+      "label": "https://deepstrike.io/blog/vulnerability-statistics-2025",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244240+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://deepstrike.io/blog/vulnerability-statistics-2025"
+      }
+    },
+    {
+      "id": "claim_017",
+      "type": "claim",
+      "label": "CVE volume increased 16% in H1 2025 compared to H1 2024",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_updated": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "CVE volume increased 16% in H1 2025 compared to H1 2024",
+        "sources": [
+          "https://www.recordedfuture.com/research/h1-2025-malware-and-vulnerability-trends"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_recordedfuture_com_research_h1_2025_malware_and_vu",
+      "type": "source",
+      "label": "https://www.recordedfuture.com/research/h1-2025-malware-and-vulnerability-trends",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244261+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.recordedfuture.com/research/h1-2025-malware-and-vulnerability-trends"
+      }
+    },
+    {
+      "id": "claim_018",
+      "type": "claim",
+      "label": "Coordinated Vulnerability Disclosure (CVD) programs per CISA guidelines do not publicly specify average embargo durations by vendor or quantitative embargo length metrics",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_updated": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Coordinated Vulnerability Disclosure (CVD) programs per CISA guidelines do not publicly specify average embargo durations by vendor or quantitative embargo length metrics",
+        "sources": [
+          "https://www.cisa.gov/resources-tools/programs/coordinated-vulnerability-disclosure-program"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_019",
+      "type": "claim",
+      "label": "Vendor-specific embargo duration data (Microsoft, Apple, etc.) is not systematically published in official CVE databases or CISA guidance",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_updated": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Vendor-specific embargo duration data (Microsoft, Apple, etc.) is not systematically published in official CVE databases or CISA guidance",
+        "sources": [
+          "https://nvd.nist.gov/vuln-metrics/cvss"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_nvd_nist_gov_vuln_metrics_cvss",
+      "type": "source",
+      "label": "https://nvd.nist.gov/vuln-metrics/cvss",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244315+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://nvd.nist.gov/vuln-metrics/cvss"
+      }
+    },
+    {
+      "id": "claim_020",
+      "type": "claim",
+      "label": "CVSS severity score correlation with disclosure/embargo timeline length is not quantified in current public research (2020-2025 period)",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_updated": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "CVSS severity score correlation with disclosure/embargo timeline length is not quantified in current public research (2020-2025 period)",
+        "sources": [
+          "https://www.first.org/cvss/specification-document"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_first_org_cvss_specification_document",
+      "type": "source",
+      "label": "https://www.first.org/cvss/specification-document",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244338+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.first.org/cvss/specification-document"
+      }
+    },
+    {
+      "id": "claim_021",
+      "type": "claim",
+      "label": "Vulnerability disclosure policy adoption remains stalled without acceleration trend in 2025, particularly concerning for IoT sector",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_updated": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Vulnerability disclosure policy adoption remains stalled without acceleration trend in 2025, particularly concerning for IoT sector",
+        "sources": [
+          "https://iotsecurityfoundation.org/wp-content/uploads/2026/01/The-State-of-Vulnerability-Disclosure-Usage-in-Global-Consumer-IoT-in-2025V8.pdf"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_iotsecurityfoundation_org_wp_content_uploads_2026_01_t",
+      "type": "source",
+      "label": "https://iotsecurityfoundation.org/wp-content/uploads/2026/01/The-State-of-Vulnerability-Disclosure-Usage-in-Global-Consu",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244359+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://iotsecurityfoundation.org/wp-content/uploads/2026/01/The-State-of-Vulnerability-Disclosure-Usage-in-Global-Consumer-IoT-in-2025V8.pdf"
+      }
+    },
+    {
+      "id": "claim_022",
+      "type": "claim",
+      "label": "Vendor CNAs (Mozilla, Apple, Microsoft) do not disclose vulnerability data via CVE until remediation is complete or public exploit exists, indicating variable embargo periods independent of severity",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:44:11.518852+00:00",
+      "last_updated": "2026-02-23T15:44:11.518852+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Vendor CNAs (Mozilla, Apple, Microsoft) do not disclose vulnerability data via CVE until remediation is complete or public exploit exists, indicating variable embargo periods independent of severity",
+        "sources": [
+          "https://news.ycombinator.com/item?id=43700607"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_news_ycombinator_com_item_id_43700607",
+      "type": "source",
+      "label": "https://news.ycombinator.com/item?id=43700607",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244377+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://news.ycombinator.com/item?id=43700607"
+      }
+    },
+    {
+      "id": "gap_000",
+      "type": "gap",
+      "label": "Specific CVE numbers for the 6 actively exploited Microsoft zero-days (February 2026) remain embargoed or unpublished",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244392+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Active Threats and Zero-Day Exploitation",
+        "full_text": "Specific CVE numbers for the 6 actively exploited Microsoft zero-days (February 2026) remain embargoed or unpublished"
+      }
+    },
+    {
+      "id": "gap_001",
+      "type": "gap",
+      "label": "Specific CVE number for the Apple zero-day patched February 12, 2026 not disclosed in search results",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244401+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Active Threats and Zero-Day Exploitation",
+        "full_text": "Specific CVE number for the Apple zero-day patched February 12, 2026 not disclosed in search results"
+      }
+    },
+    {
+      "id": "gap_002",
+      "type": "gap",
+      "label": "Average embargo duration by vendor (Microsoft, Apple, Google, Adobe, etc.) for 2020-2025 period\u2014no quantitative data available in official databases or academic research",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244409+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "CVE Publication and Disclosure Processes",
+        "full_text": "Average embargo duration by vendor (Microsoft, Apple, Google, Adobe, etc.) for 2020-2025 period\u2014no quantitative data available in official databases or academic research"
+      }
+    },
+    {
+      "id": "gap_003",
+      "type": "gap",
+      "label": "Statistical correlation between CVSS base score and time-to-disclosure or embargo length\u2014not documented in current literature",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244415+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Quantitative Vulnerability Trends",
+        "full_text": "Statistical correlation between CVSS base score and time-to-disclosure or embargo length\u2014not documented in current literature"
+      }
+    },
+    {
+      "id": "gap_004",
+      "type": "gap",
+      "label": "Cross-vendor embargo coordination timing (e.g., whether Microsoft/Apple/Google align embargo lift dates) not documented in public sources",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244421+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "CVE Publication and Disclosure Processes",
+        "full_text": "Cross-vendor embargo coordination timing (e.g., whether Microsoft/Apple/Google align embargo lift dates) not documented in public sources"
+      }
+    },
+    {
+      "id": "gap_005",
+      "type": "gap",
+      "label": "Long-term impact metrics (financial losses, systems compromised) for active exploitation campaigns not available in early 2026 reporting",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244427+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Active Threats and Zero-Day Exploitation",
+        "full_text": "Long-term impact metrics (financial losses, systems compromised) for active exploitation campaigns not available in early 2026 reporting"
+      }
+    },
+    {
+      "id": "gap_006",
+      "type": "gap",
+      "label": "Threat actor intelligence on how adversaries obtain CVE information before public embargo lift\u2014whether through vendor leaks, reverse engineering, or vulnerability broker networks",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.244436+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Vulnerability Research Methodology",
+        "full_text": "Threat actor intelligence on how adversaries obtain CVE information before public embargo lift\u2014whether through vendor leaks, reverse engineering, or vulnerability broker networks"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "claim_001",
+      "target": "topic_active_threats_and_zero_day_exploitation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243854+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_nvd_nist_gov_vuln_detail_cve_2026_2441",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243873+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "topic_active_threats_and_zero_day_exploitation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243883+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_cloud_google_com_blog_topics_threat_intelligence_unc62",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243898+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "topic_vendor_patching_and_emergency_response",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243905+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_www_bleepingcomputer_com_news_microsoft_microsoft_febr",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243918+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "topic_vendor_patching_and_emergency_response",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243926+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_https_www_malwarebytes_com_blog_news_2026_02_apple_patches_z",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243939+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "topic_vendor_patching_and_emergency_response",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243948+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_https_www_cybernewscentre_com_17th_february_2026_cyber_updat",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243962+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "topic_vendor_patching_and_emergency_response",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243971+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_https_federalnewsnetwork_com_cybersecurity_2026_02_cisa_tell",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243983+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "topic_active_threats_and_zero_day_exploitation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.243991+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_www_infosecurity_magazine_com_news_zeroday_exploits_vu",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244002+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "topic_active_threats_and_zero_day_exploitation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244009+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_https_axis_intelligence_com_zero_day_vulnerabilities_2026_pr",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244020+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "topic_cve_publication_and_disclosure_processes",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244026+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "source_https_www_cve_org_resourcessupport_allresources_cnarules",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244038+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "topic_cve_publication_and_disclosure_processes",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244044+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_www_cisa_gov_resources_tools_programs_coordinated_vuln",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244056+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "topic_vulnerability_research_methodology",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244068+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_cheatsheetseries_owasp_org_cheatsheets_vulnerability_d",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244080+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "topic_vulnerability_research_methodology",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244087+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_sec_cloudapps_cisco_com_security_center_resources_vend",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244099+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "topic_vulnerability_research_methodology",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244105+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_www_csoonline_com_article_4130446_february_2026_patch_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244185+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "topic_cve_publication_and_disclosure_processes",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244192+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_https_www_cve_org_resourcessupport_allresources_cnarules",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244202+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "topic_quantitative_vulnerability_trends",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244209+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_https_jerrygamblin_com_2026_01_01_2025_cve_data_review",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244222+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "topic_quantitative_vulnerability_trends",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244231+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "source_https_deepstrike_io_blog_vulnerability_statistics_2025",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244243+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "topic_quantitative_vulnerability_trends",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244251+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "source_https_www_recordedfuture_com_research_h1_2025_malware_and_vu",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244263+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "topic_cve_publication_and_disclosure_processes",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244270+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "source_https_www_cisa_gov_resources_tools_programs_coordinated_vuln",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244279+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "topic_cve_publication_and_disclosure_processes",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244305+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "source_https_nvd_nist_gov_vuln_metrics_cvss",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244321+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "topic_quantitative_vulnerability_trends",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244328+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "source_https_www_first_org_cvss_specification_document",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244340+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "topic_cve_publication_and_disclosure_processes",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244347+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "source_https_iotsecurityfoundation_org_wp_content_uploads_2026_01_t",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244362+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "topic_cve_publication_and_disclosure_processes",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244369+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "source_https_news_ycombinator_com_item_id_43700607",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244380+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_000",
+      "target": "topic_active_threats_and_zero_day_exploitation",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244396+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_001",
+      "target": "topic_active_threats_and_zero_day_exploitation",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244405+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_002",
+      "target": "topic_cve_publication_and_disclosure_processes",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244412+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_003",
+      "target": "topic_quantitative_vulnerability_trends",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244418+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_004",
+      "target": "topic_cve_publication_and_disclosure_processes",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244424+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_005",
+      "target": "topic_active_threats_and_zero_day_exploitation",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244432+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_006",
+      "target": "topic_vulnerability_research_methodology",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.244439+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_002",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244460+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_007",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244466+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244472+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_007",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244478+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244482+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244487+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_004",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244500+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244505+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244510+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244517+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244522+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244527+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244551+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244556+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_018",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244561+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_019",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244566+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244571+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244576+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244581+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_018",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244586+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_019",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244593+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244598+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244603+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_018",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244609+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_019",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244614+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244619+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244624+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_019",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244630+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244635+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244640+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244646+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244651+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244657+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244673+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244679+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244684+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244701+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_017",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244707+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244713+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "claim_017",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244720+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244726+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.244734+00:00",
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "domain": "cybersecurity",
+    "created_at": "2026-03-01T15:59:15.243683+00:00",
+    "updated_at": "2026-03-01T15:59:15.243683+00:00",
+    "node_count": 54,
+    "edge_count": 93,
+    "cluster_count": 5
+  },
+  "clusters": [
+    {
+      "id": "cluster_2",
+      "topics": [
+        "topic_cve_publication_and_disclosure_processes"
+      ],
+      "claims": [
+        "claim_010",
+        "claim_021",
+        "claim_018",
+        "claim_009",
+        "claim_014",
+        "claim_019",
+        "claim_022"
+      ],
+      "size": 8,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_0",
+      "topics": [
+        "topic_vendor_patching_and_emergency_response"
+      ],
+      "claims": [
+        "claim_004",
+        "claim_003",
+        "claim_005",
+        "claim_006"
+      ],
+      "size": 5,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_1",
+      "topics": [
+        "topic_quantitative_vulnerability_trends"
+      ],
+      "claims": [
+        "claim_020",
+        "claim_016",
+        "claim_015",
+        "claim_017"
+      ],
+      "size": 5,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_3",
+      "topics": [
+        "topic_active_threats_and_zero_day_exploitation"
+      ],
+      "claims": [
+        "claim_001",
+        "claim_007",
+        "claim_002",
+        "claim_008"
+      ],
+      "size": 5,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_4",
+      "topics": [
+        "topic_vulnerability_research_methodology"
+      ],
+      "claims": [
+        "claim_013",
+        "claim_011",
+        "claim_012"
+      ],
+      "size": 4,
+      "density": 1.0
+    }
+  ],
+  "gap_analysis": {
+    "isolated_nodes": [],
+    "weak_clusters": [],
+    "missing_connections": []
+  }
+}

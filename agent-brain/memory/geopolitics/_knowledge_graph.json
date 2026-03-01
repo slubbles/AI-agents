@@ -1,0 +1,1115 @@
+{
+  "nodes": [
+    {
+      "id": "topic_russia_ukraine_conflict",
+      "type": "topic",
+      "label": "Russia-Ukraine Conflict",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.250951+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "territorial control",
+          "resource economics",
+          "diplomatic negotiations",
+          "military operations"
+        ]
+      }
+    },
+    {
+      "id": "topic_nato_strategic_transformation",
+      "type": "topic",
+      "label": "NATO Strategic Transformation",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.250960+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "European leadership",
+          "defense spending",
+          "structural realignment"
+        ]
+      }
+    },
+    {
+      "id": "topic_us_china_relations",
+      "type": "topic",
+      "label": "US-China Relations",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.250966+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "trade tensions",
+          "tariff strategy",
+          "diplomatic engagement"
+        ]
+      }
+    },
+    {
+      "id": "topic_middle_east_conflicts",
+      "type": "topic",
+      "label": "Middle East Conflicts",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.250972+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "Gaza ceasefire",
+          "Israeli operations",
+          "regional stability"
+        ]
+      }
+    },
+    {
+      "id": "topic_global_resource_economics",
+      "type": "topic",
+      "label": "Global Resource Economics",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.250977+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "mineral valuations",
+          "energy resources",
+          "strategic materials"
+        ]
+      }
+    },
+    {
+      "id": "claim_001",
+      "type": "claim",
+      "label": "Russia-Ukraine war enters fourth year with ongoing military operations on day 1,457 as of February 2026",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:56.947009+00:00",
+      "last_updated": "2026-02-23T13:05:56.947009+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Russia-Ukraine war enters fourth year with ongoing military operations on day 1,457 as of February 2026",
+        "sources": [
+          "https://www.aljazeera.com/news/2026/2/20/russia-ukraine-war-list-of-key-events-day-1457"
+        ],
+        "notes": "Verified timeline from February 24, 2022 to February 2026"
+      }
+    },
+    {
+      "id": "source_https_www_aljazeera_com_news_2026_2_20_russia_ukraine_war_li",
+      "type": "source",
+      "label": "https://www.aljazeera.com/news/2026/2/20/russia-ukraine-war-list-of-key-events-day-1457",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251000+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.aljazeera.com/news/2026/2/20/russia-ukraine-war-list-of-key-events-day-1457"
+      }
+    },
+    {
+      "id": "claim_002",
+      "type": "claim",
+      "label": "Ukraine achieved fastest territorial gains in over 2 years (201 sq km in Zaporizhzhia) between February 11-15, 2026",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:56.947009+00:00",
+      "last_updated": "2026-02-23T13:05:56.947009+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Ukraine achieved fastest territorial gains in over 2 years (201 sq km in Zaporizhzhia) between February 11-15, 2026",
+        "sources": [
+          "https://www.19fortyfive.com/2026/02/russia-is-stuck-a-brutal-war-ukraine-has-achieved-its-fastest-territorial-gains-in-over-2-years/"
+        ],
+        "notes": "Single source reporting, exploiting Starlink outage"
+      }
+    },
+    {
+      "id": "source_https_www_19fortyfive_com_2026_02_russia_is_stuck_a_brutal_w",
+      "type": "source",
+      "label": "https://www.19fortyfive.com/2026/02/russia-is-stuck-a-brutal-war-ukraine-has-achieved-its-fastest-territorial-gains-in-o",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251020+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.19fortyfive.com/2026/02/russia-is-stuck-a-brutal-war-ukraine-has-achieved-its-fastest-territorial-gains-in-over-2-years/"
+      }
+    },
+    {
+      "id": "claim_003",
+      "type": "claim",
+      "label": "NATO Secretary General Mark Rutte announced NATO alliance will become more European-led while maintaining US presence (February 13, 2026)",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:56.947009+00:00",
+      "last_updated": "2026-02-23T13:05:56.947009+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "NATO Secretary General Mark Rutte announced NATO alliance will become more European-led while maintaining US presence (February 13, 2026)",
+        "sources": [
+          "https://www.reuters.com/world/nato-will-become-more-european-led-nato-chief-rutte-says-2026-02-13"
+        ],
+        "notes": "Corroborated by multiple news sources and official NATO statements"
+      }
+    },
+    {
+      "id": "source_https_www_reuters_com_world_nato_will_become_more_european_l",
+      "type": "source",
+      "label": "https://www.reuters.com/world/nato-will-become-more-european-led-nato-chief-rutte-says-2026-02-13",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251040+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.reuters.com/world/nato-will-become-more-european-led-nato-chief-rutte-says-2026-02-13"
+      }
+    },
+    {
+      "id": "claim_004",
+      "type": "claim",
+      "label": "NATO member nations increasing defense spending with 3.5% benchmark set for 2035; European defense spending could reach \u20ac800 billion by 2030",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:56.947009+00:00",
+      "last_updated": "2026-02-23T13:05:56.947009+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "NATO member nations increasing defense spending with 3.5% benchmark set for 2035; European defense spending could reach \u20ac800 billion by 2030",
+        "sources": [
+          "https://www.mckinsey.com/industries/aerospace-and-defense/our-insights/european-defense-by-the-numbers"
+        ],
+        "notes": "McKinsey projections for 2030 and 2035"
+      }
+    },
+    {
+      "id": "source_https_www_mckinsey_com_industries_aerospace_and_defense_our_",
+      "type": "source",
+      "label": "https://www.mckinsey.com/industries/aerospace-and-defense/our-insights/european-defense-by-the-numbers",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251059+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.mckinsey.com/industries/aerospace-and-defense/our-insights/european-defense-by-the-numbers"
+      }
+    },
+    {
+      "id": "claim_005",
+      "type": "claim",
+      "label": "Trump administration planning April 2026 China visit (March 31-April 2) for trade talks with Xi Jinping",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:56.947009+00:00",
+      "last_updated": "2026-02-23T13:05:56.947009+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Trump administration planning April 2026 China visit (March 31-April 2) for trade talks with Xi Jinping",
+        "sources": [
+          "https://www.usnews.com/news/top-news/articles/2026-02-20/trump-to-travel-to-china-from-march-31-to-april-2-amid-trade-tensions"
+        ],
+        "notes": "Future-dated scheduled visit"
+      }
+    },
+    {
+      "id": "source_https_www_usnews_com_news_top_news_articles_2026_02_20_trump",
+      "type": "source",
+      "label": "https://www.usnews.com/news/top-news/articles/2026-02-20/trump-to-travel-to-china-from-march-31-to-april-2-amid-trade-te",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251078+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.usnews.com/news/top-news/articles/2026-02-20/trump-to-travel-to-china-from-march-31-to-april-2-amid-trade-tensions"
+      }
+    },
+    {
+      "id": "claim_006",
+      "type": "claim",
+      "label": "Trump administration using tariffs as central foreign policy tool; Chinese exporters pivoting to developing markets after US tariff increases",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:56.947009+00:00",
+      "last_updated": "2026-02-23T13:05:56.947009+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Trump administration using tariffs as central foreign policy tool; Chinese exporters pivoting to developing markets after US tariff increases",
+        "sources": [
+          "https://www.reuters.com/world/china/how-china-plans-dominate-global-trade-long-after-trump-2026-02-19/"
+        ],
+        "notes": "Ongoing policy developments"
+      }
+    },
+    {
+      "id": "source_https_www_reuters_com_world_china_how_china_plans_dominate_g",
+      "type": "source",
+      "label": "https://www.reuters.com/world/china/how-china-plans-dominate-global-trade-long-after-trump-2026-02-19/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251096+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.reuters.com/world/china/how-china-plans-dominate-global-trade-long-after-trump-2026-02-19/"
+      }
+    },
+    {
+      "id": "claim_007",
+      "type": "claim",
+      "label": "Gaza ceasefire began October 10, 2025; escalated Israeli operations in January-February 2026 with highest attacks since ceasefire began",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:56.947009+00:00",
+      "last_updated": "2026-02-23T13:05:56.947009+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Gaza ceasefire began October 10, 2025; escalated Israeli operations in January-February 2026 with highest attacks since ceasefire began",
+        "sources": [
+          "https://acleddata.com/update/middle-east-overview-february-2026"
+        ],
+        "notes": "ACLED conflict data reporting"
+      }
+    },
+    {
+      "id": "source_https_acleddata_com_update_middle_east_overview_february_202",
+      "type": "source",
+      "label": "https://acleddata.com/update/middle-east-overview-february-2026",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251114+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://acleddata.com/update/middle-east-overview-february-2026"
+      }
+    },
+    {
+      "id": "claim_008",
+      "type": "claim",
+      "label": "Russia's primary territorial demands focus on five regions: Crimea, Donetsk, Luhansk, Kherson, and Zaporizhzhia",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T13:12:58.751535+00:00",
+      "last_updated": "2026-02-23T13:12:58.751535+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Russia's primary territorial demands focus on five regions: Crimea, Donetsk, Luhansk, Kherson, and Zaporizhzhia",
+        "sources": [
+          "https://www.theconversation.com/russia-has-provided-fresh-evidence-of-its-territorial-ambitions-in-ukraine-264592"
+        ],
+        "notes": "Russia controls approximately 20% of Ukraine's territory"
+      }
+    },
+    {
+      "id": "source_https_www_theconversation_com_russia_has_provided_fresh_evid",
+      "type": "source",
+      "label": "https://www.theconversation.com/russia-has-provided-fresh-evidence-of-its-territorial-ambitions-in-ukraine-264592",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251132+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.theconversation.com/russia-has-provided-fresh-evidence-of-its-territorial-ambitions-in-ukraine-264592"
+      }
+    },
+    {
+      "id": "claim_009",
+      "type": "claim",
+      "label": "Putin has articulated maximalist territorial claims stating 'the whole of Ukraine is ours' (June 2025), indicating negotiating position extends beyond the five named regions",
+      "confidence": "high",
+      "status": "conflicted",
+      "first_seen": "2026-02-23T13:12:58.751535+00:00",
+      "last_updated": "2026-02-23T13:12:58.751535+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Putin has articulated maximalist territorial claims stating 'the whole of Ukraine is ours' (June 2025), indicating negotiating position extends beyond the five named regions",
+        "sources": [
+          "https://www.reuters.com/world/europe/putin-says-the-whole-ukraine-is-ours-theory-may-take-city-sumy-2025-06-20/"
+        ],
+        "notes": "Contradicts bounded territorial demands, suggests gap between public rhetoric and diplomatic fallback"
+      }
+    },
+    {
+      "id": "source_https_www_reuters_com_world_europe_putin_says_the_whole_ukra",
+      "type": "source",
+      "label": "https://www.reuters.com/world/europe/putin-says-the-whole-ukraine-is-ours-theory-may-take-city-sumy-2025-06-20/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251150+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.reuters.com/world/europe/putin-says-the-whole-ukraine-is-ours-theory-may-take-city-sumy-2025-06-20/"
+      }
+    },
+    {
+      "id": "claim_010",
+      "type": "claim",
+      "label": "Donbas contains over 56% of Ukraine's hard coal reserves, valued at approximately $12 trillion",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T15:11:48.506940+00:00",
+      "last_updated": "2026-02-23T15:11:48.506940+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Donbas contains over 56% of Ukraine's hard coal reserves, valued at approximately $12 trillion",
+        "sources": [
+          "https://economictimes.indiatimes.com/news/international/us/how-rich-is-donbas-the-ukrainian-coal-and-mineral-hub-that-putin-wants-to-end-the-war/articleshow/123340392.cms"
+        ],
+        "notes": "23 billion tonnes proven reserves, 10 billion tonnes economically extractable"
+      }
+    },
+    {
+      "id": "source_https_economictimes_indiatimes_com_news_international_us_how",
+      "type": "source",
+      "label": "https://economictimes.indiatimes.com/news/international/us/how-rich-is-donbas-the-ukrainian-coal-and-mineral-hub-that-pu",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251168+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://economictimes.indiatimes.com/news/international/us/how-rich-is-donbas-the-ukrainian-coal-and-mineral-hub-that-putin-wants-to-end-the-war/articleshow/123340392.cms"
+      }
+    },
+    {
+      "id": "claim_011",
+      "type": "claim",
+      "label": "Total Ukraine mineral wealth valued at $26 trillion; Russia controls approximately 70% of this ($12.5+ trillion) following 2022 invasion",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:11:48.506940+00:00",
+      "last_updated": "2026-02-23T15:11:48.506940+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Total Ukraine mineral wealth valued at $26 trillion; Russia controls approximately 70% of this ($12.5+ trillion) following 2022 invasion",
+        "sources": [
+          "https://www.eurasiantimes.com/the-high-stakes-mineral-war-russia-seizes-70-of-ukraines/"
+        ],
+        "notes": "Includes coal, critical minerals, and natural gas reserves"
+      }
+    },
+    {
+      "id": "source_https_www_eurasiantimes_com_the_high_stakes_mineral_war_russ",
+      "type": "source",
+      "label": "https://www.eurasiantimes.com/the-high-stakes-mineral-war-russia-seizes-70-of-ukraines/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251186+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.eurasiantimes.com/the-high-stakes-mineral-war-russia-seizes-70-of-ukraines/"
+      }
+    },
+    {
+      "id": "claim_012",
+      "type": "claim",
+      "label": "Russia's nominal GDP in 2024 was $2.098-2.2 trillion USD; PPP estimates for 2025-2026 range from $7.1-7.8 trillion USD",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:11:48.506940+00:00",
+      "last_updated": "2026-02-23T15:11:48.506940+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Russia's nominal GDP in 2024 was $2.098-2.2 trillion USD; PPP estimates for 2025-2026 range from $7.1-7.8 trillion USD",
+        "sources": [
+          "https://www.worldeconomics.com/GDP/Russia.aspx"
+        ],
+        "notes": "2026 growth expected at 1-1.3%"
+      }
+    },
+    {
+      "id": "source_https_www_worldeconomics_com_gdp_russia_aspx",
+      "type": "source",
+      "label": "https://www.worldeconomics.com/GDP/Russia.aspx",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251203+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.worldeconomics.com/GDP/Russia.aspx"
+      }
+    },
+    {
+      "id": "claim_013",
+      "type": "claim",
+      "label": "Russia's official demands include NATO exclusion guarantees and Ukrainian constitutional amendment removing NATO accession goal",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T13:12:58.751535+00:00",
+      "last_updated": "2026-02-23T13:12:58.751535+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Russia's official demands include NATO exclusion guarantees and Ukrainian constitutional amendment removing NATO accession goal",
+        "sources": [
+          "https://www.reuters.com/world/europe/putin-ukraine-peace-wants-pledge-halt-nato-enlargement-sources-say-2025-05-28/"
+        ],
+        "notes": "Beyond standard neutrality frameworks"
+      }
+    },
+    {
+      "id": "source_https_www_reuters_com_world_europe_putin_ukraine_peace_wants",
+      "type": "source",
+      "label": "https://www.reuters.com/world/europe/putin-ukraine-peace-wants-pledge-halt-nato-enlargement-sources-say-2025-05-28/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251221+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.reuters.com/world/europe/putin-ukraine-peace-wants-pledge-halt-nato-enlargement-sources-say-2025-05-28/"
+      }
+    },
+    {
+      "id": "claim_014",
+      "type": "claim",
+      "label": "Western reporting indicates US has accepted Russian demand for Ukrainian territorial cessions before security guarantees (as of February 13, 2026)",
+      "confidence": "disputed",
+      "status": "active",
+      "first_seen": "2026-02-23T13:05:56.947009+00:00",
+      "last_updated": "2026-02-23T13:12:58.751535+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Western reporting indicates US has accepted Russian demand for Ukrainian territorial cessions before security guarantees (as of February 13, 2026)",
+        "sources": [
+          "https://www.understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-february-13-2026"
+        ],
+        "notes": "Based on 'Western reporting' characterizations, not confirmed US policy"
+      }
+    },
+    {
+      "id": "source_https_www_understandingwar_org_research_russia_ukraine_russi",
+      "type": "source",
+      "label": "https://www.understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-february-13-2026",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251239+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-february-13-2026"
+      }
+    },
+    {
+      "id": "gap_000",
+      "type": "gap",
+      "label": "Specific US policy position on Ukraine territorial concessions - only 'Western reporting' available, not official US government statements",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251253+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Russia-Ukraine Conflict",
+        "full_text": "Specific US policy position on Ukraine territorial concessions - only 'Western reporting' available, not official US government statements"
+      }
+    },
+    {
+      "id": "gap_001",
+      "type": "gap",
+      "label": "Details of back-channel communications between Russia and other parties regarding classified territorial settlement terms",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251260+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Russia-Ukraine Conflict",
+        "full_text": "Details of back-channel communications between Russia and other parties regarding classified territorial settlement terms"
+      }
+    },
+    {
+      "id": "gap_002",
+      "type": "gap",
+      "label": "Specific USD monetary valuations for Crimea Black Sea natural gas and oil reserves remain unquantified",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251266+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Global Resource Economics",
+        "full_text": "Specific USD monetary valuations for Crimea Black Sea natural gas and oil reserves remain unquantified"
+      }
+    },
+    {
+      "id": "gap_003",
+      "type": "gap",
+      "label": "Detailed breakdown of Donbas mineral value by resource type (lithium, rare earths, specific elements)",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251272+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Global Resource Economics",
+        "full_text": "Detailed breakdown of Donbas mineral value by resource type (lithium, rare earths, specific elements)"
+      }
+    },
+    {
+      "id": "gap_004",
+      "type": "gap",
+      "label": "Current status of diplomatic negotiations and timeline for potential Russia-Ukraine peace settlement terms",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251279+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Russia-Ukraine Conflict",
+        "full_text": "Current status of diplomatic negotiations and timeline for potential Russia-Ukraine peace settlement terms"
+      }
+    },
+    {
+      "id": "gap_005",
+      "type": "gap",
+      "label": "Substantive agenda details for Trump-Xi April 2026 meetings beyond scheduled dates",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251302+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "US-China Relations",
+        "full_text": "Substantive agenda details for Trump-Xi April 2026 meetings beyond scheduled dates"
+      }
+    },
+    {
+      "id": "gap_006",
+      "type": "gap",
+      "label": "Gaza ceasefire implementation details and current humanitarian situation metrics",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.251309+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Middle East Conflicts",
+        "full_text": "Gaza ceasefire implementation details and current humanitarian situation metrics"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "claim_001",
+      "target": "topic_russia_ukraine_conflict",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.250988+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_www_aljazeera_com_news_2026_2_20_russia_ukraine_war_li",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251003+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "topic_russia_ukraine_conflict",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251011+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_www_19fortyfive_com_2026_02_russia_is_stuck_a_brutal_w",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251023+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "topic_nato_strategic_transformation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251031+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_www_reuters_com_world_nato_will_become_more_european_l",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251043+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "topic_nato_strategic_transformation",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251050+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_https_www_mckinsey_com_industries_aerospace_and_defense_our_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251062+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "topic_us_china_relations",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251069+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_https_www_usnews_com_news_top_news_articles_2026_02_20_trump",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251081+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "topic_us_china_relations",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251088+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_https_www_reuters_com_world_china_how_china_plans_dominate_g",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251099+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "topic_middle_east_conflicts",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251106+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_acleddata_com_update_middle_east_overview_february_202",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251117+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "topic_russia_ukraine_conflict",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251123+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_https_www_theconversation_com_russia_has_provided_fresh_evid",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251134+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "topic_russia_ukraine_conflict",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251141+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "source_https_www_reuters_com_world_europe_putin_says_the_whole_ukra",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251153+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "topic_global_resource_economics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251159+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_economictimes_indiatimes_com_news_international_us_how",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251171+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "topic_global_resource_economics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251178+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_www_eurasiantimes_com_the_high_stakes_mineral_war_russ",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251189+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "topic_global_resource_economics",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251195+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_www_worldeconomics_com_gdp_russia_aspx",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251206+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "topic_russia_ukraine_conflict",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251212+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_www_reuters_com_world_europe_putin_ukraine_peace_wants",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251224+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "topic_russia_ukraine_conflict",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251230+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_https_www_understandingwar_org_research_russia_ukraine_russi",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251242+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_009",
+      "type": "contradicts",
+      "weight": 1.5,
+      "created_at": "2026-03-01T15:59:15.251247+00:00",
+      "metadata": {
+        "description": "Russia's territorial demands appear bounded (five specific regions) versus maximalist claims (entire Ukraine)",
+        "resolution": "Both claims are accurate - represents dual-track strategy with public maximalist rhetoric and bounded negotiating fallback position"
+      }
+    },
+    {
+      "source": "gap_000",
+      "target": "topic_russia_ukraine_conflict",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251256+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_001",
+      "target": "topic_russia_ukraine_conflict",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251263+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_002",
+      "target": "topic_global_resource_economics",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251269+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_003",
+      "target": "topic_global_resource_economics",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251275+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_004",
+      "target": "topic_russia_ukraine_conflict",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251281+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_005",
+      "target": "topic_us_china_relations",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251305+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_006",
+      "target": "topic_middle_east_conflicts",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.251316+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_002",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251339+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251345+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251349+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251353+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251358+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251362+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251367+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251371+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251376+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251380+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_004",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251389+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251397+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251411+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251416+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.251420+00:00",
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "domain": "geopolitics",
+    "created_at": "2026-03-01T15:59:15.250934+00:00",
+    "updated_at": "2026-03-01T15:59:15.250934+00:00",
+    "node_count": 40,
+    "edge_count": 51,
+    "cluster_count": 5
+  },
+  "clusters": [
+    {
+      "id": "cluster_1",
+      "topics": [
+        "topic_russia_ukraine_conflict"
+      ],
+      "claims": [
+        "claim_001",
+        "claim_013",
+        "claim_002",
+        "claim_009",
+        "claim_014",
+        "claim_008"
+      ],
+      "size": 7,
+      "density": 0.81
+    },
+    {
+      "id": "cluster_2",
+      "topics": [
+        "topic_global_resource_economics"
+      ],
+      "claims": [
+        "claim_012",
+        "claim_011",
+        "claim_010"
+      ],
+      "size": 4,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_0",
+      "topics": [
+        "topic_us_china_relations"
+      ],
+      "claims": [
+        "claim_005",
+        "claim_006"
+      ],
+      "size": 3,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_3",
+      "topics": [
+        "topic_nato_strategic_transformation"
+      ],
+      "claims": [
+        "claim_004",
+        "claim_003"
+      ],
+      "size": 3,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_4",
+      "topics": [
+        "topic_middle_east_conflicts"
+      ],
+      "claims": [
+        "claim_007"
+      ],
+      "size": 2,
+      "density": 1.0
+    }
+  ],
+  "gap_analysis": {
+    "isolated_nodes": [],
+    "weak_clusters": [
+      {
+        "cluster_id": "cluster_4",
+        "size": 2,
+        "topics": [
+          "topic_middle_east_conflicts"
+        ]
+      }
+    ],
+    "missing_connections": []
+  }
+}

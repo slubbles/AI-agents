@@ -1,0 +1,1855 @@
+{
+  "nodes": [
+    {
+      "id": "topic_model_releases_and_specifications",
+      "type": "topic",
+      "label": "Model Releases and Specifications",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247398+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "release_dates",
+          "architecture_specs",
+          "parameter_counts",
+          "context_windows"
+        ]
+      }
+    },
+    {
+      "id": "topic_enterprise_adoption",
+      "type": "topic",
+      "label": "Enterprise Adoption",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247407+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "adoption_rates",
+          "deployment_patterns",
+          "market_trends"
+        ]
+      }
+    },
+    {
+      "id": "topic_technical_architecture",
+      "type": "topic",
+      "label": "Technical Architecture",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247413+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "moe_vs_dense",
+          "computational_efficiency",
+          "memory_requirements",
+          "inference_challenges"
+        ]
+      }
+    },
+    {
+      "id": "topic_performance_benchmarks",
+      "type": "topic",
+      "label": "Performance Benchmarks",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247419+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "mmlu_scores",
+          "benchmark_availability",
+          "evaluation_gaps",
+          "benchmark_disclosure"
+        ]
+      }
+    },
+    {
+      "id": "topic_cloud_infrastructure_and_pricing",
+      "type": "topic",
+      "label": "Cloud Infrastructure and Pricing",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247425+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "cloud_provider_support",
+          "inference_performance",
+          "cost_metrics",
+          "specialized_hardware"
+        ]
+      }
+    },
+    {
+      "id": "claim_001",
+      "type": "claim",
+      "label": "Qwen-3.5 officially released February 16-17, 2026 by Alibaba Cloud with 397-billion parameter Mixture-of-Experts architecture",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_updated": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 4,
+      "metadata": {
+        "full_text": "Qwen-3.5 officially released February 16-17, 2026 by Alibaba Cloud with 397-billion parameter Mixture-of-Experts architecture",
+        "sources": [
+          "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894",
+          "https://www.reuters.com/world/china/alibaba-unveils-new-qwen35-model-agentic-ai-era-2026-02-16/",
+          "https://www.cnbc.com/2026/02/17/china-alibaba-qwen-ai-agent-latest-model.html"
+        ],
+        "notes": "Confirmed across multiple authoritative sources including official Alibaba blog and major news outlets"
+      }
+    },
+    {
+      "id": "source_https_www_alibabacloud_com_blog_qwen3_5_towards_native_multi",
+      "type": "source",
+      "label": "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247447+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894"
+      }
+    },
+    {
+      "id": "source_https_www_reuters_com_world_china_alibaba_unveils_new_qwen35",
+      "type": "source",
+      "label": "https://www.reuters.com/world/china/alibaba-unveils-new-qwen35-model-agentic-ai-era-2026-02-16/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247460+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.reuters.com/world/china/alibaba-unveils-new-qwen35-model-agentic-ai-era-2026-02-16/"
+      }
+    },
+    {
+      "id": "source_https_www_cnbc_com_2026_02_17_china_alibaba_qwen_ai_agent_la",
+      "type": "source",
+      "label": "https://www.cnbc.com/2026/02/17/china-alibaba-qwen-ai-agent-latest-model.html",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247471+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.cnbc.com/2026/02/17/china-alibaba-qwen-ai-agent-latest-model.html"
+      }
+    },
+    {
+      "id": "claim_002",
+      "type": "claim",
+      "label": "Llama 4 Maverick released April 5, 2025 with 17 billion active parameters in 400B MoE framework and multimodal capabilities",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_updated": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 3,
+      "metadata": {
+        "full_text": "Llama 4 Maverick released April 5, 2025 with 17 billion active parameters in 400B MoE framework and multimodal capabilities",
+        "sources": [
+          "https://ai.meta.com/blog/llama-4-multimodal-intelligence/",
+          "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct"
+        ],
+        "notes": "Official Meta release confirmed in April 2025, widely deployed in early 2026"
+      }
+    },
+    {
+      "id": "source_https_ai_meta_com_blog_llama_4_multimodal_intelligence",
+      "type": "source",
+      "label": "https://ai.meta.com/blog/llama-4-multimodal-intelligence/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247493+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://ai.meta.com/blog/llama-4-multimodal-intelligence/"
+      }
+    },
+    {
+      "id": "source_https_huggingface_co_meta_llama_llama_4_maverick_17b_128e_in",
+      "type": "source",
+      "label": "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247504+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct"
+      }
+    },
+    {
+      "id": "claim_003",
+      "type": "claim",
+      "label": "Llama 4 Maverick features 1 million token context window",
+      "confidence": "disputed",
+      "status": "conflicted",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_updated": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Llama 4 Maverick features 1 million token context window",
+        "sources": [
+          "https://ai.meta.com/blog/llama-4-multimodal-intelligence/"
+        ],
+        "notes": "Conflicted by Oracle documentation citing 512,000 tokens"
+      }
+    },
+    {
+      "id": "claim_004",
+      "type": "claim",
+      "label": "Llama 4 Maverick features 512,000 token context window according to Oracle documentation",
+      "confidence": "disputed",
+      "status": "conflicted",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_updated": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Llama 4 Maverick features 512,000 token context window according to Oracle documentation",
+        "sources": [
+          "https://docs.oracle.com/en-us/iaas/Content/generative-ai/meta-llama-4-maverick.htm"
+        ],
+        "notes": "Oracle official documentation conflicts with other sources citing 1M tokens"
+      }
+    },
+    {
+      "id": "source_https_docs_oracle_com_en_us_iaas_content_generative_ai_meta_",
+      "type": "source",
+      "label": "https://docs.oracle.com/en-us/iaas/Content/generative-ai/meta-llama-4-maverick.htm",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247543+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://docs.oracle.com/en-us/iaas/Content/generative-ai/meta-llama-4-maverick.htm"
+      }
+    },
+    {
+      "id": "claim_005",
+      "type": "claim",
+      "label": "76% of enterprises using LLMs choose open-source options, often running them alongside proprietary models (as of November 2025)",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_updated": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "76% of enterprises using LLMs choose open-source options, often running them alongside proprietary models (as of November 2025)",
+        "sources": [
+          "https://www.databricks.com/blog/state-ai-enterprise-adoption-growth-trends"
+        ],
+        "notes": "Databricks State of AI report data showing enterprise adoption trends"
+      }
+    },
+    {
+      "id": "source_https_www_databricks_com_blog_state_ai_enterprise_adoption_g",
+      "type": "source",
+      "label": "https://www.databricks.com/blog/state-ai-enterprise-adoption-growth-trends",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247563+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.databricks.com/blog/state-ai-enterprise-adoption-growth-trends"
+      }
+    },
+    {
+      "id": "claim_006",
+      "type": "claim",
+      "label": "Over 50% of organizations implement open source across their AI technology stack (2025 data)",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_updated": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Over 50% of organizations implement open source across their AI technology stack (2025 data)",
+        "sources": [
+          "https://www.arcade.dev/blog/open-source-ai-tool-trends"
+        ],
+        "notes": "Indicates mainstream adoption beyond early-adopter phase"
+      }
+    },
+    {
+      "id": "source_https_www_arcade_dev_blog_open_source_ai_tool_trends",
+      "type": "source",
+      "label": "https://www.arcade.dev/blog/open-source-ai-tool-trends",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247585+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.arcade.dev/blog/open-source-ai-tool-trends"
+      }
+    },
+    {
+      "id": "claim_007",
+      "type": "claim",
+      "label": "Qwen-3.5 uses 397B total MoE parameters with only 17B active parameters per token",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T15:07:56.821792+00:00",
+      "last_updated": "2026-02-23T15:24:58.326772+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Qwen-3.5 uses 397B total MoE parameters with only 17B active parameters per token",
+        "sources": [
+          "https://www.digitalapplied.com/blog/qwen-3-5-agentic-ai-benchmarks-guide",
+          "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894"
+        ],
+        "notes": "Core MoE architecture specification confirmed across multiple sources"
+      }
+    },
+    {
+      "id": "source_https_www_digitalapplied_com_blog_qwen_3_5_agentic_ai_benchm",
+      "type": "source",
+      "label": "https://www.digitalapplied.com/blog/qwen-3-5-agentic-ai-benchmarks-guide",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247603+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.digitalapplied.com/blog/qwen-3-5-agentic-ai-benchmarks-guide"
+      }
+    },
+    {
+      "id": "claim_008",
+      "type": "claim",
+      "label": "MoE sparse activation reduces memory bandwidth and compute FLOPs compared to dense models with equivalent parameter counts",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:07:56.821792+00:00",
+      "last_updated": "2026-02-23T15:07:56.821792+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "MoE sparse activation reduces memory bandwidth and compute FLOPs compared to dense models with equivalent parameter counts",
+        "sources": [
+          "https://ieeexplore.ieee.org/document/11397211"
+        ],
+        "notes": "Established MoE efficiency principle confirmed by IEEE research"
+      }
+    },
+    {
+      "id": "source_https_ieeexplore_ieee_org_document_11397211",
+      "type": "source",
+      "label": "https://ieeexplore.ieee.org/document/11397211",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247629+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://ieeexplore.ieee.org/document/11397211"
+      }
+    },
+    {
+      "id": "claim_009",
+      "type": "claim",
+      "label": "Routing overhead is a significant latency penalty for MoE models not present in dense architectures",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:07:56.821792+00:00",
+      "last_updated": "2026-02-23T15:07:56.821792+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Routing overhead is a significant latency penalty for MoE models not present in dense architectures",
+        "sources": [
+          "https://dl.acm.org/doi/full/10.1145/3731599.3767706"
+        ],
+        "notes": "Fundamental MoE challenge identified by multiple 2026 sources"
+      }
+    },
+    {
+      "id": "source_https_dl_acm_org_doi_full_10_1145_3731599_3767706",
+      "type": "source",
+      "label": "https://dl.acm.org/doi/full/10.1145/3731599.3767706",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247647+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://dl.acm.org/doi/full/10.1145/3731599.3767706"
+      }
+    },
+    {
+      "id": "claim_010",
+      "type": "claim",
+      "label": "MoE serving requires preloading all experts into memory despite sparse activation, creating memory bandwidth bottleneck",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:07:56.821792+00:00",
+      "last_updated": "2026-02-23T15:07:56.821792+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "MoE serving requires preloading all experts into memory despite sparse activation, creating memory bandwidth bottleneck",
+        "sources": [
+          "https://ieeexplore.ieee.org/document/11397211"
+        ],
+        "notes": "Critical MoE inefficiency at inference time"
+      }
+    },
+    {
+      "id": "claim_011",
+      "type": "claim",
+      "label": "Llama 4 Maverick MMLU Pro score is 59.6",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-02-23T15:24:58.326772+00:00",
+      "last_updated": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Llama 4 Maverick MMLU Pro score is 59.6",
+        "sources": [
+          "https://console.groq.com/docs/model/meta-llama/llama-4-maverick-17b-128e-instruct",
+          "https://github.com/meta-llama/llama-models/blob/main/models/llama4/MODEL_CARD.md"
+        ],
+        "notes": "Official Groq documentation and Meta model card, but MMLU Pro variant, not standard MMLU"
+      }
+    },
+    {
+      "id": "source_https_console_groq_com_docs_model_meta_llama_llama_4_maveric",
+      "type": "source",
+      "label": "https://console.groq.com/docs/model/meta-llama/llama-4-maverick-17b-128e-instruct",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247683+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://console.groq.com/docs/model/meta-llama/llama-4-maverick-17b-128e-instruct"
+      }
+    },
+    {
+      "id": "source_https_github_com_meta_llama_llama_models_blob_main_models_ll",
+      "type": "source",
+      "label": "https://github.com/meta-llama/llama-models/blob/main/models/llama4/MODEL_CARD.md",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247695+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://github.com/meta-llama/llama-models/blob/main/models/llama4/MODEL_CARD.md"
+      }
+    },
+    {
+      "id": "claim_012",
+      "type": "claim",
+      "label": "Qwen-3.5-397B official benchmark scores from Alibaba NOT publicly available in verified sources",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T15:24:58.326772+00:00",
+      "last_updated": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Qwen-3.5-397B official benchmark scores from Alibaba NOT publicly available in verified sources",
+        "sources": [
+          "https://www.alibabacloud.com/blog/qwen3-5-towards-native-multimodal-agents_602894",
+          "https://qwen.ai/research/"
+        ],
+        "notes": "Despite extensive searching, no official Alibaba technical report with specific benchmark scores found"
+      }
+    },
+    {
+      "id": "source_https_qwen_ai_research",
+      "type": "source",
+      "label": "https://qwen.ai/research/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247721+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://qwen.ai/research/"
+      }
+    },
+    {
+      "id": "claim_013",
+      "type": "claim",
+      "label": "No official Llama 4 Maverick ARC or TruthfulQA benchmark scores located in primary sources",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-02-23T15:24:58.326772+00:00",
+      "last_updated": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "No official Llama 4 Maverick ARC or TruthfulQA benchmark scores located in primary sources",
+        "sources": [
+          "https://ai.meta.com/blog/llama-4-multimodal-intelligence/",
+          "https://www.llama.com/docs/model-cards-and-prompt-formats/llama4/"
+        ],
+        "notes": "Meta documentation focuses on MMLU Pro, MATH, HumanEval; ARC and TruthfulQA absent"
+      }
+    },
+    {
+      "id": "source_https_www_llama_com_docs_model_cards_and_prompt_formats_llam",
+      "type": "source",
+      "label": "https://www.llama.com/docs/model-cards-and-prompt-formats/llama4/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247750+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.llama.com/docs/model-cards-and-prompt-formats/llama4/"
+      }
+    },
+    {
+      "id": "claim_014",
+      "type": "claim",
+      "label": "GLM-4.7 achieves 73.8% on SWE-bench coding benchmark from THUDM",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T10:07:12.448088+00:00",
+      "last_updated": "2026-02-23T10:07:12.448088+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "GLM-4.7 achieves 73.8% on SWE-bench coding benchmark from THUDM",
+        "sources": [
+          "https://www.digitalapplied.com/blog/open-source-ai-models-enterprise-guide-2026"
+        ],
+        "notes": "Chinese open-source model performance, but original benchmark source not directly verified"
+      }
+    },
+    {
+      "id": "source_https_www_digitalapplied_com_blog_open_source_ai_models_ente",
+      "type": "source",
+      "label": "https://www.digitalapplied.com/blog/open-source-ai-models-enterprise-guide-2026",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247769+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.digitalapplied.com/blog/open-source-ai-models-enterprise-guide-2026"
+      }
+    },
+    {
+      "id": "claim_015",
+      "type": "claim",
+      "label": "Meta has officially published MMLU-Pro score (59.6) for Llama 4 Maverick via model card and documentation",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:38:47.548878+00:00",
+      "last_updated": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Meta has officially published MMLU-Pro score (59.6) for Llama 4 Maverick via model card and documentation",
+        "sources": [
+          "https://github.com/meta-llama/llama-models/blob/main/models/llama4/MODEL_CARD.md"
+        ],
+        "notes": "Verified in official Meta model card on GitHub and Hugging Face"
+      }
+    },
+    {
+      "id": "claim_016",
+      "type": "claim",
+      "label": "Google has officially published benchmark scores for Gemma 3 (27B variant, March 25, 2025) including MMLU-Pro 67.5",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:38:47.548878+00:00",
+      "last_updated": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Google has officially published benchmark scores for Gemma 3 (27B variant, March 25, 2025) including MMLU-Pro 67.5",
+        "sources": [
+          "https://arxiv.org/abs/2503.19786"
+        ],
+        "notes": "Gemma 3 technical report includes benchmark evaluation metrics"
+      }
+    },
+    {
+      "id": "source_https_arxiv_org_abs_2503_19786",
+      "type": "source",
+      "label": "https://arxiv.org/abs/2503.19786",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247803+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://arxiv.org/abs/2503.19786"
+      }
+    },
+    {
+      "id": "claim_017",
+      "type": "claim",
+      "label": "Anthropic has NOT released open-source models in 2025-2026; only proprietary Claude models exist",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:38:47.548878+00:00",
+      "last_updated": "2026-02-23T15:38:47.548878+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Anthropic has NOT released open-source models in 2025-2026; only proprietary Claude models exist",
+        "sources": [
+          "https://anthropic.com/claude-sonnet-4-6-system-card"
+        ],
+        "notes": "Claude models are proprietary, not open-source"
+      }
+    },
+    {
+      "id": "source_https_anthropic_com_claude_sonnet_4_6_system_card",
+      "type": "source",
+      "label": "https://anthropic.com/claude-sonnet-4-6-system-card",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247821+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://anthropic.com/claude-sonnet-4-6-system-card"
+      }
+    },
+    {
+      "id": "claim_018",
+      "type": "claim",
+      "label": "Llama 4 Maverick baseline inference specifications: $0.31 per 1M input tokens, $0.85 per 1M output tokens via Artificial Analysis",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_updated": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Llama 4 Maverick baseline inference specifications: $0.31 per 1M input tokens, $0.85 per 1M output tokens via Artificial Analysis",
+        "sources": [
+          "https://artificialanalysis.ai/models/llama-4-maverick"
+        ],
+        "notes": "Independent benchmark aggregator tracking 11+ cloud providers, but compiled from APIs not official Meta specs"
+      }
+    },
+    {
+      "id": "source_https_artificialanalysis_ai_models_llama_4_maverick",
+      "type": "source",
+      "label": "https://artificialanalysis.ai/models/llama-4-maverick",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247840+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://artificialanalysis.ai/models/llama-4-maverick"
+      }
+    },
+    {
+      "id": "claim_019",
+      "type": "claim",
+      "label": "AWS Bedrock, Google Cloud Vertex AI, Azure, and Alibaba Cloud all offer Llama 4 Maverick and/or Qwen-3.5 as managed services",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_updated": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "AWS Bedrock, Google Cloud Vertex AI, Azure, and Alibaba Cloud all offer Llama 4 Maverick and/or Qwen-3.5 as managed services",
+        "sources": [
+          "https://aws.amazon.com/blogs/aws/llama-4-models-from-meta-now-available-in-amazon-bedrock-serverless/"
+        ],
+        "notes": "Verified across multiple official cloud provider documentation"
+      }
+    },
+    {
+      "id": "source_https_aws_amazon_com_blogs_aws_llama_4_models_from_meta_now_",
+      "type": "source",
+      "label": "https://aws.amazon.com/blogs/aws/llama-4-models-from-meta-now-available-in-amazon-bedrock-serverless/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247862+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://aws.amazon.com/blogs/aws/llama-4-models-from-meta-now-available-in-amazon-bedrock-serverless/"
+      }
+    },
+    {
+      "id": "claim_020",
+      "type": "claim",
+      "label": "Llama 4 Maverick via Groq: 350 tokens per second throughput with ~4,900 ms latency",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_updated": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Llama 4 Maverick via Groq: 350 tokens per second throughput with ~4,900 ms latency",
+        "sources": [
+          "https://console.groq.com/docs/changelog"
+        ],
+        "notes": "Groq specialized inference provider specifications from December 1, 2025"
+      }
+    },
+    {
+      "id": "source_https_console_groq_com_docs_changelog",
+      "type": "source",
+      "label": "https://console.groq.com/docs/changelog",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247879+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://console.groq.com/docs/changelog"
+      }
+    },
+    {
+      "id": "claim_021",
+      "type": "claim",
+      "label": "Qwen-3.5-397B on Cerebras Wafer: >1000 tokens per second",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_updated": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Qwen-3.5-397B on Cerebras Wafer: >1000 tokens per second",
+        "sources": [
+          "https://www.deeplearning.ai/the-batch/qwen-announces-new-open-weights-flagship-update/"
+        ],
+        "notes": "Specialized hardware performance, lacks detail on context length and batch size"
+      }
+    },
+    {
+      "id": "source_https_www_deeplearning_ai_the_batch_qwen_announces_new_open_",
+      "type": "source",
+      "label": "https://www.deeplearning.ai/the-batch/qwen-announces-new-open-weights-flagship-update/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247899+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.deeplearning.ai/the-batch/qwen-announces-new-open-weights-flagship-update/"
+      }
+    },
+    {
+      "id": "claim_022",
+      "type": "claim",
+      "label": "No official MLPerf or standardized LMSys Chatbot Arena inference speed benchmarks published for Qwen-3.5-397B or Llama 4 Maverick as of February 2026",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_updated": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "No official MLPerf or standardized LMSys Chatbot Arena inference speed benchmarks published for Qwen-3.5-397B or Llama 4 Maverick as of February 2026",
+        "sources": [
+          "https://huggingface.co/spaces/lmarena-ai/lmarena-leaderboard"
+        ],
+        "notes": "Standard benchmarking platforms measure capability/quality, not infrastructure performance metrics"
+      }
+    },
+    {
+      "id": "source_https_huggingface_co_spaces_lmarena_ai_lmarena_leaderboard",
+      "type": "source",
+      "label": "https://huggingface.co/spaces/lmarena-ai/lmarena-leaderboard",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247917+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://huggingface.co/spaces/lmarena-ai/lmarena-leaderboard"
+      }
+    },
+    {
+      "id": "claim_023",
+      "type": "claim",
+      "label": "Qwen-3.5-397B is available via API pricing on Alibaba Cloud but specific latency/throughput metrics not publicly disclosed",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:40:10.997259+00:00",
+      "last_updated": "2026-02-23T15:40:10.997259+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Qwen-3.5-397B is available via API pricing on Alibaba Cloud but specific latency/throughput metrics not publicly disclosed",
+        "sources": [
+          "https://www.alibabacloud.com/help/en/model-studio/models"
+        ],
+        "notes": "Alibaba Cloud provides token pricing ($0.115 per 1M input tokens) but no quantitative performance metrics"
+      }
+    },
+    {
+      "id": "source_https_www_alibabacloud_com_help_en_model_studio_models",
+      "type": "source",
+      "label": "https://www.alibabacloud.com/help/en/model-studio/models",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247936+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.alibabacloud.com/help/en/model-studio/models"
+      }
+    },
+    {
+      "id": "gap_000",
+      "type": "gap",
+      "label": "Official MMLU, ARC, and TruthfulQA benchmark scores for both Qwen-3.5 and Llama 4 Maverick",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247950+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Performance Benchmarks",
+        "full_text": "Official MMLU, ARC, and TruthfulQA benchmark scores for both Qwen-3.5 and Llama 4 Maverick"
+      }
+    },
+    {
+      "id": "gap_001",
+      "type": "gap",
+      "label": "Direct inference latency and cost-per-token comparisons between Qwen-3.5 MoE and Llama 4 on identical hardware",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247958+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Cloud Infrastructure and Pricing",
+        "full_text": "Direct inference latency and cost-per-token comparisons between Qwen-3.5 MoE and Llama 4 on identical hardware"
+      }
+    },
+    {
+      "id": "gap_002",
+      "type": "gap",
+      "label": "Exact VRAM requirements for Qwen-3.5-397B vs Llama 4 Maverick at different batch sizes",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247970+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Technical Architecture",
+        "full_text": "Exact VRAM requirements for Qwen-3.5-397B vs Llama 4 Maverick at different batch sizes"
+      }
+    },
+    {
+      "id": "gap_003",
+      "type": "gap",
+      "label": "Official inference performance benchmarks from Meta and Alibaba for their respective models",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247976+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Cloud Infrastructure and Pricing",
+        "full_text": "Official inference performance benchmarks from Meta and Alibaba for their respective models"
+      }
+    },
+    {
+      "id": "gap_004",
+      "type": "gap",
+      "label": "Standardized comparison methodology for inference performance across cloud providers",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247983+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Cloud Infrastructure and Pricing",
+        "full_text": "Standardized comparison methodology for inference performance across cloud providers"
+      }
+    },
+    {
+      "id": "gap_005",
+      "type": "gap",
+      "label": "Market share distribution between different open-source models in early 2026",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247989+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Enterprise Adoption",
+        "full_text": "Market share distribution between different open-source models in early 2026"
+      }
+    },
+    {
+      "id": "gap_006",
+      "type": "gap",
+      "label": "Complete benchmark disclosures in official technical reports from Alibaba, Google, and Microsoft",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.247995+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Performance Benchmarks",
+        "full_text": "Complete benchmark disclosures in official technical reports from Alibaba, Google, and Microsoft"
+      }
+    },
+    {
+      "id": "gap_007",
+      "type": "gap",
+      "label": "Context length effects on latency for both models with stratified measurements",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.248001+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Cloud Infrastructure and Pricing",
+        "full_text": "Context length effects on latency for both models with stratified measurements"
+      }
+    },
+    {
+      "id": "gap_008",
+      "type": "gap",
+      "label": "Hardware-specific optimization analysis for MoE routing efficiency across different GPU architectures",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.248008+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "low",
+        "related_topic": "Technical Architecture",
+        "full_text": "Hardware-specific optimization analysis for MoE routing efficiency across different GPU architectures"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "claim_001",
+      "target": "topic_model_releases_and_specifications",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247435+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_www_alibabacloud_com_blog_qwen3_5_towards_native_multi",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247451+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_www_reuters_com_world_china_alibaba_unveils_new_qwen35",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247462+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_www_cnbc_com_2026_02_17_china_alibaba_qwen_ai_agent_la",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247474+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "topic_model_releases_and_specifications",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247485+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_ai_meta_com_blog_llama_4_multimodal_intelligence",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247496+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_huggingface_co_meta_llama_llama_4_maverick_17b_128e_in",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247507+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "topic_model_releases_and_specifications",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247515+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_ai_meta_com_blog_llama_4_multimodal_intelligence",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247525+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "topic_model_releases_and_specifications",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247533+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_https_docs_oracle_com_en_us_iaas_content_generative_ai_meta_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247546+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "topic_enterprise_adoption",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247553+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_https_www_databricks_com_blog_state_ai_enterprise_adoption_g",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247566+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "topic_enterprise_adoption",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247576+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_https_www_arcade_dev_blog_open_source_ai_tool_trends",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247587+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "topic_technical_architecture",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247594+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_www_digitalapplied_com_blog_qwen_3_5_agentic_ai_benchm",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247606+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_www_alibabacloud_com_blog_qwen3_5_towards_native_multi",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247615+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "topic_technical_architecture",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247622+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_https_ieeexplore_ieee_org_document_11397211",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247632+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "topic_technical_architecture",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247639+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "source_https_dl_acm_org_doi_full_10_1145_3731599_3767706",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247650+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "topic_technical_architecture",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247658+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_ieeexplore_ieee_org_document_11397211",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247666+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "topic_performance_benchmarks",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247673+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_console_groq_com_docs_model_meta_llama_llama_4_maveric",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247686+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_github_com_meta_llama_llama_models_blob_main_models_ll",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247698+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "topic_performance_benchmarks",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247705+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_www_alibabacloud_com_blog_qwen3_5_towards_native_multi",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247713+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_qwen_ai_research",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247723+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "topic_performance_benchmarks",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247730+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_ai_meta_com_blog_llama_4_multimodal_intelligence",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247740+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_www_llama_com_docs_model_cards_and_prompt_formats_llam",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247752+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "topic_performance_benchmarks",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247759+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_https_www_digitalapplied_com_blog_open_source_ai_models_ente",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247771+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "topic_performance_benchmarks",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247778+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_https_github_com_meta_llama_llama_models_blob_main_models_ll",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247788+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "topic_performance_benchmarks",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247795+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "source_https_arxiv_org_abs_2503_19786",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247806+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "topic_model_releases_and_specifications",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247813+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "source_https_anthropic_com_claude_sonnet_4_6_system_card",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247824+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247831+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "source_https_artificialanalysis_ai_models_llama_4_maverick",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247842+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247851+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "source_https_aws_amazon_com_blogs_aws_llama_4_models_from_meta_now_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247864+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247871+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "source_https_console_groq_com_docs_changelog",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247881+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247888+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "source_https_www_deeplearning_ai_the_batch_qwen_announces_new_open_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247901+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247908+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "source_https_huggingface_co_spaces_lmarena_ai_lmarena_leaderboard",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247920+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247927+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "source_https_www_alibabacloud_com_help_en_model_studio_models",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247939+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_004",
+      "type": "contradicts",
+      "weight": 1.5,
+      "created_at": "2026-03-01T15:59:15.247943+00:00",
+      "metadata": {
+        "description": "Llama 4 Maverick context window size - 1 million vs 512,000 tokens",
+        "resolution": "unresolved - suggests specification variations across deployment platforms or versioning differences"
+      }
+    },
+    {
+      "source": "gap_000",
+      "target": "topic_performance_benchmarks",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247954+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_001",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247964+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_002",
+      "target": "topic_technical_architecture",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247973+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_003",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247979+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_004",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247985+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_005",
+      "target": "topic_enterprise_adoption",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247992+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_006",
+      "target": "topic_performance_benchmarks",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.247998+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_007",
+      "target": "topic_cloud_infrastructure_and_pricing",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.248004+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_008",
+      "target": "topic_technical_architecture",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.248010+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_002",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248034+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_017",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248040+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_017",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248046+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248056+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_008",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248071+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_009",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248076+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248081+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_009",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248091+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248096+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248101+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_012",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248125+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248130+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248135+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248140+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248146+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248151+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248157+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248162+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248167+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248173+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248178+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248183+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248189+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248194+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248200+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_019",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248225+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248234+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248240+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248245+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248251+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_020",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248257+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248263+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248268+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_019",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248274+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248280+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248310+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248317+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "claim_022",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248327+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_021",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248335+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.248342+00:00",
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "domain": "ai",
+    "created_at": "2026-03-01T15:59:15.247378+00:00",
+    "updated_at": "2026-03-01T15:59:15.247378+00:00",
+    "node_count": 61,
+    "edge_count": 103,
+    "cluster_count": 5
+  },
+  "clusters": [
+    {
+      "id": "cluster_1",
+      "topics": [
+        "topic_cloud_infrastructure_and_pricing"
+      ],
+      "claims": [
+        "claim_021",
+        "claim_020",
+        "claim_018",
+        "claim_019",
+        "claim_022",
+        "claim_023"
+      ],
+      "size": 7,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_2",
+      "topics": [
+        "topic_performance_benchmarks"
+      ],
+      "claims": [
+        "claim_011",
+        "claim_012",
+        "claim_013",
+        "claim_016",
+        "claim_014",
+        "claim_015"
+      ],
+      "size": 7,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_3",
+      "topics": [
+        "topic_model_releases_and_specifications"
+      ],
+      "claims": [
+        "claim_004",
+        "claim_001",
+        "claim_003",
+        "claim_002",
+        "claim_017"
+      ],
+      "size": 6,
+      "density": 0.6
+    },
+    {
+      "id": "cluster_4",
+      "topics": [
+        "topic_technical_architecture"
+      ],
+      "claims": [
+        "claim_007",
+        "claim_009",
+        "claim_010",
+        "claim_008"
+      ],
+      "size": 5,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_0",
+      "topics": [
+        "topic_enterprise_adoption"
+      ],
+      "claims": [
+        "claim_005",
+        "claim_006"
+      ],
+      "size": 3,
+      "density": 1.0
+    }
+  ],
+  "gap_analysis": {
+    "isolated_nodes": [],
+    "weak_clusters": [],
+    "missing_connections": []
+  }
+}

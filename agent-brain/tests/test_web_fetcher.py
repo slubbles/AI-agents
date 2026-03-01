@@ -35,8 +35,10 @@ class TestWebFetcherHelpers:
         assert _should_skip("https://vercel.com/blog/post") is False
     
     def test_should_skip_reddit(self):
+        # Reddit moved from SKIP_DOMAINS to BROWSER_REQUIRED_DOMAINS
+        # So it's not skipped, just flagged as needing a browser
         from tools.web_fetcher import _should_skip
-        assert _should_skip("https://www.reddit.com/r/reactjs") is True
+        assert _should_skip("https://www.reddit.com/r/reactjs") is False
     
     def test_get_selectors_nextjs(self):
         from tools.web_fetcher import _get_selectors

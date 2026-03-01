@@ -1,99 +1,118 @@
 {
-  "version": 4,
-  "extracted_at": "2026-02-23T15:49:53.656162+00:00",
+  "version": 5,
+  "extracted_at": "2026-03-01T16:00:14.539729+00:00",
   "source_domains": [
     "crypto",
-    "geopolitics"
+    "nextjs-react",
+    "productized-services"
   ],
-  "source_count": 2,
+  "source_count": 3,
   "principles": [
     {
-      "principle": "Use 3-6 targeted searches maximum - avoid broad, unfocused searching that reduces parsing reliability",
+      "principle": "Use 3-7 targeted searches maximum rather than many broad searches - system performance degrades with higher counts",
       "category": "search_strategy",
-      "evidence": "Both domains explicitly limit searches to 3-6 for crypto and 4-6 for geopolitics. Crypto high-score outputs averaged 7.5 searches with good results, while one low performer used 12 searches indicating diminishing returns",
+      "evidence": "Crypto strategy explicitly caps at 3-6 searches due to 'parsing limitations', NextJS uses 4-7 for 'quality control', all high-scoring outputs stayed within this range",
       "source_domains": [
         "crypto",
-        "geopolitics"
+        "nextjs-react",
+        "productized-services"
       ],
       "confidence": "high"
     },
     {
-      "principle": "Establish and follow a strict source hierarchy prioritizing government/official sources over secondary sources",
+      "principle": "Establish and follow a clear source hierarchy with official/primary sources prioritized over secondary sources",
       "category": "source_quality",
-      "evidence": "Both domains prioritize government sources (.gov, official channels) first, then established institutions, then media. Crypto's best outputs (8.0 score) heavily used SEC.gov and official documentation",
+      "evidence": "All domains show higher scores when following source hierarchies: crypto (government > financial media), NextJS (official docs > source code > benchmarks), services (platform docs > analyst reports > blogs)",
       "source_domains": [
         "crypto",
-        "geopolitics"
+        "nextjs-react",
+        "productized-services"
       ],
       "confidence": "high"
     },
     {
-      "principle": "Cross-verify every major factual claim through at least 2 different source types",
+      "principle": "Assign explicit confidence levels (High/Medium/Low) to every claim with detailed reasoning for the confidence assessment",
+      "category": "honesty_calibration",
+      "evidence": "High-scoring outputs consistently use confidence levels: crypto 8.0 score has 'confidence level (High 80%+, Medium 50-79%, Low <50%) with detailed reasoning', similar patterns across domains",
+      "source_domains": [
+        "crypto",
+        "nextjs-react",
+        "productized-services"
+      ],
+      "confidence": "high"
+    },
+    {
+      "principle": "Cross-verify numerical claims, dates, and key facts through 2+ independent sources from different source types",
       "category": "source_quality",
-      "evidence": "Both strategies mandate cross-verification. Geopolitics 7.9-score output succeeded by tracking claims to original sources, while 6.9-score output failed by relying on unverified secondary sources",
+      "evidence": "Crypto strategy requires 'Every numerical claim must be cross-verified through 2+ different source types', high scores (7.3-8.0) show this verification, single-source claims get penalized",
       "source_domains": [
         "crypto",
-        "geopolitics"
+        "nextjs-react",
+        "productized-services"
       ],
       "confidence": "high"
     },
     {
-      "principle": "Assign explicit confidence levels (High/Medium/Low with percentages) to every major finding with detailed reasoning",
+      "principle": "Clearly distinguish between verified facts and speculation/inferences, explicitly flagging uncertainty",
       "category": "honesty_calibration",
-      "evidence": "Both domains require confidence scoring. High-scoring outputs (8.0 crypto, 7.9 geopolitics) extensively used confidence levels and transparent uncertainty acknowledgment",
+      "evidence": "Highest scores show 'clearly distinguishes verified facts from projections' and 'flags uncertainty explicitly rather than fabricating details' - this appears in top examples across all domains",
       "source_domains": [
         "crypto",
-        "geopolitics"
+        "nextjs-react",
+        "productized-services"
       ],
       "confidence": "high"
     },
     {
-      "principle": "Clearly distinguish between verified facts and speculation, projections, or unconfirmed claims",
+      "principle": "Document knowledge gaps and research limitations explicitly rather than fabricating information",
       "category": "honesty_calibration",
-      "evidence": "Highest scoring outputs in both domains (8.0 crypto, 7.9 geopolitics) excelled at distinguishing facts from speculation. Lower scores correlated with presenting unverified claims as facts",
+      "evidence": "High-scoring outputs have comprehensive 'knowledge_gaps' sections explaining what wasn't found and why, rather than making unsupported claims",
       "source_domains": [
         "crypto",
-        "geopolitics"
+        "nextjs-react",
+        "productized-services"
       ],
       "confidence": "high"
     },
     {
-      "principle": "Provide mechanistic WHY analysis explaining underlying causes and processes, not just what happened",
+      "principle": "Only cite URLs that were actually fetched and verify claims against actual content rather than search snippets",
+      "category": "source_quality",
+      "evidence": "Productized services strategy explicitly requires 'Only cite URLs that you have actually fetched. Cross-check every URL reference against your tool_usage log' - violations cause accuracy penalties",
+      "source_domains": [
+        "nextjs-react",
+        "productized-services"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Provide mechanistic explanations for findings - explain WHY something happened, not just what happened",
       "category": "depth_vs_breadth",
-      "evidence": "Both strategies explicitly require mechanistic analysis. High scorers provided decision-making processes and causal explanations, while surface-level treatment was noted as a weakness in lower-scoring outputs",
+      "evidence": "Crypto strategy requires 'explain the underlying mechanisms, causation, and implications' and high-scoring outputs show 'mechanistic analysis' and 'technical depth'",
       "source_domains": [
         "crypto",
-        "geopolitics"
-      ],
-      "confidence": "high"
-    },
-    {
-      "principle": "Verify temporal claims with specific dates and multiple independent sources, especially for recent events",
-      "category": "temporal_awareness",
-      "evidence": "Both domains emphasize 2026 temporal verification. Crypto's 8.0-score output provided 'precise dates, sources, and confidence levels' while temporal issues were flagged as problems in weaker outputs",
-      "source_domains": [
-        "crypto",
-        "geopolitics"
+        "nextjs-react"
       ],
       "confidence": "medium"
     },
     {
-      "principle": "Explicitly document knowledge gaps and research limitations rather than attempting to cover gaps with speculation",
-      "category": "honesty_calibration",
-      "evidence": "High-scoring outputs consistently praised for 'excellent knowledge gap identification' and 'transparent about limitations', while attempts to fill gaps with weak sources were penalized",
-      "source_domains": [
-        "crypto",
-        "geopolitics"
-      ],
-      "confidence": "medium"
-    },
-    {
-      "principle": "Include specific quantitative details (dates, dollar amounts, percentages) with source attribution",
+      "principle": "Include specific quantitative data (percentages, dollar amounts, timeframes) when available rather than vague descriptions",
       "category": "output_structure",
-      "evidence": "Best performers provided 'exact dollar amounts, dates, and statutory requirements' (8.0 crypto) and 'concrete dollar figures, percentages, and volumetric data' (6.9+ geopolitics)",
+      "evidence": "High scores correlate with 'exact dollar amounts', 'precise dates', 'specific percentages' - vague claims consistently score lower across domains",
       "source_domains": [
         "crypto",
-        "geopolitics"
+        "nextjs-react",
+        "productized-services"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "principle": "Verify temporal claims against current date context and flag any anachronistic information",
+      "category": "temporal_awareness",
+      "evidence": "All strategies emphasize TODAY'S DATE verification, crypto requires '2026 TEMPORAL VERIFICATION', violations mentioned in weaknesses sections",
+      "source_domains": [
+        "crypto",
+        "nextjs-react",
+        "productized-services"
       ],
       "confidence": "medium"
     }
@@ -101,14 +120,19 @@
   "domain_specific_insights": [
     {
       "domain": "crypto",
-      "insight": "Prioritize SEC.gov, Federal Register, and Congressional records for regulatory topics; emphasize numerical verification through financial media",
-      "not_transferable_because": "Specific to crypto regulatory structure and financial data requirements"
+      "insight": "Mandatory government source priority for regulatory topics, SEC.gov and Federal Register searches required first",
+      "not_transferable_because": "Specific to financial regulatory research - other domains don't have equivalent government oversight structures"
     },
     {
-      "domain": "geopolitics",
-      "insight": "Distinguish between official policy positions vs unofficial signals, announced measures vs implemented actions",
-      "not_transferable_because": "Specific to diplomatic communication patterns and geopolitical analysis frameworks"
+      "domain": "nextjs-react",
+      "insight": "Direct source code repository examination required for implementation details, GitHub URL access mandatory",
+      "not_transferable_because": "Only applies to open-source software research - other domains may not have accessible codebases"
+    },
+    {
+      "domain": "productized-services",
+      "insight": "Platform documentation and investor reports take priority over founder community discussions",
+      "not_transferable_because": "Specific to business/startup research - academic or technical domains have different authoritative source hierarchies"
     }
   ],
-  "meta_observations": "Both domains converge on similar quality principles: limited focused searches, strict source hierarchies, cross-verification, confidence calibration, and mechanistic analysis. The core difference is domain-specific source types, not research methodology."
+  "meta_observations": "All high-performing strategies converge on limiting search quantity (3-7 max), establishing clear source hierarchies, and emphasizing intellectual honesty through explicit uncertainty quantification. The universal pattern is quality over quantity in both searches and sources, with rigorous verification being more important than comprehensive coverage."
 }

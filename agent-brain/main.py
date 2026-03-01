@@ -374,6 +374,35 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
             except Exception as e:
                 print(f"[GRAPH] ⚠ Graph build failed: {e}")
 
+            # Auto-extract predictions from newly synthesized KB
+            try:
+                from agents.verifier import extract_predictions, load_predictions
+                new_preds = extract_predictions(domain)
+                if new_preds:
+                    existing = load_predictions(domain)
+                    print(f"[VERIFIER] Extracted {len(new_preds)} prediction(s) from KB ({len(existing)} total tracked)")
+            except Exception as e:
+                print(f"[VERIFIER] ⚠ Prediction extraction failed: {e}")
+
+    # Step 6.75: Auto-verify past-deadline predictions (reality-grounding)
+    if final_verdict == "accept":
+        try:
+            from agents.verifier import verify_predictions, load_predictions
+            predictions = load_predictions(domain)
+            pending = [p for p in predictions if p.get("status") == "pending"]
+            if pending:
+                from datetime import date as _date
+                past_deadline = [p for p in pending 
+                                 if p.get("deadline") and p["deadline"] <= _date.today().isoformat()]
+                if past_deadline:
+                    print(f"\n[VERIFIER] {len(past_deadline)} prediction(s) past deadline — verifying...")
+                    results = verify_predictions(domain, max_checks=3)
+                    for r in results:
+                        status_icon = {"confirmed": "✓", "refuted": "✗", "partially_confirmed": "~", "inconclusive": "?"}.get(r.get("status"), "?")
+                        print(f"  {status_icon} {r.get('prediction', '?')[:80]} → {r.get('status', '?')}")
+        except Exception as e:
+            pass  # Non-blocking — verification failure shouldn't stop the loop
+
     # Step 7: Meta-analysis — evolve strategy if enough data
     # SAFETY: Never evolve while a trial is still being evaluated
     # SAFETY: Never evolve during warmup period (insufficient data)

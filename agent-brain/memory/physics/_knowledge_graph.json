@@ -1,0 +1,1218 @@
+{
+  "nodes": [
+    {
+      "id": "topic_dark_matter_fundamentals",
+      "type": "topic",
+      "label": "Dark Matter Fundamentals",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253401+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "definition",
+          "composition",
+          "detection_principles",
+          "cosmic_evolution"
+        ]
+      }
+    },
+    {
+      "id": "topic_wimp_dark_matter",
+      "type": "topic",
+      "label": "WIMP Dark Matter",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253417+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "mass_ranges",
+          "interaction_mechanisms",
+          "thermal_relic_abundance",
+          "detection_limits"
+        ]
+      }
+    },
+    {
+      "id": "topic_axion_dark_matter",
+      "type": "topic",
+      "label": "Axion Dark Matter",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253428+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "peccei_quinn_mechanism",
+          "photon_coupling",
+          "mass_predictions",
+          "experimental_exclusions"
+        ]
+      }
+    },
+    {
+      "id": "topic_sterile_neutrinos",
+      "type": "topic",
+      "label": "Sterile Neutrinos",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253437+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "kev_mass_range",
+          "gravitational_interactions",
+          "detection_challenges"
+        ]
+      }
+    },
+    {
+      "id": "topic_experimental_constraints",
+      "type": "topic",
+      "label": "Experimental Constraints",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253447+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "direct_detection",
+          "exclusion_limits",
+          "sensitivity_improvements",
+          "neutrino_floor"
+        ]
+      }
+    },
+    {
+      "id": "claim_001",
+      "type": "claim",
+      "label": "Dark matter is an invisible, hypothetical form of matter that does not interact with light or other electromagnetic radiation",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_updated": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Dark matter is an invisible, hypothetical form of matter that does not interact with light or other electromagnetic radiation",
+        "sources": [
+          "https://en.wikipedia.org/wiki/Dark_matter"
+        ],
+        "notes": "Consistent definition across multiple authoritative sources"
+      }
+    },
+    {
+      "id": "source_https_en_wikipedia_org_wiki_dark_matter",
+      "type": "source",
+      "label": "https://en.wikipedia.org/wiki/Dark_matter",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253479+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://en.wikipedia.org/wiki/Dark_matter"
+      }
+    },
+    {
+      "id": "claim_002",
+      "type": "claim",
+      "label": "Dark matter makes up approximately 80% of all matter in the universe",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_updated": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Dark matter makes up approximately 80% of all matter in the universe",
+        "sources": [
+          "https://news.northeastern.edu/2026/01/26/dark-matter-map/"
+        ],
+        "notes": "Multiple sources cite similar figures"
+      }
+    },
+    {
+      "id": "source_https_news_northeastern_edu_2026_01_26_dark_matter_map",
+      "type": "source",
+      "label": "https://news.northeastern.edu/2026/01/26/dark-matter-map/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253516+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://news.northeastern.edu/2026/01/26/dark-matter-map/"
+      }
+    },
+    {
+      "id": "claim_003",
+      "type": "claim",
+      "label": "Dark matter comprises 30.1% of the total matter-energy composition of the universe (with dark energy at 69.4% and ordinary matter at 0.5%)",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_updated": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Dark matter comprises 30.1% of the total matter-energy composition of the universe (with dark energy at 69.4% and ordinary matter at 0.5%)",
+        "sources": [
+          "https://www.britannica.com/science/dark-matter"
+        ],
+        "notes": "Specific percentage breakdown from peer-reviewed reference"
+      }
+    },
+    {
+      "id": "source_https_www_britannica_com_science_dark_matter",
+      "type": "source",
+      "label": "https://www.britannica.com/science/dark-matter",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253553+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.britannica.com/science/dark-matter"
+      }
+    },
+    {
+      "id": "claim_004",
+      "type": "claim",
+      "label": "Dark matter's presence is detected through its gravitational effects rather than direct observation",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_updated": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Dark matter's presence is detected through its gravitational effects rather than direct observation",
+        "sources": [
+          "https://www.britannica.com/science/dark-matter"
+        ],
+        "notes": "Foundational principle of dark matter identification"
+      }
+    },
+    {
+      "id": "claim_005",
+      "type": "claim",
+      "label": "Dark matter and ordinary matter co-existed and evolved together throughout cosmic history",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-23T11:17:17.447076+00:00",
+      "last_updated": "2026-02-23T11:17:17.447076+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Dark matter and ordinary matter co-existed and evolved together throughout cosmic history",
+        "sources": [
+          "https://news.ucr.edu/articles/2026/01/26/james-webb-space-telescope-reveals-new-details-about-dark-matter-universe"
+        ],
+        "notes": "Based on recent James Webb Space Telescope observations from January 2026"
+      }
+    },
+    {
+      "id": "source_https_news_ucr_edu_articles_2026_01_26_james_webb_space_tele",
+      "type": "source",
+      "label": "https://news.ucr.edu/articles/2026/01/26/james-webb-space-telescope-reveals-new-details-about-dark-matter-universe",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253619+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://news.ucr.edu/articles/2026/01/26/james-webb-space-telescope-reveals-new-details-about-dark-matter-universe"
+      }
+    },
+    {
+      "id": "claim_006",
+      "type": "claim",
+      "label": "WIMPs (Weakly Interacting Massive Particles) have predicted mass ranges from 1 GeV/c\u00b2 to 10\u2075 GeV/c\u00b2 with typical focus on 100 GeV/c\u00b2 to TeV scale",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_updated": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "WIMPs (Weakly Interacting Massive Particles) have predicted mass ranges from 1 GeV/c\u00b2 to 10\u2075 GeV/c\u00b2 with typical focus on 100 GeV/c\u00b2 to TeV scale",
+        "sources": [
+          "https://arxiv.org/pdf/1707.06277",
+          "https://slac.stanford.edu/econf/C1307292/docs/CosmicFrontier/WIMPDirect-24.pdf"
+        ],
+        "notes": "Mass scale emerges naturally from electroweak symmetry breaking"
+      }
+    },
+    {
+      "id": "source_https_arxiv_org_pdf_1707_06277",
+      "type": "source",
+      "label": "https://arxiv.org/pdf/1707.06277",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253650+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://arxiv.org/pdf/1707.06277"
+      }
+    },
+    {
+      "id": "source_https_slac_stanford_edu_econf_c1307292_docs_cosmicfrontier_w",
+      "type": "source",
+      "label": "https://slac.stanford.edu/econf/C1307292/docs/CosmicFrontier/WIMPDirect-24.pdf",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253670+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://slac.stanford.edu/econf/C1307292/docs/CosmicFrontier/WIMPDirect-24.pdf"
+      }
+    },
+    {
+      "id": "claim_007",
+      "type": "claim",
+      "label": "WIMPs interact via the weak nuclear force with interaction cross sections ranging from 10\u207b\u2074\u00b9 to 10\u207b\u2075\u00b9 cm\u00b2, and require self-annihilation cross sections of approximately 3\u00d710\u207b\u00b2\u2076 cm\u00b3/s to achieve correc",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_updated": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "WIMPs interact via the weak nuclear force with interaction cross sections ranging from 10\u207b\u2074\u00b9 to 10\u207b\u2075\u00b9 cm\u00b2, and require self-annihilation cross sections of approximately 3\u00d710\u207b\u00b2\u2076 cm\u00b3/s to achieve correct dark matter abundance",
+        "sources": [
+          "https://en.wikipedia.org/wiki/Weakly_interacting_massive_particle"
+        ],
+        "notes": "Well-established theoretical prediction linked to thermal relic abundance"
+      }
+    },
+    {
+      "id": "source_https_en_wikipedia_org_wiki_weakly_interacting_massive_parti",
+      "type": "source",
+      "label": "https://en.wikipedia.org/wiki/Weakly_interacting_massive_particle",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253704+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://en.wikipedia.org/wiki/Weakly_interacting_massive_particle"
+      }
+    },
+    {
+      "id": "claim_008",
+      "type": "claim",
+      "label": "Axions are predicted to have very low masses in the microeV range (much smaller than other candidates) and couple to photons and gluons through the Peccei-Quinn mechanism, which solves the strong CP p",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_updated": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Axions are predicted to have very low masses in the microeV range (much smaller than other candidates) and couple to photons and gluons through the Peccei-Quinn mechanism, which solves the strong CP problem in QCD",
+        "sources": [
+          "https://en.wikipedia.org/wiki/Peccei%E2%80%93Quinn_theory",
+          "https://en.wikipedia.org/wiki/Axion"
+        ],
+        "notes": "Peccei-Quinn mechanism established in 1977"
+      }
+    },
+    {
+      "id": "source_https_en_wikipedia_org_wiki_peccei_e2_80_93quinn_theory",
+      "type": "source",
+      "label": "https://en.wikipedia.org/wiki/Peccei%E2%80%93Quinn_theory",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253736+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://en.wikipedia.org/wiki/Peccei%E2%80%93Quinn_theory"
+      }
+    },
+    {
+      "id": "source_https_en_wikipedia_org_wiki_axion",
+      "type": "source",
+      "label": "https://en.wikipedia.org/wiki/Axion",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253754+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://en.wikipedia.org/wiki/Axion"
+      }
+    },
+    {
+      "id": "claim_009",
+      "type": "claim",
+      "label": "Sterile neutrinos are predicted to have keV/c\u00b2 mass range (1-100 keV) and interact extremely weakly through gravity only, making them distinct from active neutrinos",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_updated": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Sterile neutrinos are predicted to have keV/c\u00b2 mass range (1-100 keV) and interact extremely weakly through gravity only, making them distinct from active neutrinos",
+        "sources": [
+          "https://www.mpi-hd.mpg.de/mpi/en/public-relations/news/news-item/katrin-tightens-the-net-around-the-elusive-sterile-neutrino"
+        ],
+        "notes": "KATRIN TRISTAN upgrade operational 2026 targets this mass range"
+      }
+    },
+    {
+      "id": "source_https_www_mpi_hd_mpg_de_mpi_en_public_relations_news_news_it",
+      "type": "source",
+      "label": "https://www.mpi-hd.mpg.de/mpi/en/public-relations/news/news-item/katrin-tightens-the-net-around-the-elusive-sterile-neut",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253788+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.mpi-hd.mpg.de/mpi/en/public-relations/news/news-item/katrin-tightens-the-net-around-the-elusive-sterile-neutrino"
+      }
+    },
+    {
+      "id": "claim_010",
+      "type": "claim",
+      "label": "As of 2025-2026, axions are increasingly cited as the leading dark matter candidate, with some physicists calling it 'the most likely dark matter candidate today,' due to lack of confirmed WIMP detect",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_updated": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "As of 2025-2026, axions are increasingly cited as the leading dark matter candidate, with some physicists calling it 'the most likely dark matter candidate today,' due to lack of confirmed WIMP detection signals",
+        "sources": [
+          "https://medium.com/@MarxismLeninism/-b1973f00de36"
+        ],
+        "notes": "Direct detection experiments reached neutrino floor without WIMP confirmation"
+      }
+    },
+    {
+      "id": "source_https_medium_com_marxismleninism_b1973f00de36",
+      "type": "source",
+      "label": "https://medium.com/@MarxismLeninism/-b1973f00de36",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253819+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://medium.com/@MarxismLeninism/-b1973f00de36"
+      }
+    },
+    {
+      "id": "claim_011",
+      "type": "claim",
+      "label": "Direct detection of WIMPs has entered the 'neutrino-floor era' as of 2025, where solar neutrino backgrounds limit further sensitivity improvements with current technology",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:06:56.566825+00:00",
+      "last_updated": "2026-02-23T15:06:56.566825+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Direct detection of WIMPs has entered the 'neutrino-floor era' as of 2025, where solar neutrino backgrounds limit further sensitivity improvements with current technology",
+        "sources": [
+          "https://arxiv.org/pdf/2510.17473"
+        ],
+        "notes": "Reported at ICRC 2025 conference by XENONnT and PandaX-4T"
+      }
+    },
+    {
+      "id": "source_https_arxiv_org_pdf_2510_17473",
+      "type": "source",
+      "label": "https://arxiv.org/pdf/2510.17473",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253850+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://arxiv.org/pdf/2510.17473"
+      }
+    },
+    {
+      "id": "claim_012",
+      "type": "claim",
+      "label": "XENONnT achieves spin-independent WIMP-nucleon cross section limit of 1.7\u00d710\u207b\u2074\u2077 cm\u00b2 at 30 GeV/c\u00b2 WIMP mass (90% CL) with 3.1 tonne-year exposure",
+      "confidence": "high",
+      "status": "superseded",
+      "first_seen": "2026-02-23T15:19:35.037302+00:00",
+      "last_updated": "2026-02-23T15:19:35.037302+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "XENONnT achieves spin-independent WIMP-nucleon cross section limit of 1.7\u00d710\u207b\u2074\u2077 cm\u00b2 at 30 GeV/c\u00b2 WIMP mass (90% CL) with 3.1 tonne-year exposure",
+        "sources": [
+          "https://arxiv.org/pdf/2406.13638"
+        ],
+        "notes": "Superseded by LUX-ZEPLIN results"
+      }
+    },
+    {
+      "id": "source_https_arxiv_org_pdf_2406_13638",
+      "type": "source",
+      "label": "https://arxiv.org/pdf/2406.13638",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253881+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://arxiv.org/pdf/2406.13638"
+      }
+    },
+    {
+      "id": "claim_013",
+      "type": "claim",
+      "label": "LUX-ZEPLIN (LZ) sets most stringent spin-independent WIMP limits of 2.2\u00d710\u207b\u2074\u2078 cm\u00b2 at 43 GeV/c\u00b2 WIMP mass (90% CL) as of December 2025",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:19:35.037302+00:00",
+      "last_updated": "2026-02-23T15:19:35.037302+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "LUX-ZEPLIN (LZ) sets most stringent spin-independent WIMP limits of 2.2\u00d710\u207b\u2074\u2078 cm\u00b2 at 43 GeV/c\u00b2 WIMP mass (90% CL) as of December 2025",
+        "sources": [
+          "https://indico.cern.ch/event/1493037/contributions/6558024/",
+          "https://lz.lbl.gov/"
+        ],
+        "notes": "~20-fold improvement over XENONnT sensitivity"
+      }
+    },
+    {
+      "id": "source_https_indico_cern_ch_event_1493037_contributions_6558024",
+      "type": "source",
+      "label": "https://indico.cern.ch/event/1493037/contributions/6558024/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253913+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://indico.cern.ch/event/1493037/contributions/6558024/"
+      }
+    },
+    {
+      "id": "source_https_lz_lbl_gov",
+      "type": "source",
+      "label": "https://lz.lbl.gov/",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253930+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://lz.lbl.gov/"
+      }
+    },
+    {
+      "id": "claim_014",
+      "type": "claim",
+      "label": "ADMX excludes QCD axion parameter space in frequency range 1.10-1.31 GHz (4.54-5.41 \u03bceV axion mass) for plausible QCD axion models (2025 results)",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:19:35.037302+00:00",
+      "last_updated": "2026-02-23T15:19:35.037302+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "ADMX excludes QCD axion parameter space in frequency range 1.10-1.31 GHz (4.54-5.41 \u03bceV axion mass) for plausible QCD axion models (2025 results)",
+        "sources": [
+          "https://arxiv.org/html/2504.07279v2"
+        ],
+        "notes": "Published in Physical Review Letters 2025"
+      }
+    },
+    {
+      "id": "source_https_arxiv_org_html_2504_07279v2",
+      "type": "source",
+      "label": "https://arxiv.org/html/2504.07279v2",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.253968+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://arxiv.org/html/2504.07279v2"
+      }
+    },
+    {
+      "id": "claim_015",
+      "type": "claim",
+      "label": "ADMX also excludes Dine-Fischler-Srednicki-Zhitnitsky (DFSZ) axions between 3.27-3.31 \u03bceV at 90% confidence level (2025 results)",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-23T15:19:35.037302+00:00",
+      "last_updated": "2026-02-23T15:19:35.037302+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "ADMX also excludes Dine-Fischler-Srednicki-Zhitnitsky (DFSZ) axions between 3.27-3.31 \u03bceV at 90% confidence level (2025 results)",
+        "sources": [
+          "https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.134.111002"
+        ],
+        "notes": "DFSZ model represents extended axion framework with different coupling constants"
+      }
+    },
+    {
+      "id": "source_https_journals_aps_org_prl_pdf_10_1103_physrevlett_134_11100",
+      "type": "source",
+      "label": "https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.134.111002",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.254003+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.134.111002"
+      }
+    },
+    {
+      "id": "gap_000",
+      "type": "gap",
+      "label": "The exact composition and identity of dark matter particles remains unknown with no direct detection confirmed",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.254019+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Dark Matter Fundamentals",
+        "full_text": "The exact composition and identity of dark matter particles remains unknown with no direct detection confirmed"
+      }
+    },
+    {
+      "id": "gap_001",
+      "type": "gap",
+      "label": "Specific 2026 SuperCDMS sensitivity numbers and low-mass WIMP cross-section limits not quantified",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.254026+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Experimental Constraints",
+        "full_text": "Specific 2026 SuperCDMS sensitivity numbers and low-mass WIMP cross-section limits not quantified"
+      }
+    },
+    {
+      "id": "gap_002",
+      "type": "gap",
+      "label": "Current 2026 experimental constraints on sterile neutrino parameter space largely unexplored despite KATRIN TRISTAN upgrade",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.254033+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Sterile Neutrinos",
+        "full_text": "Current 2026 experimental constraints on sterile neutrino parameter space largely unexplored despite KATRIN TRISTAN upgrade"
+      }
+    },
+    {
+      "id": "gap_003",
+      "type": "gap",
+      "label": "Specific coupling constants and detailed interaction mechanisms for axion-photon and axion-gluon couplings not fully quantified",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.254039+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Axion Dark Matter",
+        "full_text": "Specific coupling constants and detailed interaction mechanisms for axion-photon and axion-gluon couplings not fully quantified"
+      }
+    },
+    {
+      "id": "gap_004",
+      "type": "gap",
+      "label": "Impact of neutrino fog on future WIMP discovery potential and fundamental physics limitations not addressed",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.254046+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Experimental Constraints",
+        "full_text": "Impact of neutrino fog on future WIMP discovery potential and fundamental physics limitations not addressed"
+      }
+    },
+    {
+      "id": "gap_005",
+      "type": "gap",
+      "label": "Combined parameter space visualization showing how different experiments complement/overlap not provided",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-01T15:59:15.254052+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Experimental Constraints",
+        "full_text": "Combined parameter space visualization showing how different experiments complement/overlap not provided"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "claim_001",
+      "target": "topic_dark_matter_fundamentals",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253462+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_en_wikipedia_org_wiki_dark_matter",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253484+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "topic_dark_matter_fundamentals",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253498+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_news_northeastern_edu_2026_01_26_dark_matter_map",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253522+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "topic_dark_matter_fundamentals",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253537+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_www_britannica_com_science_dark_matter",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253559+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "topic_dark_matter_fundamentals",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253571+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_https_www_britannica_com_science_dark_matter",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253588+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "topic_dark_matter_fundamentals",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253601+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_https_news_ucr_edu_articles_2026_01_26_james_webb_space_tele",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253624+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "topic_wimp_dark_matter",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253636+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_https_arxiv_org_pdf_1707_06277",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253656+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_https_slac_stanford_edu_econf_c1307292_docs_cosmicfrontier_w",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253675+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "topic_wimp_dark_matter",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253688+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_en_wikipedia_org_wiki_weakly_interacting_massive_parti",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253709+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "topic_axion_dark_matter",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253721+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_https_en_wikipedia_org_wiki_peccei_e2_80_93quinn_theory",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253741+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_https_en_wikipedia_org_wiki_axion",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253759+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "topic_sterile_neutrinos",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253771+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "source_https_www_mpi_hd_mpg_de_mpi_en_public_relations_news_news_it",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253793+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "topic_axion_dark_matter",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253806+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_medium_com_marxismleninism_b1973f00de36",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253824+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "topic_experimental_constraints",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253836+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_arxiv_org_pdf_2510_17473",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253855+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "topic_experimental_constraints",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253867+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_arxiv_org_pdf_2406_13638",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253886+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "topic_experimental_constraints",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253898+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_indico_cern_ch_event_1493037_contributions_6558024",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253918+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_lz_lbl_gov",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253935+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_012",
+      "type": "supersedes",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253941+00:00",
+      "metadata": {
+        "reason": "newer data replaces older"
+      }
+    },
+    {
+      "source": "claim_014",
+      "target": "topic_experimental_constraints",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253954+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_https_arxiv_org_html_2504_07279v2",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253973+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "topic_experimental_constraints",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.253985+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_https_journals_aps_org_prl_pdf_10_1103_physrevlett_134_11100",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.254009+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_000",
+      "target": "topic_dark_matter_fundamentals",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.254022+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_001",
+      "target": "topic_experimental_constraints",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.254029+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_002",
+      "target": "topic_sterile_neutrinos",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.254036+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_003",
+      "target": "topic_axion_dark_matter",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.254042+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_004",
+      "target": "topic_experimental_constraints",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.254048+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_005",
+      "target": "topic_experimental_constraints",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-01T15:59:15.254055+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_002",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254071+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_003",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254076+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_004",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254080+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254084+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_003",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254089+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_004",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254099+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254103+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_004",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254107+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254112+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254116+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_007",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254126+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254135+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254155+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254160+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254164+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254169+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254174+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-01T15:59:15.254178+00:00",
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "domain": "physics",
+    "created_at": "2026-03-01T15:59:15.253375+00:00",
+    "updated_at": "2026-03-01T15:59:15.253375+00:00",
+    "node_count": 43,
+    "edge_count": 58,
+    "cluster_count": 5
+  },
+  "clusters": [
+    {
+      "id": "cluster_0",
+      "topics": [
+        "topic_dark_matter_fundamentals"
+      ],
+      "claims": [
+        "claim_004",
+        "claim_001",
+        "claim_003",
+        "claim_005",
+        "claim_002"
+      ],
+      "size": 6,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_2",
+      "topics": [
+        "topic_experimental_constraints"
+      ],
+      "claims": [
+        "claim_011",
+        "claim_013",
+        "claim_012",
+        "claim_014",
+        "claim_015"
+      ],
+      "size": 6,
+      "density": 0.8
+    },
+    {
+      "id": "cluster_3",
+      "topics": [
+        "topic_axion_dark_matter"
+      ],
+      "claims": [
+        "claim_008",
+        "claim_010"
+      ],
+      "size": 3,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_4",
+      "topics": [
+        "topic_wimp_dark_matter"
+      ],
+      "claims": [
+        "claim_006",
+        "claim_007"
+      ],
+      "size": 3,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_1",
+      "topics": [
+        "topic_sterile_neutrinos"
+      ],
+      "claims": [
+        "claim_009"
+      ],
+      "size": 2,
+      "density": 1.0
+    }
+  ],
+  "gap_analysis": {
+    "isolated_nodes": [],
+    "weak_clusters": [
+      {
+        "cluster_id": "cluster_1",
+        "size": 2,
+        "topics": [
+          "topic_sterile_neutrinos"
+        ]
+      }
+    ],
+    "missing_connections": []
+  }
+}
