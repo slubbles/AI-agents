@@ -410,8 +410,8 @@ def check_providers() -> dict:
 
 # Cheap models via OpenRouter
 OPENROUTER_MODELS = {
+    "grok-4.1-fast": "x-ai/grok-4.1-fast",
     "deepseek-v3": "deepseek/deepseek-chat",
-    "deepseek-v3.2": "deepseek/deepseek-chat-v3-0324",  # Latest March 2026 version
     "deepseek-r1": "deepseek/deepseek-reasoner",
     "llama-3.3-70b": "meta-llama/llama-3.3-70b-instruct",
     "llama-3.1-8b": "meta-llama/llama-3.1-8b-instruct",
@@ -426,7 +426,7 @@ MODEL_COSTS = {
     "claude-sonnet-4-20250514": {"input": 3.00, "output": 15.00},
     # Deepseek via OpenRouter
     "deepseek/deepseek-chat": {"input": 0.27, "output": 1.10},
-    "deepseek/deepseek-chat-v3-0324": {"input": 0.27, "output": 1.10},  # V3.2
+    "x-ai/grok-4.1-fast": {"input": 0.50, "output": 2.00},  # Grok 4.1 Fast
     "deepseek/deepseek-reasoner": {"input": 0.55, "output": 2.19},
     # Llama via OpenRouter
     "meta-llama/llama-3.3-70b-instruct": {"input": 0.59, "output": 0.79},

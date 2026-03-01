@@ -13,10 +13,10 @@ load_dotenv(Path(__file__).parent / ".env")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 
-# Cheap model via OpenRouter (Deepseek V3.2)
+# Cheap model via OpenRouter (Grok 4.1 Fast)
 # Falls back to Claude Haiku if OpenRouter not configured
 CHEAP_MODEL = (
-    "deepseek/deepseek-chat-v3-0324"  # ~10x cheaper than Haiku
+    "x-ai/grok-4.1-fast"  # fast + cheap via OpenRouter
     if OPENROUTER_API_KEY 
     else "claude-haiku-4-5-20251001"
 )
@@ -58,9 +58,10 @@ COST_PER_1K = {
     # Claude models (Anthropic direct)
     "claude-haiku-4-5-20251001": {"input": 0.001, "output": 0.005},
     "claude-sonnet-4-20250514": {"input": 0.003, "output": 0.015},
-    # Deepseek via OpenRouter (~10x cheaper than Haiku)
+    # Grok via OpenRouter
+    "x-ai/grok-4.1-fast": {"input": 0.0005, "output": 0.002},
+    # Deepseek via OpenRouter
     "deepseek/deepseek-chat": {"input": 0.00027, "output": 0.0011},
-    "deepseek/deepseek-chat-v3-0324": {"input": 0.00027, "output": 0.0011},
 }
 DAILY_BUDGET_USD = 2.00  # Normal daily budget
 TOTAL_BALANCE_USD = 11.74  # Synced from Claude console Feb 28. Update after checking actual balance.

@@ -38,7 +38,7 @@ def _build_system_context(domain: str) -> str:
     from memory_store import get_stats, load_knowledge_base, load_outputs
     from strategy_store import get_active_version, get_strategy_status, list_pending
     from cost_tracker import get_daily_spend, check_balance
-    from analytics import domain_comparison, cost_efficiency
+    from analytics import domain_comparison
     
     # Gather system state
     stats = get_stats(domain)
@@ -91,17 +91,71 @@ def _build_system_context(domain: str) -> str:
         ver_list = ', '.join(p.get('version', '?') for p in pending)
         pending_info = f"\n  Pending strategy versions awaiting approval: {ver_list}"
     
+    # Execution layer summary
+    exec_summary = ""
+    try:
+        exec_mem_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "exec_memory")
+        if os.path.exists(exec_mem_dir):
+            exec_domains = [d for d in os.listdir(exec_mem_dir) if os.path.isdir(os.path.join(exec_mem_dir, d))]
+            total_tasks = 0
+            for ed in exec_domains:
+                tasks = [f for f in os.listdir(os.path.join(exec_mem_dir, ed)) if f.endswith(".json")]
+                total_tasks += len(tasks)
+            if exec_domains:
+                exec_summary = f"\n  Execution layer: {total_tasks} completed tasks across {len(exec_domains)} domains ({', '.join(exec_domains)})"
+    except Exception:
+        pass
+    
+    # Project orchestrator summary
+    project_summary = ""
+    try:
+        proj_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "projects")
+        if os.path.exists(proj_dir):
+            projs = [f for f in os.listdir(proj_dir) if f.endswith(".json")]
+            if projs:
+                project_summary = f"\n  Projects: {len(projs)} tracked"
+    except Exception:
+        pass
+    
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     
-    return f"""You are Agent Brain's conversational interface. Today is {today}.
+    return f"""You are the conversational interface for Agent Brain — a full autonomous AI system. Today is {today}.
 
-You are an autonomous, self-improving research system. You have a knowledge base, scored research outputs, strategy evolution, and multi-domain research capabilities.
+SYSTEM ARCHITECTURE:
+You are NOT just a research tool. You are the interface to a complete autonomous system with TWO main subsystems that work together:
+
+1. **Agent Brain** (Research + Knowledge)
+   - Researches questions via web search → critic evaluation → scored storage
+   - Synthesizes findings into a knowledge base (KB) with confidence-scored claims
+   - Evolves its own research strategies based on performance scores
+   - Maintains cross-domain principles extracted from proven strategies
+   - Self-directed learning: identifies knowledge gaps and generates next questions
+
+2. **Agent Hands** (Execution + Code Generation)
+   - Generates code, builds projects, and executes tasks
+   - Has its own execution memory, learned patterns, and strategy evolution
+   - Brain→Hands pipeline: KB insights → auto-generated coding tasks → built artifacts
+   - Project orchestrator: decomposes large projects into phases → executes them
+   - Tracks execution quality, learns from successes/failures
+
+3. **Infrastructure Layer**
+   - Stealth browser: JS-rendered web fetching with anti-detection
+   - Doc crawler: crawl entire documentation sites → inject into KB
+   - RAG vector store: semantic search across all stored knowledge
+   - MCP gateway: Docker-based tool servers (extensible)
+   - Credential vault: encrypted secret storage
+   - Scheduler/daemon: continuous autonomous operation
+   - VPS deployment: remote self-hosting capability
+   - Multi-domain knowledge graphs with entity relationships
+
+The Brain feeds knowledge INTO the Hands. The Hands build things FROM the Brain's insights.
+Together they form a system that researches, learns, builds, and improves itself.
 
 CURRENT STATE:
   Active domain: {domain}
   Strategy: {active_ver} ({strat_status}){pending_info}
   Domain stats: {stats.get('count', 0)} outputs, avg score {stats.get('avg_score', 0):.1f}, {stats.get('accepted', 0)} accepted, {stats.get('rejected', 0)} rejected
-  Knowledge base: {kb_summary}
+  Knowledge base: {kb_summary}{exec_summary}{project_summary}
   Budget: ${daily.get('total_usd', 0):.2f} spent today / ${DAILY_BUDGET_USD:.2f} limit. Balance: ${balance.get('remaining', 0):.2f}
 
 ALL DOMAINS:
@@ -111,15 +165,16 @@ RECENT HIGH-QUALITY OUTPUTS ({domain}):
 {recent_summary if recent_summary else '  (none yet)'}
 
 AVAILABLE TOOLS:
-You have tools to interact with the system. Use them when the user asks you to do something.
+You have tools to interact with the FULL system — research, execution, projects, and infrastructure.
 When users ask conversational questions about what you know, answer from your knowledge base context.
-When they ask you to take actions (research, approve, check status), use the appropriate tool.
+When they ask you to take actions, use the appropriate tool.
 
 STYLE:
 - Be direct, concise, and helpful
 - When sharing knowledge, cite the confidence level and source if available
 - If you don't know something, say so — suggest researching it
-- Use plain language, not jargon
+- Understand the full system anatomy — don't undersell capabilities
+- When asked "what can you do?", describe both Brain AND Hands capabilities
 - Format with markdown when helpful
 """
 
@@ -250,6 +305,129 @@ CHAT_TOOLS = [
                 }
             },
             "required": ["domain"]
+        }
+    },
+    {
+        "name": "execute_task",
+        "description": "Use Agent Hands to execute a coding/building task. Generates code, writes files, runs tests. Use when user asks to build, code, create, or execute something.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "goal": {
+                    "type": "string",
+                    "description": "What to build or execute (e.g. 'Build a REST API for user management')"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Domain context (optional)"
+                }
+            },
+            "required": ["goal"]
+        }
+    },
+    {
+        "name": "auto_build",
+        "description": "Brain→Hands pipeline: automatically generate a coding task from KB insights and execute it. The system picks what to build based on domain knowledge.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Domain to auto-build for"
+                },
+                "rounds": {
+                    "type": "integer",
+                    "description": "Number of build rounds (default 1)"
+                }
+            },
+            "required": ["domain"]
+        }
+    },
+    {
+        "name": "show_exec_status",
+        "description": "Show Agent Hands execution stats — completed tasks, success rate, learned patterns.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Domain to check (optional)"
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "run_project",
+        "description": "Decompose and execute a large multi-phase project. Use when user describes something too big for a single task — it gets broken into phases with human approval gates.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "description": "Full project description"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Domain context (optional)"
+                }
+            },
+            "required": ["description"]
+        }
+    },
+    {
+        "name": "show_project_status",
+        "description": "Show status of tracked projects — phases, progress, approvals needed.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "Project ID (optional, defaults to latest)"
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "list_projects",
+        "description": "List all tracked projects.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "crawl_docs",
+        "description": "Crawl a documentation website and store content locally. Use when user asks to learn from or ingest a docs site.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "description": "URL to crawl"
+                },
+                "max_pages": {
+                    "type": "integer",
+                    "description": "Max pages to crawl (default 20)"
+                }
+            },
+            "required": ["url"]
+        }
+    },
+    {
+        "name": "fetch_url",
+        "description": "Fetch a single URL and return its content. Use when user asks to read or check a webpage.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "description": "URL to fetch"
+                }
+            },
+            "required": ["url"]
         }
     },
 ]
@@ -442,6 +620,113 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             lines.append(f"  {i}. {gap_text}")
         return "\n".join(lines)
     
+    elif name == "execute_task":
+        goal = args["goal"]
+        try:
+            from cli.execution import run_execute
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                run_execute(domain=domain, goal=goal)
+            output = buf.getvalue()
+            # Extract key info from output
+            if output:
+                return f"**Execution complete.**\n\n{output[-2000:]}"
+            return "**Execution complete.** Check the workspace for generated files."
+        except Exception as e:
+            return f"Execution failed: {e}"
+    
+    elif name == "auto_build":
+        rounds = args.get("rounds", 1)
+        try:
+            from cli.execution import run_auto_build
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                run_auto_build(domain=domain, rounds=rounds)
+            output = buf.getvalue()
+            if output:
+                return f"**Auto-build complete ({rounds} round(s)).**\n\n{output[-2000:]}"
+            return f"**Auto-build complete ({rounds} round(s)).** Check workspace for artifacts."
+        except Exception as e:
+            return f"Auto-build failed: {e}"
+    
+    elif name == "show_exec_status":
+        try:
+            from cli.execution import show_exec_status
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                show_exec_status(domain=domain)
+            return buf.getvalue() or "No execution data yet."
+        except Exception as e:
+            return f"Error getting exec status: {e}"
+    
+    elif name == "run_project":
+        description = args["description"]
+        try:
+            from cli.project import run as run_project_fn
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                run_project_fn(description=description, domain=domain)
+            output = buf.getvalue()
+            if output:
+                return f"**Project started.**\n\n{output[-2000:]}"
+            return "**Project created.** Use show_project_status to track progress."
+        except Exception as e:
+            return f"Project creation failed: {e}"
+    
+    elif name == "show_project_status":
+        project_id = args.get("project_id", "latest")
+        try:
+            from cli.project import status as project_status
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                project_status(project_id=project_id)
+            return buf.getvalue() or "No project data found."
+        except Exception as e:
+            return f"Error getting project status: {e}"
+    
+    elif name == "list_projects":
+        try:
+            from cli.project import list_all
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                list_all()
+            return buf.getvalue() or "No projects yet."
+        except Exception as e:
+            return f"Error listing projects: {e}"
+    
+    elif name == "crawl_docs":
+        url = args["url"]
+        max_pages = args.get("max_pages", 20)
+        try:
+            from cli.tools_cmd import crawl
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                crawl(url=url, domain=domain, max_pages=max_pages, url_pattern="")
+            output = buf.getvalue()
+            return output[-2000:] if output else f"Crawled {url} (up to {max_pages} pages)."
+        except Exception as e:
+            return f"Crawl failed: {e}"
+    
+    elif name == "fetch_url":
+        url = args["url"]
+        try:
+            from cli.tools_cmd import fetch
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                fetch(url=url)
+            output = buf.getvalue()
+            return output[-3000:] if output else f"Fetched {url} (no content returned)."
+        except Exception as e:
+            return f"Fetch failed: {e}"
+    
     return f"Unknown tool: {name}"
 
 
@@ -451,15 +736,22 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
 
 WELCOME = """
 ╔══════════════════════════════════════════════════════════════╗
-║                    AGENT BRAIN — Chat Mode                  ║
+║              AGENT BRAIN + HANDS — Chat Mode                ║
 ╠══════════════════════════════════════════════════════════════╣
-║  Talk to the system naturally. Ask questions, give commands.║
+║  Talk to the full system naturally. Research, build, manage.║
 ║                                                             ║
-║  Examples:                                                  ║
+║  Research:                                                  ║
 ║    "What do you know about crypto?"                         ║
 ║    "Research the latest React 19 features"                  ║
-║    "How's the budget looking?"                              ║
 ║    "What are the knowledge gaps in productized-services?"   ║
+║                                                             ║
+║  Build:                                                     ║
+║    "Build a REST API for user management"                   ║
+║    "Auto-build something for the nextjs-react domain"       ║
+║    "Start a project: build a SaaS dashboard"                ║
+║                                                             ║
+║  Manage:                                                    ║
+║    "How's the budget?" / "Show system status"               ║
 ║    "Approve strategy v004 for crypto"                       ║
 ║    "What should I work on next?"                            ║
 ║                                                             ║

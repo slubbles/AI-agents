@@ -12,5 +12,19 @@
     "score_before": 6.2,
     "score_after": 7.279999999999999,
     "outcome": "confirmed"
+  },
+  {
+    "version": "v002",
+    "previous_version": "v001",
+    "date": "2026-03-01",
+    "changes": [
+      "Enhanced source verification requirement with explicit cross-checking mandate",
+      "Reduced recommended search budget from 5-8 to 3-6 searches to prevent over-searching without meaningful analysis"
+    ],
+    "reasoning": "The strategy focuses on the two biggest accuracy killers: hallucinated source citations and over-searching without analysis depth. By mandating URL verification and reducing search budget, we force higher-quality analysis of actually retrieved content.",
+    "weakest_dimension": "accuracy",
+    "score_before": 6.3,
+    "score_after": null,
+    "outcome": "pending"
   }
 ]
