@@ -83,7 +83,7 @@
       "claim": "React Server Components are the default in Next.js App Router for better performance and security",
       "topic": "Server vs Client Components",
       "confidence": "established",
-      "status": "conflicted",
+      "status": "active",
       "first_seen": "2026-02-25T11:18:57.457979+00:00",
       "last_confirmed": "2026-02-25T12:24:00.020783+00:00",
       "source_count": 3,
@@ -92,7 +92,7 @@
         "https://nextjs.org/docs/app/getting-started/server-and-client-components"
       ],
       "supersedes": null,
-      "conflicted_by": "claim_013",
+      "conflicted_by": "claim_014",
       "notes": "Consistently reinforced across outputs but conflicts with Pages Router performance claims"
     },
     {
@@ -133,7 +133,7 @@
       "claim": "Enterprise audit of 32 apps migrated to Server Components showed 68% smaller client bundles, 55% faster Time to Interactive (TTI), and zero client-side data exposure",
       "topic": "Performance Characteristics",
       "confidence": "medium",
-      "status": "conflicted",
+      "status": "active",
       "first_seen": "2026-02-25T11:19:58.309417+00:00",
       "last_confirmed": "2026-02-25T11:19:58.309417+00:00",
       "source_count": 1,
@@ -141,7 +141,7 @@
         "https://codism.io/react-server-components-vs-client-components-the-2025-enterprise-guide/"
       ],
       "supersedes": null,
-      "conflicted_by": "claim_023",
+      "conflicted_by": "claim_024",
       "notes": "Conflicts with lack of official controlled benchmarks"
     },
     {
@@ -213,6 +213,22 @@
     },
     {
       "id": "claim_010",
+      "claim": "React Flight uses a row-based JSON format (not standard JSON) that supports references, React elements, and extended data types like Date, Set, and Map",
+      "topic": "React Flight Protocol",
+      "confidence": "high",
+      "status": "superseded",
+      "first_seen": "2026-02-25T11:24:32.199134+00:00",
+      "last_confirmed": "2026-02-25T11:24:32.199134+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": "Superseded by more detailed claim_016"
+    },
+    {
+      "id": "claim_011",
       "claim": "Flight protocol uses a reference system with '$' prefix notation to create cross-chunk references; chunks can reference each other using this syntax",
       "topic": "React Flight Protocol",
       "confidence": "established",
@@ -230,7 +246,7 @@
       "notes": "Extensively confirmed through CVE research across multiple outputs"
     },
     {
-      "id": "claim_011",
+      "id": "claim_012",
       "claim": "Flight serialization includes a reference resolution mechanism via the 'reviveModel' function in ReactFlightReplyServer.js that maps chunk IDs to deserialized objects",
       "topic": "Technical Implementation",
       "confidence": "high",
@@ -248,7 +264,7 @@
       "notes": "Confirmed through security vulnerability analysis with detailed technical documentation"
     },
     {
-      "id": "claim_012",
+      "id": "claim_013",
       "claim": "Pages Router handles 6x more concurrent requests than App Router in heavy server-side rendering scenarios",
       "topic": "Performance Characteristics",
       "confidence": "low",
@@ -264,7 +280,7 @@
       "notes": "Methodology unclear; conflicts with established App Router benefits"
     },
     {
-      "id": "claim_013",
+      "id": "claim_014",
       "claim": "70% TTFB reduction claimed for Server Components approach",
       "topic": "Performance Characteristics",
       "confidence": "low",
@@ -280,7 +296,7 @@
       "notes": "Unusually high figure not corroborated elsewhere"
     },
     {
-      "id": "claim_014",
+      "id": "claim_015",
       "claim": "React Flight is a row-based, line-delimited, JSON-like (but not standard JSON) streaming protocol designed specifically for serializing React component trees and async boundaries, not HTML",
       "topic": "React Flight Protocol",
       "confidence": "established",
@@ -292,12 +308,12 @@
         "https://deepwiki.com/mrknow001/RSC_Detector/7.2-react-flight-protocol",
         "https://blog.nidhin.dev/decoding-the-flight-payload-in-react-server-components"
       ],
-      "supersedes": null,
+      "supersedes": "claim_010",
       "conflicted_by": null,
       "notes": "Consistently confirmed across multiple technical analysis outputs"
     },
     {
-      "id": "claim_015",
+      "id": "claim_016",
       "claim": "Known type tag markers include: $ (basic reference), $@ (chunk reference/promise), $# (async boundary), $B (Blob), $D (Date), $L (lazy), $F (FormData), $S (Set), $W (WeakMap), but React's official documentation does not provide exhaustive enumeration",
       "topic": "React Flight Protocol",
       "confidence": "medium",
@@ -314,7 +330,7 @@
       "notes": "Identified through security research; completeness unknown"
     },
     {
-      "id": "claim_016",
+      "id": "claim_017",
       "claim": "Each Flight message consists of three parts: an ID, a type indicator, and a data payload, followed by a newline character, creating line-delimited rows",
       "topic": "React Flight Protocol",
       "confidence": "high",
@@ -330,7 +346,7 @@
       "notes": ""
     },
     {
-      "id": "claim_017",
+      "id": "claim_018",
       "claim": "React does not publish official technical specifications or RFC documents for the Flight protocol; all detailed protocol documentation has been reverse-engineered from source code commits, security analyses, and CVE-2025-55182 research",
       "topic": "React Flight Protocol",
       "confidence": "established",
@@ -349,7 +365,7 @@
       "notes": "Critical finding confirmed across multiple outputs - extraordinary documentation gap"
     },
     {
-      "id": "claim_018",
+      "id": "claim_019",
       "claim": "Next.js recommends parallel data fetching as the primary strategy to prevent waterfalls in App Router applications, where requests at the same hierarchical level are initiated simultaneously rather than sequentially",
       "topic": "Architecture and Routing",
       "confidence": "high",
@@ -365,7 +381,7 @@
       "notes": ""
     },
     {
-      "id": "claim_019",
+      "id": "claim_020",
       "claim": "The lowest revalidate value across each layout and page of a single route determines the revalidation frequency of the entire route, ensuring child pages are revalidated as frequently as their parent layouts require",
       "topic": "Architecture and Routing",
       "confidence": "high",
@@ -381,7 +397,7 @@
       "notes": ""
     },
     {
-      "id": "claim_020",
+      "id": "claim_021",
       "claim": "Error boundaries in Next.js App Router must be Client Components ('use client'); they wrap route segments and nested children in React Error Boundaries, catching errors thrown during rendering",
       "topic": "Error Handling and Streaming",
       "confidence": "established",
@@ -398,7 +414,7 @@
       "notes": "Confirmed across error handling outputs"
     },
     {
-      "id": "claim_021",
+      "id": "claim_022",
       "claim": "Skeleton loading fallbacks with Suspense improve perceived performance by maintaining layout stability; this strategy prevents cumulative layout shift and creates content-shaped loading indicators instead of blank screens",
       "topic": "Error Handling and Streaming",
       "confidence": "high",
@@ -414,11 +430,11 @@
       "notes": ""
     },
     {
-      "id": "claim_022",
+      "id": "claim_023",
       "claim": "No official Vercel or Meta published controlled benchmarks comparing pure Server Components vs pure Client Components with specific TTFB/FCP/LCP millisecond measurements exist",
       "topic": "Performance Characteristics",
       "confidence": "established",
-      "status": "conflicted",
+      "status": "active",
       "first_seen": "2026-02-25T12:04:32.947984+00:00",
       "last_confirmed": "2026-02-25T12:16:13.015169+00:00",
       "source_count": 3,
@@ -432,7 +448,7 @@
       "notes": "Critical gap confirmed; articles exist but metrics inaccessible"
     },
     {
-      "id": "claim_023",
+      "id": "claim_024",
       "claim": "Large-scale Next.js applications use route groups, nested layouts, parallel routes, and intercepting routes as primary organizational patterns to manage complexity in 100+ route projects",
       "topic": "Architecture and Routing",
       "confidence": "high",
@@ -448,7 +464,7 @@
       "notes": ""
     },
     {
-      "id": "claim_024",
+      "id": "claim_025",
       "claim": "React Flight chunk boundary determination algorithm is COMPLETELY UNDOCUMENTED by the React team\u2014no official specification, RFC, source code comments, or published algorithm exists for precise fragmentation rules, buffer size thresholds, or backpressure mechanisms",
       "topic": "React Flight Protocol",
       "confidence": "established",
@@ -467,7 +483,7 @@
       "notes": "Critical documentation gap for production technology"
     },
     {
-      "id": "claim_025",
+      "id": "claim_026",
       "claim": "React Flight protocol has NO officially documented error handling specification for streaming failures, chunk corruption, or deserialization errors",
       "topic": "Error Handling and Streaming",
       "confidence": "established",
@@ -486,7 +502,7 @@
       "notes": "All error handling knowledge comes from CVE security research"
     },
     {
-      "id": "claim_026",
+      "id": "claim_027",
       "claim": "Concrete directory structure examples for 100+ route Next.js applications do NOT exist in publicly available sources; while architectural patterns are documented, no production-grade example with verified 100+ routes has been published",
       "topic": "Architecture and Routing",
       "confidence": "high",
@@ -507,12 +523,12 @@
   "contradictions": [
     {
       "claim_a": "claim_002",
-      "claim_b": "claim_012",
+      "claim_b": "claim_013",
       "description": "App Router performance benefits vs Pages Router handling 6x more concurrent requests",
       "resolution": "App Router benefits are well-documented for general use cases; Pages Router claim may be specific edge case with unclear methodology"
     },
     {
-      "claim_a": "claim_022",
+      "claim_a": "claim_023",
       "claim_b": "claim_005",
       "description": "No official controlled benchmarks exist vs enterprise audit claims of 68% bundle reduction",
       "resolution": "Enterprise claims lack transparent methodology; official benchmarks remain unavailable despite Server Components being stable"
@@ -556,17 +572,17 @@
     }
   ],
   "synthesis_stats": {
-    "total_claims": 26,
-    "active_claims": 24,
-    "superseded_claims": 0,
-    "disputed_claims": 2,
+    "total_claims": 27,
+    "active_claims": 25,
+    "superseded_claims": 1,
+    "disputed_claims": 1,
     "contradictions_found": 2,
     "topics_covered": 6,
     "outputs_synthesized": 19,
     "synthesis_date": "2026-02-28",
     "incremental": false
   },
-  "_synthesized_at": "2026-02-28T15:06:07.399897+00:00",
+  "_synthesized_at": "2026-02-28T03:15:07.224356+00:00",
   "_domain": "nextjs-react",
   "_outputs_count": 19,
   "_incremental": false

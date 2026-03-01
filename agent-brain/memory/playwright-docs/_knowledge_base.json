@@ -1,0 +1,36 @@
+{
+  "claims": [
+    {
+      "claim": "Any browser \u2022 Any platform \u2022 One API Resilient \u2022 No flaky tests No trade-offs \u2022 No limits Browsers run web content belonging to different origins in different processes.",
+      "confidence": "medium",
+      "status": "active",
+      "source": "https://playwright.dev/python",
+      "topic": "Fast and reliable end-to-end testing for modern web apps | Playwright Python",
+      "added_by": "crawl_injector",
+      "added_at": "2026-02-28T13:11:23.731963",
+      "score": 7
+    },
+    {
+      "claim": "Playwright module provides a method to launch a browser instance.",
+      "confidence": "medium",
+      "status": "active",
+      "source": "https://playwright.dev/python/docs/api/class-playwright",
+      "topic": "Playwright | Playwright Python",
+      "added_by": "crawl_injector",
+      "added_at": "2026-02-28T13:11:23.731975",
+      "score": 7
+    },
+    {
+      "claim": "Properties chromium This object can be used to launch or connect to Chromium, returning instances of devices Returns a dictionary of devices to be used with Sync Async firefox This object can be used to launch or connect to Firefox, returning instances of request Exposes API that can be used for the Web API testing.",
+      "confidence": "medium",
+      "status": "active",
+      "source": "https://playwright.dev/python/docs/api/class-playwright",
+      "topic": "stop",
+      "added_by": "crawl_injector",
+      "added_at": "2026-02-28T13:11:23.731978",
+      "score": 7
+    }
+  ],
+  "domain_summary": "",
+  "last_updated": "2026-02-28T13:11:23.731980"
+}

@@ -1,5 +1,5 @@
 {
-  "domain_summary": "The productized-services domain reveals a fundamental transparency crisis: despite widespread complaints about freelance developer ghosting, communication breakdowns, and quality control issues affecting startup founders, no major platform (Upwork, Toptal, Fiverr) or research institution publishes project completion, abandonment, or success rate data. While client ghosting of freelancers is documented (72% in 2024, declining to ~50% in 2025) and scope creep affects 45-62% of tech projects, the reverse metric\u2014freelancer project abandonment rates\u2014remains completely opaque across SEC filings, academic research, and industry reports. True productized landing page services are rare, with only SprintPage offering transparent 48-hour delivery guarantees, while most claimed 'productized' services are actually certification directories or subscription models without fixed-scope project structures.",
+  "domain_summary": "The productized-services domain reveals significant structural problems with freelance developers including ghosting, communication breakdowns, and quality control issues, while few true productized landing page services exist with transparent operations. A critical transparency gap persists across the entire industry: major freelance platforms (Upwork, Toptal, Fiverr), industry analysts (Gartner, Forrester, McKinsey), and academic institutions do not publish project completion, abandonment, or success rate data despite these being crucial metrics for service buyers. While client ghosting of freelancers is well-documented (72% in 2024, ~50% in 2025) and scope creep affects 45-62% of tech projects, no quantified data exists on freelancer project abandonment rates. Only SprintPage offers truly transparent productized operations with fixed 48-hour turnaround and published workflows, while most other services claiming to be productized are actually certification directories or standard SaaS pricing tiers.",
   "topics": [
     {
       "name": "Freelance Developer Problems",
@@ -18,8 +18,7 @@
         "pricing structures",
         "review data",
         "platform metrics",
-        "industry research gaps",
-        "regulatory filings"
+        "industry research gaps"
       ]
     },
     {
@@ -139,18 +138,16 @@
       "confidence": "established",
       "status": "active",
       "first_seen": "2026-02-28T10:09:49.420609+00:00",
-      "last_confirmed": "2026-02-28T13:00:29.008241+00:00",
-      "source_count": 8,
+      "last_confirmed": "2026-02-28T10:59:56.492423+00:00",
+      "source_count": 7,
       "sources": [
         "Multiple sources searched; no data found",
         "Comprehensive search across industry reports, platform disclosures, and research studies",
-        "Academic databases and industry analysts",
-        "SEC filings",
-        "Regulatory filings"
+        "Academic databases and industry analysts"
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": "Confirmed across multiple research approaches including academic databases, industry analysts, SEC filings, transparency reports, and regulatory filings"
+      "notes": "Confirmed across multiple research approaches including academic databases, industry analysts, SEC filings, and transparency reports"
     },
     {
       "id": "claim_007",
@@ -287,19 +284,18 @@
       "confidence": "established",
       "status": "active",
       "first_seen": "2026-02-28T10:35:09.426443+00:00",
-      "last_confirmed": "2026-02-28T13:00:29.008241+00:00",
-      "source_count": 7,
+      "last_confirmed": "2026-02-28T10:59:56.492423+00:00",
+      "source_count": 6,
       "sources": [
         "Prior knowledge base + exhaustive search attempts",
         "Upwork 2025 Transparency Report",
         "Comprehensive search across academic databases and analyst firms",
         "SEC filings",
-        "Earnings calls",
-        "Regulatory filings"
+        "Earnings calls"
       ],
       "supersedes": null,
       "conflicted_by": null,
-      "notes": "Confirmed across multiple research approaches including official transparency reports, SEC filings, earnings calls, and regulatory filings"
+      "notes": "Confirmed across multiple research approaches including official transparency reports, SEC filings, and academic institutions"
     },
     {
       "id": "claim_016",
@@ -494,51 +490,19 @@
       "supersedes": null,
       "conflicted_by": null,
       "notes": "Measures comparative productivity gains, not baseline platform completion rates"
-    },
-    {
-      "id": "claim_028",
-      "claim": "Upwork filed its 2025 Form 10-K on February 13, 2026 (for fiscal year ended December 31, 2025) with $787.8 million in full-year revenue, but SEC filing does not show published project completion rates, refund percentages, or dispute resolution metrics",
-      "topic": "Platform Transparency",
-      "confidence": "high",
-      "status": "active",
-      "first_seen": "2026-02-28T13:00:29.008241+00:00",
-      "last_confirmed": "2026-02-28T13:00:29.008241+00:00",
-      "source_count": 1,
-      "sources": [
-        "https://investors.upwork.com/static-files/c2c34f53-b2d1-439f-9de2-ebe501b75728"
-      ],
-      "supersedes": null,
-      "conflicted_by": null,
-      "notes": "SEC filing contains discussion of dispute resolution mechanisms but no quantified metrics"
-    },
-    {
-      "id": "claim_029",
-      "claim": "Fiverr's 2025 SEC filing (6-K filed August 7, 2025) indicates sellers receive 'real-time feedback on their performance in timeliness of delivery, responsiveness and completion rates' via seller dashboards, but no aggregate completion rate percentages are disclosed to investors or the public",
-      "topic": "Platform Transparency",
-      "confidence": "medium",
-      "status": "active",
-      "first_seen": "2026-02-28T13:00:29.008241+00:00",
-      "last_confirmed": "2026-02-28T13:00:29.008241+00:00",
-      "source_count": 1,
-      "sources": [
-        "https://www.sec.gov/Archives/edgar/data/1762301/000117891325000559/zk2532679.htm"
-      ],
-      "supersedes": null,
-      "conflicted_by": null,
-      "notes": "Internal systems track completion rates but data not publicly disclosed"
     }
   ],
   "contradictions": [],
   "knowledge_gaps": [
     {
-      "gap": "Percentage of freelance projects abandoned/incomplete due to freelancer ghosting or withdrawal\u2014NO publicly available quantified data found despite comprehensive searches across regulatory filings, academic institutions, and industry research",
+      "gap": "Percentage of freelance projects abandoned/incomplete due to freelancer ghosting or withdrawal\u2014NO publicly available quantified data found",
       "priority": "high",
       "related_topic": "Project Success Metrics"
     },
     {
-      "gap": "Platform-specific project completion rates from Upwork, Toptal, Fiverr disaggregated by project type, budget tier, or timeline\u2014confirmed absent from SEC filings and transparency reports",
+      "gap": "Platform-specific project completion rates from Upwork, Toptal, Fiverr disaggregated by project type, budget tier, or timeline",
       "priority": "high",
-      "related_topic": "Platform Transparency"
+      "related_topic": "Project Success Metrics"
     },
     {
       "gap": "Specific completion, delay, or abandonment rate data for React/Next.js or Webflow landing page projects on any major platform",
@@ -551,8 +515,8 @@
       "related_topic": "Market Trends"
     },
     {
-      "gap": "Full content analysis of Upwork's 2025 Form 10-K and Fiverr's earnings call transcripts to confirm absence of completion metrics beyond search snippets",
-      "priority": "medium",
+      "gap": "Whether any academic institutions or independent research firms have attempted to measure freelance platform completion rates through surveys or data collection",
+      "priority": "high",
       "related_topic": "Platform Transparency"
     },
     {
@@ -566,29 +530,29 @@
       "related_topic": "Productized Service Operations"
     },
     {
-      "gap": "Proxy metrics analysis: whether dispute resolution rates, refund claim percentages, or chargeback rates could estimate project abandonment indirectly",
+      "gap": "Full content analysis of Fiverr's 2025 earnings results and SEC filings to confirm absence of completion metrics",
       "priority": "medium",
       "related_topic": "Platform Transparency"
     },
     {
-      "gap": "EU gig economy regulatory requirements and whether they mandate project outcome disclosures from platforms operating in Europe",
+      "gap": "Formal QA processes and revision round limits for most productized services beyond SprintPage",
       "priority": "low",
-      "related_topic": "Platform Transparency"
+      "related_topic": "Productized Service Operations"
     }
   ],
   "synthesis_stats": {
-    "total_claims": 29,
-    "active_claims": 28,
+    "total_claims": 27,
+    "active_claims": 26,
     "superseded_claims": 1,
     "disputed_claims": 0,
     "contradictions_found": 0,
     "topics_covered": 5,
-    "outputs_synthesized": 13,
+    "outputs_synthesized": 12,
     "synthesis_date": "2026-02-28",
     "incremental": false
   },
-  "_synthesized_at": "2026-02-28T15:00:33.485604+00:00",
+  "_synthesized_at": "2026-02-28T11:01:59.347972+00:00",
   "_domain": "productized-services",
-  "_outputs_count": 13,
+  "_outputs_count": 12,
   "_incremental": false
 }

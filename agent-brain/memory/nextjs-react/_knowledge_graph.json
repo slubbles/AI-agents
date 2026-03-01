@@ -7,7 +7,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793106+00:00",
+      "last_updated": "2026-02-28T15:06:35.935653+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -27,7 +27,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793126+00:00",
+      "last_updated": "2026-02-28T15:06:35.935678+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -45,7 +45,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793135+00:00",
+      "last_updated": "2026-02-28T15:06:35.935699+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -64,7 +64,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793142+00:00",
+      "last_updated": "2026-02-28T15:06:35.935720+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -84,7 +84,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793148+00:00",
+      "last_updated": "2026-02-28T15:06:35.935740+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -101,7 +101,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793155+00:00",
+      "last_updated": "2026-02-28T15:06:35.935752+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -137,7 +137,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793183+00:00",
+      "last_updated": "2026-02-28T15:06:35.935794+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/docs/app/getting-started/project-structure"
@@ -148,7 +148,7 @@
       "type": "claim",
       "label": "React Server Components are the default in Next.js App Router for better performance and security",
       "confidence": "established",
-      "status": "active",
+      "status": "conflicted",
       "first_seen": "2026-02-25T11:18:57.457979+00:00",
       "last_updated": "2026-02-25T12:24:00.020783+00:00",
       "source_count": 3,
@@ -168,7 +168,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793207+00:00",
+      "last_updated": "2026-02-28T15:06:35.935833+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/learn/react-foundations/server-and-client-components"
@@ -181,7 +181,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793219+00:00",
+      "last_updated": "2026-02-28T15:06:35.935852+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/docs/app/getting-started/server-and-client-components"
@@ -212,7 +212,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793289+00:00",
+      "last_updated": "2026-02-28T15:06:35.935886+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://prateekbadjatya.medium.com/react-server-component-vs-client-component-when-to-use-what-in-next-js-e924a39965c3"
@@ -225,7 +225,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793312+00:00",
+      "last_updated": "2026-02-28T15:06:35.935904+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/docs/app/building-your-application/data-fetching/patterns"
@@ -253,7 +253,7 @@
       "type": "claim",
       "label": "Enterprise audit of 32 apps migrated to Server Components showed 68% smaller client bundles, 55% faster Time to Interactive (TTI), and zero client-side data exposure",
       "confidence": "medium",
-      "status": "active",
+      "status": "conflicted",
       "first_seen": "2026-02-25T11:19:58.309417+00:00",
       "last_updated": "2026-02-25T11:19:58.309417+00:00",
       "source_count": 1,
@@ -272,7 +272,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793385+00:00",
+      "last_updated": "2026-02-28T15:06:35.935965+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://codism.io/react-server-components-vs-client-components-the-2025-enterprise-guide/"
@@ -302,7 +302,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793424+00:00",
+      "last_updated": "2026-02-28T15:06:35.935996+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://snapitsoftware.com/blog/react-server-components-performance/"
@@ -333,7 +333,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793460+00:00",
+      "last_updated": "2026-02-28T15:06:35.936027+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://blog.logrocket.com/react-server-components-comprehensive-guide/"
@@ -346,7 +346,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793484+00:00",
+      "last_updated": "2026-02-28T15:06:35.936045+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/docs/13/app/building-your-application/rendering/server-components"
@@ -377,7 +377,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793523+00:00",
+      "last_updated": "2026-02-28T15:06:35.936076+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://medium.com/@luckyshuklakunda/streaming-ssr-in-next-js-for-better-performance-46937367e956"
@@ -390,7 +390,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793544+00:00",
+      "last_updated": "2026-02-28T15:06:35.936093+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/learn/dashboard-app/streaming"
@@ -421,7 +421,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793583+00:00",
+      "last_updated": "2026-02-28T15:06:35.936124+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.sitepoint.com/react-server-components-streaming-performance-2026/"
@@ -434,7 +434,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793605+00:00",
+      "last_updated": "2026-02-28T15:06:35.936142+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.learnlog.dev/nextjs-streaming-production-fix"
@@ -442,36 +442,6 @@
     },
     {
       "id": "claim_010",
-      "type": "claim",
-      "label": "React Flight uses a row-based JSON format (not standard JSON) that supports references, React elements, and extended data types like Date, Set, and Map",
-      "confidence": "high",
-      "status": "superseded",
-      "first_seen": "2026-02-25T11:24:32.199134+00:00",
-      "last_updated": "2026-02-25T11:24:32.199134+00:00",
-      "source_count": 1,
-      "metadata": {
-        "full_text": "React Flight uses a row-based JSON format (not standard JSON) that supports references, React elements, and extended data types like Date, Set, and Map",
-        "sources": [
-          "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1"
-        ],
-        "notes": "Superseded by more detailed claim_016"
-      }
-    },
-    {
-      "id": "source_https_romanliutikov_com_blog_towards_react_server_components",
-      "type": "source",
-      "label": "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1",
-      "confidence": "medium",
-      "status": "active",
-      "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793664+00:00",
-      "source_count": 0,
-      "metadata": {
-        "url": "https://romanliutikov.com/blog/towards-react-server-components-in-clojure-part-1"
-      }
-    },
-    {
-      "id": "claim_011",
       "type": "claim",
       "label": "Flight protocol uses a reference system with '$' prefix notation to create cross-chunk references; chunks can reference each other using this syntax",
       "confidence": "established",
@@ -496,7 +466,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793694+00:00",
+      "last_updated": "2026-02-28T15:06:35.936173+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://dev.to/jmmy/cve-2025-55182-explained-2e85"
@@ -509,7 +479,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793705+00:00",
+      "last_updated": "2026-02-28T15:06:35.936190+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.analogue.computer/blog/react4shell"
@@ -522,14 +492,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793718+00:00",
+      "last_updated": "2026-02-28T15:06:35.936212+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.ox.security/blog/react2shell-going-granular-a-deep-deep-deep-technical-analysis-of-cve-2025-55182/"
       }
     },
     {
-      "id": "claim_012",
+      "id": "claim_011",
       "type": "claim",
       "label": "Flight serialization includes a reference resolution mechanism via the 'reviveModel' function in ReactFlightReplyServer.js that maps chunk IDs to deserialized objects",
       "confidence": "high",
@@ -554,7 +524,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793738+00:00",
+      "last_updated": "2026-02-28T15:06:35.936245+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://github.com/kavienanj/CVE-2025-55182/blob/main/02-understanding-reactflightreplyserver.md"
@@ -567,7 +537,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793749+00:00",
+      "last_updated": "2026-02-28T15:06:35.936262+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://github.com/kavienanj/CVE-2025-55182"
@@ -580,14 +550,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793759+00:00",
+      "last_updated": "2026-02-28T15:06:35.936281+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.offsec.com/blog/cve-2025-55182/"
       }
     },
     {
-      "id": "claim_013",
+      "id": "claim_012",
       "type": "claim",
       "label": "Pages Router handles 6x more concurrent requests than App Router in heavy server-side rendering scenarios",
       "confidence": "low",
@@ -610,14 +580,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793778+00:00",
+      "last_updated": "2026-02-28T15:06:35.936313+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://markaicode.com/nextjs-15-router-performance-comparison/"
       }
     },
     {
-      "id": "claim_014",
+      "id": "claim_013",
       "type": "claim",
       "label": "70% TTFB reduction claimed for Server Components approach",
       "confidence": "low",
@@ -640,14 +610,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793795+00:00",
+      "last_updated": "2026-02-28T15:06:35.936344+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://strapi.io/blog/best-javascript-frameworks"
       }
     },
     {
-      "id": "claim_015",
+      "id": "claim_014",
       "type": "claim",
       "label": "React Flight is a row-based, line-delimited, JSON-like (but not standard JSON) streaming protocol designed specifically for serializing React component trees and async boundaries, not HTML",
       "confidence": "established",
@@ -671,7 +641,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793814+00:00",
+      "last_updated": "2026-02-28T15:06:35.936378+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://deepwiki.com/mrknow001/RSC_Detector/7.2-react-flight-protocol"
@@ -684,14 +654,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793826+00:00",
+      "last_updated": "2026-02-28T15:06:35.936403+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://blog.nidhin.dev/decoding-the-flight-payload-in-react-server-components"
       }
     },
     {
-      "id": "claim_016",
+      "id": "claim_015",
       "type": "claim",
       "label": "Known type tag markers include: $ (basic reference), $@ (chunk reference/promise), $# (async boundary), $B (Blob), $D (Date), $L (lazy), $F (FormData), $S (Set), $W (WeakMap), but React's official doc",
       "confidence": "medium",
@@ -715,7 +685,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793849+00:00",
+      "last_updated": "2026-02-28T15:06:35.936440+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.trendmicro.com/en_us/research/25/l/CVE-2025-55182-analysis-poc-itw.html"
@@ -728,14 +698,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793862+00:00",
+      "last_updated": "2026-02-28T15:06:35.936463+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.penligent.ai/hackinglabs/critical-deep-dive-cve-2025-55182-poc-the-rce-inside-reacts-architecture/"
       }
     },
     {
-      "id": "claim_017",
+      "id": "claim_016",
       "type": "claim",
       "label": "Each Flight message consists of three parts: an ID, a type indicator, and a data payload, followed by a newline character, creating line-delimited rows",
       "confidence": "high",
@@ -758,14 +728,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793879+00:00",
+      "last_updated": "2026-02-28T15:06:35.936495+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://blog.securelayer7.net/cve-2025-55182/"
       }
     },
     {
-      "id": "claim_018",
+      "id": "claim_017",
       "type": "claim",
       "label": "React does not publish official technical specifications or RFC documents for the Flight protocol; all detailed protocol documentation has been reverse-engineered from source code commits, security an",
       "confidence": "established",
@@ -791,7 +761,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793916+00:00",
+      "last_updated": "2026-02-28T15:06:35.936547+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://github.com/facebook/react/blob/main/packages/react-server/README.md"
@@ -804,14 +774,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793936+00:00",
+      "last_updated": "2026-02-28T15:06:35.936581+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://react.dev/reference/rsc/server-components"
       }
     },
     {
-      "id": "claim_019",
+      "id": "claim_018",
       "type": "claim",
       "label": "Next.js recommends parallel data fetching as the primary strategy to prevent waterfalls in App Router applications, where requests at the same hierarchical level are initiated simultaneously rather th",
       "confidence": "high",
@@ -834,14 +804,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793957+00:00",
+      "last_updated": "2026-02-28T15:06:35.936667+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/docs/14/app/building-your-application/data-fetching/patterns"
       }
     },
     {
-      "id": "claim_020",
+      "id": "claim_019",
       "type": "claim",
       "label": "The lowest revalidate value across each layout and page of a single route determines the revalidation frequency of the entire route, ensuring child pages are revalidated as frequently as their parent ",
       "confidence": "high",
@@ -864,14 +834,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793977+00:00",
+      "last_updated": "2026-02-28T15:06:35.936712+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config"
       }
     },
     {
-      "id": "claim_021",
+      "id": "claim_020",
       "type": "claim",
       "label": "Error boundaries in Next.js App Router must be Client Components ('use client'); they wrap route segments and nested children in React Error Boundaries, catching errors thrown during rendering",
       "confidence": "established",
@@ -895,7 +865,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.793997+00:00",
+      "last_updated": "2026-02-28T15:06:35.936751+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/docs/app/api-reference/file-conventions/error"
@@ -908,14 +878,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794009+00:00",
+      "last_updated": "2026-02-28T15:06:35.936776+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nextjs.org/docs/14/app/building-your-application/routing/error-handling"
       }
     },
     {
-      "id": "claim_022",
+      "id": "claim_021",
       "type": "claim",
       "label": "Skeleton loading fallbacks with Suspense improve perceived performance by maintaining layout stability; this strategy prevents cumulative layout shift and creates content-shaped loading indicators ins",
       "confidence": "high",
@@ -938,18 +908,18 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794028+00:00",
+      "last_updated": "2026-02-28T15:06:35.936816+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://react.dev/reference/react/Suspense"
       }
     },
     {
-      "id": "claim_023",
+      "id": "claim_022",
       "type": "claim",
       "label": "No official Vercel or Meta published controlled benchmarks comparing pure Server Components vs pure Client Components with specific TTFB/FCP/LCP millisecond measurements exist",
       "confidence": "established",
-      "status": "active",
+      "status": "conflicted",
       "first_seen": "2026-02-25T12:04:32.947984+00:00",
       "last_updated": "2026-02-25T12:16:13.015169+00:00",
       "source_count": 3,
@@ -970,7 +940,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794063+00:00",
+      "last_updated": "2026-02-28T15:06:35.936854+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://github.com/vercel/next.js/actions/workflows/bench.yml"
@@ -983,7 +953,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794076+00:00",
+      "last_updated": "2026-02-28T15:06:35.936877+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.developerway.com/posts/react-server-components-performance"
@@ -996,14 +966,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794089+00:00",
+      "last_updated": "2026-02-28T15:06:35.936901+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://gitnation.com/contents/i-measured-react-server-components-performance-so-you-dont-have-to"
       }
     },
     {
-      "id": "claim_024",
+      "id": "claim_023",
       "type": "claim",
       "label": "Large-scale Next.js applications use route groups, nested layouts, parallel routes, and intercepting routes as primary organizational patterns to manage complexity in 100+ route projects",
       "confidence": "high",
@@ -1026,14 +996,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794132+00:00",
+      "last_updated": "2026-02-28T15:06:35.936939+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://eastondev.com/blog/en/posts/dev/20251218-nextjs-routing-best-practices/"
       }
     },
     {
-      "id": "claim_025",
+      "id": "claim_024",
       "type": "claim",
       "label": "React Flight chunk boundary determination algorithm is COMPLETELY UNDOCUMENTED by the React team\u2014no official specification, RFC, source code comments, or published algorithm exists for precise fragmen",
       "confidence": "established",
@@ -1059,7 +1029,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794194+00:00",
+      "last_updated": "2026-02-28T15:06:35.937006+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://github.com/msanft/CVE-2025-55182"
@@ -1072,14 +1042,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794207+00:00",
+      "last_updated": "2026-02-28T15:06:35.937029+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://blog.logrocket.com/react-server-components-performance-mistakes/"
       }
     },
     {
-      "id": "claim_026",
+      "id": "claim_025",
       "type": "claim",
       "label": "React Flight protocol has NO officially documented error handling specification for streaming failures, chunk corruption, or deserialization errors",
       "confidence": "established",
@@ -1105,7 +1075,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794229+00:00",
+      "last_updated": "2026-02-28T15:06:35.937068+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components"
@@ -1118,7 +1088,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794241+00:00",
+      "last_updated": "2026-02-28T15:06:35.937089+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://helixguard.ai/blog/CVE-2025-66478"
@@ -1131,14 +1101,14 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794262+00:00",
+      "last_updated": "2026-02-28T15:06:35.937127+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://deepwiki.com/facebook/react/5.2-react-server-components-(flight)"
       }
     },
     {
-      "id": "claim_027",
+      "id": "claim_026",
       "type": "claim",
       "label": "Concrete directory structure examples for 100+ route Next.js applications do NOT exist in publicly available sources; while architectural patterns are documented, no production-grade example with veri",
       "confidence": "high",
@@ -1163,7 +1133,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794289+00:00",
+      "last_updated": "2026-02-28T15:06:35.937175+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://github.com/georgwittberger/next-app-router-template"
@@ -1176,7 +1146,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794322+00:00",
+      "last_updated": "2026-02-28T15:06:35.937229+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -1191,7 +1161,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794330+00:00",
+      "last_updated": "2026-02-28T15:06:35.937244+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -1206,7 +1176,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794338+00:00",
+      "last_updated": "2026-02-28T15:06:35.937258+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -1221,7 +1191,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794348+00:00",
+      "last_updated": "2026-02-28T15:06:35.937277+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -1236,7 +1206,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794355+00:00",
+      "last_updated": "2026-02-28T15:06:35.937289+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "medium",
@@ -1251,7 +1221,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794361+00:00",
+      "last_updated": "2026-02-28T15:06:35.937301+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "medium",
@@ -1266,7 +1236,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T03:15:33.794367+00:00",
+      "last_updated": "2026-02-28T15:06:35.937313+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -1281,7 +1251,7 @@
       "target": "topic_architecture_and_routing",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793169+00:00",
+      "created_at": "2026-02-28T15:06:35.935773+00:00",
       "metadata": {}
     },
     {
@@ -1289,7 +1259,7 @@
       "target": "source_https_nextjs_org_docs_app_getting_started_project_structure",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793186+00:00",
+      "created_at": "2026-02-28T15:06:35.935800+00:00",
       "metadata": {}
     },
     {
@@ -1297,7 +1267,7 @@
       "target": "topic_server_vs_client_components",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793197+00:00",
+      "created_at": "2026-02-28T15:06:35.935815+00:00",
       "metadata": {}
     },
     {
@@ -1305,7 +1275,7 @@
       "target": "source_https_nextjs_org_learn_react_foundations_server_and_client_c",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793210+00:00",
+      "created_at": "2026-02-28T15:06:35.935838+00:00",
       "metadata": {}
     },
     {
@@ -1313,7 +1283,7 @@
       "target": "source_https_nextjs_org_docs_app_getting_started_server_and_client_",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793222+00:00",
+      "created_at": "2026-02-28T15:06:35.935857+00:00",
       "metadata": {}
     },
     {
@@ -1321,7 +1291,7 @@
       "target": "topic_server_vs_client_components",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793267+00:00",
+      "created_at": "2026-02-28T15:06:35.935871+00:00",
       "metadata": {}
     },
     {
@@ -1329,7 +1299,7 @@
       "target": "source_https_prateekbadjatya_medium_com_react_server_component_vs_c",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793295+00:00",
+      "created_at": "2026-02-28T15:06:35.935890+00:00",
       "metadata": {}
     },
     {
@@ -1337,7 +1307,7 @@
       "target": "source_https_nextjs_org_docs_app_building_your_application_data_fet",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793319+00:00",
+      "created_at": "2026-02-28T15:06:35.935908+00:00",
       "metadata": {}
     },
     {
@@ -1345,7 +1315,7 @@
       "target": "topic_server_vs_client_components",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793332+00:00",
+      "created_at": "2026-02-28T15:06:35.935920+00:00",
       "metadata": {}
     },
     {
@@ -1353,7 +1323,7 @@
       "target": "source_https_nextjs_org_learn_react_foundations_server_and_client_c",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793351+00:00",
+      "created_at": "2026-02-28T15:06:35.935936+00:00",
       "metadata": {}
     },
     {
@@ -1361,7 +1331,7 @@
       "target": "topic_performance_characteristics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793366+00:00",
+      "created_at": "2026-02-28T15:06:35.935949+00:00",
       "metadata": {}
     },
     {
@@ -1369,7 +1339,7 @@
       "target": "source_https_codism_io_react_server_components_vs_client_components",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793393+00:00",
+      "created_at": "2026-02-28T15:06:35.935970+00:00",
       "metadata": {}
     },
     {
@@ -1377,7 +1347,7 @@
       "target": "topic_performance_characteristics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793407+00:00",
+      "created_at": "2026-02-28T15:06:35.935982+00:00",
       "metadata": {}
     },
     {
@@ -1385,7 +1355,7 @@
       "target": "source_https_snapitsoftware_com_blog_react_server_components_perfor",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793430+00:00",
+      "created_at": "2026-02-28T15:06:35.936001+00:00",
       "metadata": {}
     },
     {
@@ -1393,7 +1363,7 @@
       "target": "topic_performance_characteristics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793443+00:00",
+      "created_at": "2026-02-28T15:06:35.936012+00:00",
       "metadata": {}
     },
     {
@@ -1401,7 +1371,7 @@
       "target": "source_https_blog_logrocket_com_react_server_components_comprehensi",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793467+00:00",
+      "created_at": "2026-02-28T15:06:35.936031+00:00",
       "metadata": {}
     },
     {
@@ -1409,7 +1379,7 @@
       "target": "source_https_nextjs_org_docs_13_app_building_your_application_rende",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793489+00:00",
+      "created_at": "2026-02-28T15:06:35.936049+00:00",
       "metadata": {}
     },
     {
@@ -1417,7 +1387,7 @@
       "target": "topic_react_flight_protocol",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793504+00:00",
+      "created_at": "2026-02-28T15:06:35.936061+00:00",
       "metadata": {}
     },
     {
@@ -1425,7 +1395,7 @@
       "target": "source_https_medium_com_luckyshuklakunda_streaming_ssr_in_next_js_f",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793529+00:00",
+      "created_at": "2026-02-28T15:06:35.936081+00:00",
       "metadata": {}
     },
     {
@@ -1433,7 +1403,7 @@
       "target": "source_https_nextjs_org_learn_dashboard_app_streaming",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793550+00:00",
+      "created_at": "2026-02-28T15:06:35.936097+00:00",
       "metadata": {}
     },
     {
@@ -1441,7 +1411,7 @@
       "target": "topic_technical_implementation",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793564+00:00",
+      "created_at": "2026-02-28T15:06:35.936109+00:00",
       "metadata": {}
     },
     {
@@ -1449,7 +1419,7 @@
       "target": "source_https_www_sitepoint_com_react_server_components_streaming_pe",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793589+00:00",
+      "created_at": "2026-02-28T15:06:35.936129+00:00",
       "metadata": {}
     },
     {
@@ -1457,7 +1427,7 @@
       "target": "source_https_www_learnlog_dev_nextjs_streaming_production_fix",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793610+00:00",
+      "created_at": "2026-02-28T15:06:35.936146+00:00",
       "metadata": {}
     },
     {
@@ -1465,476 +1435,450 @@
       "target": "topic_react_flight_protocol",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793643+00:00",
+      "created_at": "2026-02-28T15:06:35.936159+00:00",
       "metadata": {}
     },
     {
       "source": "claim_010",
-      "target": "source_https_romanliutikov_com_blog_towards_react_server_components",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793670+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_011",
-      "target": "topic_react_flight_protocol",
-      "type": "belongs_to",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793683+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_011",
       "target": "source_https_dev_to_jmmy_cve_2025_55182_explained_2e85",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793697+00:00",
+      "created_at": "2026-02-28T15:06:35.936178+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_011",
+      "source": "claim_010",
       "target": "source_https_www_analogue_computer_blog_react4shell",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793708+00:00",
+      "created_at": "2026-02-28T15:06:35.936195+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_www_ox_security_blog_react2shell_going_granular_a_deep",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:06:35.936216+00:00",
       "metadata": {}
     },
     {
       "source": "claim_011",
-      "target": "source_https_www_ox_security_blog_react2shell_going_granular_a_deep",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793720+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_012",
       "target": "topic_technical_implementation",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793728+00:00",
+      "created_at": "2026-02-28T15:06:35.936229+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_012",
+      "source": "claim_011",
       "target": "source_https_github_com_kavienanj_cve_2025_55182_blob_main_02_under",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793740+00:00",
+      "created_at": "2026-02-28T15:06:35.936249+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_012",
+      "source": "claim_011",
       "target": "source_https_github_com_kavienanj_cve_2025_55182",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793751+00:00",
+      "created_at": "2026-02-28T15:06:35.936267+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_www_offsec_com_blog_cve_2025_55182",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:06:35.936285+00:00",
       "metadata": {}
     },
     {
       "source": "claim_012",
-      "target": "source_https_www_offsec_com_blog_cve_2025_55182",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793762+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_013",
       "target": "topic_performance_characteristics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793769+00:00",
+      "created_at": "2026-02-28T15:06:35.936297+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_013",
+      "source": "claim_012",
       "target": "source_https_markaicode_com_nextjs_15_router_performance_comparison",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793780+00:00",
+      "created_at": "2026-02-28T15:06:35.936318+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_014",
+      "source": "claim_013",
       "target": "topic_performance_characteristics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793787+00:00",
+      "created_at": "2026-02-28T15:06:35.936330+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_014",
+      "source": "claim_013",
       "target": "source_https_strapi_io_blog_best_javascript_frameworks",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793798+00:00",
+      "created_at": "2026-02-28T15:06:35.936349+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_015",
+      "source": "claim_014",
       "target": "topic_react_flight_protocol",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793804+00:00",
+      "created_at": "2026-02-28T15:06:35.936361+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_015",
+      "source": "claim_014",
       "target": "source_https_deepwiki_com_mrknow001_rsc_detector_7_2_react_flight_p",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793816+00:00",
+      "created_at": "2026-02-28T15:06:35.936383+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_015",
+      "source": "claim_014",
       "target": "source_https_blog_nidhin_dev_decoding_the_flight_payload_in_react_s",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793828+00:00",
+      "created_at": "2026-02-28T15:06:35.936410+00:00",
       "metadata": {}
     },
     {
       "source": "claim_015",
-      "target": "claim_010",
-      "type": "supersedes",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793832+00:00",
-      "metadata": {
-        "reason": "newer data replaces older"
-      }
-    },
-    {
-      "source": "claim_016",
       "target": "topic_react_flight_protocol",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793839+00:00",
+      "created_at": "2026-02-28T15:06:35.936422+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_016",
+      "source": "claim_015",
       "target": "source_https_www_trendmicro_com_en_us_research_25_l_cve_2025_55182_",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793852+00:00",
+      "created_at": "2026-02-28T15:06:35.936445+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "source_https_www_penligent_ai_hackinglabs_critical_deep_dive_cve_20",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:06:35.936468+00:00",
       "metadata": {}
     },
     {
       "source": "claim_016",
-      "target": "source_https_www_penligent_ai_hackinglabs_critical_deep_dive_cve_20",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793864+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_017",
       "target": "topic_react_flight_protocol",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793870+00:00",
+      "created_at": "2026-02-28T15:06:35.936480+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_017",
+      "source": "claim_016",
       "target": "source_https_blog_securelayer7_net_cve_2025_55182",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793881+00:00",
+      "created_at": "2026-02-28T15:06:35.936500+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_018",
+      "source": "claim_017",
       "target": "topic_react_flight_protocol",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793887+00:00",
+      "created_at": "2026-02-28T15:06:35.936513+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_018",
+      "source": "claim_017",
       "target": "source_https_deepwiki_com_mrknow001_rsc_detector_7_2_react_flight_p",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793899+00:00",
+      "created_at": "2026-02-28T15:06:35.936531+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_018",
+      "source": "claim_017",
       "target": "source_https_github_com_facebook_react_blob_main_packages_react_ser",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793919+00:00",
+      "created_at": "2026-02-28T15:06:35.936552+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_018",
+      "source": "claim_017",
       "target": "source_https_github_com_kavienanj_cve_2025_55182",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793928+00:00",
+      "created_at": "2026-02-28T15:06:35.936566+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_017",
+      "target": "source_https_react_dev_reference_rsc_server_components",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:06:35.936586+00:00",
       "metadata": {}
     },
     {
       "source": "claim_018",
-      "target": "source_https_react_dev_reference_rsc_server_components",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793939+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_019",
       "target": "topic_architecture_and_routing",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793947+00:00",
+      "created_at": "2026-02-28T15:06:35.936599+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_019",
+      "source": "claim_018",
       "target": "source_https_nextjs_org_docs_14_app_building_your_application_data_",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793960+00:00",
+      "created_at": "2026-02-28T15:06:35.936675+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_020",
+      "source": "claim_019",
       "target": "topic_architecture_and_routing",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793967+00:00",
+      "created_at": "2026-02-28T15:06:35.936691+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_020",
+      "source": "claim_019",
       "target": "source_https_nextjs_org_docs_app_api_reference_file_conventions_rou",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793980+00:00",
+      "created_at": "2026-02-28T15:06:35.936718+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_021",
+      "source": "claim_020",
       "target": "topic_error_handling_and_streaming",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793986+00:00",
+      "created_at": "2026-02-28T15:06:35.936731+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_021",
+      "source": "claim_020",
       "target": "source_https_nextjs_org_docs_app_api_reference_file_conventions_err",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.793999+00:00",
+      "created_at": "2026-02-28T15:06:35.936756+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "source_https_nextjs_org_docs_14_app_building_your_application_routi",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:06:35.936782+00:00",
       "metadata": {}
     },
     {
       "source": "claim_021",
-      "target": "source_https_nextjs_org_docs_14_app_building_your_application_routi",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794012+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_022",
       "target": "topic_error_handling_and_streaming",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794019+00:00",
+      "created_at": "2026-02-28T15:06:35.936797+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_022",
+      "source": "claim_021",
       "target": "source_https_react_dev_reference_react_suspense",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794044+00:00",
+      "created_at": "2026-02-28T15:06:35.936822+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_023",
+      "source": "claim_022",
       "target": "topic_performance_characteristics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794051+00:00",
+      "created_at": "2026-02-28T15:06:35.936836+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_023",
+      "source": "claim_022",
       "target": "source_https_github_com_vercel_next_js_actions_workflows_bench_yml",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794066+00:00",
+      "created_at": "2026-02-28T15:06:35.936859+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_023",
+      "source": "claim_022",
       "target": "source_https_www_developerway_com_posts_react_server_components_per",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794079+00:00",
+      "created_at": "2026-02-28T15:06:35.936882+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_022",
+      "target": "source_https_gitnation_com_contents_i_measured_react_server_compone",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:06:35.936906+00:00",
       "metadata": {}
     },
     {
       "source": "claim_023",
-      "target": "source_https_gitnation_com_contents_i_measured_react_server_compone",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794092+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_024",
       "target": "topic_architecture_and_routing",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794107+00:00",
+      "created_at": "2026-02-28T15:06:35.936919+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "source_https_eastondev_com_blog_en_posts_dev_20251218_nextjs_routin",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:06:35.936943+00:00",
       "metadata": {}
     },
     {
       "source": "claim_024",
-      "target": "source_https_eastondev_com_blog_en_posts_dev_20251218_nextjs_routin",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794138+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_025",
       "target": "topic_react_flight_protocol",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794152+00:00",
+      "created_at": "2026-02-28T15:06:35.936957+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_025",
+      "source": "claim_024",
       "target": "source_https_deepwiki_com_mrknow001_rsc_detector_7_2_react_flight_p",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794175+00:00",
+      "created_at": "2026-02-28T15:06:35.936976+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_025",
+      "source": "claim_024",
       "target": "source_https_nextjs_org_learn_dashboard_app_streaming",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794184+00:00",
+      "created_at": "2026-02-28T15:06:35.936990+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_025",
+      "source": "claim_024",
       "target": "source_https_github_com_msanft_cve_2025_55182",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794197+00:00",
+      "created_at": "2026-02-28T15:06:35.937011+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_024",
+      "target": "source_https_blog_logrocket_com_react_server_components_performance",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:06:35.937034+00:00",
       "metadata": {}
     },
     {
       "source": "claim_025",
-      "target": "source_https_blog_logrocket_com_react_server_components_performance",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794210+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_026",
       "target": "topic_error_handling_and_streaming",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794218+00:00",
+      "created_at": "2026-02-28T15:06:35.937047+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_026",
+      "source": "claim_025",
       "target": "source_https_react_dev_blog_2025_12_03_critical_security_vulnerabil",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794232+00:00",
+      "created_at": "2026-02-28T15:06:35.937072+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_026",
+      "source": "claim_025",
       "target": "source_https_helixguard_ai_blog_cve_2025_66478",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794243+00:00",
+      "created_at": "2026-02-28T15:06:35.937093+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_026",
+      "source": "claim_025",
       "target": "source_https_www_offsec_com_blog_cve_2025_55182",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794251+00:00",
+      "created_at": "2026-02-28T15:06:35.937107+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_025",
+      "target": "source_https_deepwiki_com_facebook_react_5_2_react_server_component",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:06:35.937132+00:00",
       "metadata": {}
     },
     {
       "source": "claim_026",
-      "target": "source_https_deepwiki_com_facebook_react_5_2_react_server_component",
-      "type": "sourced_from",
-      "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794264+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_027",
       "target": "topic_architecture_and_routing",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794271+00:00",
+      "created_at": "2026-02-28T15:06:35.937144+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_027",
+      "source": "claim_026",
       "target": "source_https_nextjs_org_docs_app_getting_started_project_structure",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794280+00:00",
+      "created_at": "2026-02-28T15:06:35.937158+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_027",
+      "source": "claim_026",
       "target": "source_https_github_com_georgwittberger_next_app_router_template",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794292+00:00",
+      "created_at": "2026-02-28T15:06:35.937180+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_027",
+      "source": "claim_026",
       "target": "source_https_eastondev_com_blog_en_posts_dev_20251218_nextjs_routin",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794303+00:00",
+      "created_at": "2026-02-28T15:06:35.937199+00:00",
       "metadata": {}
     },
     {
       "source": "claim_002",
-      "target": "claim_013",
+      "target": "claim_012",
       "type": "contradicts",
       "weight": 1.5,
-      "created_at": "2026-02-28T03:15:33.794307+00:00",
+      "created_at": "2026-02-28T15:06:35.937208+00:00",
       "metadata": {
         "description": "App Router performance benefits vs Pages Router handling 6x more concurrent requests",
         "resolution": "App Router benefits are well-documented for general use cases; Pages Router claim may be specific edge case with unclear methodology"
       }
     },
     {
-      "source": "claim_023",
+      "source": "claim_022",
       "target": "claim_005",
       "type": "contradicts",
       "weight": 1.5,
-      "created_at": "2026-02-28T03:15:33.794312+00:00",
+      "created_at": "2026-02-28T15:06:35.937215+00:00",
       "metadata": {
         "description": "No official controlled benchmarks exist vs enterprise audit claims of 68% bundle reduction",
         "resolution": "Enterprise claims lack transparent methodology; official benchmarks remain unavailable despite Server Components being stable"
@@ -1945,7 +1889,7 @@
       "target": "topic_react_flight_protocol",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794326+00:00",
+      "created_at": "2026-02-28T15:06:35.937235+00:00",
       "metadata": {}
     },
     {
@@ -1953,7 +1897,7 @@
       "target": "topic_react_flight_protocol",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794334+00:00",
+      "created_at": "2026-02-28T15:06:35.937250+00:00",
       "metadata": {}
     },
     {
@@ -1961,7 +1905,7 @@
       "target": "topic_performance_characteristics",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794340+00:00",
+      "created_at": "2026-02-28T15:06:35.937263+00:00",
       "metadata": {}
     },
     {
@@ -1969,7 +1913,7 @@
       "target": "topic_error_handling_and_streaming",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794351+00:00",
+      "created_at": "2026-02-28T15:06:35.937282+00:00",
       "metadata": {}
     },
     {
@@ -1977,7 +1921,7 @@
       "target": "topic_architecture_and_routing",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794357+00:00",
+      "created_at": "2026-02-28T15:06:35.937294+00:00",
       "metadata": {}
     },
     {
@@ -1985,7 +1929,7 @@
       "target": "topic_error_handling_and_streaming",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794364+00:00",
+      "created_at": "2026-02-28T15:06:35.937306+00:00",
       "metadata": {}
     },
     {
@@ -1993,7 +1937,15 @@
       "target": "topic_react_flight_protocol",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T03:15:33.794370+00:00",
+      "created_at": "2026-02-28T15:06:35.937318+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_018",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937373+00:00",
       "metadata": {}
     },
     {
@@ -2001,95 +1953,71 @@
       "target": "claim_019",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794404+00:00",
+      "created_at": "2026-02-28T15:06:35.937385+00:00",
       "metadata": {}
     },
     {
       "source": "claim_001",
-      "target": "claim_020",
+      "target": "claim_023",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794411+00:00",
+      "created_at": "2026-02-28T15:06:35.937396+00:00",
       "metadata": {}
     },
     {
       "source": "claim_001",
-      "target": "claim_024",
+      "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794417+00:00",
+      "created_at": "2026-02-28T15:06:35.937406+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_001",
-      "target": "claim_027",
+      "source": "claim_018",
+      "target": "claim_019",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794423+00:00",
+      "created_at": "2026-02-28T15:06:35.937417+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_023",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937427+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_018",
+      "target": "claim_026",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937437+00:00",
       "metadata": {}
     },
     {
       "source": "claim_019",
-      "target": "claim_020",
+      "target": "claim_023",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794429+00:00",
+      "created_at": "2026-02-28T15:06:35.937448+00:00",
       "metadata": {}
     },
     {
       "source": "claim_019",
-      "target": "claim_024",
+      "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794435+00:00",
+      "created_at": "2026-02-28T15:06:35.937458+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_019",
-      "target": "claim_027",
+      "source": "claim_023",
+      "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794441+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_020",
-      "target": "claim_024",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794447+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_020",
-      "target": "claim_027",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794452+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_024",
-      "target": "claim_027",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794458+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_002",
-      "target": "claim_003",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794470+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_002",
-      "target": "claim_004",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794476+00:00",
+      "created_at": "2026-02-28T15:06:35.937469+00:00",
       "metadata": {}
     },
     {
@@ -2097,31 +2025,7 @@
       "target": "claim_004",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794482+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_005",
-      "target": "claim_006",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794505+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_005",
-      "target": "claim_007",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794510+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_005",
-      "target": "claim_014",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794516+00:00",
+      "created_at": "2026-02-28T15:06:35.937505+00:00",
       "metadata": {}
     },
     {
@@ -2129,135 +2033,143 @@
       "target": "claim_007",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794525+00:00",
+      "created_at": "2026-02-28T15:06:35.937552+00:00",
       "metadata": {}
     },
     {
       "source": "claim_006",
-      "target": "claim_014",
+      "target": "claim_013",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794531+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_006",
-      "target": "claim_023",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794537+00:00",
+      "created_at": "2026-02-28T15:06:35.937563+00:00",
       "metadata": {}
     },
     {
       "source": "claim_007",
-      "target": "claim_014",
+      "target": "claim_013",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794543+00:00",
+      "created_at": "2026-02-28T15:06:35.937573+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_007",
-      "target": "claim_023",
+      "source": "claim_008",
+      "target": "claim_010",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794549+00:00",
+      "created_at": "2026-02-28T15:06:35.937647+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937661+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937672+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937683+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_017",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937694+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937705+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937716+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_015",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937727+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_016",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937738+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_017",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937749+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "claim_024",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937760+00:00",
       "metadata": {}
     },
     {
       "source": "claim_014",
-      "target": "claim_023",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794555+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_008",
-      "target": "claim_011",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794603+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_008",
       "target": "claim_015",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794618+00:00",
+      "created_at": "2026-02-28T15:06:35.937772+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_008",
+      "source": "claim_014",
       "target": "claim_016",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794630+00:00",
+      "created_at": "2026-02-28T15:06:35.937783+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_008",
+      "source": "claim_014",
       "target": "claim_017",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794642+00:00",
+      "created_at": "2026-02-28T15:06:35.937795+00:00",
       "metadata": {}
     },
     {
-      "source": "claim_008",
-      "target": "claim_018",
+      "source": "claim_014",
+      "target": "claim_024",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794655+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_008",
-      "target": "claim_025",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794663+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_011",
-      "target": "claim_015",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794669+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_011",
-      "target": "claim_016",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794676+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_011",
-      "target": "claim_017",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794682+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_011",
-      "target": "claim_018",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794688+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_011",
-      "target": "claim_025",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794694+00:00",
+      "created_at": "2026-02-28T15:06:35.937806+00:00",
       "metadata": {}
     },
     {
@@ -2265,7 +2177,7 @@
       "target": "claim_016",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794700+00:00",
+      "created_at": "2026-02-28T15:06:35.937817+00:00",
       "metadata": {}
     },
     {
@@ -2273,23 +2185,15 @@
       "target": "claim_017",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794706+00:00",
+      "created_at": "2026-02-28T15:06:35.937829+00:00",
       "metadata": {}
     },
     {
       "source": "claim_015",
-      "target": "claim_018",
+      "target": "claim_024",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794713+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_015",
-      "target": "claim_025",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794719+00:00",
+      "created_at": "2026-02-28T15:06:35.937840+00:00",
       "metadata": {}
     },
     {
@@ -2297,110 +2201,86 @@
       "target": "claim_017",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794725+00:00",
+      "created_at": "2026-02-28T15:06:35.937851+00:00",
       "metadata": {}
     },
     {
       "source": "claim_016",
-      "target": "claim_018",
+      "target": "claim_024",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794731+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_016",
-      "target": "claim_025",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794737+00:00",
+      "created_at": "2026-02-28T15:06:35.937863+00:00",
       "metadata": {}
     },
     {
       "source": "claim_017",
-      "target": "claim_018",
+      "target": "claim_024",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794744+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_017",
-      "target": "claim_025",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794750+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_018",
-      "target": "claim_025",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794756+00:00",
+      "created_at": "2026-02-28T15:06:35.937874+00:00",
       "metadata": {}
     },
     {
       "source": "claim_009",
-      "target": "claim_012",
+      "target": "claim_011",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794770+00:00",
+      "created_at": "2026-02-28T15:06:35.937896+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_021",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937929+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_020",
+      "target": "claim_025",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:06:35.937941+00:00",
       "metadata": {}
     },
     {
       "source": "claim_021",
-      "target": "claim_022",
+      "target": "claim_025",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794789+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_021",
-      "target": "claim_026",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794795+00:00",
-      "metadata": {}
-    },
-    {
-      "source": "claim_022",
-      "target": "claim_026",
-      "type": "relates_to",
-      "weight": 0.5,
-      "created_at": "2026-02-28T03:15:33.794802+00:00",
+      "created_at": "2026-02-28T15:06:35.937953+00:00",
       "metadata": {}
     }
   ],
   "metadata": {
     "domain": "nextjs-react",
-    "created_at": "2026-02-28T03:15:33.792915+00:00",
-    "updated_at": "2026-02-28T03:15:33.792915+00:00",
-    "node_count": 84,
-    "edge_count": 136,
+    "created_at": "2026-02-28T15:06:35.935439+00:00",
+    "updated_at": "2026-02-28T15:06:35.935439+00:00",
+    "node_count": 82,
+    "edge_count": 125,
     "cluster_count": 5
   },
   "clusters": [
     {
       "id": "cluster_0",
       "topics": [
-        "topic_performance_characteristics",
-        "topic_server_vs_client_components"
+        "topic_server_vs_client_components",
+        "topic_performance_characteristics"
       ],
       "claims": [
-        "claim_003",
-        "claim_005",
         "claim_002",
         "claim_006",
-        "claim_013",
-        "claim_014",
-        "claim_004",
         "claim_007",
-        "claim_023"
+        "claim_022",
+        "claim_004",
+        "claim_013",
+        "claim_012",
+        "claim_003",
+        "claim_005"
       ],
       "size": 11,
-      "density": 0.418
+      "density": 0.273
     },
     {
       "id": "cluster_2",
@@ -2408,54 +2288,53 @@
         "topic_react_flight_protocol"
       ],
       "claims": [
+        "claim_014",
         "claim_015",
-        "claim_008",
         "claim_010",
-        "claim_025",
-        "claim_011",
         "claim_017",
-        "claim_018",
+        "claim_024",
+        "claim_008",
         "claim_016"
       ],
-      "size": 9,
-      "density": 0.833
-    },
-    {
-      "id": "cluster_3",
-      "topics": [
-        "topic_architecture_and_routing"
-      ],
-      "claims": [
-        "claim_027",
-        "claim_020",
-        "claim_001",
-        "claim_019",
-        "claim_024"
-      ],
-      "size": 6,
-      "density": 1.0
-    },
-    {
-      "id": "cluster_4",
-      "topics": [
-        "topic_error_handling_and_streaming"
-      ],
-      "claims": [
-        "claim_026",
-        "claim_021",
-        "claim_022"
-      ],
-      "size": 4,
+      "size": 8,
       "density": 1.0
     },
     {
       "id": "cluster_1",
       "topics": [
+        "topic_architecture_and_routing"
+      ],
+      "claims": [
+        "claim_019",
+        "claim_026",
+        "claim_018",
+        "claim_023",
+        "claim_001"
+      ],
+      "size": 6,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_3",
+      "topics": [
+        "topic_error_handling_and_streaming"
+      ],
+      "claims": [
+        "claim_020",
+        "claim_021",
+        "claim_025"
+      ],
+      "size": 4,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_4",
+      "topics": [
         "topic_technical_implementation"
       ],
       "claims": [
         "claim_009",
-        "claim_012"
+        "claim_011"
       ],
       "size": 3,
       "density": 1.0

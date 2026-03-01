@@ -449,3 +449,5 @@ One sale at $500 covers roughly 50,000 Haiku API calls or several hundred Sonnet
 And here's the compounding part. Every time you deliver, you have a case study. Every case study makes the next pitch more credible. Every successful delivery builds the evidence that the productized service works. Within three to four sales you have enough proof to raise the price.
 What I'd actually write for your first message
 Want me to draft the actual message template right now — specific to the Next.js landing page offer on Onlinejobs.ph? I can write something you could send tomorrow, personalized enough to feel human but structured enough to send at volume with light customization per listing.
+
+

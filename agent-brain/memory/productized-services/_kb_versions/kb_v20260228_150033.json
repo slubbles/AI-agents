@@ -1,5 +1,5 @@
 {
-  "domain_summary": "The productized-services domain reveals a fundamental transparency crisis: despite widespread complaints about freelance developer ghosting, communication breakdowns, and quality control issues affecting startup founders, no major platform (Upwork, Toptal, Fiverr) or research institution publishes project completion, abandonment, or success rate data. While client ghosting of freelancers is documented (72% in 2024, declining to ~50% in 2025) and scope creep affects 45-62% of tech projects, the reverse metric\u2014freelancer project abandonment rates\u2014remains completely opaque across SEC filings, academic research, and industry reports. True productized landing page services are rare, with only SprintPage offering transparent 48-hour delivery guarantees, while most claimed 'productized' services are actually certification directories or subscription models without fixed-scope project structures.",
+  "domain_summary": "The productized-services domain reveals significant structural problems with freelance developers including ghosting, communication breakdowns, and quality control issues, while few true productized landing page services exist with transparent operations. A critical transparency gap persists across the entire industry: major freelance platforms (Upwork, Toptal, Fiverr), industry analysts (Gartner, Forrester, McKinsey), academic institutions, and regulatory filings do not publish project completion, abandonment, or success rate data despite these being crucial metrics for service buyers. While client ghosting of freelancers is well-documented (72% in 2024, declining to ~50% in 2025) and scope creep affects 45-62% of tech projects, no quantified data exists on freelancer project abandonment rates. Only SprintPage offers truly transparent productized operations with fixed 48-hour turnaround and published workflows, while most other services claiming to be productized are actually certification directories or standard SaaS pricing tiers.",
   "topics": [
     {
       "name": "Freelance Developer Problems",
@@ -587,7 +587,7 @@
     "synthesis_date": "2026-02-28",
     "incremental": false
   },
-  "_synthesized_at": "2026-02-28T15:00:33.485604+00:00",
+  "_synthesized_at": "2026-02-28T14:55:04.405184+00:00",
   "_domain": "productized-services",
   "_outputs_count": 13,
   "_incremental": false

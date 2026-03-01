@@ -1,5 +1,5 @@
 {
-  "domain_summary": "As of February 2026, the crypto ecosystem demonstrates institutional maturation with Bitcoin ETFs representing 6% of market cap despite volatile flows ($1.71B January inflows followed by February outflows). Regulatory clarity has emerged through the enacted GENIUS Act (July 2025) establishing comprehensive stablecoin frameworks, while SEC Chair Paul Atkins shifted from enforcement to guidance, dropping major cases against exchanges. DeFi faces critical AI-generated code vulnerabilities ($86M January losses) and governance failures overtaking code bugs as primary risks, while Web3 gaming recovers from 2025's 75% decline led by Axie Infinity's revival. Bitcoin Layer 2 solutions show institutional adoption momentum with Lightning Network exceeding $1B monthly volume.",
+  "domain_summary": "As of February 2026, the crypto ecosystem shows institutional maturation with Bitcoin ETFs representing 6% of market cap and strong regulatory clarity. The GENIUS Act (enacted July 2025) provides stablecoin framework while CLARITY Act remains pending, and SEC Chair Paul Atkins has shifted from enforcement to guidance-based approach. DeFi faces critical AI-generated code vulnerabilities and governance risks despite protocol upgrades, while Web3 gaming recovers from 2025's 75% decline led by Axie Infinity revival. Bitcoin Layer 2 solutions show institutional adoption with Lightning Network exceeding $1B monthly volume.",
   "topics": [
     {
       "name": "Bitcoin ETFs",
@@ -342,7 +342,7 @@
       "id": "claim_017",
       "claim": "SEC issued FAQ on February 19, 2026 allowing 2% haircut on broker-dealer stablecoin holdings instead of 100% haircut",
       "topic": "Stablecoins",
-      "confidence": "established",
+      "confidence": "high",
       "status": "active",
       "first_seen": "2026-02-23T10:29:16.418349+00:00",
       "last_confirmed": "2026-02-23T12:29:48.688795+00:00",
@@ -842,7 +842,7 @@
     "synthesis_date": "2026-02-28",
     "incremental": false
   },
-  "_synthesized_at": "2026-02-28T15:03:38.915605+00:00",
+  "_synthesized_at": "2026-02-28T03:11:02.383398+00:00",
   "_domain": "crypto",
   "_outputs_count": 11,
   "_incremental": false

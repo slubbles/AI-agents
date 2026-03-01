@@ -7,7 +7,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.171795+00:00",
+      "last_updated": "2026-02-28T15:01:01.045063+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -26,7 +26,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.171815+00:00",
+      "last_updated": "2026-02-28T15:01:01.045101+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -34,7 +34,8 @@
           "pricing structures",
           "review data",
           "platform metrics",
-          "industry research gaps"
+          "industry research gaps",
+          "regulatory filings"
         ]
       }
     },
@@ -45,7 +46,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.171827+00:00",
+      "last_updated": "2026-02-28T15:01:01.045121+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -64,7 +65,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.171837+00:00",
+      "last_updated": "2026-02-28T15:01:01.045135+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -81,7 +82,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.171847+00:00",
+      "last_updated": "2026-02-28T15:01:01.045149+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -117,7 +118,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.171888+00:00",
+      "last_updated": "2026-02-28T15:01:01.045210+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://3innovative.com/insights/problems-with-freelance-developers"
@@ -181,7 +182,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.171977+00:00",
+      "last_updated": "2026-02-28T15:01:01.045328+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://bestjobsearchapps.com/articles/en/upwork-vs-toptal-vs-gunio-premium-freelance-platform-comparison-for-elite-developers"
@@ -211,16 +212,18 @@
       "confidence": "established",
       "status": "active",
       "first_seen": "2026-02-28T10:09:49.420609+00:00",
-      "last_updated": "2026-02-28T10:59:56.492423+00:00",
-      "source_count": 7,
+      "last_updated": "2026-02-28T13:00:29.008241+00:00",
+      "source_count": 8,
       "metadata": {
         "full_text": "No publicly available data exists on React/Next.js landing page specific completion rates, delays, scope creep percentages, or average timelines from Upwork, Toptal, or Fiverr",
         "sources": [
           "Multiple sources searched; no data found",
           "Comprehensive search across industry reports, platform disclosures, and research studies",
-          "Academic databases and industry analysts"
+          "Academic databases and industry analysts",
+          "SEC filings",
+          "Regulatory filings"
         ],
-        "notes": "Confirmed across multiple research approaches including academic databases, industry analysts, SEC filings, and transparency reports"
+        "notes": "Confirmed across multiple research approaches including academic databases, industry analysts, SEC filings, transparency reports, and regulatory filings"
       }
     },
     {
@@ -230,7 +233,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172031+00:00",
+      "last_updated": "2026-02-28T15:01:01.045384+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Multiple sources searched; no data found"
@@ -243,7 +246,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172050+00:00",
+      "last_updated": "2026-02-28T15:01:01.045401+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Comprehensive search across industry reports, platform disclosures, and research studies"
@@ -256,10 +259,36 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172067+00:00",
+      "last_updated": "2026-02-28T15:01:01.045417+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Academic databases and industry analysts"
+      }
+    },
+    {
+      "id": "source_sec_filings",
+      "type": "source",
+      "label": "SEC filings",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T15:01:01.045430+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "SEC filings"
+      }
+    },
+    {
+      "id": "source_regulatory_filings",
+      "type": "source",
+      "label": "Regulatory filings",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T15:01:01.045444+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "Regulatory filings"
       }
     },
     {
@@ -286,7 +315,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172099+00:00",
+      "last_updated": "2026-02-28T15:01:01.045473+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://webflow.com/certified-partners/browse"
@@ -316,7 +345,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172154+00:00",
+      "last_updated": "2026-02-28T15:01:01.045501+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://kit.com/news/convertkit-rebrands-kit"
@@ -346,7 +375,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172187+00:00",
+      "last_updated": "2026-02-28T15:01:01.045532+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://witarist.com/blogs/startups-are-switching-from-freelance-platforms-to-vetted-developer-services/"
@@ -376,7 +405,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172215+00:00",
+      "last_updated": "2026-02-28T15:01:01.045560+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.sprintpage.io/"
@@ -457,7 +486,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172331+00:00",
+      "last_updated": "2026-02-28T15:01:01.045789+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://backlinko.com/fiverr-users"
@@ -470,8 +499,8 @@
       "confidence": "established",
       "status": "active",
       "first_seen": "2026-02-28T10:35:09.426443+00:00",
-      "last_updated": "2026-02-28T10:59:56.492423+00:00",
-      "source_count": 6,
+      "last_updated": "2026-02-28T13:00:29.008241+00:00",
+      "source_count": 7,
       "metadata": {
         "full_text": "No published project completion, abandonment, or delay rate benchmarks exist from major freelance platforms (Upwork, Toptal, Fiverr) or comparable industry analysts",
         "sources": [
@@ -479,9 +508,10 @@
           "Upwork 2025 Transparency Report",
           "Comprehensive search across academic databases and analyst firms",
           "SEC filings",
-          "Earnings calls"
+          "Earnings calls",
+          "Regulatory filings"
         ],
-        "notes": "Confirmed across multiple research approaches including official transparency reports, SEC filings, and academic institutions"
+        "notes": "Confirmed across multiple research approaches including official transparency reports, SEC filings, earnings calls, and regulatory filings"
       }
     },
     {
@@ -491,7 +521,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172358+00:00",
+      "last_updated": "2026-02-28T15:01:01.045820+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Prior knowledge base + exhaustive search attempts"
@@ -504,7 +534,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172374+00:00",
+      "last_updated": "2026-02-28T15:01:01.045838+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Upwork 2025 Transparency Report"
@@ -517,23 +547,10 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172392+00:00",
+      "last_updated": "2026-02-28T15:01:01.045856+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Comprehensive search across academic databases and analyst firms"
-      }
-    },
-    {
-      "id": "source_sec_filings",
-      "type": "source",
-      "label": "SEC filings",
-      "confidence": "medium",
-      "status": "active",
-      "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172407+00:00",
-      "source_count": 0,
-      "metadata": {
-        "url": "SEC filings"
       }
     },
     {
@@ -543,7 +560,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172421+00:00",
+      "last_updated": "2026-02-28T15:01:01.045881+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Earnings calls"
@@ -574,7 +591,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172449+00:00",
+      "last_updated": "2026-02-28T15:01:01.045911+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.gartner.com/en/insights/benchmarking"
@@ -587,7 +604,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172465+00:00",
+      "last_updated": "2026-02-28T15:01:01.045927+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Academic and analyst firm searches"
@@ -617,7 +634,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172495+00:00",
+      "last_updated": "2026-02-28T15:01:01.045957+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.leapers.co/research/2024/"
@@ -647,7 +664,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172525+00:00",
+      "last_updated": "2026-02-28T15:01:01.045985+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.leapers.co/research/2025/report/"
@@ -694,7 +711,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172584+00:00",
+      "last_updated": "2026-02-28T15:01:01.046041+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://moldstud.com/articles/p-freelance-developer-dilemmas-how-to-tackle-project-scope-creep-effectively"
@@ -758,7 +775,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172667+00:00",
+      "last_updated": "2026-02-28T15:01:01.046129+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.upwork.com/blog/upworks-2025-transparency-report-our-ongoing-work-to-protect-yours"
@@ -788,7 +805,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172696+00:00",
+      "last_updated": "2026-02-28T15:01:01.046163+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.superside.com/landing-page-design"
@@ -818,7 +835,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172724+00:00",
+      "last_updated": "2026-02-28T15:01:01.046199+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.flowout.com/pricing"
@@ -849,7 +866,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172752+00:00",
+      "last_updated": "2026-02-28T15:01:01.046244+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Academic database searches"
@@ -862,7 +879,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172769+00:00",
+      "last_updated": "2026-02-28T15:01:01.046268+00:00",
       "source_count": 0,
       "metadata": {
         "url": "Labor research organization searches"
@@ -892,40 +909,100 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172802+00:00",
+      "last_updated": "2026-02-28T15:01:01.046304+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://investors.upwork.com/news-releases/news-release-details/upwork-humanagent-productivity-index-reveals-70-boost-work"
       }
     },
     {
+      "id": "claim_028",
+      "type": "claim",
+      "label": "Upwork filed its 2025 Form 10-K on February 13, 2026 (for fiscal year ended December 31, 2025) with $787.8 million in full-year revenue, but SEC filing does not show published project completion rates",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-28T13:00:29.008241+00:00",
+      "last_updated": "2026-02-28T13:00:29.008241+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Upwork filed its 2025 Form 10-K on February 13, 2026 (for fiscal year ended December 31, 2025) with $787.8 million in full-year revenue, but SEC filing does not show published project completion rates, refund percentages, or dispute resolution metrics",
+        "sources": [
+          "https://investors.upwork.com/static-files/c2c34f53-b2d1-439f-9de2-ebe501b75728"
+        ],
+        "notes": "SEC filing contains discussion of dispute resolution mechanisms but no quantified metrics"
+      }
+    },
+    {
+      "id": "source_https_investors_upwork_com_static_files_c2c34f53_b2d1_439f_9",
+      "type": "source",
+      "label": "https://investors.upwork.com/static-files/c2c34f53-b2d1-439f-9de2-ebe501b75728",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T15:01:01.046340+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://investors.upwork.com/static-files/c2c34f53-b2d1-439f-9de2-ebe501b75728"
+      }
+    },
+    {
+      "id": "claim_029",
+      "type": "claim",
+      "label": "Fiverr's 2025 SEC filing (6-K filed August 7, 2025) indicates sellers receive 'real-time feedback on their performance in timeliness of delivery, responsiveness and completion rates' via seller dashbo",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-28T13:00:29.008241+00:00",
+      "last_updated": "2026-02-28T13:00:29.008241+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Fiverr's 2025 SEC filing (6-K filed August 7, 2025) indicates sellers receive 'real-time feedback on their performance in timeliness of delivery, responsiveness and completion rates' via seller dashboards, but no aggregate completion rate percentages are disclosed to investors or the public",
+        "sources": [
+          "https://www.sec.gov/Archives/edgar/data/1762301/000117891325000559/zk2532679.htm"
+        ],
+        "notes": "Internal systems track completion rates but data not publicly disclosed"
+      }
+    },
+    {
+      "id": "source_https_www_sec_gov_archives_edgar_data_1762301_00011789132500",
+      "type": "source",
+      "label": "https://www.sec.gov/Archives/edgar/data/1762301/000117891325000559/zk2532679.htm",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-02-28T15:01:01.046376+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.sec.gov/Archives/edgar/data/1762301/000117891325000559/zk2532679.htm"
+      }
+    },
+    {
       "id": "gap_000",
       "type": "gap",
-      "label": "Percentage of freelance projects abandoned/incomplete due to freelancer ghosting or withdrawal\u2014NO publicly available quantified data found",
+      "label": "Percentage of freelance projects abandoned/incomplete due to freelancer ghosting or withdrawal\u2014NO publicly available quantified data found despite comprehensive searches across regulatory filings, aca",
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172819+00:00",
+      "last_updated": "2026-02-28T15:01:01.046401+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
         "related_topic": "Project Success Metrics",
-        "full_text": "Percentage of freelance projects abandoned/incomplete due to freelancer ghosting or withdrawal\u2014NO publicly available quantified data found"
+        "full_text": "Percentage of freelance projects abandoned/incomplete due to freelancer ghosting or withdrawal\u2014NO publicly available quantified data found despite comprehensive searches across regulatory filings, academic institutions, and industry research"
       }
     },
     {
       "id": "gap_001",
       "type": "gap",
-      "label": "Platform-specific project completion rates from Upwork, Toptal, Fiverr disaggregated by project type, budget tier, or timeline",
+      "label": "Platform-specific project completion rates from Upwork, Toptal, Fiverr disaggregated by project type, budget tier, or timeline\u2014confirmed absent from SEC filings and transparency reports",
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172833+00:00",
+      "last_updated": "2026-02-28T15:01:01.046417+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
-        "related_topic": "Project Success Metrics",
-        "full_text": "Platform-specific project completion rates from Upwork, Toptal, Fiverr disaggregated by project type, budget tier, or timeline"
+        "related_topic": "Platform Transparency",
+        "full_text": "Platform-specific project completion rates from Upwork, Toptal, Fiverr disaggregated by project type, budget tier, or timeline\u2014confirmed absent from SEC filings and transparency reports"
       }
     },
     {
@@ -935,7 +1012,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172845+00:00",
+      "last_updated": "2026-02-28T15:01:01.046432+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -950,7 +1027,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172855+00:00",
+      "last_updated": "2026-02-28T15:01:01.046444+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -961,16 +1038,16 @@
     {
       "id": "gap_004",
       "type": "gap",
-      "label": "Whether any academic institutions or independent research firms have attempted to measure freelance platform completion rates through surveys or data collection",
+      "label": "Full content analysis of Upwork's 2025 Form 10-K and Fiverr's earnings call transcripts to confirm absence of completion metrics beyond search snippets",
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172865+00:00",
+      "last_updated": "2026-02-28T15:01:01.046457+00:00",
       "source_count": 0,
       "metadata": {
-        "priority": "high",
+        "priority": "medium",
         "related_topic": "Platform Transparency",
-        "full_text": "Whether any academic institutions or independent research firms have attempted to measure freelance platform completion rates through surveys or data collection"
+        "full_text": "Full content analysis of Upwork's 2025 Form 10-K and Fiverr's earnings call transcripts to confirm absence of completion metrics beyond search snippets"
       }
     },
     {
@@ -980,7 +1057,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172876+00:00",
+      "last_updated": "2026-02-28T15:01:01.046468+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "medium",
@@ -995,7 +1072,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172886+00:00",
+      "last_updated": "2026-02-28T15:01:01.046480+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "medium",
@@ -1006,31 +1083,31 @@
     {
       "id": "gap_007",
       "type": "gap",
-      "label": "Full content analysis of Fiverr's 2025 earnings results and SEC filings to confirm absence of completion metrics",
+      "label": "Proxy metrics analysis: whether dispute resolution rates, refund claim percentages, or chargeback rates could estimate project abandonment indirectly",
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172897+00:00",
+      "last_updated": "2026-02-28T15:01:01.046492+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "medium",
         "related_topic": "Platform Transparency",
-        "full_text": "Full content analysis of Fiverr's 2025 earnings results and SEC filings to confirm absence of completion metrics"
+        "full_text": "Proxy metrics analysis: whether dispute resolution rates, refund claim percentages, or chargeback rates could estimate project abandonment indirectly"
       }
     },
     {
       "id": "gap_008",
       "type": "gap",
-      "label": "Formal QA processes and revision round limits for most productized services beyond SprintPage",
+      "label": "EU gig economy regulatory requirements and whether they mandate project outcome disclosures from platforms operating in Europe",
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-02-28T11:02:29.172906+00:00",
+      "last_updated": "2026-02-28T15:01:01.046504+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "low",
-        "related_topic": "Productized Service Operations",
-        "full_text": "Formal QA processes and revision round limits for most productized services beyond SprintPage"
+        "related_topic": "Platform Transparency",
+        "full_text": "EU gig economy regulatory requirements and whether they mandate project outcome disclosures from platforms operating in Europe"
       }
     }
   ],
@@ -1040,7 +1117,7 @@
       "target": "topic_freelance_developer_problems",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.171868+00:00",
+      "created_at": "2026-02-28T15:01:01.045181+00:00",
       "metadata": {}
     },
     {
@@ -1048,7 +1125,7 @@
       "target": "source_https_3innovative_com_insights_problems_with_freelance_devel",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.171894+00:00",
+      "created_at": "2026-02-28T15:01:01.045219+00:00",
       "metadata": {}
     },
     {
@@ -1056,7 +1133,7 @@
       "target": "topic_freelance_developer_problems",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.171907+00:00",
+      "created_at": "2026-02-28T15:01:01.045240+00:00",
       "metadata": {}
     },
     {
@@ -1064,7 +1141,7 @@
       "target": "source_https_3innovative_com_insights_problems_with_freelance_devel",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.171923+00:00",
+      "created_at": "2026-02-28T15:01:01.045263+00:00",
       "metadata": {}
     },
     {
@@ -1072,7 +1149,7 @@
       "target": "topic_freelance_developer_problems",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.171936+00:00",
+      "created_at": "2026-02-28T15:01:01.045282+00:00",
       "metadata": {}
     },
     {
@@ -1080,7 +1157,7 @@
       "target": "source_https_3innovative_com_insights_problems_with_freelance_devel",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.171949+00:00",
+      "created_at": "2026-02-28T15:01:01.045298+00:00",
       "metadata": {}
     },
     {
@@ -1088,7 +1165,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.171962+00:00",
+      "created_at": "2026-02-28T15:01:01.045312+00:00",
       "metadata": {}
     },
     {
@@ -1096,7 +1173,7 @@
       "target": "source_https_bestjobsearchapps_com_articles_en_upwork_vs_toptal_vs_",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.171981+00:00",
+      "created_at": "2026-02-28T15:01:01.045333+00:00",
       "metadata": {}
     },
     {
@@ -1104,7 +1181,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.171993+00:00",
+      "created_at": "2026-02-28T15:01:01.045346+00:00",
       "metadata": {}
     },
     {
@@ -1112,7 +1189,7 @@
       "target": "source_https_bestjobsearchapps_com_articles_en_upwork_vs_toptal_vs_",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172006+00:00",
+      "created_at": "2026-02-28T15:01:01.045360+00:00",
       "metadata": {}
     },
     {
@@ -1120,7 +1197,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172018+00:00",
+      "created_at": "2026-02-28T15:01:01.045372+00:00",
       "metadata": {}
     },
     {
@@ -1128,7 +1205,7 @@
       "target": "source_multiple_sources_searched_no_data_found",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172036+00:00",
+      "created_at": "2026-02-28T15:01:01.045389+00:00",
       "metadata": {}
     },
     {
@@ -1136,7 +1213,7 @@
       "target": "source_comprehensive_search_across_industry_reports_platform_disclo",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172055+00:00",
+      "created_at": "2026-02-28T15:01:01.045406+00:00",
       "metadata": {}
     },
     {
@@ -1144,7 +1221,23 @@
       "target": "source_academic_databases_and_industry_analysts",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172072+00:00",
+      "created_at": "2026-02-28T15:01:01.045421+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_sec_filings",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:01:01.045434+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_regulatory_filings",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:01:01.045448+00:00",
       "metadata": {}
     },
     {
@@ -1152,7 +1245,7 @@
       "target": "topic_productized_service_operations",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172085+00:00",
+      "created_at": "2026-02-28T15:01:01.045460+00:00",
       "metadata": {}
     },
     {
@@ -1160,7 +1253,7 @@
       "target": "source_https_webflow_com_certified_partners_browse",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172124+00:00",
+      "created_at": "2026-02-28T15:01:01.045477+00:00",
       "metadata": {}
     },
     {
@@ -1168,7 +1261,7 @@
       "target": "topic_productized_service_operations",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172138+00:00",
+      "created_at": "2026-02-28T15:01:01.045489+00:00",
       "metadata": {}
     },
     {
@@ -1176,7 +1269,7 @@
       "target": "source_https_kit_com_news_convertkit_rebrands_kit",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172159+00:00",
+      "created_at": "2026-02-28T15:01:01.045506+00:00",
       "metadata": {}
     },
     {
@@ -1184,7 +1277,7 @@
       "target": "topic_market_trends",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172171+00:00",
+      "created_at": "2026-02-28T15:01:01.045517+00:00",
       "metadata": {}
     },
     {
@@ -1192,7 +1285,7 @@
       "target": "source_https_witarist_com_blogs_startups_are_switching_from_freelan",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172192+00:00",
+      "created_at": "2026-02-28T15:01:01.045536+00:00",
       "metadata": {}
     },
     {
@@ -1200,7 +1293,7 @@
       "target": "topic_productized_service_operations",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172203+00:00",
+      "created_at": "2026-02-28T15:01:01.045548+00:00",
       "metadata": {}
     },
     {
@@ -1208,7 +1301,7 @@
       "target": "source_https_www_sprintpage_io",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172219+00:00",
+      "created_at": "2026-02-28T15:01:01.045564+00:00",
       "metadata": {}
     },
     {
@@ -1216,7 +1309,7 @@
       "target": "topic_productized_service_operations",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172232+00:00",
+      "created_at": "2026-02-28T15:01:01.045576+00:00",
       "metadata": {}
     },
     {
@@ -1224,7 +1317,7 @@
       "target": "source_https_www_sprintpage_io",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172244+00:00",
+      "created_at": "2026-02-28T15:01:01.045588+00:00",
       "metadata": {}
     },
     {
@@ -1232,7 +1325,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172257+00:00",
+      "created_at": "2026-02-28T15:01:01.045600+00:00",
       "metadata": {}
     },
     {
@@ -1240,7 +1333,7 @@
       "target": "source_https_bestjobsearchapps_com_articles_en_upwork_vs_toptal_vs_",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172272+00:00",
+      "created_at": "2026-02-28T15:01:01.045699+00:00",
       "metadata": {}
     },
     {
@@ -1248,7 +1341,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172284+00:00",
+      "created_at": "2026-02-28T15:01:01.045722+00:00",
       "metadata": {}
     },
     {
@@ -1256,7 +1349,7 @@
       "target": "source_https_bestjobsearchapps_com_articles_en_upwork_vs_toptal_vs_",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172299+00:00",
+      "created_at": "2026-02-28T15:01:01.045746+00:00",
       "metadata": {}
     },
     {
@@ -1264,7 +1357,7 @@
       "target": "claim_012",
       "type": "supersedes",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172305+00:00",
+      "created_at": "2026-02-28T15:01:01.045754+00:00",
       "metadata": {
         "reason": "newer data replaces older"
       }
@@ -1274,7 +1367,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172317+00:00",
+      "created_at": "2026-02-28T15:01:01.045770+00:00",
       "metadata": {}
     },
     {
@@ -1282,7 +1375,7 @@
       "target": "source_https_backlinko_com_fiverr_users",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172335+00:00",
+      "created_at": "2026-02-28T15:01:01.045794+00:00",
       "metadata": {}
     },
     {
@@ -1290,7 +1383,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172346+00:00",
+      "created_at": "2026-02-28T15:01:01.045807+00:00",
       "metadata": {}
     },
     {
@@ -1298,7 +1391,7 @@
       "target": "source_prior_knowledge_base_exhaustive_search_attempts",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172362+00:00",
+      "created_at": "2026-02-28T15:01:01.045826+00:00",
       "metadata": {}
     },
     {
@@ -1306,7 +1399,7 @@
       "target": "source_upwork_2025_transparency_report",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172378+00:00",
+      "created_at": "2026-02-28T15:01:01.045842+00:00",
       "metadata": {}
     },
     {
@@ -1314,7 +1407,7 @@
       "target": "source_comprehensive_search_across_academic_databases_and_analyst_f",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172397+00:00",
+      "created_at": "2026-02-28T15:01:01.045860+00:00",
       "metadata": {}
     },
     {
@@ -1322,7 +1415,7 @@
       "target": "source_sec_filings",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172412+00:00",
+      "created_at": "2026-02-28T15:01:01.045870+00:00",
       "metadata": {}
     },
     {
@@ -1330,7 +1423,7 @@
       "target": "source_earnings_calls",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172425+00:00",
+      "created_at": "2026-02-28T15:01:01.045886+00:00",
       "metadata": {}
     },
     {
@@ -1338,7 +1431,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172437+00:00",
+      "created_at": "2026-02-28T15:01:01.045898+00:00",
       "metadata": {}
     },
     {
@@ -1346,7 +1439,7 @@
       "target": "source_https_www_gartner_com_en_insights_benchmarking",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172454+00:00",
+      "created_at": "2026-02-28T15:01:01.045915+00:00",
       "metadata": {}
     },
     {
@@ -1354,7 +1447,7 @@
       "target": "source_academic_and_analyst_firm_searches",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172470+00:00",
+      "created_at": "2026-02-28T15:01:01.045931+00:00",
       "metadata": {}
     },
     {
@@ -1362,7 +1455,7 @@
       "target": "topic_project_success_metrics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172482+00:00",
+      "created_at": "2026-02-28T15:01:01.045943+00:00",
       "metadata": {}
     },
     {
@@ -1370,7 +1463,7 @@
       "target": "source_https_www_leapers_co_research_2024",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172500+00:00",
+      "created_at": "2026-02-28T15:01:01.045962+00:00",
       "metadata": {}
     },
     {
@@ -1378,7 +1471,7 @@
       "target": "topic_project_success_metrics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172512+00:00",
+      "created_at": "2026-02-28T15:01:01.045972+00:00",
       "metadata": {}
     },
     {
@@ -1386,7 +1479,7 @@
       "target": "source_https_www_leapers_co_research_2025_report",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172529+00:00",
+      "created_at": "2026-02-28T15:01:01.045990+00:00",
       "metadata": {}
     },
     {
@@ -1394,7 +1487,7 @@
       "target": "topic_project_success_metrics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172541+00:00",
+      "created_at": "2026-02-28T15:01:01.046001+00:00",
       "metadata": {}
     },
     {
@@ -1402,7 +1495,7 @@
       "target": "source_https_www_leapers_co_research_2025_report",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172555+00:00",
+      "created_at": "2026-02-28T15:01:01.046014+00:00",
       "metadata": {}
     },
     {
@@ -1410,7 +1503,7 @@
       "target": "topic_project_success_metrics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172567+00:00",
+      "created_at": "2026-02-28T15:01:01.046025+00:00",
       "metadata": {}
     },
     {
@@ -1418,7 +1511,7 @@
       "target": "source_https_moldstud_com_articles_p_freelance_developer_dilemmas_h",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172588+00:00",
+      "created_at": "2026-02-28T15:01:01.046045+00:00",
       "metadata": {}
     },
     {
@@ -1426,7 +1519,7 @@
       "target": "topic_project_success_metrics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172599+00:00",
+      "created_at": "2026-02-28T15:01:01.046056+00:00",
       "metadata": {}
     },
     {
@@ -1434,7 +1527,7 @@
       "target": "source_https_moldstud_com_articles_p_freelance_developer_dilemmas_h",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172614+00:00",
+      "created_at": "2026-02-28T15:01:01.046071+00:00",
       "metadata": {}
     },
     {
@@ -1442,7 +1535,7 @@
       "target": "topic_project_success_metrics",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172626+00:00",
+      "created_at": "2026-02-28T15:01:01.046084+00:00",
       "metadata": {}
     },
     {
@@ -1450,7 +1543,7 @@
       "target": "source_https_moldstud_com_articles_p_freelance_developer_dilemmas_h",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172641+00:00",
+      "created_at": "2026-02-28T15:01:01.046100+00:00",
       "metadata": {}
     },
     {
@@ -1458,7 +1551,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172651+00:00",
+      "created_at": "2026-02-28T15:01:01.046112+00:00",
       "metadata": {}
     },
     {
@@ -1466,7 +1559,7 @@
       "target": "source_https_www_upwork_com_blog_upworks_2025_transparency_report_o",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172672+00:00",
+      "created_at": "2026-02-28T15:01:01.046134+00:00",
       "metadata": {}
     },
     {
@@ -1474,7 +1567,7 @@
       "target": "topic_productized_service_operations",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172683+00:00",
+      "created_at": "2026-02-28T15:01:01.046148+00:00",
       "metadata": {}
     },
     {
@@ -1482,7 +1575,7 @@
       "target": "source_https_www_superside_com_landing_page_design",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172701+00:00",
+      "created_at": "2026-02-28T15:01:01.046168+00:00",
       "metadata": {}
     },
     {
@@ -1490,7 +1583,7 @@
       "target": "topic_productized_service_operations",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172711+00:00",
+      "created_at": "2026-02-28T15:01:01.046180+00:00",
       "metadata": {}
     },
     {
@@ -1498,7 +1591,7 @@
       "target": "source_https_www_flowout_com_pricing",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172728+00:00",
+      "created_at": "2026-02-28T15:01:01.046206+00:00",
       "metadata": {}
     },
     {
@@ -1506,7 +1599,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172739+00:00",
+      "created_at": "2026-02-28T15:01:01.046223+00:00",
       "metadata": {}
     },
     {
@@ -1514,7 +1607,7 @@
       "target": "source_academic_database_searches",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172756+00:00",
+      "created_at": "2026-02-28T15:01:01.046249+00:00",
       "metadata": {}
     },
     {
@@ -1522,7 +1615,7 @@
       "target": "source_labor_research_organization_searches",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172773+00:00",
+      "created_at": "2026-02-28T15:01:01.046273+00:00",
       "metadata": {}
     },
     {
@@ -1530,7 +1623,7 @@
       "target": "topic_platform_transparency",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172785+00:00",
+      "created_at": "2026-02-28T15:01:01.046285+00:00",
       "metadata": {}
     },
     {
@@ -1538,7 +1631,39 @@
       "target": "source_https_investors_upwork_com_news_releases_news_release_detail",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172806+00:00",
+      "created_at": "2026-02-28T15:01:01.046308+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:01:01.046322+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "source_https_investors_upwork_com_static_files_c2c34f53_b2d1_439f_9",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:01:01.046344+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "topic_platform_transparency",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:01:01.046357+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_029",
+      "target": "source_https_www_sec_gov_archives_edgar_data_1762301_00011789132500",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-02-28T15:01:01.046381+00:00",
       "metadata": {}
     },
     {
@@ -1546,15 +1671,15 @@
       "target": "topic_project_success_metrics",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172826+00:00",
+      "created_at": "2026-02-28T15:01:01.046408+00:00",
       "metadata": {}
     },
     {
       "source": "gap_001",
-      "target": "topic_project_success_metrics",
+      "target": "topic_platform_transparency",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172838+00:00",
+      "created_at": "2026-02-28T15:01:01.046424+00:00",
       "metadata": {}
     },
     {
@@ -1562,7 +1687,7 @@
       "target": "topic_project_success_metrics",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172849+00:00",
+      "created_at": "2026-02-28T15:01:01.046438+00:00",
       "metadata": {}
     },
     {
@@ -1570,7 +1695,7 @@
       "target": "topic_market_trends",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172860+00:00",
+      "created_at": "2026-02-28T15:01:01.046450+00:00",
       "metadata": {}
     },
     {
@@ -1578,7 +1703,7 @@
       "target": "topic_platform_transparency",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172870+00:00",
+      "created_at": "2026-02-28T15:01:01.046462+00:00",
       "metadata": {}
     },
     {
@@ -1586,7 +1711,7 @@
       "target": "topic_market_trends",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172880+00:00",
+      "created_at": "2026-02-28T15:01:01.046473+00:00",
       "metadata": {}
     },
     {
@@ -1594,7 +1719,7 @@
       "target": "topic_productized_service_operations",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172890+00:00",
+      "created_at": "2026-02-28T15:01:01.046485+00:00",
       "metadata": {}
     },
     {
@@ -1602,15 +1727,15 @@
       "target": "topic_platform_transparency",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172901+00:00",
+      "created_at": "2026-02-28T15:01:01.046497+00:00",
       "metadata": {}
     },
     {
       "source": "gap_008",
-      "target": "topic_productized_service_operations",
+      "target": "topic_platform_transparency",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-02-28T11:02:29.172911+00:00",
+      "created_at": "2026-02-28T15:01:01.046509+00:00",
       "metadata": {}
     },
     {
@@ -1618,7 +1743,7 @@
       "target": "claim_002",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.172935+00:00",
+      "created_at": "2026-02-28T15:01:01.046548+00:00",
       "metadata": {}
     },
     {
@@ -1626,7 +1751,7 @@
       "target": "claim_003",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.172944+00:00",
+      "created_at": "2026-02-28T15:01:01.046558+00:00",
       "metadata": {}
     },
     {
@@ -1634,7 +1759,7 @@
       "target": "claim_003",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.172955+00:00",
+      "created_at": "2026-02-28T15:01:01.046568+00:00",
       "metadata": {}
     },
     {
@@ -1642,7 +1767,7 @@
       "target": "claim_005",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173008+00:00",
+      "created_at": "2026-02-28T15:01:01.046665+00:00",
       "metadata": {}
     },
     {
@@ -1650,7 +1775,7 @@
       "target": "claim_006",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173017+00:00",
+      "created_at": "2026-02-28T15:01:01.046676+00:00",
       "metadata": {}
     },
     {
@@ -1658,7 +1783,7 @@
       "target": "claim_013",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173025+00:00",
+      "created_at": "2026-02-28T15:01:01.046686+00:00",
       "metadata": {}
     },
     {
@@ -1666,7 +1791,7 @@
       "target": "claim_014",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173033+00:00",
+      "created_at": "2026-02-28T15:01:01.046697+00:00",
       "metadata": {}
     },
     {
@@ -1674,7 +1799,7 @@
       "target": "claim_015",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173041+00:00",
+      "created_at": "2026-02-28T15:01:01.046708+00:00",
       "metadata": {}
     },
     {
@@ -1682,7 +1807,7 @@
       "target": "claim_016",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173049+00:00",
+      "created_at": "2026-02-28T15:01:01.046720+00:00",
       "metadata": {}
     },
     {
@@ -1690,7 +1815,7 @@
       "target": "claim_023",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173057+00:00",
+      "created_at": "2026-02-28T15:01:01.046731+00:00",
       "metadata": {}
     },
     {
@@ -1698,7 +1823,7 @@
       "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173065+00:00",
+      "created_at": "2026-02-28T15:01:01.046741+00:00",
       "metadata": {}
     },
     {
@@ -1706,7 +1831,23 @@
       "target": "claim_027",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173074+00:00",
+      "created_at": "2026-02-28T15:01:01.046752+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.046763+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.046772+00:00",
       "metadata": {}
     },
     {
@@ -1714,7 +1855,7 @@
       "target": "claim_006",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173082+00:00",
+      "created_at": "2026-02-28T15:01:01.046782+00:00",
       "metadata": {}
     },
     {
@@ -1722,7 +1863,7 @@
       "target": "claim_013",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173090+00:00",
+      "created_at": "2026-02-28T15:01:01.046792+00:00",
       "metadata": {}
     },
     {
@@ -1730,7 +1871,7 @@
       "target": "claim_014",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.173099+00:00",
+      "created_at": "2026-02-28T15:01:01.046801+00:00",
       "metadata": {}
     },
     {
@@ -1738,7 +1879,7 @@
       "target": "claim_015",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174332+00:00",
+      "created_at": "2026-02-28T15:01:01.046810+00:00",
       "metadata": {}
     },
     {
@@ -1746,7 +1887,7 @@
       "target": "claim_016",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174344+00:00",
+      "created_at": "2026-02-28T15:01:01.046819+00:00",
       "metadata": {}
     },
     {
@@ -1754,7 +1895,7 @@
       "target": "claim_023",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174354+00:00",
+      "created_at": "2026-02-28T15:01:01.046828+00:00",
       "metadata": {}
     },
     {
@@ -1762,7 +1903,7 @@
       "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174363+00:00",
+      "created_at": "2026-02-28T15:01:01.046836+00:00",
       "metadata": {}
     },
     {
@@ -1770,7 +1911,23 @@
       "target": "claim_027",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174371+00:00",
+      "created_at": "2026-02-28T15:01:01.046845+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.046855+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.046864+00:00",
       "metadata": {}
     },
     {
@@ -1778,7 +1935,7 @@
       "target": "claim_013",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174381+00:00",
+      "created_at": "2026-02-28T15:01:01.046873+00:00",
       "metadata": {}
     },
     {
@@ -1786,7 +1943,7 @@
       "target": "claim_014",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174391+00:00",
+      "created_at": "2026-02-28T15:01:01.046882+00:00",
       "metadata": {}
     },
     {
@@ -1794,7 +1951,7 @@
       "target": "claim_015",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174400+00:00",
+      "created_at": "2026-02-28T15:01:01.046891+00:00",
       "metadata": {}
     },
     {
@@ -1802,7 +1959,7 @@
       "target": "claim_016",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174409+00:00",
+      "created_at": "2026-02-28T15:01:01.046917+00:00",
       "metadata": {}
     },
     {
@@ -1810,7 +1967,7 @@
       "target": "claim_023",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174418+00:00",
+      "created_at": "2026-02-28T15:01:01.046927+00:00",
       "metadata": {}
     },
     {
@@ -1818,7 +1975,7 @@
       "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174427+00:00",
+      "created_at": "2026-02-28T15:01:01.046937+00:00",
       "metadata": {}
     },
     {
@@ -1826,7 +1983,23 @@
       "target": "claim_027",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174437+00:00",
+      "created_at": "2026-02-28T15:01:01.046947+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.046956+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.046965+00:00",
       "metadata": {}
     },
     {
@@ -1834,7 +2007,7 @@
       "target": "claim_014",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174449+00:00",
+      "created_at": "2026-02-28T15:01:01.046975+00:00",
       "metadata": {}
     },
     {
@@ -1842,7 +2015,7 @@
       "target": "claim_015",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174461+00:00",
+      "created_at": "2026-02-28T15:01:01.046984+00:00",
       "metadata": {}
     },
     {
@@ -1850,7 +2023,7 @@
       "target": "claim_016",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174473+00:00",
+      "created_at": "2026-02-28T15:01:01.046994+00:00",
       "metadata": {}
     },
     {
@@ -1858,7 +2031,7 @@
       "target": "claim_023",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174484+00:00",
+      "created_at": "2026-02-28T15:01:01.047003+00:00",
       "metadata": {}
     },
     {
@@ -1866,7 +2039,7 @@
       "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174496+00:00",
+      "created_at": "2026-02-28T15:01:01.047013+00:00",
       "metadata": {}
     },
     {
@@ -1874,7 +2047,23 @@
       "target": "claim_027",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174507+00:00",
+      "created_at": "2026-02-28T15:01:01.047023+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047033+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047043+00:00",
       "metadata": {}
     },
     {
@@ -1882,7 +2071,7 @@
       "target": "claim_015",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174518+00:00",
+      "created_at": "2026-02-28T15:01:01.047053+00:00",
       "metadata": {}
     },
     {
@@ -1890,7 +2079,7 @@
       "target": "claim_016",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174528+00:00",
+      "created_at": "2026-02-28T15:01:01.047064+00:00",
       "metadata": {}
     },
     {
@@ -1898,7 +2087,7 @@
       "target": "claim_023",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174538+00:00",
+      "created_at": "2026-02-28T15:01:01.047074+00:00",
       "metadata": {}
     },
     {
@@ -1906,7 +2095,7 @@
       "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174548+00:00",
+      "created_at": "2026-02-28T15:01:01.047084+00:00",
       "metadata": {}
     },
     {
@@ -1914,7 +2103,23 @@
       "target": "claim_027",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174558+00:00",
+      "created_at": "2026-02-28T15:01:01.047094+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047104+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047114+00:00",
       "metadata": {}
     },
     {
@@ -1922,7 +2127,7 @@
       "target": "claim_016",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174568+00:00",
+      "created_at": "2026-02-28T15:01:01.047125+00:00",
       "metadata": {}
     },
     {
@@ -1930,7 +2135,7 @@
       "target": "claim_023",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174578+00:00",
+      "created_at": "2026-02-28T15:01:01.047135+00:00",
       "metadata": {}
     },
     {
@@ -1938,7 +2143,7 @@
       "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174588+00:00",
+      "created_at": "2026-02-28T15:01:01.047146+00:00",
       "metadata": {}
     },
     {
@@ -1946,7 +2151,23 @@
       "target": "claim_027",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174598+00:00",
+      "created_at": "2026-02-28T15:01:01.047160+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047174+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_015",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047188+00:00",
       "metadata": {}
     },
     {
@@ -1954,7 +2175,7 @@
       "target": "claim_023",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174608+00:00",
+      "created_at": "2026-02-28T15:01:01.047201+00:00",
       "metadata": {}
     },
     {
@@ -1962,7 +2183,7 @@
       "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174618+00:00",
+      "created_at": "2026-02-28T15:01:01.047214+00:00",
       "metadata": {}
     },
     {
@@ -1970,7 +2191,23 @@
       "target": "claim_027",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174628+00:00",
+      "created_at": "2026-02-28T15:01:01.047227+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047238+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_016",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047248+00:00",
       "metadata": {}
     },
     {
@@ -1978,7 +2215,7 @@
       "target": "claim_026",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174639+00:00",
+      "created_at": "2026-02-28T15:01:01.047259+00:00",
       "metadata": {}
     },
     {
@@ -1986,7 +2223,23 @@
       "target": "claim_027",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174649+00:00",
+      "created_at": "2026-02-28T15:01:01.047269+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047280+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_023",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047290+00:00",
       "metadata": {}
     },
     {
@@ -1994,7 +2247,47 @@
       "target": "claim_027",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174659+00:00",
+      "created_at": "2026-02-28T15:01:01.047301+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047311+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_026",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047323+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "claim_028",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047334+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_027",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047344+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_028",
+      "target": "claim_029",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-02-28T15:01:01.047356+00:00",
       "metadata": {}
     },
     {
@@ -2002,7 +2295,7 @@
       "target": "claim_008",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174699+00:00",
+      "created_at": "2026-02-28T15:01:01.047392+00:00",
       "metadata": {}
     },
     {
@@ -2010,7 +2303,7 @@
       "target": "claim_010",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174710+00:00",
+      "created_at": "2026-02-28T15:01:01.047403+00:00",
       "metadata": {}
     },
     {
@@ -2018,7 +2311,7 @@
       "target": "claim_011",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174720+00:00",
+      "created_at": "2026-02-28T15:01:01.047415+00:00",
       "metadata": {}
     },
     {
@@ -2026,7 +2319,7 @@
       "target": "claim_024",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174731+00:00",
+      "created_at": "2026-02-28T15:01:01.047426+00:00",
       "metadata": {}
     },
     {
@@ -2034,7 +2327,7 @@
       "target": "claim_025",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174741+00:00",
+      "created_at": "2026-02-28T15:01:01.047437+00:00",
       "metadata": {}
     },
     {
@@ -2042,7 +2335,7 @@
       "target": "claim_010",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174752+00:00",
+      "created_at": "2026-02-28T15:01:01.047448+00:00",
       "metadata": {}
     },
     {
@@ -2050,7 +2343,7 @@
       "target": "claim_011",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174763+00:00",
+      "created_at": "2026-02-28T15:01:01.047459+00:00",
       "metadata": {}
     },
     {
@@ -2058,7 +2351,7 @@
       "target": "claim_024",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174774+00:00",
+      "created_at": "2026-02-28T15:01:01.047470+00:00",
       "metadata": {}
     },
     {
@@ -2066,7 +2359,7 @@
       "target": "claim_025",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174784+00:00",
+      "created_at": "2026-02-28T15:01:01.047481+00:00",
       "metadata": {}
     },
     {
@@ -2074,7 +2367,7 @@
       "target": "claim_011",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174795+00:00",
+      "created_at": "2026-02-28T15:01:01.047493+00:00",
       "metadata": {}
     },
     {
@@ -2082,7 +2375,7 @@
       "target": "claim_024",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174806+00:00",
+      "created_at": "2026-02-28T15:01:01.047504+00:00",
       "metadata": {}
     },
     {
@@ -2090,7 +2383,7 @@
       "target": "claim_025",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174817+00:00",
+      "created_at": "2026-02-28T15:01:01.047515+00:00",
       "metadata": {}
     },
     {
@@ -2098,7 +2391,7 @@
       "target": "claim_024",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174828+00:00",
+      "created_at": "2026-02-28T15:01:01.047526+00:00",
       "metadata": {}
     },
     {
@@ -2106,7 +2399,7 @@
       "target": "claim_025",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174839+00:00",
+      "created_at": "2026-02-28T15:01:01.047538+00:00",
       "metadata": {}
     },
     {
@@ -2114,7 +2407,7 @@
       "target": "claim_025",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174849+00:00",
+      "created_at": "2026-02-28T15:01:01.047550+00:00",
       "metadata": {}
     },
     {
@@ -2122,7 +2415,7 @@
       "target": "claim_018",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174898+00:00",
+      "created_at": "2026-02-28T15:01:01.047595+00:00",
       "metadata": {}
     },
     {
@@ -2130,7 +2423,7 @@
       "target": "claim_019",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174913+00:00",
+      "created_at": "2026-02-28T15:01:01.047626+00:00",
       "metadata": {}
     },
     {
@@ -2138,7 +2431,7 @@
       "target": "claim_020",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174927+00:00",
+      "created_at": "2026-02-28T15:01:01.047641+00:00",
       "metadata": {}
     },
     {
@@ -2146,7 +2439,7 @@
       "target": "claim_021",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174941+00:00",
+      "created_at": "2026-02-28T15:01:01.047655+00:00",
       "metadata": {}
     },
     {
@@ -2154,7 +2447,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174957+00:00",
+      "created_at": "2026-02-28T15:01:01.047668+00:00",
       "metadata": {}
     },
     {
@@ -2162,7 +2455,7 @@
       "target": "claim_019",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.174971+00:00",
+      "created_at": "2026-02-28T15:01:01.047686+00:00",
       "metadata": {}
     },
     {
@@ -2170,7 +2463,7 @@
       "target": "claim_020",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.175072+00:00",
+      "created_at": "2026-02-28T15:01:01.047703+00:00",
       "metadata": {}
     },
     {
@@ -2178,7 +2471,7 @@
       "target": "claim_021",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.175087+00:00",
+      "created_at": "2026-02-28T15:01:01.047719+00:00",
       "metadata": {}
     },
     {
@@ -2186,7 +2479,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.175100+00:00",
+      "created_at": "2026-02-28T15:01:01.047734+00:00",
       "metadata": {}
     },
     {
@@ -2194,7 +2487,7 @@
       "target": "claim_020",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.175134+00:00",
+      "created_at": "2026-02-28T15:01:01.047749+00:00",
       "metadata": {}
     },
     {
@@ -2202,7 +2495,7 @@
       "target": "claim_021",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.175148+00:00",
+      "created_at": "2026-02-28T15:01:01.047761+00:00",
       "metadata": {}
     },
     {
@@ -2210,7 +2503,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.175161+00:00",
+      "created_at": "2026-02-28T15:01:01.047774+00:00",
       "metadata": {}
     },
     {
@@ -2218,7 +2511,7 @@
       "target": "claim_021",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.175175+00:00",
+      "created_at": "2026-02-28T15:01:01.047787+00:00",
       "metadata": {}
     },
     {
@@ -2226,7 +2519,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.175187+00:00",
+      "created_at": "2026-02-28T15:01:01.047799+00:00",
       "metadata": {}
     },
     {
@@ -2234,16 +2527,16 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-02-28T11:02:29.175201+00:00",
+      "created_at": "2026-02-28T15:01:01.047812+00:00",
       "metadata": {}
     }
   ],
   "metadata": {
     "domain": "productized-services",
-    "created_at": "2026-02-28T11:02:29.171612+00:00",
-    "updated_at": "2026-02-28T11:02:29.171612+00:00",
-    "node_count": 67,
-    "edge_count": 150,
+    "created_at": "2026-02-28T15:01:01.044816+00:00",
+    "updated_at": "2026-02-28T15:01:01.044816+00:00",
+    "node_count": 72,
+    "edge_count": 177,
     "cluster_count": 5
   },
   "clusters": [
@@ -2253,36 +2546,22 @@
         "topic_platform_transparency"
       ],
       "claims": [
-        "claim_013",
-        "claim_015",
-        "claim_014",
-        "claim_012",
-        "claim_023",
         "claim_006",
+        "claim_028",
+        "claim_015",
         "claim_026",
         "claim_005",
+        "claim_004",
         "claim_016",
+        "claim_013",
+        "claim_029",
+        "claim_014",
+        "claim_012",
         "claim_027",
-        "claim_004"
+        "claim_023"
       ],
-      "size": 12,
-      "density": 0.864
-    },
-    {
-      "id": "cluster_1",
-      "topics": [
-        "topic_productized_service_operations"
-      ],
-      "claims": [
-        "claim_011",
-        "claim_008",
-        "claim_010",
-        "claim_025",
-        "claim_024",
-        "claim_007"
-      ],
-      "size": 7,
-      "density": 1.0
+      "size": 14,
+      "density": 0.879
     },
     {
       "id": "cluster_2",
@@ -2290,31 +2569,47 @@
         "topic_project_success_metrics"
       ],
       "claims": [
-        "claim_022",
+        "claim_018",
         "claim_020",
-        "claim_019",
-        "claim_017",
         "claim_021",
-        "claim_018"
+        "claim_022",
+        "claim_017",
+        "claim_019"
       ],
       "size": 7,
       "density": 1.0
     },
     {
-      "id": "cluster_4",
+      "id": "cluster_3",
+      "topics": [
+        "topic_productized_service_operations"
+      ],
+      "claims": [
+        "claim_007",
+        "claim_008",
+        "claim_011",
+        "claim_010",
+        "claim_024",
+        "claim_025"
+      ],
+      "size": 7,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_1",
       "topics": [
         "topic_freelance_developer_problems"
       ],
       "claims": [
+        "claim_003",
         "claim_001",
-        "claim_002",
-        "claim_003"
+        "claim_002"
       ],
       "size": 4,
       "density": 1.0
     },
     {
-      "id": "cluster_3",
+      "id": "cluster_4",
       "topics": [
         "topic_market_trends"
       ],
@@ -2329,7 +2624,7 @@
     "isolated_nodes": [],
     "weak_clusters": [
       {
-        "cluster_id": "cluster_3",
+        "cluster_id": "cluster_4",
         "size": 2,
         "topics": [
           "topic_market_trends"

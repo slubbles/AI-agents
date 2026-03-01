@@ -1,0 +1,60 @@
+{
+  "domain": "playwright.dev",
+  "start_url": "https://playwright.dev/python/docs/intro",
+  "pages_crawled": 3,
+  "total_chars": 2316,
+  "pages": [
+    {
+      "url": "https://playwright.dev/python/docs/intro",
+      "title": "Installation | Playwright Python",
+      "content": "Introduction Playwright was created specifically to accommodate the needs of end-to-end testing. Playwright supports all modern rendering engines including Chromium, WebKit, and Firefox. Test on Windows, Linux, and macOS, locally or on CI, headless or headed with native mobile emulation. The This introduction describes the Playwright Pytest plugin, which is the recommended way to write end-to-end tests. Installing Playwright Pytest Playwright recommends using the official Get started by installing Playwright and running the example test to see it in action. PyPI Anaconda Install the Install the Install the required browsers: Add Example Test Create a file that follows the Running the Example Test By default tests will be run on chromium. This can be configured via the Updating Playwright To update Playwright to the latest version run the following command: System requirements Python 3.8 or higher. Windows 11+, Windows Server 2019+ or Windows Subsystem for Linux (WSL). macOS 14 Ventura, or later. Debian 12, Debian 13, Ubuntu 22.04, Ubuntu 24.04, on x86-64 and arm64 architecture. What's next",
+      "content_length": 1106,
+      "headings": [
+        "Installation",
+        "Introduction",
+        "Installing Playwright Pytest",
+        "Add Example Test",
+        "Running the Example Test",
+        "Updating Playwright",
+        "System requirements",
+        "What's next"
+      ],
+      "code_blocks": []
+    },
+    {
+      "url": "https://playwright.dev/python",
+      "title": "Fast and reliable end-to-end testing for modern web apps | Playwright Python",
+      "content": "Any browser \u2022 Any platform \u2022 One API Resilient \u2022 No flaky tests No trade-offs \u2022 No limits Browsers run web content belonging to different origins in different processes. Playwright is aligned with the modern browsers architecture and runs tests out-of-process. This makes Playwright free of the typical in-process test runner limitations. Full isolation \u2022 Fast execution Powerful Tooling Chosen by companies and open source projects",
+      "content_length": 432,
+      "headings": [
+        "enables reliable end-to-end testing for modern web apps.",
+        "Any browser \u2022 Any platform \u2022 One API",
+        "Resilient \u2022 No flaky tests",
+        "No trade-offs \u2022 No limits",
+        "Full isolation \u2022 Fast execution",
+        "Powerful Tooling",
+        "Chosen by companies and open source projects"
+      ],
+      "code_blocks": []
+    },
+    {
+      "url": "https://playwright.dev/python/docs/api/class-playwright",
+      "title": "Playwright | Playwright Python",
+      "content": "Playwright module provides a method to launch a browser instance. The following is a typical example of using Playwright to drive automation: Sync Async Methods stop Terminates this instance of Playwright in case it was created bypassing the Python context manager. This is useful in REPL applications. Properties chromium This object can be used to launch or connect to Chromium, returning instances of devices Returns a dictionary of devices to be used with Sync Async firefox This object can be used to launch or connect to Firefox, returning instances of request Exposes API that can be used for the Web API testing. selectors Selectors can be used to install custom selector engines. See webkit This object can be used to launch or connect to WebKit, returning instances of",
+      "content_length": 778,
+      "headings": [
+        "Playwright",
+        "Methods",
+        "stop",
+        "Properties",
+        "chromium",
+        "devices",
+        "firefox",
+        "request",
+        "selectors",
+        "webkit"
+      ],
+      "code_blocks": []
+    }
+  ]
+}
