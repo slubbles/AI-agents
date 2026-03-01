@@ -21,12 +21,102 @@ import os
 import sys
 import readline  # enables arrow keys, history in input()
 from datetime import datetime, timezone
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from config import MODELS, DEFAULT_DOMAIN, DAILY_BUDGET_USD, CHEAP_MODEL
 from llm_router import call_llm
 from cost_tracker import log_cost
+
+# ============================================================
+# Chat Session Persistence
+# ============================================================
+
+CHAT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "chat_sessions")
+
+def _ensure_chat_dir():
+    os.makedirs(CHAT_DIR, exist_ok=True)
+
+def _session_path(session_id: str) -> str:
+    return os.path.join(CHAT_DIR, f"{session_id}.json")
+
+def _list_sessions() -> list[dict]:
+    """List all saved chat sessions, most recent first."""
+    _ensure_chat_dir()
+    sessions = []
+    for f in sorted(os.listdir(CHAT_DIR), reverse=True):
+        if not f.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(CHAT_DIR, f)) as fh:
+                data = json.load(fh)
+            sessions.append({
+                "id": f.replace(".json", ""),
+                "domain": data.get("domain", "?"),
+                "messages": len(data.get("messages", [])),
+                "created": data.get("created", "?"),
+                "updated": data.get("updated", "?"),
+                "summary": data.get("summary", ""),
+            })
+        except Exception:
+            continue
+    return sessions
+
+def _save_session(session_id: str, domain: str, messages: list, summary: str = ""):
+    """Save conversation to disk."""
+    _ensure_chat_dir()
+    # Filter messages to only serializable content
+    serializable = []
+    for m in messages:
+        if isinstance(m.get("content"), str):
+            serializable.append(m)
+        elif isinstance(m.get("content"), list):
+            # Tool use/results — serialize as-is (already dicts)
+            serializable.append(m)
+    
+    data = {
+        "domain": domain,
+        "created": datetime.now(timezone.utc).isoformat(),
+        "updated": datetime.now(timezone.utc).isoformat(),
+        "summary": summary,
+        "messages": serializable,
+    }
+    
+    # If session exists, preserve created date
+    path = _session_path(session_id)
+    if os.path.exists(path):
+        try:
+            with open(path) as f:
+                old = json.load(f)
+            data["created"] = old.get("created", data["created"])
+        except Exception:
+            pass
+    
+    # Ensure all data is JSON-serializable (convert any stray objects to strings)
+    clean_data = json.loads(json.dumps(data, default=str))
+    from utils.atomic_write import atomic_json_write
+    atomic_json_write(path, clean_data)
+
+def _load_session(session_id: str) -> tuple[str, list]:
+    """Load a saved session. Returns (domain, messages)."""
+    path = _session_path(session_id)
+    if not os.path.exists(path):
+        return DEFAULT_DOMAIN, []
+    with open(path) as f:
+        data = json.load(f)
+    return data.get("domain", DEFAULT_DOMAIN), data.get("messages", [])
+
+def _generate_session_id() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+
+def _summarize_conversation(messages: list) -> str:
+    """Extract a one-line summary from the first user message."""
+    for m in messages:
+        if m.get("role") == "user" and isinstance(m.get("content"), str):
+            text = m["content"][:80]
+            return text + ("..." if len(m["content"]) > 80 else "")
+    return ""
 
 
 # ============================================================
@@ -150,6 +240,39 @@ You are NOT just a research tool. You are the interface to a complete autonomous
 
 The Brain feeds knowledge INTO the Hands. The Hands build things FROM the Brain's insights.
 Together they form a system that researches, learns, builds, and improves itself.
+
+DEVELOPMENT HISTORY & HOW THIS SYSTEM WAS BUILT:
+This system was built by a human architect (the user) working with GitHub Copilot (Claude) as the engineer.
+It is NOT a chatbot wrapper around an LLM. It is a genuine autonomous system with empirical self-improvement.
+
+Key milestones:
+- Layer 1 (Knowledge): memory_store.py — scored outputs stored as JSON per domain
+- Layer 2 (Evaluation): critic.py — 5-dimension rubric (accuracy 30%, depth 20%, completeness 20%, specificity 15%, intellectual honesty 15%). Threshold: score >= 6 to accept.
+- Layer 3 (Behavioral Adaptation): meta_analyst.py — extracts patterns from scores, rewrites strategy documents. Score trajectory proved: 5.4 → 7.1 → 7.7.
+- Layer 4 (Strategy Evolution): strategy_store.py — versioned strategies with pending/trial/active/rollback. Safety: never deploy strategy scoring >20% below current best without human review.
+- Layer 5 (Cross-Domain Transfer): cross_domain.py — abstracts general principles from proven strategies across domains → seeds new domains.
+- Agent Hands: Full execution layer with planner, executor, validator. Brain→Hands pipeline auto-generates coding tasks from KB insights.
+- Infrastructure: Stealth browser, doc crawler, RAG vector store, MCP gateway, credential vault, scheduler, VPS deploy.
+- main.py decomposition: Refactored from 4,170 → 973 lines into cli/ modules.
+- Chat mode (this): Conversational interface with tool-use, persistent memory across sessions.
+
+The system has 1,173 tests, 103+ Python files, 50,000+ lines of code.
+8 knowledge domains tracked. Strategy evolution is proven working.
+
+The novel piece is NOT the agents or memory — it's the strategy evolution loop: strategies as natural language documents that the system reads, reasons about, and rewrites based on empirical performance data.
+
+Design principles the architect follows:
+1. Observability is non-negotiable — full logging, every version stored
+2. Start smaller than feels right — finish one thing before expanding
+3. The Critic is sacred — quality signal AND cost control
+4. Memory hygiene matters — score-weight retrieval, prune low-quality
+5. Strategy evolution is the novel piece
+6. Don't call it self-learning unless you mean it — this is behavioral adaptation through structured feedback loops
+
+CONVERSATION MEMORY:
+You have persistent conversation memory. Sessions are saved across restarts.
+When the user comes back, you can recall what was discussed before.
+Use this to build continuity and avoid re-explaining things.
 
 CURRENT STATE:
   Active domain: {domain}
@@ -739,6 +862,7 @@ WELCOME = """
 ║              AGENT BRAIN + HANDS — Chat Mode                ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Talk to the full system naturally. Research, build, manage.║
+║  Conversations are saved and remembered across sessions.    ║
 ║                                                             ║
 ║  Research:                                                  ║
 ║    "What do you know about crypto?"                         ║
@@ -750,26 +874,76 @@ WELCOME = """
 ║    "Auto-build something for the nextjs-react domain"       ║
 ║    "Start a project: build a SaaS dashboard"                ║
 ║                                                             ║
-║  Manage:                                                    ║
-║    "How's the budget?" / "Show system status"               ║
-║    "Approve strategy v004 for crypto"                       ║
-║    "What should I work on next?"                            ║
+║  System feedback:                                           ║
+║    "How is the system performing?"                          ║
+║    "What have we built so far?"                             ║
+║    "Give me feedback on the architecture"                   ║
 ║                                                             ║
 ║  Type 'quit' or 'exit' to leave. Ctrl+C also works.        ║
 ║  Type '/domain <name>' to switch domains.                   ║
 ║  Type '/clear' to reset conversation history.               ║
+║  Type '/sessions' to list saved conversations.              ║
+║  Type '/load <id>' to resume a previous conversation.       ║
+║  Type '/new' to start a fresh conversation.                 ║
 ╚══════════════════════════════════════════════════════════════╝
 """
 
 
-def run_chat(domain: str = DEFAULT_DOMAIN):
-    """Run the interactive chat REPL."""
+def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
+    """Run the interactive chat REPL with persistent conversation memory."""
     
     print(WELCOME)
+    
+    # Session management: resume latest, load specific, or create new
+    conversation: list[dict] = []
+    
+    if session_id:
+        # Explicit session requested
+        loaded_domain, loaded_msgs = _load_session(session_id)
+        if loaded_msgs:
+            domain = loaded_domain
+            conversation = loaded_msgs
+            print(f"  Resumed session: {session_id} ({len(conversation)} messages)")
+        else:
+            print(f"  Session '{session_id}' not found, starting fresh.")
+            session_id = _generate_session_id()
+    else:
+        # Try to resume most recent session for this domain (if < 24h old)
+        sessions = _list_sessions()
+        recent = None
+        for s in sessions:
+            if s["domain"] == domain:
+                recent = s
+                break
+        
+        if recent:
+            # Check if session is recent (within 24h)
+            try:
+                updated = datetime.fromisoformat(recent["updated"])
+                age_hours = (datetime.now(timezone.utc) - updated).total_seconds() / 3600
+                if age_hours < 24:
+                    loaded_domain, loaded_msgs = _load_session(recent["id"])
+                    if loaded_msgs:
+                        conversation = loaded_msgs
+                        session_id = recent["id"]
+                        print(f"  Resumed recent session: {session_id} ({len(conversation)} messages)")
+                        summary = recent.get("summary", "")
+                        if summary:
+                            print(f"  Last topic: {summary}")
+                else:
+                    session_id = _generate_session_id()
+            except Exception:
+                session_id = _generate_session_id()
+        else:
+            session_id = _generate_session_id()
+    
+    if not session_id:
+        session_id = _generate_session_id()
+    
     print(f"  Active domain: {domain}")
+    print(f"  Session: {session_id}")
     print(f"  Model: {CHEAP_MODEL} (chat) / Sonnet (research)\n")
     
-    conversation: list[dict] = []
     system_prompt = _build_system_context(domain)
     
     # Use the cheap model for conversation (fast + affordable)
@@ -779,7 +953,9 @@ def run_chat(domain: str = DEFAULT_DOMAIN):
         try:
             user_input = input("\033[1;36m You:\033[0m ").strip()
         except (KeyboardInterrupt, EOFError):
-            print("\n\n  Goodbye.\n")
+            print("\n\n  Saving conversation...")
+            _save_session(session_id, domain, conversation, _summarize_conversation(conversation))
+            print("  Goodbye.\n")
             break
         
         if not user_input:
@@ -787,12 +963,53 @@ def run_chat(domain: str = DEFAULT_DOMAIN):
         
         # Meta-commands
         if user_input.lower() in ("quit", "exit", "/quit", "/exit"):
-            print("\n  Goodbye.\n")
+            print("  Saving conversation...")
+            _save_session(session_id, domain, conversation, _summarize_conversation(conversation))
+            print("  Goodbye.\n")
             break
         
         if user_input.lower() == "/clear":
             conversation.clear()
-            print("  Conversation cleared.\n")
+            session_id = _generate_session_id()
+            print(f"  Conversation cleared. New session: {session_id}\n")
+            continue
+        
+        if user_input.lower() == "/new":
+            # Save current, start fresh
+            if conversation:
+                _save_session(session_id, domain, conversation, _summarize_conversation(conversation))
+                print(f"  Saved session {session_id}.")
+            conversation = []
+            session_id = _generate_session_id()
+            print(f"  New session: {session_id}\n")
+            continue
+        
+        if user_input.lower() == "/sessions":
+            sessions = _list_sessions()
+            if not sessions:
+                print("  No saved sessions.\n")
+            else:
+                print(f"\n  Saved conversations ({len(sessions)}):")
+                for s in sessions[:10]:
+                    current = " ← current" if s["id"] == session_id else ""
+                    print(f"    {s['id']}  [{s['domain']}]  {s['messages']} msgs  {s.get('summary', '')[:50]}{current}")
+                print(f"\n  Use '/load <id>' to resume.\n")
+            continue
+        
+        if user_input.lower().startswith("/load "):
+            target = user_input.split(None, 1)[1].strip()
+            # Save current first
+            if conversation:
+                _save_session(session_id, domain, conversation, _summarize_conversation(conversation))
+            loaded_domain, loaded_msgs = _load_session(target)
+            if loaded_msgs:
+                domain = loaded_domain
+                conversation = loaded_msgs
+                session_id = target
+                system_prompt = _build_system_context(domain)
+                print(f"  Loaded session {target}: {len(conversation)} messages, domain={domain}\n")
+            else:
+                print(f"  Session '{target}' not found.\n")
             continue
         
         if user_input.lower().startswith("/domain "):
@@ -807,6 +1024,7 @@ def run_chat(domain: str = DEFAULT_DOMAIN):
         
         if user_input.lower() == "/context":
             print(f"\n  Domain: {domain}")
+            print(f"  Session: {session_id}")
             print(f"  History: {len(conversation)} messages")
             print(f"  Model: {chat_model}\n")
             continue
@@ -814,9 +1032,9 @@ def run_chat(domain: str = DEFAULT_DOMAIN):
         # Add user message
         conversation.append({"role": "user", "content": user_input})
         
-        # Keep conversation manageable (last 20 messages)
-        if len(conversation) > 20:
-            conversation = conversation[-20:]
+        # Keep conversation manageable (last 40 messages sent to LLM)
+        if len(conversation) > 40:
+            conversation = conversation[-40:]
         
         # Call LLM with tools
         try:
@@ -908,6 +1126,9 @@ def run_chat(domain: str = DEFAULT_DOMAIN):
             
             # Print response
             print(f"\n\033[1;32m Agent:\033[0m {assistant_text}\n")
+            
+            # Auto-save after each exchange
+            _save_session(session_id, domain, conversation, _summarize_conversation(conversation))
             
         except KeyboardInterrupt:
             print("\n  (interrupted)\n")

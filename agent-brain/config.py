@@ -173,7 +173,7 @@ RATE_LIMIT_FETCHES_PER_MINUTE = 20    # max page fetches per minute
 # Model assignments for execution agents
 MODELS.update({
     "planner": "claude-sonnet-4-20250514",       # strong — plan decomposition needs reasoning
-    "executor": "claude-haiku-4-5-20251001",     # cheap — follows plans, uses tools
+    "executor": CHEAP_MODEL,                    # cheap — follows plans, uses tools
     "exec_validator": "claude-sonnet-4-20250514",# strong — quality judgment is sacred
     "exec_meta_analyst": "claude-sonnet-4-20250514",  # strong — pattern extraction
 })
