@@ -1,0 +1,171 @@
+{
+  "timestamp": "2026-03-01T19:41:44.998841+00:00",
+  "domain": "productized-services",
+  "question": "What are the budgets, timelines, and requirements in active 2026 OnlineJobsPH job postings for Next.js or React landing page/marketing site projects, including any employer notes on past freelancer issues like delays or ghosting?",
+  "attempt": 2,
+  "strategy_version": "v002",
+  "research": {
+    "question": "What are the budgets, timelines, and requirements in active 2026 OnlineJobsPH job postings for Next.js or React landing page/marketing site projects, including any employer notes on past freelancer issues like delays or ghosting?",
+    "findings": [
+      {
+        "claim": "OnlineJobsPH hosts full-time and part-time Next.js frontend developer roles with monthly budgets of $700\u2013$1,100 USD (full-time, 40 hrs/week) or 15,000\u201320,000 PHP (~$270\u2013$360 USD, part-time 15 hrs/week avg), but none specify one-off landing page projects or fixed project timelines; roles focus on ongoing development like responsive pages, API integrations, dashboards, and maintenance.",
+        "confidence": "medium",
+        "reasoning": "Directly from fetched job postings dated 2025-2026; single platform source limits to medium confidence despite multiple postings corroborating salary ranges for similar skills. Mechanism: Platform emphasizes direct long-term hires over gigs, explaining fixed monthly pay vs. project bids\u2014reduces hiring friction but commits employers to retainers even for variable workloads.",
+        "source": "https://www.onlinejobs.ph/jobseekers/job/Frontend-Developer-Nextjs-Tailwind-CSS-Remote-1401262"
+      },
+      {
+        "claim": "Requirements for Next.js roles include proven experience (portfolio/GitHub), React/Next.js proficiency, Tailwind CSS, responsive/mobile-first design, API integration, Shopify/WordPress familiarity for some, and Philippines-based remote work; no mentions of past freelancer issues like delays or ghosting.",
+        "confidence": "medium",
+        "reasoning": "Extracted verbatim from multiple fetched postings; consistent across sources but platform-specific. Why: Employers prioritize verifiable skills to mitigate risks like ghosting (aligns with prior knowledge of freelance issues), using portfolios/tests over notes on past problems to attract applicants.",
+        "source": "https://www.onlinejobs.ph/jobseekers/job/Job-Title-Part-Time-Nextjs-Developer-Headless-WordPress-Integration-1370227"
+      },
+      {
+        "claim": "General Philippine web developer rates via OnlineJobsPH: Junior full-time $800\u20131,500/month, hourly $10\u201320; mid $20\u201335/hr; premiums for Next.js/specialized skills, English fluency, Western client experience\u201460-70% below US rates, enabling cost savings but requiring vetting to avoid quality gaps.",
+        "confidence": "high",
+        "reasoning": "Corroborated in hiring guide citing OnlineJobsPH as primary direct-hire platform ($69/month unlimited posts) and multiple job snippets/postings; trade-offs: Low rates attract volume but vary skill levels, explaining why employers demand portfolios\u2014poor hires waste months per guide.",
+        "source": "https://dixieraizpacheco.com/web-developer-philippines"
+      },
+      {
+        "claim": "No 2026 postings found for fixed-scope Next.js/React landing page/marketing site projects; snippets mention 'high-converting landing pages' in broader frontend roles, indicating demand bundled into ongoing hires rather than productized services.",
+        "confidence": "medium",
+        "reasoning": "Systematic searches across OnlineJobsPH yields roles/development-focused postings, not isolated projects; gap due to platform model favoring full-time/direct hires over Fiverr-style gigs, creating opportunity for productized pitches addressing 'not a basic landing page gig' notes."
+      }
+    ],
+    "key_insights": [
+      "Pitch productized Next.js landing pages at $500\u20131k fixed (undercut monthly hires) with 48hr guarantees to exploit long-term hire commitments and vetting hassles.",
+      "Lack of ghosting/delay complaints in postings suggests employers self-select reliable PH talent but still demand proofs\u2014highlight your fixed-scope to reduce their risk.",
+      "OnlineJobsPH suits direct hires ($69/mo access); target employers posting Next.js roles with pain-point angles from prior KB (ghosting, delays)."
+    ],
+    "knowledge_gaps": [
+      "Specific budgets/timelines for one-off Next.js landing page projects (vs. ongoing roles).",
+      "Employer notes on past delays/ghosting in 2026 postings\u2014none surfaced despite targeted searches.",
+      "Active 2026 job counts/volumes for React/Next.js landing pages; login-walled content limits access."
+    ],
+    "sources_used": [
+      "https://www.onlinejobs.ph/jobseekers/job/Frontend-Developer-Nextjs-Tailwind-CSS-Remote-1401262",
+      "https://www.onlinejobs.ph/jobseekers/job/Job-Title-Part-Time-Nextjs-Developer-Headless-WordPress-Integration-1370227",
+      "https://www.onlinejobs.ph/jobseekers/job/Front-End-Developer-Shopify-Nextjs-1570124",
+      "https://dixieraizpacheco.com/web-developer-philippines"
+    ],
+    "summary": "No fixed-budget/timeline postings for standalone Next.js landing pages on OnlineJobsPH in 2026; instead, full/part-time roles offer $270\u20131,100 USD monthly for ongoing frontend work requiring portfolios and PH location. This direct-hire model avoids gig risks like ghosting (unmentioned) but ties employers to retainers, opening pitches for productized fixed-scope services at lower effective cost with speed guarantees.",
+    "_searches_made": 10,
+    "_empty_searches": 0,
+    "_tool_log": [
+      {
+        "tool": "browser_search",
+        "query": "Next.js landing page",
+        "site": "onlinejobs.ph",
+        "success": true,
+        "chars": 237
+      },
+      {
+        "tool": "browser_search",
+        "query": "React landing page",
+        "site": "onlinejobs.ph",
+        "success": true,
+        "chars": 237
+      },
+      {
+        "tool": "browser_search",
+        "query": "Next.js marketing site",
+        "site": "onlinejobs.ph",
+        "success": true,
+        "chars": 237
+      },
+      {
+        "tool": "web_search",
+        "query": "\"OnlineJobs.ph\" \"Next.js\" jobs 2026",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "\"Next.js\" OR React \"landing page\" OR \"marketing site\" site:onlinejobs.ph/jobseekers/job",
+        "success": true,
+        "results": 1
+      },
+      {
+        "tool": "web_search",
+        "query": "onlinejobs.ph \"Next.js\" (budget OR salary OR hourly OR rate OR pay)",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "onlinejobs.ph job (delay OR ghost OR abandon OR issue OR problem) Next.js OR React",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "\"onlinejobs.ph\" \"Next.js\" \"landing page\" 2026",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://www.onlinejobs.ph/jobseekers/job/Frontend-Developer-Nextjs-Tailwind-CSS-Remote-1401262",
+        "success": true,
+        "chars": 846,
+        "title": "Frontend Developer (Next.js + Tailwind CSS) \u2013 Remote 1401262 - OnlineJobs.ph"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://www.onlinejobs.ph/jobseekers/job/Job-Title-Part-Time-Nextjs-Developer-Headless-WordPress-Integration-1370227",
+        "success": true,
+        "chars": 2931,
+        "title": "Job Title: Part-Time Next.js Developer (Headless WordPress Integration) 1370227 "
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://www.onlinejobs.ph/jobseekers/job/Front-End-Developer-Shopify-Nextjs-1570124",
+        "success": true,
+        "chars": 1146,
+        "title": "Front-End Developer (Shopify & Next.js) 1570124 - OnlineJobs.ph"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://dixieraizpacheco.com/web-developer-philippines",
+        "success": true,
+        "chars": 8015,
+        "title": "Web Developer Philippines | Complete Hiring Guide 2026"
+      }
+    ]
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 7.0,
+      "depth": 7,
+      "completeness": 6,
+      "specificity": 8,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 7.25,
+    "strengths": [
+      "All cited sources were actually fetched and accessed",
+      "Specific salary ranges with currency conversions and context",
+      "Honest acknowledgment of knowledge gaps and platform limitations",
+      "Systematic search approach targeting the specific question",
+      "Clear distinction between findings and speculation",
+      "Explains mechanisms behind observed patterns (platform model vs gig economy)"
+    ],
+    "weaknesses": [
+      "Limited to single platform (OnlineJobsPH) despite question asking about 'active job postings' generally",
+      "Failed to find the specific type of postings requested (fixed-scope landing page projects)",
+      "Some salary data sourced from hiring guide rather than direct job postings",
+      "Missing exploration of alternative platforms where such projects might be posted",
+      "[CONFIDENCE CHECK] 1 'high' confidence claim(s) lack multi-source backing (accuracy -1.0): 'General Philippine web developer rates via OnlineJobsPH: Junior full-time $800\u20131...' (high confidence, only 1 source(s))"
+    ],
+    "actionable_feedback": "Expand search to other Philippine freelance platforms (Upwork Philippines section, Freelancer.ph, local job boards) to provide more comprehensive coverage. Consider searching for 'website development' or 'web design' terms that might capture landing page projects under different terminology. Cross-reference salary claims with more recent postings rather than relying on hiring guides for some data points.",
+    "verdict": "accept",
+    "_confidence_penalty": {
+      "count": 1,
+      "penalty_applied": 1.0,
+      "original_accuracy": 8,
+      "new_accuracy": 7.0
+    }
+  },
+  "overall_score": 7.25,
+  "accepted": true,
+  "verdict": "accept"
+}

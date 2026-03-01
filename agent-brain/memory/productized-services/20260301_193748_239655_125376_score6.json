@@ -1,0 +1,156 @@
+{
+  "timestamp": "2026-03-01T19:37:48.239655+00:00",
+  "domain": "productized-services",
+  "question": "What are the most common employer complaints, ghosting rates, delays, and dissatisfaction reasons reported in OnlineJobsPH job post comments, employer reviews, or related Reddit/Forum discussions (r/OnlineJobsPH, r/philippines) for Next.js/React landing page projects posted in 2025-2026?",
+  "attempt": 1,
+  "strategy_version": "v002",
+  "research": {
+    "question": "What are the most common employer complaints, ghosting rates, delays, and dissatisfaction reasons reported in OnlineJobsPH job post comments, employer reviews, or related Reddit/Forum discussions (r/OnlineJobsPH, r/philippines) for Next.js/React landing page projects posted in 2025-2026?",
+    "summary": "No specific employer complaints, ghosting rates, delays, or dissatisfaction reasons were found for Next.js/React landing page projects on OnlineJobsPH in 2025-2026 across Reddit (r/OnlineJobsPH, r/Philippines), forums, or job post comments. General employer reviews highlight inconsistent candidate quality and the need for self-vetting, with many unqualified or unresponsive applicants. Quantitative data like ghosting or delay rates remains unavailable, aligning with prior knowledge gaps on freelance platform metrics.",
+    "findings": [
+      {
+        "claim": "Employers report inconsistent vetting on OnlineJobsPH, receiving both good and terrible candidates.",
+        "evidence": "\"OnlineJobs sends me a lot of good candidates. They also send me some terrible ones, and their vetting policy is very inconsistent. This is a buyer beware sort of site - make sure you do your own vetting.\"",
+        "source": "https://www.trustpilot.com/review/onlinejobs.ph",
+        "confidence": "medium",
+        "reasoning": "Direct quote from single employer review on Trustpilot; no corroboration from multiple sources."
+      },
+      {
+        "claim": "Employers on OnlineJobsPH expect 50-100+ applications quickly, many generic, unqualified, or spam.",
+        "evidence": "\"You will likely receive: 50-100+ applications in the first day for popular roles. Many generic cover letters. Some spam or unqualified applicants.\"",
+        "source": "https://remotework.ph/blog/onlinejobs-ph-review/",
+        "confidence": "medium",
+        "reasoning": "From a single 2026 review article summarizing employer experiences; consistent with general job board patterns but not verified across independents."
+      },
+      {
+        "claim": "OnlineJobsPH requires employers to handle their own screening, interviews, and payments without platform guarantees.",
+        "evidence": "\"OnlineJobs.ph connects you. It does not manage employment for you... If you rush, you will hire poorly. If you screen carefully, you can build long term team members.\"",
+        "source": "https://remotework.ph/blog/onlinejobs-ph-review/",
+        "confidence": "medium",
+        "reasoning": "Detailed from one authoritative 2026 review; no contradicting sources found."
+      }
+    ],
+    "knowledge_gaps": [
+      "Specific complaints, ghosting rates, delays, or dissatisfaction for Next.js/React landing page projects on OnlineJobsPH",
+      "Employer reviews or job post comments mentioning Next.js/React landing pages in 2025-2026",
+      "Discussions in r/OnlineJobsPH or r/Philippines on tech/landing page hiring issues (r/OnlineJobsPH blocked; no relevant threads found)",
+      "Quantitative metrics like project abandonment or completion rates for any OnlineJobsPH projects"
+    ],
+    "searches_made": 10,
+    "pages_fetched": 3,
+    "_searches_made": 14,
+    "_empty_searches": 0,
+    "_tool_log": [
+      {
+        "tool": "web_search",
+        "query": "OnlineJobsPH employer complaints reddit",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "r/OnlineJobsPH ghosting delays developers",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "\"OnlineJobsPH\" Next.js React complaints",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "r/philippines OnlineJobsPH hiring issues",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "browser_search",
+        "query": "OnlineJobsPH ghosting OR delays OR complaints developers",
+        "site": "reddit.com",
+        "success": true,
+        "chars": 237
+      },
+      {
+        "tool": "web_search",
+        "query": "OnlineJobsPH employer complaints developers reddit",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "\"OnlineJobsPH\" \"ghosting\" OR \"delay\" OR \"abandon\" employer OR client",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "site:reddit.com/r/OnlineJobsPH OR site:reddit.com/r/philippines \"Next.js\" OR \"React\" landing page complaints",
+        "success": true,
+        "results": 4
+      },
+      {
+        "tool": "web_search",
+        "query": "\"OnlineJobsPH\" \"landing page\" developer review OR complaint",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "browser_search",
+        "query": "employer complaints developers ghosting delays",
+        "site": "reddit.com",
+        "success": true,
+        "chars": 237
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://www.reddit.com/r/OnlineJobsPH/",
+        "success": true,
+        "chars": 222,
+        "title": ""
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://www.trustpilot.com/review/onlinejobs.ph",
+        "success": true,
+        "chars": 8015,
+        "title": "Onlinejobs.ph Reviews | Read Customer Service Reviews of onlinejobs.ph"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://remotework.ph/blog/onlinejobs-ph-review/",
+        "success": true,
+        "chars": 7492,
+        "title": "OnlineJobs.ph Review (2026): Pros, Cons and Pricing"
+      }
+    ]
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8,
+      "depth": 4,
+      "completeness": 6,
+      "specificity": 3,
+      "intellectual_honesty": 9
+    },
+    "overall_score": 6.0,
+    "strengths": [
+      "Excellent intellectual honesty in acknowledging data gaps",
+      "Accurate source citations match fetched pages",
+      "Transparent about research limitations",
+      "Proper confidence levels assigned to claims"
+    ],
+    "weaknesses": [
+      "Very shallow analysis with only surface-level insights",
+      "Extremely low specificity - no quantitative data found",
+      "Limited completeness due to narrow search results",
+      "Failed to find the specific data requested in the question"
+    ],
+    "actionable_feedback": "To improve: 1) Expand search to include more platforms (Facebook groups, Discord, Upwork forums, LinkedIn discussions), 2) Search for broader terms like 'web development complaints Philippines' then filter, 3) Look for freelancer perspective posts that might reveal employer behavior patterns, 4) Check OnlineJobsPH's own blog/help sections for common issues, 5) Search for alternative spellings and related terms (OLJ, online jobs Philippines, etc.), 6) Consider searching in Filipino/Tagalog for local discussions",
+    "verdict": "accept"
+  },
+  "overall_score": 6.0,
+  "accepted": true,
+  "verdict": "accept"
+}
