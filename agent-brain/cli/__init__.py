@@ -2,16 +2,16 @@
 CLI command modules — extracted from main.py for maintainability.
 
 Each module handles a related group of CLI commands:
+- strategy: Strategy management (status, approve, reject, diff, rollback, audit, budget, principles, transfer)
+- knowledge: Knowledge base, synthesis, graph, prune, KB versions/rollback
+- research: Auto mode, orchestrate, next questions, digest
+- infrastructure: Dashboard, export, migrate, alerts, health, daemon, seeds, predictions
+- execution: Agent Hands execution commands (execute, auto-build, exec status/evolve/principles/lessons)
+- tools_cmd: Crawl, fetch, RAG, MCP commands
 - vault: Credential vault operations
 - browser_cmd: Stealth browser fetch/test
 - project: Project orchestrator commands
 - deploy_cmd: VPS deployment commands
-- tools_cmd: Crawl, fetch, RAG, MCP commands
-- strategy: Strategy management (status, approve, reject, diff, rollback, audit)
-- knowledge: Knowledge base, synthesis, graph
-- infrastructure: Dashboard, export, migrate, alerts, health, daemon, seeds, budget
-- research: Auto mode, orchestrate, next questions
-- execution: Agent Hands execution commands
 """
 
 import sys

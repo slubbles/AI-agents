@@ -131,10 +131,10 @@ class TestMcpDockerManager(unittest.TestCase):
 class TestDeployScheduleWiring(unittest.TestCase):
     """Test that deploy auto-triggers schedule setup."""
 
-    @patch("main._get_vault")
-    def test_deploy_calls_schedule_on_success(self, mock_vault):
+    @patch("cli.vault.get_vault")
+    def test_deploy_calls_schedule_on_success(self, mock_vault_fn):
         """After successful deploy, setup_schedule is called."""
-        mock_vault.return_value = MagicMock()
+        mock_vault_fn.return_value = MagicMock()
         
         with patch("deploy.deployer.deploy", return_value={"status": "success", "steps": []}) as mock_deploy, \
              patch("deploy.deployer.setup_schedule", return_value={"status": "success", "cron_entry": "test"}) as mock_sched, \
@@ -146,22 +146,22 @@ class TestDeployScheduleWiring(unittest.TestCase):
             mock_cfg.return_value = cfg
             
             # Import and call  
-            from main import _run_deploy
-            _run_deploy(dry_run=False)
+            from cli.deploy_cmd import deploy
+            deploy(dry_run=False)
             
             mock_deploy.assert_called_once()
             mock_sched.assert_called_once()
 
-    @patch("main._get_vault")
-    def test_deploy_skips_schedule_on_dry_run(self, mock_vault):
+    @patch("cli.vault.get_vault")
+    def test_deploy_skips_schedule_on_dry_run(self, mock_vault_fn):
         """Dry run should not trigger schedule setup."""
-        mock_vault.return_value = MagicMock()
+        mock_vault_fn.return_value = MagicMock()
         
         with patch("deploy.deployer.deploy", return_value={"status": "success", "steps": []}) as mock_deploy, \
              patch("deploy.deployer.setup_schedule") as mock_sched:
             
-            from main import _run_deploy
-            _run_deploy(dry_run=True)
+            from cli.deploy_cmd import deploy
+            deploy(dry_run=True)
             
             mock_deploy.assert_called_once()
             mock_sched.assert_not_called()

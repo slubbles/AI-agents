@@ -139,20 +139,18 @@ class TestBrowserResearcherWiring:
 # ============================================================
 
 class TestVaultCLIWiring:
-    """Verify vault handlers exist in main.py."""
+    """Verify vault handlers exist in cli/vault.py (extracted from main.py)."""
 
-    def test_vault_store_handler_exists(self):
-        # Import dynamically to avoid running main()
-        import importlib
-        spec = importlib.util.spec_from_file_location("main_mod", os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py"))
-        # Just check the function exists in the source
-        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+    def test_vault_handlers_exist_in_cli(self):
+        """Vault handler functions exist in cli/vault.py."""
+        cli_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cli", "vault.py")
+        with open(cli_dir) as f:
             source = f.read()
-        assert "def _vault_store(" in source
-        assert "def _vault_get(" in source
-        assert "def _vault_delete(" in source
-        assert "def _vault_list(" in source
-        assert "def _vault_stats(" in source
+        assert "def store(" in source
+        assert "def get(" in source
+        assert "def delete(" in source
+        assert "def list_all(" in source
+        assert "def stats(" in source
 
     def test_vault_argparse_flags_exist(self):
         """Argparse flags for vault are in main.py source."""
@@ -165,18 +163,19 @@ class TestVaultCLIWiring:
         assert "--vault-stats" in source
 
     def test_vault_dispatch_wired(self):
-        """Vault dispatch code exists in main()."""
+        """Vault dispatch in main() calls cli.vault."""
         with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
             source = f.read()
-        assert "_vault_store(args.vault_store" in source
-        assert "_vault_get(args.vault_get" in source
-        assert "_vault_delete(args.vault_delete" in source
+        assert "from cli.vault import" in source
+        assert "vault_store" in source
+        assert "vault_get" in source
+        assert "vault_delete" in source
 
     def test_get_vault_helper_exists(self):
-        """_get_vault helper function exists."""
-        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+        """Vault helper with CredentialVault exists in cli/vault.py."""
+        cli_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cli", "vault.py")
+        with open(cli_dir) as f:
             source = f.read()
-        assert "def _get_vault(" in source
         assert "CredentialVault" in source
 
 
@@ -185,13 +184,14 @@ class TestVaultCLIWiring:
 # ============================================================
 
 class TestBrowserCLIWiring:
-    """Verify browser CLI handlers exist."""
+    """Verify browser CLI handlers exist in cli/browser_cmd.py."""
 
     def test_browser_fetch_handler_exists(self):
-        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+        cli_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cli", "browser_cmd.py")
+        with open(cli_path) as f:
             source = f.read()
-        assert "def _browser_fetch_url(" in source
-        assert "def _browser_test_stealth(" in source
+        assert "def fetch_url(" in source
+        assert "def test_stealth(" in source
 
     def test_browser_argparse_flags(self):
         with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
@@ -205,16 +205,17 @@ class TestBrowserCLIWiring:
 # ============================================================
 
 class TestProjectOrchestratorCLIWiring:
-    """Verify project orchestrator is wired into CLI."""
+    """Verify project orchestrator is wired into cli/project.py."""
 
     def test_project_handlers_exist(self):
-        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+        cli_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cli", "project.py")
+        with open(cli_path) as f:
             source = f.read()
-        assert "def _run_project(" in source
-        assert "def _show_project_status(" in source
-        assert "def _resume_project(" in source
-        assert "def _approve_project_phase(" in source
-        assert "def _list_projects(" in source
+        assert "def run(" in source
+        assert "def status(" in source
+        assert "def resume(" in source
+        assert "def approve_phase(" in source
+        assert "def list_all(" in source
 
     def test_project_argparse_flags(self):
         with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
@@ -228,9 +229,10 @@ class TestProjectOrchestratorCLIWiring:
     def test_project_dispatch_wired(self):
         with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
             source = f.read()
-        assert "_run_project(args.project" in source
-        assert "_show_project_status(args.project_status" in source
-        assert "_list_projects()" in source
+        assert "from cli.project import" in source
+        assert "project_run" in source
+        assert "project_status" in source
+        assert "project_list" in source
 
 
 # ============================================================
@@ -238,17 +240,18 @@ class TestProjectOrchestratorCLIWiring:
 # ============================================================
 
 class TestDeployCLIWiring:
-    """Verify VPS deploy is wired into CLI."""
+    """Verify VPS deploy is wired into cli/deploy_cmd.py."""
 
     def test_deploy_handlers_exist(self):
-        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+        cli_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cli", "deploy_cmd.py")
+        with open(cli_path) as f:
             source = f.read()
-        assert "def _run_deploy(" in source
-        assert "def _run_deploy_health(" in source
-        assert "def _run_deploy_logs(" in source
-        assert "def _run_deploy_schedule(" in source
-        assert "def _run_deploy_unschedule(" in source
-        assert "def _run_deploy_configure(" in source
+        assert "def deploy(" in source
+        assert "def health(" in source
+        assert "def logs(" in source
+        assert "def schedule(" in source
+        assert "def unschedule(" in source
+        assert "def configure(" in source
 
     def test_deploy_argparse_flags(self):
         with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
@@ -264,8 +267,8 @@ class TestDeployCLIWiring:
     def test_deploy_dispatch_wired(self):
         with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
             source = f.read()
-        assert "_run_deploy(" in source
-        assert "_run_deploy_health()" in source
+        assert "from cli.deploy_cmd import deploy" in source
+        assert "deploy_health" in source
 
 
 # ============================================================

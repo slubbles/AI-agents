@@ -411,14 +411,14 @@ class TestDailyDigest:
         ]
 
         # Mock all dependencies
-        with patch("main.get_stats", return_value={"count": 10, "avg_score": 7.0, "accepted": 8, "rejected": 2}), \
-             patch("main.get_daily_spend", return_value={"total_usd": 0.50, "calls": 10}), \
-             patch("main.list_pending", return_value=[]), \
-             patch("main.LOG_DIR", "/tmp/test_digest_logs"), \
+        with patch("cli.research.get_stats", return_value={"count": 10, "avg_score": 7.0, "accepted": 8, "rejected": 2}), \
+             patch("cli.research.get_daily_spend", return_value={"total_usd": 0.50, "calls": 10}), \
+             patch("cli.research.list_pending", return_value=[]), \
+             patch("cli.research.LOG_DIR", "/tmp/test_digest_logs"), \
              patch("db.get_alerts", return_value=[]):
             os.makedirs("/tmp/test_digest_logs", exist_ok=True)
-            from main import _generate_digest
-            digest = _generate_digest("test", round_results, dedup_skipped=1)
+            from cli.research import generate_digest
+            digest = generate_digest("test", round_results, dedup_skipped=1)
 
         assert isinstance(digest, dict)
         assert digest["domain"] == "test"
@@ -441,13 +441,13 @@ class TestDailyDigest:
         log_dir = "/tmp/test_digest_save"
         os.makedirs(log_dir, exist_ok=True)
 
-        with patch("main.get_stats", return_value={"count": 5, "avg_score": 7.0, "accepted": 4, "rejected": 1}), \
-             patch("main.get_daily_spend", return_value={"total_usd": 0.20, "calls": 5}), \
-             patch("main.list_pending", return_value=[]), \
-             patch("main.LOG_DIR", log_dir), \
+        with patch("cli.research.get_stats", return_value={"count": 5, "avg_score": 7.0, "accepted": 4, "rejected": 1}), \
+             patch("cli.research.get_daily_spend", return_value={"total_usd": 0.20, "calls": 5}), \
+             patch("cli.research.list_pending", return_value=[]), \
+             patch("cli.research.LOG_DIR", log_dir), \
              patch("db.get_alerts", return_value=[]):
-            from main import _generate_digest
-            _generate_digest("test", round_results)
+            from cli.research import generate_digest
+            generate_digest("test", round_results)
 
         digest_path = os.path.join(log_dir, "digests.jsonl")
         assert os.path.exists(digest_path)
@@ -473,16 +473,16 @@ class TestWebhookPush:
             {"round": 1, "question": "Test", "score": 7.0, "verdict": "accept"},
         ]
 
-        with patch("main.get_stats", return_value={"count": 5, "avg_score": 7.0, "accepted": 4, "rejected": 1}), \
-             patch("main.get_daily_spend", return_value={"total_usd": 0.20, "calls": 5}), \
-             patch("main.list_pending", return_value=[]), \
-             patch("main.LOG_DIR", "/tmp/test_webhook"), \
+        with patch("cli.research.get_stats", return_value={"count": 5, "avg_score": 7.0, "accepted": 4, "rejected": 1}), \
+             patch("cli.research.get_daily_spend", return_value={"total_usd": 0.20, "calls": 5}), \
+             patch("cli.research.list_pending", return_value=[]), \
+             patch("cli.research.LOG_DIR", "/tmp/test_webhook"), \
              patch("db.get_alerts", return_value=[]), \
              patch.dict(os.environ, {"AGENT_BRAIN_WEBHOOK_URL": "https://example.com/hook"}), \
-             patch("main._push_webhook") as mock_push:
+             patch("cli.research.push_webhook") as mock_push:
             os.makedirs("/tmp/test_webhook", exist_ok=True)
-            from main import _generate_digest
-            digest = _generate_digest("test", round_results)
+            from cli.research import generate_digest
+            digest = generate_digest("test", round_results)
             mock_push.assert_called_once_with("https://example.com/hook", digest)
 
         import shutil
@@ -494,18 +494,18 @@ class TestWebhookPush:
             {"round": 1, "question": "Test", "score": 7.0, "verdict": "accept"},
         ]
 
-        with patch("main.get_stats", return_value={"count": 5, "avg_score": 7.0, "accepted": 4, "rejected": 1}), \
-             patch("main.get_daily_spend", return_value={"total_usd": 0.20, "calls": 5}), \
-             patch("main.list_pending", return_value=[]), \
-             patch("main.LOG_DIR", "/tmp/test_no_webhook"), \
+        with patch("cli.research.get_stats", return_value={"count": 5, "avg_score": 7.0, "accepted": 4, "rejected": 1}), \
+             patch("cli.research.get_daily_spend", return_value={"total_usd": 0.20, "calls": 5}), \
+             patch("cli.research.list_pending", return_value=[]), \
+             patch("cli.research.LOG_DIR", "/tmp/test_no_webhook"), \
              patch("db.get_alerts", return_value=[]), \
              patch.dict(os.environ, {}, clear=False), \
-             patch("main._push_webhook") as mock_push:
+             patch("cli.research.push_webhook") as mock_push:
             # Ensure no webhook URL
             os.environ.pop("AGENT_BRAIN_WEBHOOK_URL", None)
             os.makedirs("/tmp/test_no_webhook", exist_ok=True)
-            from main import _generate_digest
-            _generate_digest("test", round_results)
+            from cli.research import generate_digest
+            generate_digest("test", round_results)
             mock_push.assert_not_called()
 
         import shutil
