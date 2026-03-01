@@ -19,6 +19,8 @@ Control commands:
     python main.py --next                        Show next self-generated questions for a domain
     python main.py --auto                        Self-directed mode: generate question + research it
     python main.py --auto --rounds 5             Self-directed mode: run 5 rounds
+    python main.py --set-goal                    Set goal/intent for a domain (directs research)
+    python main.py --show-goal                   Show the current goal for a domain
     python main.py --synthesize                  Force knowledge synthesis for a domain
     python main.py --kb                           Show synthesized knowledge base
     python main.py --prune                        Archive rejected/low-score outputs
@@ -520,6 +522,8 @@ def main():
     parser.add_argument("--next", action="store_true", help="Show next self-generated questions for a domain")
     parser.add_argument("--auto", action="store_true", help="Self-directed mode: generate question and research it")
     parser.add_argument("--rounds", type=int, default=1, help="Number of auto rounds to run (default: 1)")
+    parser.add_argument("--set-goal", action="store_true", help="Set the goal/intent for a domain (interactive prompt)")
+    parser.add_argument("--show-goal", action="store_true", help="Show the current goal for a domain")
     parser.add_argument("--synthesize", action="store_true", help="Synthesize domain outputs into knowledge base")
     parser.add_argument("--kb", action="store_true", help="Show the synthesized knowledge base for a domain")
     parser.add_argument("--kb-versions", action="store_true", help="List knowledge base version history")
@@ -677,6 +681,36 @@ def main():
     if args.next:
         from cli.research import show_next
         show_next(args.domain)
+        return
+    if getattr(args, 'set_goal', False):
+        from domain_goals import set_goal, get_goal
+        current = get_goal(args.domain)
+        if current:
+            print(f"Current goal for '{args.domain}': {current}")
+            print()
+        goal_text = input("Enter goal/intent for this domain:\n> ").strip()
+        if not goal_text:
+            print("No goal entered. Aborting.")
+            return
+        set_goal(args.domain, goal_text)
+        print(f"\n✓ Goal set for '{args.domain}'")
+        return
+    if getattr(args, 'show_goal', False):
+        from domain_goals import get_goal, get_goal_record
+        record = get_goal_record(args.domain)
+        if not record:
+            print(f"No goal set for domain '{args.domain}'")
+            print(f"Set one with: python main.py --set-goal --domain {args.domain}")
+            return
+        print(f"\nDomain: {args.domain}")
+        print(f"Goal: {record['goal']}")
+        print(f"Set: {record.get('set_at', '?')}")
+        if record.get('updated_at') != record.get('set_at'):
+            print(f"Updated: {record.get('updated_at', '?')}")
+        if record.get('previous_goals'):
+            print(f"\nPrevious goals ({len(record['previous_goals'])}):")
+            for prev in record['previous_goals']:
+                print(f"  - {prev['goal'][:80]} (replaced {prev['replaced_at'][:10]})")
         return
     if args.auto:
         from cli.research import run_auto

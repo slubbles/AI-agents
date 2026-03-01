@@ -149,13 +149,22 @@ def run_auto(domain: str, rounds: int = 1):
     5. Repeats for N rounds
 
     This is the full Knowles self-directed learning cycle, automated.
+    Questions are directed by the domain goal (if set) to keep research actionable.
     """
     from main import run_loop  # lazy import — avoids circular dependency
+    from domain_goals import get_goal
+
+    goal = get_goal(domain)
 
     print(f"\n{'='*60}")
     print(f"  SELF-DIRECTED LEARNING MODE")
     print(f"  Domain: {domain}")
     print(f"  Rounds: {rounds}")
+    if goal:
+        print(f"  Goal: {goal[:80]}{'...' if len(goal) > 80 else ''}")
+    else:
+        print(f"  Goal: NOT SET — research may not be actionable")
+        print(f"         Set with: python main.py --set-goal --domain {domain}")
     print(f"{'='*60}\n")
 
     question = None  # Initialize before loop to avoid NameError in summary

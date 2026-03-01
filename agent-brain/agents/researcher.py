@@ -143,8 +143,28 @@ def _build_system_prompt(domain_strategy: str | None = None, domain: str = "") -
     can adjust search approach, source priorities, and analysis depth, but cannot
     override the output format or temporal verification rules.
     Lessons from past failures are injected if available.
+    Domain goal is injected if set — tells the researcher WHY this matters.
     """
     baseline = _build_baseline()
+    
+    # Inject domain goal — the user's actual intent
+    goal_block = ""
+    if domain:
+        try:
+            from domain_goals import get_goal
+            goal = get_goal(domain)
+            if goal:
+                goal_block = f"""
+=== USER'S GOAL FOR THIS DOMAIN ===
+{goal}
+
+This is WHY the user is researching this domain. Focus your research on
+information that is ACTIONABLE toward this goal. Prioritize practical
+intelligence (pricing, competitors, pain points, opportunities) over
+academic knowledge (market size reports, industry frameworks, analyst forecasts).
+=== END GOAL ===""" 
+        except Exception:
+            pass
     
     # Inject lessons from past failures
     lessons_block = ""
@@ -156,6 +176,9 @@ def _build_system_prompt(domain_strategy: str | None = None, domain: str = "") -
             pass
     
     parts = [baseline]
+    
+    if goal_block:
+        parts.append(goal_block)
     
     if lessons_block:
         parts.append(f"\n=== PAST FAILURE LESSONS ===\n{lessons_block}\n=== END LESSONS ===")

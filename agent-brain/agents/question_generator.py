@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import ANTHROPIC_API_KEY, MODELS
 from memory_store import load_outputs, get_stats, load_knowledge_base
 from cost_tracker import log_cost
+from domain_goals import get_goal
 from utils.retry import create_message
 from utils.json_parser import extract_json
 
@@ -43,34 +44,53 @@ MAX_OUTPUTS_TO_SCAN = 30
 MAX_QUESTIONS = 5
 
 
-def _build_generator_prompt() -> str:
+def _build_generator_prompt(goal: str | None = None) -> str:
     today = date.today().isoformat()
+    
+    goal_section = ""
+    if goal:
+        goal_section = f"""
+
+USER'S GOAL FOR THIS DOMAIN:
+{goal}
+
+This is WHY the user cares about this domain. Every question you generate MUST
+directly serve this goal. Do NOT generate generic academic questions. Do NOT
+research market statistics, industry reports, or theoretical frameworks unless
+they directly help the user achieve their stated goal.
+
+Ask yourself for each question: "Does answering this question move the user
+closer to their goal?" If not, discard it.
+"""
+    
     return f"""\
 You are a learning strategist for an autonomous research system. TODAY'S DATE: {today}.
 
 Your job: analyze what the system has already researched, identify the biggest knowledge gaps,
 and generate the NEXT BEST QUESTION to research in this domain.
-
+{goal_section}
 You receive:
 1. A list of all questions previously asked (to avoid duplicates)
 2. Knowledge gaps identified by the researcher in past outputs
 3. Weaknesses identified by the critic in past outputs
 4. Actionable feedback from the critic
 5. The domain context
+6. The user's goal/intent for this domain (if set)
 
 You must:
 1. DIAGNOSE: What are the most important gaps in the system's knowledge?
-2. PRIORITIZE: Which gap, if filled, would most improve the system's understanding?
-3. GENERATE: Write specific, researachable questions that target those gaps
+2. PRIORITIZE: Which gap, if filled, would most help the user achieve their goal?
+3. GENERATE: Write specific, researchable questions that target those gaps AND serve the goal
 
 QUESTION QUALITY RULES:
 - Questions must be SPECIFIC and ANSWERABLE via web search
 - Don't repeat or trivially rephrase previously asked questions
-- Prefer questions that DEEPEN existing knowledge over questions that add breadth
+- Questions MUST serve the user's stated goal — no academic tangents
+- Prefer questions that produce ACTIONABLE intelligence over general knowledge
 - Each question should target a clear knowledge gap with evidence from the data
 - Questions should be timely (leverage today's date: {today})
-- Good: "What specific mechanisms drive institutional Bitcoin ETF outflows during market corrections?"
-- Bad: "Tell me about crypto" (too vague, not targeted at a gap)
+- Good: "What are the most common pain points OnlineJobsPH employers report when hiring freelance web developers?"
+- Bad: "What is the global freelance market size according to Gartner?" (academic, not actionable)
 
 CRITICAL: You MUST always generate at least 3 questions. The domain is large — there are always more gaps to explore.
 If you've exhausted deep questions on current subtopics, BRANCH OUT to related subtopics within the domain.
@@ -224,13 +244,22 @@ def generate_questions(domain: str) -> dict | None:
         print(f"  Knowledge base available: {kb_context['active_claims_count']} active claims, "
               f"{len(kb_context['kb_knowledge_gaps'])} identified gaps")
 
+    # Load the user's goal for this domain — the WHY behind the research
+    goal = get_goal(domain)
+    if goal:
+        payload["user_goal"] = goal
+        print(f"  Goal: {goal[:100]}{'...' if len(goal) > 100 else ''}")
+    else:
+        print(f"  ⚠ No goal set for domain '{domain}' — questions may not be actionable")
+        print(f"    Set one with: --set-goal or chat: set_domain_goal")
+
     user_message = (
         f"Analyze the knowledge gaps for domain '{domain}' and generate "
         f"the next {MAX_QUESTIONS} best questions to research.\n\n"
         f"DATA:\n{json.dumps(payload, indent=2)}"
     )
 
-    generator_prompt = _build_generator_prompt()  # Fresh per call (avoids stale dates)
+    generator_prompt = _build_generator_prompt(goal=goal)  # Fresh per call (avoids stale dates)
     response = create_message(
         client,
         model=MODELS["question_generator"],  # Haiku — it's a synthesis task

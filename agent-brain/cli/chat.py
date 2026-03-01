@@ -207,6 +207,22 @@ def _build_system_context(domain: str) -> str:
     except Exception:
         pass
     
+    # Domain goal info
+    goal_info = "Current domain goal: NOT SET — research will be undirected."
+    try:
+        from domain_goals import get_goal, list_goals
+        current_goal = get_goal(domain)
+        if current_goal:
+            goal_info = f"Current domain goal ({domain}): {current_goal}"
+        all_goals = list_goals()
+        if all_goals:
+            other_goals = {d: g for d, g in all_goals.items() if d != domain}
+            if other_goals:
+                goal_lines = [f"  {d}: {g[:80]}..." for d, g in other_goals.items()]
+                goal_info += f"\nOther domain goals:\n" + "\n".join(goal_lines)
+    except Exception:
+        pass
+    
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     
     return f"""You are the chat interface for Agent Brain. Today is {today}.
@@ -259,6 +275,20 @@ The Hands and infrastructure are built but haven't gone through the same prove-i
 CONVERSATION MEMORY:
 Sessions persist across restarts (JSON files in logs/chat_sessions/).
 You can recall previous conversations. Use this for continuity — don't re-explain things.
+
+DOMAIN GOALS:
+Every domain can have a goal — the user's actual intent for WHY they're researching it.
+Without a goal, the question generator produces generic academic research. With a goal, every question serves the user's actual objective.
+
+CRITICAL BEHAVIOR: When the user wants to research something or run cycles:
+1. Check if a goal is set for the domain (use show_domain_goal)
+2. If NO goal is set, ASK the user what they want to achieve BEFORE running research
+3. Set the goal with set_domain_goal
+4. Then run the cycle with run_cycle
+
+Never run research cycles without a goal. The whole point is directed research, not academic browsing.
+
+{goal_info}
 
 CURRENT STATE:
   Domain: {domain}
@@ -615,6 +645,56 @@ CHAT_TOOLS = [
                 }
             },
             "required": ["pattern"]
+        }
+    },
+    {
+        "name": "set_domain_goal",
+        "description": "Set or update the user's goal/intent for a research domain. This tells the system WHY the user cares about this domain, so research questions are actionable instead of academic. ALWAYS use this before running research cycles if no goal is set. Ask the user what they want to achieve if they haven't said.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "The research domain to set a goal for"
+                },
+                "goal": {
+                    "type": "string",
+                    "description": "The user's goal — what they want to achieve with this domain's research. Be specific: include actions, targets, and desired outcomes."
+                }
+            },
+            "required": ["domain", "goal"]
+        }
+    },
+    {
+        "name": "show_domain_goal",
+        "description": "Show the current goal/intent set for a domain. Use when checking if a goal exists before research.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Domain to check (optional, defaults to active domain)"
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "run_cycle",
+        "description": "Run self-directed research cycles. The system generates its own questions based on knowledge gaps and the domain goal, then researches them. Use when the user wants to run auto research rounds. IMPORTANT: Check if a domain goal is set first — if not, ask the user what they want to achieve before running.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Domain to research (optional, defaults to active domain)"
+                },
+                "rounds": {
+                    "type": "integer",
+                    "description": "Number of research rounds to run (default: 1, max: 10)"
+                }
+            },
+            "required": []
         }
     },
 ]
@@ -1023,6 +1103,79 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             return f"Found {len(matches)} matches for '{args['pattern']}'{truncated}:\n" + "\n".join(matches)
         except Exception as e:
             return f"Error searching: {e}"
+    
+    elif name == "set_domain_goal":
+        try:
+            from domain_goals import set_goal
+            goal_domain = args["domain"]
+            goal_text = args["goal"]
+            if not goal_text.strip():
+                return "Goal text is empty — cannot set an empty goal."
+            record = set_goal(goal_domain, goal_text)
+            return (
+                f"Goal set for domain '{goal_domain}'.\n"
+                f"Goal: {record['goal']}\n"
+                f"Now when research cycles run, questions will be directed at this goal."
+            )
+        except Exception as e:
+            return f"Error setting goal: {e}"
+    
+    elif name == "show_domain_goal":
+        try:
+            from domain_goals import get_goal_record, list_goals
+            if domain:
+                record = get_goal_record(domain)
+                if not record:
+                    return f"No goal set for domain '{domain}'. Set one with set_domain_goal before running research."
+                lines = [
+                    f"**Domain: {domain}**",
+                    f"Goal: {record['goal']}",
+                    f"Set: {record.get('set_at', '?')[:10]}",
+                ]
+                if record.get('previous_goals'):
+                    lines.append(f"Previous goals: {len(record['previous_goals'])}")
+                return "\n".join(lines)
+            else:
+                goals = list_goals()
+                if not goals:
+                    return "No domain goals set yet."
+                lines = ["**Domain Goals:**"]
+                for d, g in goals.items():
+                    lines.append(f"  **{d}**: {g[:100]}{'...' if len(g) > 100 else ''}")
+                return "\n".join(lines)
+        except Exception as e:
+            return f"Error showing goal: {e}"
+    
+    elif name == "run_cycle":
+        try:
+            from domain_goals import get_goal
+            from cli.research import run_auto
+            import io
+            import contextlib
+            
+            rounds = min(args.get("rounds", 1), 10)  # Cap at 10
+            goal = get_goal(domain)
+            
+            if not goal:
+                return (
+                    f"No goal set for domain '{domain}'.\n"
+                    f"Before running research cycles, set a goal so questions are actionable.\n"
+                    f"Use set_domain_goal to define what you want to achieve with this domain."
+                )
+            
+            # Capture output so we can return it to chat
+            output_buffer = io.StringIO()
+            with contextlib.redirect_stdout(output_buffer):
+                run_auto(domain, rounds)
+            
+            raw_output = output_buffer.getvalue()
+            # Truncate if too long for chat context
+            if len(raw_output) > 4000:
+                raw_output = raw_output[:2000] + "\n...(truncated)...\n" + raw_output[-1500:]
+            
+            return f"**Research cycle complete** — {rounds} round(s) in domain '{domain}'\n\n```\n{raw_output}\n```"
+        except Exception as e:
+            return f"Research cycle failed: {e}"
     
     return f"Unknown tool: {name}"
 
