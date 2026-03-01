@@ -67,4 +67,4 @@ The risk now isn't that you lack vision or capability. It's that the vision beco
 
 Turn it on. Let it break. Learn from the breaks. Iterate. The vision is the compass, but the actual path forward is through the terrain — and that terrain is full of surprises that only reveal themselves when you're walking it. 
 
-what if
+My bottleneck was cost

@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-03-01T12:00:37.759897+00:00",
+  "domain": "productized-services",
+  "question": "What does Notion Labs do? Who are their customers? What does their current website look like? In 3 sentences.",
+  "attempt": 1,
+  "strategy_version": "v001",
+  "research": {
+    "question": "What does Notion Labs do? Who are their customers? What does their current website look like?",
+    "findings": [
+      {
+        "claim": "Notion Labs develops Notion, an AI-powered all-in-one workspace application for productivity, note-taking, knowledge management, and project management",
+        "confidence": "high",
+        "reasoning": "Confirmed across multiple sources including Wikipedia, official about page, and current website. Notion was first released in 2016 and has evolved to include AI features like Custom Agents (introduced in 2026), AI writing assistant, email app, meeting notes, and enterprise search.",
+        "source": "https://www.notion.so"
+      },
+      {
+        "claim": "Notion's customers include over 100 million users worldwide, 62% of Fortune 100 companies, over 50% of Y Combinator companies, and teams like Ramp",
+        "confidence": "high",
+        "reasoning": "Directly stated on their current homepage with specific metrics. The diversity of customer segments (enterprise, startups, individuals) is evident from the marketing claims.",
+        "source": "https://www.notion.so"
+      },
+      {
+        "claim": "Notion's current website (as of March 2026) prominently features their new Custom Agents product, emphasizing 24/7 AI automation capabilities",
+        "confidence": "high",
+        "reasoning": "The fetched homepage shows 'Custom Agents' as the lead product announcement with multiple use case examples (triage feedback, resolve support tickets, automate reporting). The site also highlights Notion Mail and Calendar as recent additions (April 2025).",
+        "source": "https://www.notion.so"
+      },
+      {
+        "claim": "The website emphasizes multiple integrated tools (Docs, Knowledge Base, Projects, Forms, Site Builder, CRM) under a single AI platform to reduce the need for multiple SaaS tools",
+        "confidence": "high",
+        "reasoning": "The homepage explicitly positions Notion as an all-in-one workspace with messaging around cost savings and consolidation. The pricing calculator shows monthly savings of $340+ compared to using separate tools.",
+        "source": "https://www.notion.so"
+      }
+    ],
+    "key_insights": [
+      "Notion Labs has achieved massive scale (100M+ users, 62% of Fortune 100) by positioning Notion as a comprehensive AI workspace that replaces multiple point solutions",
+      "Their current product strategy (as of 2026) prioritizes AI automation through Custom Agents, building on their AI capabilities introduced in February 2023",
+      "The website is designed to emphasize cost consolidation and workflow efficiency rather than individual feature lists, targeting enterprise and startup buyers"
+    ],
+    "knowledge_gaps": [
+      "Detailed breakdown of customer revenue by segment (enterprise vs. SMB vs. individual)",
+      "Specific pricing for Custom Agents feature",
+      "Market share comparisons with competitors like Microsoft Teams, Monday.com, or Asana"
+    ],
+    "sources_used": [
+      "https://www.notion.so",
+      "https://en.wikipedia.org/wiki/Notion_(productivity_software)",
+      "https://www.notion.com/about"
+    ],
+    "summary": "Notion Labs develops Notion, an AI-powered workspace platform founded in 2016 that combines productivity, note-taking, knowledge management, and project management into a single application. Their customers span over 100 million users worldwide, including 62% of Fortune 100 companies and over 50% of Y Combinator startups. As of March 2026, their website prominently features new Custom Agents that automate repetitive work 24/7, emphasizing Notion as a consolidated platform to replace multiple SaaS tools.",
+    "_searches_made": 1,
+    "_empty_searches": 0,
+    "_tool_log": [
+      {
+        "tool": "search_and_fetch",
+        "query": "Notion Labs what do they do",
+        "success": true,
+        "pages_fetched": 2,
+        "chars": 1980
+      },
+      {
+        "tool": "browser_fetch",
+        "url": "https://www.notion.so",
+        "success": true,
+        "chars": 3576
+      }
+    ]
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 7.0,
+      "depth": 6,
+      "completeness": 7,
+      "specificity": 8,
+      "intellectual_honesty": 8
+    },
+    "overall_score": 7.1,
+    "strengths": [
+      "Strong factual accuracy with verifiable claims",
+      "Excellent specificity with concrete metrics (100M+ users, 62% Fortune 100)",
+      "Good source verification - all claims traceable to fetched pages",
+      "Clear intellectual honesty in identifying knowledge gaps",
+      "Current data appropriate for 2026 timeframe"
+    ],
+    "weaknesses": [
+      "Limited depth in explaining how Notion's AI features work mechanistically",
+      "Shallow analysis of competitive positioning beyond basic mentions",
+      "Could have explored business model and revenue streams more deeply",
+      "[CONFIDENCE CHECK] 4 'high' confidence claim(s) lack multi-source backing (accuracy -1.0): 'Notion Labs develops Notion, an AI-powered all-in-one workspace application for ...' (high confidence, only 1 source(s))"
+    ],
+    "actionable_feedback": "To improve: 1) Fetch and analyze competitor websites for deeper market positioning analysis, 2) Look for technical documentation or case studies to explain AI capabilities in more detail, 3) Search for recent financial reports or funding announcements to understand business model better, 4) Investigate customer testimonials or case studies for deeper usage patterns",
+    "verdict": "accept",
+    "_confidence_penalty": {
+      "count": 4,
+      "penalty_applied": 1.0,
+      "original_accuracy": 8,
+      "new_accuracy": 7.0
+    }
+  },
+  "overall_score": 7.1,
+  "accepted": true,
+  "verdict": "accept"
+}

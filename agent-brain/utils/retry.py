@@ -132,14 +132,28 @@ def create_message(client, *, max_attempts: int = 5, base_delay: float = 15.0,
                    verbose: bool = True, **kwargs):
     """
     Drop-in replacement for client.messages.create() with automatic retry.
+    Routes to OpenRouter for non-Claude models (e.g., Deepseek).
     
     Usage:
         from utils.retry import create_message
         response = create_message(client, model="...", max_tokens=4096,
                                   system="...", messages=[...])
     
-    All keyword arguments are forwarded to client.messages.create().
+    All keyword arguments are forwarded to the appropriate provider.
     """
+    model = kwargs.get("model", "")
+    
+    # Route non-Claude models through llm_router
+    if not model.startswith("claude-"):
+        from llm_router import call_llm
+        return retry_api_call(
+            lambda: call_llm(**kwargs),
+            max_attempts=max_attempts,
+            base_delay=base_delay,
+            verbose=verbose,
+        )
+    
+    # Claude models go directly to Anthropic
     return retry_api_call(
         lambda: client.messages.create(**kwargs),
         max_attempts=max_attempts,
