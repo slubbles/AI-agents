@@ -1458,6 +1458,16 @@ def _run_auto(domain: str, rounds: int = 1):
             print(f"[AUTO] Stopped — budget exceeded during round {round_num}")
             break
 
+        if result is None:
+            print(f"\n[ROUND {round_num}] Research failed — no result returned")
+            round_results.append({
+                "round": round_num,
+                "question": question,
+                "score": 0,
+                "verdict": "failed",
+            })
+            continue
+
         score = result.get("critique", {}).get("overall_score", 0)
         verdict = result.get("critique", {}).get("verdict", "unknown")
         round_results.append({

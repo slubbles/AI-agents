@@ -247,16 +247,13 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
     graph = load_graph(domain)
     if graph and graph.get("nodes"):
         graph_info = get_graph_summary(graph)
-        graph_block = f"\nKNOWLEDGE GRAPH ({graph_info['node_count']} nodes, {graph_info['edge_count']} edges):\n"
-        if graph_info.get("contradictions"):
-            graph_block += f"  CONTRADICTIONS TO RESOLVE: {len(graph_info['contradictions'])}\n"
-            for c in graph_info["contradictions"][:3]:
-                graph_block += f"    - {c.get('claim1_id', '?')} vs {c.get('claim2_id', '?')}\n"
-        if graph_info.get("clusters"):
-            graph_block += f"  TOPIC CLUSTERS: {', '.join(c.get('label', '?') for c in graph_info['clusters'][:5])}\n"
-        if graph_info.get("gap_analysis", {}).get("weak_clusters"):
-            weak = graph_info["gap_analysis"]["weak_clusters"][:3]
-            graph_block += f"  WEAK AREAS (need more research): {', '.join(str(w) for w in weak)}\n"
+        graph_block = f"\nKNOWLEDGE GRAPH ({graph_info['total_nodes']} nodes, {graph_info['total_edges']} edges):\n"
+        if graph_info.get("isolated_claims"):
+            graph_block += f"  ISOLATED CLAIMS (no connections): {graph_info['isolated_claims']}\n"
+        if graph_info.get("weak_clusters"):
+            graph_block += f"  WEAK CLUSTERS (need more research): {graph_info['weak_clusters']}\n"
+        if graph_info.get("empty_topics"):
+            graph_block += f"  EMPTY TOPICS (no claims yet): {graph_info['empty_topics']}\n"
         prior_knowledge_block += graph_block
     
     # 2. Retrieve relevant past findings — include concrete claims with sources
