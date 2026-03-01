@@ -136,27 +136,41 @@ RESPOND WITH ONLY THIS JSON STRUCTURE:
     return baseline
 
 
-def _build_system_prompt(domain_strategy: str | None = None) -> str:
+def _build_system_prompt(domain_strategy: str | None = None, domain: str = "") -> str:
     """
     Build the full system prompt. ALWAYS includes baseline (date awareness, JSON
     format, core rules). If a domain strategy exists, it's layered ON TOP — it
     can adjust search approach, source priorities, and analysis depth, but cannot
     override the output format or temporal verification rules.
+    Lessons from past failures are injected if available.
     """
     baseline = _build_baseline()
-    if not domain_strategy:
-        return baseline
-    return f"""{baseline}
-
-=== DOMAIN-SPECIFIC STRATEGY ===
+    
+    # Inject lessons from past failures
+    lessons_block = ""
+    if domain:
+        try:
+            from research_lessons import format_lessons_for_prompt
+            lessons_block = format_lessons_for_prompt(domain)
+        except Exception:
+            pass
+    
+    parts = [baseline]
+    
+    if lessons_block:
+        parts.append(f"\n=== PAST FAILURE LESSONS ===\n{lessons_block}\n=== END LESSONS ===")
+    
+    if domain_strategy:
+        parts.append(f"""\n=== DOMAIN-SPECIFIC STRATEGY ===
 The following strategy provides domain-specific guidance for your research.
 Follow its search approach, source priorities, and analysis requirements.
 However, you MUST still output ONLY the JSON structure defined above.
 Do NOT output markdown, tables, or prose — ONLY the JSON object.
 
 {domain_strategy}
-=== END DOMAIN STRATEGY ===
-"""
+=== END DOMAIN STRATEGY ===""")
+    
+    return "\n".join(parts)
 
 # MAX_TOOL_ROUNDS, MAX_SEARCHES, MAX_FETCHES imported from config
 
@@ -225,7 +239,7 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
     before searching, so the researcher builds on existing knowledge instead of
     starting from zero.
     """
-    system_prompt = _build_system_prompt(strategy)
+    system_prompt = _build_system_prompt(strategy, domain=domain)
 
     # --- Memory recall: inject prior knowledge ---
     prior_knowledge_block = ""

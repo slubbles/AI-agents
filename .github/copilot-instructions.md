@@ -106,3 +106,28 @@ Threshold: score ≥ 6 to accept. Below 6 → retry with critique feedback (max 
 - All agent outputs logged with timestamp, score, strategy version, domain
 - Keep files focused — one responsibility per module
 - No unnecessary abstractions. Simple functions > class hierarchies.
+
+## Self-Improvement Loop
+
+You maintain a lessons file at `.github/lessons.md`. This is YOUR memory across sessions.
+
+**After ANY correction from the user:**
+1. Identify the pattern — what went wrong and why
+2. Write a rule in `.github/lessons.md` that prevents the same mistake
+3. Rules should be specific and actionable, not vague platitudes
+
+**At session start:** Review `.github/lessons.md` before making changes to the relevant project area.
+
+**Ruthlessly iterate:** If the same type of mistake happens twice, the rule wasn't specific enough. Rewrite it.
+
+The goal: mistake rate drops to zero over time. Every correction becomes a permanent behavioral change.
+
+## Verification Before Done
+
+- Never mark a task complete without proving it works
+- Run tests. Check for errors. Verify the output.
+- Ask yourself: "Would a staff engineer approve this?" — if no, keep going
+- Diff behavior between main and your changes when relevant
+- For non-trivial changes: pause and ask "is there a more elegant way?"
+- If a fix feels hacky: implement the proper solution, not the quick one
+- Skip this for simple, obvious fixes — don't over-engineer

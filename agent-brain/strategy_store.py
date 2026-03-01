@@ -364,6 +364,12 @@ def evaluate_trial(agent_role: str, domain: str) -> dict:
                 f"Rolled back to {rolled_to}."
             )
             _update_evolution_outcome(domain, current, "rolled_back", trial_avg)
+            # Capture rollback lesson
+            try:
+                from research_lessons import add_rollback_lesson
+                add_rollback_lesson(domain, current, result["reason"])
+            except Exception:
+                pass
         elif extensions < TRIAL_EXTEND_LIMIT:
             # Drop looks bad but not statistically significant yet — extend
             _extend_trial(agent_role, domain, current, extensions)
@@ -384,6 +390,12 @@ def evaluate_trial(agent_role: str, domain: str) -> dict:
                 f"Rolled back to {rolled_to}."
             )
             _update_evolution_outcome(domain, current, "rolled_back", trial_avg)
+            # Capture rollback lesson
+            try:
+                from research_lessons import add_rollback_lesson
+                add_rollback_lesson(domain, current, result["reason"])
+            except Exception:
+                pass
     else:
         # Strategy is performing OK or better → confirm
         if p_value is not None and p_value >= TRIAL_P_VALUE_THRESHOLD and drop_pct > 0 and extensions < TRIAL_EXTEND_LIMIT:

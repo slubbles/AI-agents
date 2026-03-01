@@ -301,6 +301,14 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
             previous_critique_feedback = feedback
         else:
             print(f"\n[QUALITY GATE] ✗ REJECTED — max retries reached, storing anyway")
+            # Capture lesson from bad rejection (score < 5 only)
+            try:
+                from research_lessons import add_rejection_lesson
+                dim_scores = critique_output.get("scores", {})
+                weakest = min(dim_scores, key=dim_scores.get) if dim_scores else "unknown"
+                add_rejection_lesson(domain, score, weakest, critique_output.get("actionable_feedback", ""))
+            except Exception:
+                pass
 
     # Step 4: Store to memory
     filepath = save_output(
@@ -555,6 +563,7 @@ def main():
     parser.add_argument("--exec-evolve", action="store_true", help="Force execution strategy evolution")
     parser.add_argument("--exec-principles", action="store_true", help="Show learned execution principles")
     parser.add_argument("--exec-lessons", action="store_true", help="Show learned execution patterns/lessons")
+    parser.add_argument("--lessons", action="store_true", help="Show research lessons learned from failures")
     parser.add_argument("--workspace", default="", help="Workspace directory for execution output")
     parser.add_argument("--auto-build", action="store_true", help="Brain→Hands pipeline: generate coding task from KB and execute it")
     parser.add_argument("--build-rounds", type=int, default=1, help="Number of auto-build rounds (default: 1)")
@@ -811,6 +820,10 @@ def main():
     if getattr(args, 'exec_lessons', False):
         from cli.execution import show_exec_lessons
         show_exec_lessons(args.domain)
+        return
+    if getattr(args, 'lessons', False):
+        from research_lessons import show_lessons
+        show_lessons(args.domain)
         return
     if getattr(args, 'auto_build', False):
         from cli.execution import run_auto_build

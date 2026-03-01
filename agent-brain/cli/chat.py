@@ -535,6 +535,20 @@ CHAT_TOOLS = [
             "required": ["url"]
         }
     },
+    {
+        "name": "show_lessons",
+        "description": "Show lessons learned from past research failures and strategy rollbacks. Use when user asks what went wrong, what was learned, or what mistakes were made.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Domain to show lessons for"
+                }
+            },
+            "required": ["domain"]
+        }
+    },
 ]
 
 
@@ -831,6 +845,20 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             return output[-3000:] if output else f"Fetched {url} (no content returned)."
         except Exception as e:
             return f"Fetch failed: {e}"
+    
+    elif name == "show_lessons":
+        try:
+            from research_lessons import get_lessons
+            lessons = get_lessons(domain)
+            if not lessons:
+                return f"No research lessons for '{domain}' yet. Lessons are captured from critic rejections (score < 5) and strategy rollbacks."
+            lines = [f"Research lessons for '{domain}' ({len(lessons)} total):"]
+            for l in lessons:
+                hits = f" (seen {l['hit_count']}x)" if l.get('hit_count', 1) > 1 else ""
+                lines.append(f"- [{l.get('source', '?')}] {l['lesson']}{hits}")
+            return "\n".join(lines)
+        except Exception as e:
+            return f"Failed to load lessons: {e}"
     
     return f"Unknown tool: {name}"
 
