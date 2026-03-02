@@ -554,6 +554,7 @@ def main():
     parser.add_argument("--analytics", action="store_true", help="Deep performance analytics (domain or system-wide)")
     parser.add_argument("--search", metavar="QUERY", help="Search across all memory for matching outputs")
     parser.add_argument("--chat", action="store_true", help="Interactive conversation mode — talk to the system naturally")
+    parser.add_argument("--telegram", action="store_true", help="Run Telegram chat bot (interactive mode via Telegram)")
     parser.add_argument("--validate", action="store_true", help="Validate data integrity across memory, strategies, costs")
     parser.add_argument("--seed", action="store_true", help="Show seed questions for a domain (or list available domains)")
     parser.add_argument("--plan", action="store_true", help="Show recommended research plan without running")
@@ -658,6 +659,10 @@ def main():
     if args.chat:
         from cli.chat import run_chat
         run_chat(args.domain)
+        return
+    if args.telegram:
+        from telegram_bot import run_telegram_bot
+        run_telegram_bot()
         return
     if args.status:
         from cli.strategy import show_status
