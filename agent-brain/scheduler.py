@@ -1117,6 +1117,15 @@ def run_daemon(
                 f"max_cycles={'∞' if max_cycles == 0 else max_cycles}, "
                 f"require_approval={require_approval}")
 
+    # Telegram alert: daemon started
+    try:
+        from alerts import alert_daemon_started
+        _budget = check_budget()
+        alert_daemon_started(interval_minutes, rounds_per_cycle,
+                             max_cycles, _budget.get("remaining", 0))
+    except Exception:
+        pass  # alerting is best-effort
+
     # Auto-approve pending strategies if require_approval is False
     if not require_approval:
         _auto_approve_pending_strategies()
@@ -1145,6 +1154,12 @@ def run_daemon(
                     "last_run": cycle_start.isoformat(),
                     "reason": reason,
                 })
+                # Telegram alert: watchdog blocked
+                try:
+                    from alerts import alert_watchdog_event
+                    alert_watchdog_event("watchdog_blocked", reason)
+                except Exception:
+                    pass
                 if _daemon_stop_event.wait(timeout=interval_minutes * 60):
                     break
                 continue
@@ -1163,6 +1178,12 @@ def run_daemon(
                     "budget_spent": budget["spent"],
                     "budget_limit": budget["limit"],
                 })
+                # Telegram alert: budget halt
+                try:
+                    from alerts import alert_budget_halt
+                    alert_budget_halt(budget["spent"], budget["limit"])
+                except Exception:
+                    pass
                 # Wait until next interval, then check again
                 if _daemon_stop_event.wait(timeout=interval_minutes * 60):
                     break
@@ -1385,6 +1406,14 @@ def run_daemon(
                     "domain_results": domain_results,
                 })
 
+                # Telegram alert: cycle complete
+                try:
+                    from alerts import alert_cycle_complete
+                    alert_cycle_complete(cycle, completed, cycle_avg,
+                                         cycle_cost, duration, domain_results)
+                except Exception:
+                    pass
+
                 # === Cortex post-cycle interpretation (strategic layer) ===
                 cortex_interpret_cycle(
                     cycle=cycle,
@@ -1397,6 +1426,12 @@ def run_daemon(
             except Exception as e:
                 _log_daemon(f"Cycle {cycle} failed: {e}", "error")
                 watchdog.record_cycle_failure(str(e))
+                # Telegram alert: cycle error
+                try:
+                    from alerts import alert_error
+                    alert_error(cycle, str(e))
+                except Exception:
+                    pass
                 _save_daemon_state({
                     "status": "error",
                     "cycle": cycle,
@@ -1424,6 +1459,12 @@ def run_daemon(
                 can_continue, reason = watchdog.check_before_cycle()
                 if not can_continue:
                     _log_daemon(f"Watchdog says stop: {reason}", "warning")
+                    # Telegram alert: circuit breaker / watchdog stop
+                    try:
+                        from alerts import alert_circuit_breaker
+                        alert_circuit_breaker(reason)
+                    except Exception:
+                        pass
                     if _daemon_stop_event.wait(timeout=interval_minutes * 60):
                         break
                     continue
@@ -1467,6 +1508,13 @@ def run_daemon(
         signal.signal(signal.SIGINT, original_sigint)
         signal.signal(signal.SIGTERM, original_sigterm)
         _log_daemon("Daemon stopped.")
+        # Telegram alert: daemon stopped
+        try:
+            from alerts import alert_daemon_stopped
+            _stop_reason = "max cycles reached" if (max_cycles > 0 and cycle > max_cycles) else "signal/stop"
+            alert_daemon_stopped(cycle, _stop_reason)
+        except Exception:
+            pass
         # Preserve last cycle results in the stopped state
         prev_state = _load_daemon_state() or {}
         stopped_state = {
