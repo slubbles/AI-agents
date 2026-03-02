@@ -17,7 +17,7 @@ Usage (via main.py):
 import os
 import sys
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 from config import DAILY_BUDGET_USD, MEMORY_DIR, LOG_DIR
@@ -489,13 +489,18 @@ def run_daemon(
     
     The daemon:
     1. Wakes up every interval_minutes
-    2. Creates an optimal research plan
-    3. Executes the plan (orchestrated across domains)
-    4. Logs results and goes back to sleep
-    5. Repeats until stopped or max_cycles reached
+    2. Runs watchdog pre-cycle checks (budget ceiling, circuit breaker, cooldown)
+    3. Creates an optimal research plan
+    4. Executes the plan (orchestrated across domains)
+    5. Runs health checks + sync verification
+    6. Logs results and goes back to sleep
+    7. Repeats until stopped or max_cycles reached
     
     Safety:
+    - Watchdog: circuit breaker, crash recovery, hard cost ceiling
     - Budget is checked every cycle (daily limit enforced)
+    - Health checks run between cycles (monitoring.py integration)
+    - Brain↔Hands sync checked periodically
     - Each cycle is logged to daemon_state.json
     - SIGINT/SIGTERM triggers graceful shutdown
     - Strategy changes still require human approval (unless require_approval=False)
@@ -517,6 +522,11 @@ def run_daemon(
         _daemon_running = True
     
     _daemon_stop_event.clear()
+
+    # Initialize watchdog
+    from watchdog import get_watchdog
+    watchdog = get_watchdog()
+    watchdog.start()
 
     # Setup graceful shutdown
     original_sigint = signal.getsignal(signal.SIGINT)
@@ -544,7 +554,23 @@ def run_daemon(
             cycle_start = datetime.now(timezone.utc)
             _log_daemon(f"=== Cycle {cycle} starting ===")
 
-            # Check budget
+            # Watchdog pre-cycle check (circuit breaker, cooldown, cost ceiling)
+            can_proceed, reason = watchdog.check_before_cycle()
+            if not can_proceed:
+                _log_daemon(f"Watchdog blocked cycle: {reason}", "warning")
+                _save_daemon_state({
+                    "status": "watchdog_blocked",
+                    "cycle": cycle,
+                    "last_run": cycle_start.isoformat(),
+                    "reason": reason,
+                })
+                if _daemon_stop_event.wait(timeout=interval_minutes * 60):
+                    break
+                continue
+
+            watchdog.heartbeat()
+
+            # Check budget (normal daily limit — separate from hard ceiling)
             budget = check_budget()
             if not budget["within_budget"]:
                 _log_daemon(f"Budget exceeded (${budget['spent']:.2f}/${budget['limit']:.2f}). "
@@ -602,6 +628,7 @@ def run_daemon(
                 
                 completed = 0
                 domain_results = []
+                cycle_cost = 0.0
                 
                 for alloc in allocation:
                     if _daemon_stop_event.is_set():
@@ -616,6 +643,9 @@ def run_daemon(
                     for r in range(rounds):
                         if _daemon_stop_event.is_set():
                             break
+                        
+                        # Heartbeat — tell watchdog we're alive
+                        watchdog.heartbeat()
                         
                         # Budget check each round
                         budget = check_budget()
@@ -645,7 +675,9 @@ def run_daemon(
                             result = main_mod.run_loop(question=question, domain=domain)
                             
                             score = result.get("critique", {}).get("overall_score", 0)
+                            round_cost = result.get("_cost", 0)
                             domain_scores.append(score)
+                            cycle_cost += round_cost
                             completed += 1
                             _log_daemon(f"  {domain} round {r+1}: score {score}/10")
                             
@@ -665,8 +697,24 @@ def run_daemon(
                 cycle_end = datetime.now(timezone.utc)
                 duration = (cycle_end - cycle_start).total_seconds()
                 
+                # Calculate cycle average score
+                all_scores = []
+                for dr in domain_results:
+                    if dr["avg_score"] > 0:
+                        all_scores.extend([dr["avg_score"]] * dr["rounds_completed"])
+                cycle_avg = sum(all_scores) / len(all_scores) if all_scores else 0
+                
                 _log_daemon(f"=== Cycle {cycle} complete: {completed} rounds, "
+                           f"avg {cycle_avg:.1f}, ${cycle_cost:.4f}, "
                            f"{duration:.0f}s ===")
+                
+                # Record success with watchdog
+                watchdog.record_cycle_success(
+                    rounds_completed=completed,
+                    avg_score=cycle_avg,
+                    cost=cycle_cost,
+                    domain_results=domain_results,
+                )
                 
                 _save_daemon_state({
                     "status": "idle",
@@ -675,19 +723,55 @@ def run_daemon(
                     "last_completed": cycle_end.isoformat(),
                     "duration_seconds": round(duration),
                     "rounds_completed": completed,
+                    "avg_score": round(cycle_avg, 1),
+                    "cycle_cost": round(cycle_cost, 4),
                     "domain_results": domain_results,
-                    "next_run": (cycle_end + __import__("datetime").timedelta(
+                    "next_run": (cycle_end + timedelta(
                         minutes=interval_minutes)).isoformat(),
                 })
 
             except Exception as e:
                 _log_daemon(f"Cycle {cycle} failed: {e}", "error")
+                watchdog.record_cycle_failure(str(e))
                 _save_daemon_state({
                     "status": "error",
                     "cycle": cycle,
                     "error": str(e),
                     "last_run": cycle_start.isoformat(),
                 })
+
+            # Post-cycle: health check + sync (every cycle)
+            _log_daemon("Running post-cycle health check...")
+            try:
+                health = watchdog.run_health_check()
+                health_status = health.get("status", "unknown")
+                _log_daemon(f"Health: {health_status} "
+                           f"({health.get('alerts_generated', 0)} alerts)")
+                
+                # Check if watchdog wants to stop
+                can_continue, reason = watchdog.check_before_cycle()
+                if not can_continue:
+                    _log_daemon(f"Watchdog says stop: {reason}", "warning")
+                    if _daemon_stop_event.wait(timeout=interval_minutes * 60):
+                        break
+                    continue
+            except Exception as e:
+                _log_daemon(f"Health check error: {e}", "warning")
+
+            # Sync check (every 5 cycles — not every cycle to reduce noise)
+            if cycle % 5 == 0:
+                try:
+                    from sync import check_sync
+                    sync_result = check_sync()
+                    if not sync_result["aligned"]:
+                        _log_daemon(
+                            f"Sync issues: {'; '.join(sync_result['issues'][:3])}",
+                            "warning"
+                        )
+                    else:
+                        _log_daemon("Brain↔Hands sync OK")
+                except Exception as e:
+                    _log_daemon(f"Sync check error: {e}", "warning")
 
             # Wait for next cycle
             _log_daemon(f"Sleeping {interval_minutes} minutes until next cycle...")
@@ -696,6 +780,7 @@ def run_daemon(
 
     finally:
         _daemon_running = False
+        watchdog.stop()
         signal.signal(signal.SIGINT, original_sigint)
         signal.signal(signal.SIGTERM, original_sigterm)
         _log_daemon("Daemon stopped.")

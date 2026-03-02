@@ -595,3 +595,137 @@ def run_health_check():
     if result.get("alerts_generated", 0) > 0:
         print(f"  New alerts: {result['alerts_generated']}")
     print(f"\n{'='*60}\n")
+
+
+def show_watchdog_status():
+    """Show watchdog system status — unified view of daemon, health, budget, sync."""
+    from watchdog import get_watchdog_status
+
+    status = get_watchdog_status()
+
+    print(f"\n{'='*60}")
+    print(f"  WATCHDOG STATUS")
+    print(f"{'='*60}")
+
+    state = status.get("state", "unknown")
+    state_icons = {
+        "running": "✓",
+        "stopped": "●",
+        "paused": "⏸",
+        "cooldown": "⏳",
+        "circuit_open": "🚨",
+        "budget_halt": "💰",
+    }
+    icon = state_icons.get(state, "?")
+
+    print(f"\n  State: {icon} {state.upper()}")
+    if status.get("started_at"):
+        print(f"  Started: {status['started_at'][:19]} UTC")
+    print(f"  Cycles: {status.get('cycles_completed', 0)}")
+    print(f"  Total rounds: {status.get('total_rounds', 0)}")
+
+    # Failure tracking
+    failures = status.get("consecutive_failures", 0)
+    critical = status.get("consecutive_critical_alerts", 0)
+    if failures > 0 or critical > 0:
+        print(f"\n  ⚠ Consecutive failures: {failures}")
+        print(f"  ⚠ Consecutive critical alerts: {critical}")
+
+    if status.get("paused_reason"):
+        print(f"  Paused reason: {status['paused_reason']}")
+
+    # Budget
+    budget = status.get("budget", {})
+    if "error" not in budget:
+        spent = budget.get("spent_today", 0)
+        limit = budget.get("daily_limit", 0)
+        ceiling = budget.get("hard_ceiling", 0)
+        pctg = (spent / limit * 100) if limit > 0 else 0
+        bar_len = 20
+        filled = min(bar_len, int(pctg / 100 * bar_len))
+        bar = "█" * filled + "░" * (bar_len - filled)
+        print(f"\n  Budget: [{bar}] ${spent:.4f} / ${limit:.2f} ({pctg:.0f}%)")
+        print(f"  Hard ceiling: ${ceiling:.2f}")
+        if not budget.get("within_budget", True):
+            print(f"  ⚠ OVER BUDGET")
+
+    # Health
+    health = status.get("health", {})
+    if "error" not in health:
+        health_score = health.get("health_score", 0)
+        print(f"\n  System health: {health_score}/100")
+
+    # Recent events
+    events = status.get("recent_events", [])
+    if events:
+        print(f"\n  Recent Events ({len(events)}):")
+        for e in events[-5:]:
+            ts = e.get("timestamp", "")[:19]
+            sev = e.get("severity", "info")
+            sev_icon = {"critical": "🚨", "warning": "⚠", "info": "·"}.get(sev, "·")
+            print(f"    {sev_icon} [{ts}] {e.get('message', '')[:70]}")
+
+    print(f"\n{'='*60}\n")
+
+
+def show_sync_status():
+    """Show Brain↔Hands sync status."""
+    from sync import check_sync, get_task_stats
+
+    print(f"\n{'='*60}")
+    print(f"  BRAIN ↔ HANDS SYNC")
+    print(f"{'='*60}")
+
+    result = check_sync()
+
+    aligned = result.get("aligned", False)
+    icon = "✓" if aligned else "✗"
+    print(f"\n  Status: {icon} {'ALIGNED' if aligned else 'ISSUES DETECTED'}")
+
+    # Brain health
+    brain = result.get("brain_health", {})
+    brain_ok = brain.get("healthy", False)
+    print(f"\n  Brain: {'✓ healthy' if brain_ok else '✗ ISSUES'}")
+    if not brain_ok:
+        for issue in brain.get("issues", []):
+            print(f"    ⚠ {issue}")
+
+    # Hands health
+    hands = result.get("hands_health", {})
+    hands_ok = hands.get("healthy", False)
+    print(f"  Hands: {'✓ healthy' if hands_ok else '✗ ISSUES'}")
+    if not hands_ok:
+        for issue in hands.get("issues", []):
+            print(f"    ⚠ {issue}")
+
+    # Task queue
+    stats = result.get("task_stats", {})
+    if stats.get("total", 0) > 0:
+        print(f"\n  Task Queue:")
+        print(f"    Pending: {stats.get('pending', 0)}")
+        print(f"    In Progress: {stats.get('in_progress', 0)}")
+        print(f"    Completed: {stats.get('completed', 0)}")
+        print(f"    Failed: {stats.get('failed', 0)}")
+        print(f"    Stale: {stats.get('stale', 0)}")
+    else:
+        print(f"\n  Task Queue: empty (no tasks created yet)")
+
+    stale = result.get("stale_tasks_flagged", 0)
+    if stale > 0:
+        print(f"\n  ⚠ {stale} tasks newly marked stale")
+
+    # Issues
+    issues = result.get("issues", [])
+    if issues:
+        print(f"\n  Issues ({len(issues)}):")
+        for issue in issues:
+            print(f"    ✗ {issue}")
+
+    # Recommendations
+    recs = result.get("recommendations", [])
+    if recs:
+        print(f"\n  Recommendations ({len(recs)}):")
+        for rec in recs:
+            print(f"    → {rec}")
+
+    print(f"\n{'='*60}\n")

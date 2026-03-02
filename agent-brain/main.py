@@ -572,6 +572,8 @@ def main():
     parser.add_argument("--migrate", action="store_true", help="Migrate JSON/JSONL data to SQLite database")
     parser.add_argument("--alerts", action="store_true", help="Show monitoring alerts")
     parser.add_argument("--check-health", action="store_true", help="Run health checks and monitoring")
+    parser.add_argument("--watchdog", action="store_true", help="Show watchdog status (circuit breaker, health, budget)")
+    parser.add_argument("--sync", action="store_true", help="Show Brain↔Hands sync status")
 
     # Agent Hands — Execution Layer
     parser.add_argument("--execute", action="store_true", help="Execute a task using Agent Hands (code generation)")
@@ -847,6 +849,14 @@ def main():
     if getattr(args, 'check_health', False):
         from cli.infrastructure import run_health_check
         run_health_check()
+        return
+    if getattr(args, 'watchdog', False):
+        from cli.infrastructure import show_watchdog_status
+        show_watchdog_status()
+        return
+    if getattr(args, 'sync', False):
+        from cli.infrastructure import show_sync_status
+        show_sync_status()
         return
 
     # --- Agent Hands dispatch ---
