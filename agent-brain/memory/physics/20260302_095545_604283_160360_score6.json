@@ -1,0 +1,211 @@
+{
+  "timestamp": "2026-03-02T09:55:45.604283+00:00",
+  "domain": "physics",
+  "question": "What are the projected 2026-2027 sensitivity improvements for next-generation dark matter experiments (XENONnT-2, SuperCDMS SuperSeed, ADMX-Gen2), and how will these address the neutrino fog/neutrino floor limitation?",
+  "attempt": 3,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the projected 2026-2027 sensitivity improvements for next-generation dark matter experiments (XENONnT-2, SuperCDMS SuperSeed, ADMX-Gen2), and how will these address the neutrino fog/neutrino floor limitation?",
+    "findings": [
+      {
+        "claim": "XENONnT reached the 'neutrino fog' as of Feb 19, 2026, detecting solar Boron-8 neutrino signals mimicking light WIMPs; innovative low-energy threshold methods set world-leading limits despite this irreducible background.",
+        "confidence": "high",
+        "reasoning": "Directly from fetched page content; corroborated by PRL Selection of the Year for paper 'First Search for Light Dark Matter in the Neutrino Fog with XENONnT'; addresses fog via signal-background discrimination, but no path beyond without new tech (tradeoff: current limit of physics).",
+        "source": "https://xenonexperiment.org/weve-reached-the-neutrino-fog/"
+      },
+      {
+        "claim": "XENONnT-2 upgrade involves building 1.5m-diameter electrodes for dual-phase xenon TPC to improve electron drift/extraction uniformity, optical transparency, and high-voltage stability.",
+        "confidence": "medium",
+        "reasoning": "From fetched page; enables larger/sensitive detectors to probe deeper into neutrino fog via better resolution, but no quantitative 2026-2027 cross-section projections found (implication: uniform fields reduce systematics).",
+        "source": "https://xenonexperiment.org/on-the-way-to-xenonnt-2/"
+      },
+      {
+        "claim": "SuperCDMS SNOLAB (successor experiment) targets dark matter masses <10 GeV/c\u00b2 down to O(1 eV) depositions, with sensitivity to neutrino fog via cryogenic calorimeters; commissioning planned 2024, first science run early 2024, results early 2025, operations through 2027.",
+        "confidence": "medium",
+        "reasoning": "From multiple fetched pages (supercdms.slac.stanford.edu, Wikipedia); HVeV detectors achieve sub-eV resolution for low-mass WIMPs/electrons; addresses fog via low thresholds and response modeling (e.g., non-quantized energy from impurities); no 'SuperSeed' specifics found, possibly internal detector type.",
+        "source": "https://supercdms.slac.stanford.edu/ ; https://en.wikipedia.org/wiki/Cryogenic_Dark_Matter_Search ; https://supercdms.slac.stanford.edu/science-results/publications"
+      },
+      {
+        "claim": "SuperCDMS HVeV detectors set constraints on DM-electron scattering for masses 0.5-1000 MeV/c\u00b2 using 7.63 g-days exposure, modeling phonon/charge effects to discriminate backgrounds.",
+        "confidence": "medium",
+        "reasoning": "From publications page; improves fog navigation via source-specific response models (e.g., trapped charges), enabling statistical discrimination; compares to elastic scattering by extending to inelastic channels.",
+        "source": "https://supercdms.slac.stanford.edu/science-results/publications"
+      },
+      {
+        "claim": "ADMX-Gen2 is operational (e.g., Run 1D), using high-Q cavities, dilution refrigerators, and quantum amplifiers for definitive axion detection/rejection; not impacted by WIMP neutrino floor.",
+        "confidence": "medium",
+        "reasoning": "From fetched page and snippets; axion haloscope sensitivity scales with scan speed/mass coverage (tradeoff: cryogenic noise limits); 2025 results exclude specific \u03bceV ranges, Gen2 extends without neutrino interference.",
+        "source": "https://depts.washington.edu/admx/"
+      }
+    ],
+    "key_insights": [
+      "XENONnT/XENONnT-2 confronts neutrino fog head-on with threshold reduction and modeling, but projections stall at current physics limits without directionality/isotope tricks.",
+      "SuperCDMS SNOLAB/HVeV pushes low-mass (<10 GeV/c\u00b2) sensitivity to neutrino floor via sub-eV resolution and advanced response modeling, complementing xenon TPCs.",
+      "ADMX-Gen2 advances axion scans independently of WIMP neutrino backgrounds, focusing on parameter space exclusion."
+    ],
+    "knowledge_gaps": [
+      "Quantitative 2026-2027 projections (e.g., cross-section limits like 10^{-49} cm\u00b2) for XENONnT-2, SuperCDMS SuperSeed, ADMX-Gen2 not found in available sources; rely on 2021-2025 docs.",
+      "Details on 'SuperSeed' (possibly prototype) absent; KATRIN-like sterile neutrino specifics from prior not addressed here.",
+      "Mechanisms to surpass neutrino floor (e.g., DARWin directional detection) unquantified for these expts."
+    ],
+    "sources_used": [
+      "https://xenonexperiment.org/weve-reached-the-neutrino-fog/",
+      "https://xenonexperiment.org/on-the-way-to-xenonnt-2/",
+      "https://supercdms.slac.stanford.edu/",
+      "https://en.wikipedia.org/wiki/Cryogenic_Dark_Matter_Search",
+      "https://supercdms.slac.stanford.edu/science-results/publications",
+      "https://depts.washington.edu/admx/"
+    ],
+    "summary": "Early 2026 data shows XENONnT at neutrino fog limits for light DM, with XENONnT-2 upgrades targeting better uniformity for deeper probes. SuperCDMS SNOLAB aims for neutrino-fog sensitivity in low-mass regime by 2025-2027 via sub-eV HVeV detectors and modeling. ADMX-Gen2 progresses axion searches unaffected; no specific numerical 2026-2027 improvements located.",
+    "_searches_made": 16,
+    "_empty_searches": 0,
+    "_tool_log": [
+      {
+        "tool": "web_search",
+        "query": "XENONnT-2 sensitivity projections 2026 neutrino floor",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "\"SuperCDMS\" \"SuperSeed\" sensitivity projections 2026",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "ADMX Gen2 axion sensitivity projections 2026-2027",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "XENONnT-2 site:xenonexperiment.org",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "\"SuperSeed\" site:supercdms.org OR site:slac.stanford.edu",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "ADMX Gen2 site:admx.pnnl.gov OR site:pnnl.gov",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "\"XENONnT-2\" sensitivity OR projection OR upgrade site:xenonexperiment.org",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "\"SuperCDMS SuperSeed\" sensitivity OR projection 2026",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "\"ADMX Gen2\" OR \"ADMX-Gen2\" sensitivity projection 2026 site:depts.washington.edu OR arxiv",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "\"SuperCDMS\" SNOLAB OR SuperSeed neutrino floor site:supercdms.slac.stanford.edu",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://xenonexperiment.org/weve-reached-the-neutrino-fog/",
+        "success": true,
+        "chars": 1065,
+        "title": "We\u2019ve reached the \u201cNeutrino Fog\u201d \u2013 XENONnT experiment"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://xenonexperiment.org/on-the-way-to-xenonnt-2/",
+        "success": true,
+        "chars": 601,
+        "title": "On the way to XENONnT \u2013 XENONnT experiment"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://supercdms.slac.stanford.edu/",
+        "success": true,
+        "chars": 966,
+        "title": "Super Cryogenic Dark Matter Search"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://supercdms.slac.stanford.edu/science-results/publications",
+        "success": true,
+        "chars": 8015,
+        "title": "Publications | Super Cryogenic Dark Matter Search"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://depts.washington.edu/admx/",
+        "success": true,
+        "chars": 1508,
+        "title": "The Axion Dark Matter eXperiment"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://en.wikipedia.org/wiki/Cryogenic_Dark_Matter_Search",
+        "success": true,
+        "chars": 4353,
+        "title": "Cryogenic Dark Matter Search - Wikipedia"
+      }
+    ]
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 6.5,
+      "depth": 6.5,
+      "completeness": 5.5,
+      "specificity": 5.5,
+      "intellectual_honesty": 8.5
+    },
+    "overall_score": 6.45,
+    "strengths": [
+      "Good source verification - all cited URLs were actually fetched",
+      "Honest about knowledge gaps and uncertainty regarding specific 2026-2027 projections",
+      "Technical accuracy in describing experimental approaches and neutrino fog concepts",
+      "Clear distinction between established facts and speculation",
+      "Claims are well-supported by fetched sources, with no hallucinations or unsupported assertions.",
+      "Depth is good, with explanations of mechanisms like low-energy threshold methods and response modeling."
+    ],
+    "weaknesses": [
+      "Failed to find quantitative sensitivity projections despite this being the core question",
+      "Limited depth on mechanisms - explains what experiments do but not how they'll overcome neutrino floor",
+      "Incomplete coverage of 'SuperSeed' - acknowledges not finding details but doesn't explore alternatives",
+      "Vague on specific numerical improvements expected in 2026-2027 timeframe",
+      "Completeness is lacking, as quantitative 2026-2027 projections and specific details on 'SuperSeed' are missing.",
+      "Specificity could be improved with more concrete numbers and dates, especially for future projections.",
+      "[CONFIDENCE CHECK] 1 'high' confidence claim(s) lack multi-source backing (accuracy -1.0): 'XENONnT reached the 'neutrino fog' as of Feb 19, 2026, detecting solar Boron-8 n...' (high confidence, only 1 source(s))"
+    ],
+    "actionable_feedback": "Search for recent physics conference proceedings, arXiv preprints, and collaboration technical reports that might contain forward-looking sensitivity projections. Try broader search terms like 'dark matter sensitivity roadmap 2026' or 'WIMP detection projections'. Contact experiment websites directly for technical design reports. Consider searching for funding proposals or review articles that discuss future capabilities quantitatively.",
+    "verdict": "accept",
+    "_ensemble": true,
+    "_ensemble_scores": [
+      5.9,
+      7.3
+    ],
+    "_ensemble_divergence": 1.4,
+    "_confidence_penalty": {
+      "count": 1,
+      "penalty_applied": 1.0,
+      "original_accuracy": 7.5,
+      "new_accuracy": 6.5
+    }
+  },
+  "overall_score": 6.45,
+  "accepted": true,
+  "verdict": "accept"
+}

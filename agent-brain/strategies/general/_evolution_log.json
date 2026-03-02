@@ -1,0 +1,16 @@
+[
+  {
+    "version": "v001",
+    "previous_version": "default",
+    "date": "2026-03-02",
+    "changes": [
+      "Added mandatory technical depth requirements - must explain mechanisms, not just describe functionality",
+      "Limited search count to 4-6 searches to improve focus and prevent hitting the 10-search cap"
+    ],
+    "reasoning": "The analysis shows depth is consistently the weakest dimension (4.5-8.0 range). High-scoring outputs (8.0+) had strong technical detail and perfect source verification. The strategy now mandates explaining HOW systems work rather than just WHAT they do, while maintaining the proven approach of prioritizing primary sources. Limited searches to 4-6 to prevent hitting the 10-search cap that could corrupt output.",
+    "weakest_dimension": "depth",
+    "score_before": 7.4,
+    "score_after": null,
+    "outcome": "pending"
+  }
+]

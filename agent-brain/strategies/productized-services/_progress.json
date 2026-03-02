@@ -1,0 +1,22 @@
+{
+  "domain": "productized-services",
+  "goal": "Sell productized Next.js landing page services to employers on OnlineJobsPH. Need pricing, pain points, competitor gaps, pitch angles.",
+  "assessed_at": "2026-03-02T09:48:07.300016+00:00",
+  "assessed_at_count": 20,
+  "readiness": 45,
+  "gaps": [
+    "Specific pricing/budgets for Next.js landing pages on OnlineJobsPH",
+    "Detailed employer pain points/complaints for landing page projects on OnlineJobsPH",
+    "Competitor analysis: offerings, gaps, pricing of similar services on OnlineJobsPH",
+    "Pitch angles derived from OnlineJobsPH job postings and employer feedback"
+  ],
+  "strengths": [
+    "OnlineJobsPH favors full/part-time roles ($270\u20131,100/month) over fixed-price landing pages",
+    "No public quantitative data on project completion/abandonment rates across freelance platforms",
+    "General freelance issues like client ghosting (50-72%) and poor vetting on OnlineJobsPH"
+  ],
+  "recommendation": "keep_researching",
+  "reasoning": "Strong general freelance insights but critical gaps in OnlineJobsPH-specific pricing, pains, competitors, and pitches prevent action.",
+  "history": [],
+  "readiness_change": 45
+}

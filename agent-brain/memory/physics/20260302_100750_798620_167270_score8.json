@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-03-02T10:07:50.798620+00:00",
+  "domain": "physics",
+  "question": "What are the specific 2026 experimental constraints on sterile neutrino parameter space from the KATRIN TRISTAN upgrade, and how do these compare to other keV-mass searches like Project 8 and NuSTAR?",
+  "attempt": 2,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the specific 2026 experimental constraints on sterile neutrino parameter space from the KATRIN TRISTAN upgrade, and how do these compare to other keV-mass searches like Project 8 and NuSTAR?",
+    "findings": [
+      {
+        "claim": "KATRIN's 2025 analysis of 259 days of tritium beta-decay data (36 million electrons in last 40 eV below endpoint) excludes substantial parameter space suggested by gallium anomaly and challenges Neutrino-4 claim; probes sterile-to-active mass splittings (\u0394m\u00b2) from a fraction of an eV\u00b2 to several hundred eV\u00b2, excluding light sterile neutrinos with mixing angles (sin\u00b2(2\u03b8)) above a few per cent.",
+        "confidence": "high",
+        "reasoning": "Directly from Nature paper abstract (Dec 3, 2025); corroborated by CMU news article. Note: this is eV-scale sterile neutrinos from oscillation anomalies, not keV-scale dark matter candidates.",
+        "source": "https://www.nature.com/articles/s41586-025-09739-9"
+      },
+      {
+        "claim": "KATRIN TRISTAN upgrade planned for 2026 to install new detector capable of recording full tritium beta-decay spectrum with unprecedented resolution, improving sensitivity for sterile neutrino searches.",
+        "confidence": "medium",
+        "reasoning": "Mentioned in multiple 2025 sources as future upgrade; no 2026 results or specific constraints reported as of available data (searches up to early 2026). Projected, not verified results.",
+        "source": "https://www.cmu.edu/physics/news-events/2025/1222_katrin-sterile-neutrino.html"
+      },
+      {
+        "claim": "No specific sterile neutrino constraints from KATRIN TRISTAN in 2026 found in available sources; data collection was ongoing through 2025 with sensitivity improvements expected.",
+        "confidence": "high",
+        "reasoning": "Searches for 'KATRIN TRISTAN sterile neutrino results 2026' yield only pre-2026 plans and 2025 results; no post-upgrade data.",
+        "source": "https://www.nature.com/articles/s41586-025-09739-9"
+      },
+      {
+        "claim": "Project 8 focuses on absolute neutrino mass measurement via tritium beta decay using Cyclotron Radiation Emission Spectroscopy (CRES); no sterile neutrino limits reported in 2025-2026 publications.",
+        "confidence": "medium",
+        "reasoning": "Project 8 website and presentations detail Phase II progress (e.g., data acquisition, cooling techniques) up to Sep 2025, but no mention of sterile neutrino searches or keV constraints.",
+        "source": "https://www.project8.org/"
+      },
+      {
+        "claim": "No 2026 sterile neutrino constraints from Project 8 or NuSTAR found in available sources.",
+        "confidence": "high",
+        "reasoning": "Searches returned no relevant limits; Project 8 not focused on sterile neutrinos. NuSTAR not covered due to search limits.",
+        "source": "N/A (not found)"
+      }
+    ],
+    "key_insights": [
+      "KATRIN's 2025 results tighten eV-scale sterile neutrino bounds (\u0394m\u00b2 up to hundreds eV\u00b2, sin\u00b2(2\u03b8) < few %), complementary to reactor experiments but distinct from keV dark matter searches.",
+      "TRISTAN upgrade (2026) aims for full-spectrum sensitivity but no results yet; early 2026 data unavailable.",
+      "Project 8 advances neutrino mass tech but no sterile neutrino focus; keV sterile DM searches (e.g., NuSTAR X-ray) require separate methods like decay signals, not beta distortion."
+    ],
+    "knowledge_gaps": [
+      "Specific quantitative 2026 TRISTAN constraints (e.g., exact excluded \u0394m\u00b2, sin\u00b2(2\u03b8) regions).",
+      "Recent Project 8 or NuSTAR keV sterile neutrino limits (1-100 keV mass, small mixing).",
+      "Distinction: KATRIN/Project8 probe eV sterile from anomalies; keV DM needs X-ray/Lyman-alpha."
+    ],
+    "sources_used": [
+      "https://www.nature.com/articles/s41586-025-09739-9",
+      "https://www.cmu.edu/physics/news-events/2025/1222_katrin-sterile-neutrino.html",
+      "https://www.project8.org/"
+    ],
+    "summary": "No specific 2026 KATRIN TRISTAN constraints found; 2025 KATRIN data excludes eV-scale sterile neutrino parameter space (\u0394m\u00b2 ~0.1-100s eV\u00b2, sin\u00b2(2\u03b8)>few%). Project 8 lacks sterile limits, focusing on mass measurement. keV searches like NuSTAR unverified here\u2014different regime from beta-decay probes.",
+    "_searches_made": 4,
+    "_empty_searches": 0,
+    "_tool_log": [
+      {
+        "tool": "search_and_fetch",
+        "query": "KATRIN TRISTAN sterile neutrino results 2026",
+        "success": true,
+        "pages_fetched": 2,
+        "chars": 11648
+      },
+      {
+        "tool": "search_and_fetch",
+        "query": "Project 8 sterile neutrino limits 2026",
+        "success": true,
+        "pages_fetched": 3,
+        "chars": 18101
+      }
+    ]
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8.0,
+      "depth": 8.0,
+      "completeness": 8.0,
+      "specificity": 8.0,
+      "intellectual_honesty": 8.0
+    },
+    "overall_score": 8.0,
+    "strengths": [
+      "Pre-screened (not fully evaluated)"
+    ],
+    "weaknesses": [],
+    "actionable_feedback": "Passed pre-screen.",
+    "verdict": "accept",
+    "_prescreened": true,
+    "_prescreen_decision": "accept"
+  },
+  "overall_score": 8.0,
+  "accepted": true,
+  "verdict": "accept"
+}

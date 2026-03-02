@@ -1,0 +1,338 @@
+{
+  "domain_summary": "AI self-learning has transitioned from theoretical to practical implementation in early 2026, with commercial systems demonstrating autonomous learning capabilities. PiEvolve by Fractal represents the most advanced architecture, using DAG-based evolutionary search with persistent memory to continuously improve solutions within compute budgets, achieving 61%+ success on ML benchmarks. While current systems exhibit partial self-improvement through data generation, self-evaluation, and collaborative emergence, true recursive self-improvement remains theoretical. Safety mechanisms favor human-AI collaboration over pure autonomy, though specific governance frameworks for self-improving systems remain underdeveloped.",
+  "topics": [
+    {
+      "name": "Commercial Self-Learning Systems",
+      "subtopics": [
+        "PiEvolve Architecture",
+        "Impulse AI Platform",
+        "Performance Benchmarks",
+        "Market Applications"
+      ]
+    },
+    {
+      "name": "Technical Architectures",
+      "subtopics": [
+        "DAG-Based Evolution",
+        "Probabilistic Action Selection",
+        "Persistent Memory",
+        "LLM Agent Operations"
+      ]
+    },
+    {
+      "name": "Self-Improvement Mechanisms",
+      "subtopics": [
+        "Training Data Generation",
+        "Self-Evaluation",
+        "Collaborative Emergence",
+        "Recursive Enhancement"
+      ]
+    },
+    {
+      "name": "Safety and Governance",
+      "subtopics": [
+        "Human-AI Collaboration",
+        "Risk Management",
+        "Oversight Frameworks",
+        "Compliance Standards"
+      ]
+    },
+    {
+      "name": "Research Applications",
+      "subtopics": [
+        "Materials Science",
+        "Medical Applications",
+        "Scientific Discovery",
+        "R&D Automation"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_001",
+      "claim": "Fractal launched PiEvolve, an 'Evolutionary Agentic Engine for Autonomous Machine Learning' on February 24, 2026",
+      "topic": "Commercial Self-Learning Systems",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_confirmed": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 4,
+      "sources": [
+        "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html",
+        "https://github.com/FractalAIResearchLabs/PiEvolve",
+        "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+        "https://fractal.ai/ai-research/pievolve"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_002",
+      "claim": "Impulse AI launched an autonomous machine learning engineer that ranked in the top 2.5% (rank 782/31,791) on Kaggle competitions as of February 3, 2026",
+      "topic": "Commercial Self-Learning Systems",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_confirmed": "2026-03-02T09:56:57.236902+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://finance.yahoo.com/news/impulse-ai-launches-autonomous-machine-150700262.html",
+        "https://www.impulselabs.ai/blog/launching-impulse-ai-an-autonomous-ml-engineer-that-placed-top-2.5-on-kaggle"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_003",
+      "claim": "PiEvolve uses a directed acyclic graph (DAG) of solution states/NodeChains, where nodes encode reasoning, executable code, and empirical validation, and edges capture parent-child lineage",
+      "topic": "Technical Architectures",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-03-02T09:56:57.236902+00:00",
+      "last_confirmed": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 4,
+      "sources": [
+        "https://github.com/FractalAIResearchLabs/PiEvolve",
+        "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+        "https://fractal.ai/ai-research/pievolve",
+        "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_004",
+      "claim": "PiEvolve uses probabilistic action selection policy with adaptive priority scoring to balance exploration and exploitation",
+      "topic": "Technical Architectures",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-03-02T09:56:57.236902+00:00",
+      "last_confirmed": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 3,
+      "sources": [
+        "https://github.com/FractalAIResearchLabs/PiEvolve",
+        "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+        "https://fractal.ai/ai-research/pievolve"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_005",
+      "claim": "PiEvolve features persistent memory storing all traces, code, results, and scores with deprioritization of poorly performing chains",
+      "topic": "Technical Architectures",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-03-02T09:56:57.236902+00:00",
+      "last_confirmed": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 3,
+      "sources": [
+        "https://github.com/FractalAIResearchLabs/PiEvolve",
+        "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+        "https://fractal.ai/ai-research/pievolve"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_006",
+      "claim": "PiEvolve achieves 61%+ success rate on MLE-Bench, outperforming traditional ML baselines on medium/high difficulty tasks",
+      "topic": "Commercial Self-Learning Systems",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-03-02T10:10:53.490038+00:00",
+      "last_confirmed": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://github.com/FractalAIResearchLabs/PiEvolve",
+        "https://fractal.ai/ai-research/pievolve"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_007",
+      "claim": "Multiple autonomous AI systems spontaneously collaborated to advance materials research (documented January 20, 2026)",
+      "topic": "Research Applications",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_confirmed": "2026-02-24T11:48:11.974675+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.eurekalert.org/news-releases/1113228"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_008",
+      "claim": "Current AI systems exhibit partial self-improvement through creating training data, self-evaluation, and reward systems",
+      "topic": "Self-Improvement Mechanisms",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_confirmed": "2026-02-24T11:48:11.974675+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://arxiv.org/html/2512.05356v1"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_009",
+      "claim": "Self-supervised learning shows promise in medical applications including radiology, pathology, ophthalmology, dermatology, and oncology",
+      "topic": "Research Applications",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_confirmed": "2026-02-24T11:48:11.974675+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://hai.stanford.edu/news/stanford-ai-experts-predict-what-will-happen-in-2026"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_010",
+      "claim": "Researchers proposed STOP (Self-Taught OPtimiser) framework in 2024 for recursive self-improvement using scaffolding programs",
+      "topic": "Self-Improvement Mechanisms",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_confirmed": "2026-02-24T11:48:11.974675+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://en.wikipedia.org/wiki/Recursive_self-improvement"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_011",
+      "claim": "Impulse AI uses agentic architecture for end-to-end ML automation including data cleaning, feature engineering, model selection, and deployment",
+      "topic": "Technical Architectures",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-03-02T09:56:57.236902+00:00",
+      "last_confirmed": "2026-03-02T09:56:57.236902+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://www.impulselabs.ai/blog/launching-impulse-ai-an-autonomous-ml-engineer-that-placed-top-2.5-on-kaggle"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_012",
+      "claim": "Co-improvement paradigm advocates human-AI collaboration in AI research loops as safer alternative to pure self-improvement",
+      "topic": "Safety and Governance",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-03-02T10:04:47.674729+00:00",
+      "last_confirmed": "2026-03-02T10:04:47.674729+00:00",
+      "source_count": 1,
+      "sources": [
+        "https://arxiv.org/html/2512.05356v1"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_013",
+      "claim": "AI governance frameworks include designated officers, bias testing, model monitoring, and policies for fairness, transparency, and security",
+      "topic": "Safety and Governance",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-03-02T10:04:47.674729+00:00",
+      "last_confirmed": "2026-03-02T10:04:47.674729+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://www.ibm.com/think/insights/ai-governance-implementation",
+        "https://www.databricks.com/blog/ai-governance-best-practices-how-build-responsible-and-effective-ai-programs"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    },
+    {
+      "id": "claim_014",
+      "claim": "No specific numerical hyperparameters for PiEvolve are publicly disclosed in available sources",
+      "topic": "Technical Architectures",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-03-02T10:10:53.490038+00:00",
+      "last_confirmed": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 2,
+      "sources": [
+        "https://github.com/FractalAIResearchLabs/PiEvolve",
+        "https://fractal.ai/ai-research/pievolve"
+      ],
+      "supersedes": null,
+      "conflicted_by": null,
+      "notes": ""
+    }
+  ],
+  "contradictions": [],
+  "knowledge_gaps": [
+    {
+      "gap": "Specific numerical hyperparameters and code-level implementation details for PiEvolve and similar systems",
+      "priority": "high",
+      "related_topic": "Technical Architectures"
+    },
+    {
+      "gap": "Concrete safety mechanisms and governance frameworks specifically designed for self-improving AI systems",
+      "priority": "high",
+      "related_topic": "Safety and Governance"
+    },
+    {
+      "gap": "Production scalability and reliability of self-learning systems in diverse environments beyond benchmarks",
+      "priority": "high",
+      "related_topic": "Commercial Self-Learning Systems"
+    },
+    {
+      "gap": "Timeline and mechanisms for achieving true recursive self-improvement versus current partial capabilities",
+      "priority": "medium",
+      "related_topic": "Self-Improvement Mechanisms"
+    },
+    {
+      "gap": "Detailed architectural specifications for Impulse AI beyond high-level workflow descriptions",
+      "priority": "medium",
+      "related_topic": "Technical Architectures"
+    },
+    {
+      "gap": "Risk assessment mechanisms for uncontrolled capability growth and mesa-optimization in self-improving systems",
+      "priority": "high",
+      "related_topic": "Safety and Governance"
+    }
+  ],
+  "synthesis_stats": {
+    "total_claims": 14,
+    "active_claims": 14,
+    "superseded_claims": 0,
+    "disputed_claims": 0,
+    "contradictions_found": 0,
+    "topics_covered": 5,
+    "outputs_synthesized": 5,
+    "synthesis_date": "2026-03-02",
+    "incremental": false
+  },
+  "_synthesized_at": "2026-03-02T10:22:11.076339+00:00",
+  "_domain": "general",
+  "_outputs_count": 5,
+  "_incremental": false
+}

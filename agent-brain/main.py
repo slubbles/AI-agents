@@ -567,6 +567,7 @@ def main():
     parser.add_argument("--daemon", action="store_true", help="Run scheduler daemon (continuous autonomous operation)")
     parser.add_argument("--daemon-stop", action="store_true", help="Stop the running daemon")
     parser.add_argument("--daemon-status", action="store_true", help="Show daemon status")
+    parser.add_argument("--daemon-report", action="store_true", help="Full daemon health report (cycles, budget, watchdog, domains, sync)")
     parser.add_argument("--interval", type=int, default=60, help="Daemon interval in minutes (default: 60)")
     parser.add_argument("--max-cycles", type=int, default=0, help="Max daemon cycles (0=unlimited)")
     parser.add_argument("--migrate", action="store_true", help="Migrate JSON/JSONL data to SQLite database")
@@ -837,6 +838,10 @@ def main():
         from cli.infrastructure import show_daemon_status
         status = get_daemon_status()
         show_daemon_status(status)
+        return
+    if getattr(args, 'daemon_report', False):
+        from cli.infrastructure import show_daemon_report
+        show_daemon_report()
         return
 
     if args.migrate:

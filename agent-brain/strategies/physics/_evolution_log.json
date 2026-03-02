@@ -1,0 +1,16 @@
+[
+  {
+    "version": "v001",
+    "previous_version": "default",
+    "date": "2026-03-02",
+    "changes": [
+      "Added structured search prioritization: start with collaboration websites and recent conference proceedings before general searches",
+      "Implemented explicit completeness checking: verify all question components are addressed before concluding research"
+    ],
+    "reasoning": "Analysis shows highest scores came from outputs with extensive quantitative data and complete coverage. The main weakness is completeness - several outputs scored 5.5-6.5 because they couldn't find requested numerical data despite extensive searching. The changes target this by: (1) more strategic search ordering to hit authoritative sources first, and (2) explicit completeness checking to ensure all question components are addressed. This builds on the proven strengths (accuracy, honesty) while fixing the systematic gaps.",
+    "weakest_dimension": "completeness",
+    "score_before": 7.3,
+    "score_after": null,
+    "outcome": "pending"
+  }
+]

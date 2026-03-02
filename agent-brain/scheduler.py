@@ -434,6 +434,9 @@ _daemon_lock = threading.Lock()
 _daemon_stop_event = threading.Event()
 _daemon_log = []  # Recent daemon activity log
 
+# Cycle history file — persistent append-only log of all completed cycles
+CYCLE_HISTORY_FILE = os.path.join(LOG_DIR, "cycle_history.jsonl")
+
 
 def _log_daemon(message: str, level: str = "info"):
     """Log a daemon message with timestamp."""
@@ -466,6 +469,121 @@ def _load_daemon_state() -> dict | None:
             return json.load(f)
     except (json.JSONDecodeError, IOError):
         return None
+
+
+def _append_cycle_history(record: dict):
+    """
+    Append a cycle summary to the persistent cycle history.
+    
+    One JSONL line per completed cycle — never overwritten.
+    This is the persistent audit trail (vs daemon_state.json which is ephemeral).
+    """
+    os.makedirs(LOG_DIR, exist_ok=True)
+    try:
+        with open(CYCLE_HISTORY_FILE, "a") as f:
+            f.write(json.dumps(record) + "\n")
+    except IOError as e:
+        _log_daemon(f"Failed to write cycle history: {e}", "warning")
+
+
+def get_cycle_history(last_n: int = 20) -> list[dict]:
+    """
+    Read the last N cycle records from the persistent history.
+    
+    Returns list of dicts, newest last.
+    """
+    if not os.path.exists(CYCLE_HISTORY_FILE):
+        return []
+    records = []
+    try:
+        with open(CYCLE_HISTORY_FILE) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        records.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+    except IOError:
+        return []
+    return records[-last_n:]
+
+
+def generate_daemon_report(last_n: int = 10) -> dict:
+    """
+    Generate a comprehensive daemon health report.
+    
+    Combines:
+    - Current daemon state (running/stopped/etc)
+    - Last N cycle summaries from persistent history
+    - Budget status
+    - Watchdog state + recent events
+    - Domain score averages
+    - Sync status
+    
+    This is the "one command = full picture" output.
+    """
+    report = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "daemon": {},
+        "cycles": [],
+        "budget": {},
+        "watchdog": {},
+        "domains": {},
+        "sync": {},
+    }
+    
+    # 1. Daemon state
+    state = _load_daemon_state()
+    report["daemon"] = state or {"status": "no_state_file"}
+    report["daemon"]["is_running"] = _daemon_running
+    
+    # 2. Cycle history
+    report["cycles"] = get_cycle_history(last_n)
+    
+    # 3. Budget status
+    try:
+        from cost_tracker import get_daily_spend, check_budget
+        daily = get_daily_spend()
+        budget = check_budget()
+        report["budget"] = {
+            "spent_today": daily.get("total_usd", 0),
+            "daily_limit": DAILY_BUDGET_USD,
+            "remaining": budget.get("remaining", 0),
+            "within_budget": budget.get("within_budget", True),
+        }
+    except Exception as e:
+        report["budget"] = {"error": str(e)}
+    
+    # 4. Watchdog status
+    try:
+        from watchdog import get_watchdog_status
+        report["watchdog"] = get_watchdog_status()
+    except Exception as e:
+        report["watchdog"] = {"error": str(e)}
+    
+    # 5. Domain scores
+    try:
+        from agents.orchestrator import discover_domains
+        domains = discover_domains()
+        for domain in domains:
+            stats = get_stats(domain)
+            report["domains"][domain] = {
+                "count": stats.get("count", 0),
+                "avg_score": stats.get("avg_score", 0),
+                "latest_score": stats.get("latest_score", 0),
+            }
+    except Exception as e:
+        report["domains"] = {"error": str(e)}
+    
+    # 6. Sync status
+    try:
+        from sync import check_sync
+        report["sync"] = check_sync()
+    except Exception as e:
+        report["sync"] = {"error": str(e)}
+    
+    return report
 
 
 def get_daemon_status() -> dict:
@@ -765,6 +883,24 @@ def run_daemon(
                     rounds = alloc["rounds"]
                     _log_daemon(f"Running {rounds} round(s) in {domain}...")
                     
+                    # Stall check between domains
+                    stalled, stall_reason = watchdog.check_stall_and_act()
+                    if stalled:
+                        _log_daemon(f"Stall detected before {domain}: {stall_reason}", "warning")
+                        # Check if watchdog now blocks further execution
+                        can_go, block_reason = watchdog.check_before_cycle()
+                        if not can_go:
+                            _log_daemon(f"Watchdog blocked after stall: {block_reason}", "warning")
+                            break
+                        # Otherwise skip this domain and continue to next
+                        domain_results.append({
+                            "domain": domain,
+                            "rounds_completed": 0,
+                            "avg_score": 0,
+                            "skipped": "stall_recovery",
+                        })
+                        continue
+                    
                     domain_scores = []
                     for r in range(rounds):
                         if _daemon_stop_event.is_set():
@@ -876,6 +1012,19 @@ def run_daemon(
                     "next_run": (cycle_end + timedelta(
                         minutes=interval_minutes)).isoformat(),
                 })
+                
+                # Append to persistent cycle history (never overwritten)
+                _append_cycle_history({
+                    "cycle": cycle,
+                    "status": "success",
+                    "started_at": cycle_start.isoformat(),
+                    "completed_at": cycle_end.isoformat(),
+                    "duration_seconds": round(duration),
+                    "rounds_completed": completed,
+                    "avg_score": round(cycle_avg, 1),
+                    "cycle_cost": round(cycle_cost, 4),
+                    "domain_results": domain_results,
+                })
 
             except Exception as e:
                 _log_daemon(f"Cycle {cycle} failed: {e}", "error")
@@ -885,6 +1034,14 @@ def run_daemon(
                     "cycle": cycle,
                     "error": str(e),
                     "last_run": cycle_start.isoformat(),
+                })
+                
+                # Record failure in persistent cycle history
+                _append_cycle_history({
+                    "cycle": cycle,
+                    "status": "failure",
+                    "started_at": cycle_start.isoformat(),
+                    "error": str(e),
                 })
 
             # Post-cycle: health check + sync (every cycle)

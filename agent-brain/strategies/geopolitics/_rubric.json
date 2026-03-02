@@ -1,0 +1,11 @@
+{
+  "weights": {
+    "accuracy": 0.35,
+    "depth": 0.2,
+    "completeness": 0.2,
+    "specificity": 0.15,
+    "intellectual_honesty": 0.1
+  },
+  "reason": "Accuracy is the weakest performing dimension (averaging 6.8 vs 7.4+ for others) and temporal verification failures are the primary failure mode. Increasing accuracy weight from 0.25 to 0.35 while slightly reducing intellectual_honesty (already strongest at 8.4 average) will incentivize better fact-checking and temporal verification.",
+  "updated_at": "2026-03-02"
+}

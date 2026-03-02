@@ -410,6 +410,140 @@ def show_daemon_status(status: dict):
     print()
 
 
+def show_daemon_report():
+    """
+    Display comprehensive daemon health report.
+    
+    One command = full picture of system state:
+    - Daemon status (running/stopped/idle)
+    - Last N cycle summaries (from persistent cycle_history.jsonl)
+    - Budget (spent, remaining, ceiling)
+    - Watchdog state (circuit breaker, failures, events)
+    - Domain scores (per-domain averages)
+    - Sync status (Brain↔Hands alignment)
+    """
+    from scheduler import generate_daemon_report
+    
+    report = generate_daemon_report(last_n=10)
+    
+    print(f"\n{'='*60}")
+    print(f"  DAEMON HEALTH REPORT")
+    print(f"  Generated: {report['generated_at'][:19]}Z")
+    print(f"{'='*60}")
+    
+    # 1. Daemon state
+    daemon = report.get("daemon", {})
+    status = daemon.get("status", "unknown")
+    is_running = daemon.get("is_running", False)
+    print(f"\n  ── Daemon ──")
+    print(f"  Status: {'RUNNING' if is_running else status.upper()}")
+    if daemon.get("last_run"):
+        print(f"  Last run: {daemon['last_run'][:19]}Z")
+    if daemon.get("last_completed"):
+        print(f"  Last completed: {daemon['last_completed'][:19]}Z")
+    if daemon.get("next_run"):
+        print(f"  Next run: {daemon['next_run'][:19]}Z")
+    if daemon.get("total_cycles"):
+        print(f"  Total cycles: {daemon['total_cycles']}")
+    
+    # 2. Cycle history
+    cycles = report.get("cycles", [])
+    print(f"\n  ── Cycle History ({len(cycles)} recent) ──")
+    if not cycles:
+        print(f"  No cycle history recorded yet.")
+    else:
+        for c in cycles:
+            ts = c.get("started_at", "?")[:19]
+            cstatus = c.get("status", "?")
+            if cstatus == "success":
+                print(f"  [{ts}] Cycle {c.get('cycle', '?')}: "
+                      f"{c.get('rounds_completed', 0)} rounds, "
+                      f"avg {c.get('avg_score', 0):.1f}, "
+                      f"${c.get('cycle_cost', 0):.4f}, "
+                      f"{c.get('duration_seconds', 0)}s")
+                domains = c.get("domain_results", [])
+                for d in domains:
+                    print(f"    {d.get('domain', '?')}: "
+                          f"{d.get('rounds_completed', 0)} rounds, "
+                          f"avg {d.get('avg_score', 0):.1f}")
+            else:
+                print(f"  [{ts}] Cycle {c.get('cycle', '?')}: "
+                      f"FAILED — {c.get('error', 'unknown')[:60]}")
+    
+    # 3. Budget
+    budget = report.get("budget", {})
+    print(f"\n  ── Budget ──")
+    if "error" in budget:
+        print(f"  Error: {budget['error']}")
+    else:
+        spent = budget.get("spent_today", 0)
+        limit = budget.get("daily_limit", 0)
+        remaining = budget.get("remaining", 0)
+        within = budget.get("within_budget", True)
+        pct = (spent / limit * 100) if limit > 0 else 0
+        bar_len = 30
+        filled = int(bar_len * min(pct / 100, 1.0))
+        bar = "█" * filled + "░" * (bar_len - filled)
+        print(f"  Spent today: ${spent:.4f} / ${limit:.2f} ({pct:.0f}%)")
+        print(f"  [{bar}]")
+        print(f"  Remaining: ${remaining:.4f}")
+        print(f"  Status: {'OK' if within else 'EXCEEDED'}")
+    
+    # 4. Watchdog
+    wd = report.get("watchdog", {})
+    print(f"\n  ── Watchdog ──")
+    if "error" in wd:
+        print(f"  Error: {wd['error']}")
+    else:
+        print(f"  State: {wd.get('state', 'unknown')}")
+        print(f"  Cycles completed: {wd.get('cycles_completed', 0)}")
+        print(f"  Consecutive failures: {wd.get('consecutive_failures', 0)}")
+        print(f"  Consecutive critical: {wd.get('consecutive_critical_alerts', 0)}")
+        hb = wd.get("heartbeat_age_seconds")
+        if hb is not None:
+            print(f"  Heartbeat age: {hb:.0f}s")
+        events = wd.get("recent_events", [])
+        if events:
+            print(f"  Recent events ({len(events)}):")
+            for ev in events[-5:]:
+                severity = ev.get("severity", "info")
+                marker = "!" if severity == "critical" else ("~" if severity == "warning" else " ")
+                print(f"   {marker} [{ev.get('timestamp', '?')[:19]}] "
+                      f"{ev.get('message', '?')[:60]}")
+    
+    # 5. Domain scores
+    domains = report.get("domains", {})
+    print(f"\n  ── Domain Scores ──")
+    if isinstance(domains, dict) and "error" not in domains:
+        if not domains:
+            print(f"  No domains found.")
+        else:
+            # Sort by count descending
+            sorted_d = sorted(domains.items(), key=lambda x: x[1].get("count", 0), reverse=True)
+            for name, info in sorted_d:
+                count = info.get("count", 0)
+                avg = info.get("avg_score", 0)
+                latest = info.get("latest_score", 0)
+                print(f"  {name:<20} {count:>3} outputs  avg {avg:.1f}  latest {latest:.1f}")
+    else:
+        print(f"  Error: {domains.get('error', 'unknown')}")
+    
+    # 6. Sync
+    sync = report.get("sync", {})
+    print(f"\n  ── Sync ──")
+    if "error" in sync:
+        print(f"  Error: {sync['error']}")
+    else:
+        aligned = sync.get("aligned", True)
+        print(f"  Brain↔Hands: {'ALIGNED' if aligned else 'MISALIGNED'}")
+        issues = sync.get("issues", [])
+        if issues:
+            for issue in issues[:5]:
+                print(f"  ⚠ {issue}")
+    
+    print(f"\n{'='*60}\n")
+
+
 def show_seeds(domain: str):
     """Show seed questions for a domain or list all available seed domains."""
     if domain == DEFAULT_DOMAIN:

@@ -1,0 +1,1185 @@
+{
+  "nodes": [
+    {
+      "id": "topic_commercial_self_learning_systems",
+      "type": "topic",
+      "label": "Commercial Self-Learning Systems",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217848+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "PiEvolve Architecture",
+          "Impulse AI Platform",
+          "Performance Benchmarks",
+          "Market Applications"
+        ]
+      }
+    },
+    {
+      "id": "topic_technical_architectures",
+      "type": "topic",
+      "label": "Technical Architectures",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217864+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "DAG-Based Evolution",
+          "Probabilistic Action Selection",
+          "Persistent Memory",
+          "LLM Agent Operations"
+        ]
+      }
+    },
+    {
+      "id": "topic_self_improvement_mechanisms",
+      "type": "topic",
+      "label": "Self-Improvement Mechanisms",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217874+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "Training Data Generation",
+          "Self-Evaluation",
+          "Collaborative Emergence",
+          "Recursive Enhancement"
+        ]
+      }
+    },
+    {
+      "id": "topic_safety_and_governance",
+      "type": "topic",
+      "label": "Safety and Governance",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217880+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "Human-AI Collaboration",
+          "Risk Management",
+          "Oversight Frameworks",
+          "Compliance Standards"
+        ]
+      }
+    },
+    {
+      "id": "topic_research_applications",
+      "type": "topic",
+      "label": "Research Applications",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217886+00:00",
+      "source_count": 0,
+      "metadata": {
+        "subtopics": [
+          "Materials Science",
+          "Medical Applications",
+          "Scientific Discovery",
+          "R&D Automation"
+        ]
+      }
+    },
+    {
+      "id": "claim_001",
+      "type": "claim",
+      "label": "Fractal launched PiEvolve, an 'Evolutionary Agentic Engine for Autonomous Machine Learning' on February 24, 2026",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_updated": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 4,
+      "metadata": {
+        "full_text": "Fractal launched PiEvolve, an 'Evolutionary Agentic Engine for Autonomous Machine Learning' on February 24, 2026",
+        "sources": [
+          "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html",
+          "https://github.com/FractalAIResearchLabs/PiEvolve",
+          "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+          "https://fractal.ai/ai-research/pievolve"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_prnewswire_com_news_releases_fractal_launches_piev",
+      "type": "source",
+      "label": "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217916+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html"
+      }
+    },
+    {
+      "id": "source_https_github_com_fractalairesearchlabs_pievolve",
+      "type": "source",
+      "label": "https://github.com/FractalAIResearchLabs/PiEvolve",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217929+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://github.com/FractalAIResearchLabs/PiEvolve"
+      }
+    },
+    {
+      "id": "source_https_fractal_ai_about_us_media_fractal_launches_pievolve",
+      "type": "source",
+      "label": "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217941+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://fractal.ai/about-us/media/fractal-launches-pievolve"
+      }
+    },
+    {
+      "id": "source_https_fractal_ai_ai_research_pievolve",
+      "type": "source",
+      "label": "https://fractal.ai/ai-research/pievolve",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217951+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://fractal.ai/ai-research/pievolve"
+      }
+    },
+    {
+      "id": "claim_002",
+      "type": "claim",
+      "label": "Impulse AI launched an autonomous machine learning engineer that ranked in the top 2.5% (rank 782/31,791) on Kaggle competitions as of February 3, 2026",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_updated": "2026-03-02T09:56:57.236902+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "Impulse AI launched an autonomous machine learning engineer that ranked in the top 2.5% (rank 782/31,791) on Kaggle competitions as of February 3, 2026",
+        "sources": [
+          "https://finance.yahoo.com/news/impulse-ai-launches-autonomous-machine-150700262.html",
+          "https://www.impulselabs.ai/blog/launching-impulse-ai-an-autonomous-ml-engineer-that-placed-top-2.5-on-kaggle"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_finance_yahoo_com_news_impulse_ai_launches_autonomous_",
+      "type": "source",
+      "label": "https://finance.yahoo.com/news/impulse-ai-launches-autonomous-machine-150700262.html",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217974+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://finance.yahoo.com/news/impulse-ai-launches-autonomous-machine-150700262.html"
+      }
+    },
+    {
+      "id": "source_https_www_impulselabs_ai_blog_launching_impulse_ai_an_autono",
+      "type": "source",
+      "label": "https://www.impulselabs.ai/blog/launching-impulse-ai-an-autonomous-ml-engineer-that-placed-top-2.5-on-kaggle",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.217988+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.impulselabs.ai/blog/launching-impulse-ai-an-autonomous-ml-engineer-that-placed-top-2.5-on-kaggle"
+      }
+    },
+    {
+      "id": "claim_003",
+      "type": "claim",
+      "label": "PiEvolve uses a directed acyclic graph (DAG) of solution states/NodeChains, where nodes encode reasoning, executable code, and empirical validation, and edges capture parent-child lineage",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-03-02T09:56:57.236902+00:00",
+      "last_updated": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 4,
+      "metadata": {
+        "full_text": "PiEvolve uses a directed acyclic graph (DAG) of solution states/NodeChains, where nodes encode reasoning, executable code, and empirical validation, and edges capture parent-child lineage",
+        "sources": [
+          "https://github.com/FractalAIResearchLabs/PiEvolve",
+          "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+          "https://fractal.ai/ai-research/pievolve",
+          "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_004",
+      "type": "claim",
+      "label": "PiEvolve uses probabilistic action selection policy with adaptive priority scoring to balance exploration and exploitation",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-03-02T09:56:57.236902+00:00",
+      "last_updated": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 3,
+      "metadata": {
+        "full_text": "PiEvolve uses probabilistic action selection policy with adaptive priority scoring to balance exploration and exploitation",
+        "sources": [
+          "https://github.com/FractalAIResearchLabs/PiEvolve",
+          "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+          "https://fractal.ai/ai-research/pievolve"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_005",
+      "type": "claim",
+      "label": "PiEvolve features persistent memory storing all traces, code, results, and scores with deprioritization of poorly performing chains",
+      "confidence": "established",
+      "status": "active",
+      "first_seen": "2026-03-02T09:56:57.236902+00:00",
+      "last_updated": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 3,
+      "metadata": {
+        "full_text": "PiEvolve features persistent memory storing all traces, code, results, and scores with deprioritization of poorly performing chains",
+        "sources": [
+          "https://github.com/FractalAIResearchLabs/PiEvolve",
+          "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+          "https://fractal.ai/ai-research/pievolve"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_006",
+      "type": "claim",
+      "label": "PiEvolve achieves 61%+ success rate on MLE-Bench, outperforming traditional ML baselines on medium/high difficulty tasks",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-03-02T10:10:53.490038+00:00",
+      "last_updated": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "PiEvolve achieves 61%+ success rate on MLE-Bench, outperforming traditional ML baselines on medium/high difficulty tasks",
+        "sources": [
+          "https://github.com/FractalAIResearchLabs/PiEvolve",
+          "https://fractal.ai/ai-research/pievolve"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_007",
+      "type": "claim",
+      "label": "Multiple autonomous AI systems spontaneously collaborated to advance materials research (documented January 20, 2026)",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_updated": "2026-02-24T11:48:11.974675+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Multiple autonomous AI systems spontaneously collaborated to advance materials research (documented January 20, 2026)",
+        "sources": [
+          "https://www.eurekalert.org/news-releases/1113228"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_eurekalert_org_news_releases_1113228",
+      "type": "source",
+      "label": "https://www.eurekalert.org/news-releases/1113228",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218130+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.eurekalert.org/news-releases/1113228"
+      }
+    },
+    {
+      "id": "claim_008",
+      "type": "claim",
+      "label": "Current AI systems exhibit partial self-improvement through creating training data, self-evaluation, and reward systems",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_updated": "2026-02-24T11:48:11.974675+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Current AI systems exhibit partial self-improvement through creating training data, self-evaluation, and reward systems",
+        "sources": [
+          "https://arxiv.org/html/2512.05356v1"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_arxiv_org_html_2512_05356v1",
+      "type": "source",
+      "label": "https://arxiv.org/html/2512.05356v1",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218149+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://arxiv.org/html/2512.05356v1"
+      }
+    },
+    {
+      "id": "claim_009",
+      "type": "claim",
+      "label": "Self-supervised learning shows promise in medical applications including radiology, pathology, ophthalmology, dermatology, and oncology",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_updated": "2026-02-24T11:48:11.974675+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Self-supervised learning shows promise in medical applications including radiology, pathology, ophthalmology, dermatology, and oncology",
+        "sources": [
+          "https://hai.stanford.edu/news/stanford-ai-experts-predict-what-will-happen-in-2026"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_hai_stanford_edu_news_stanford_ai_experts_predict_what",
+      "type": "source",
+      "label": "https://hai.stanford.edu/news/stanford-ai-experts-predict-what-will-happen-in-2026",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218170+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://hai.stanford.edu/news/stanford-ai-experts-predict-what-will-happen-in-2026"
+      }
+    },
+    {
+      "id": "claim_010",
+      "type": "claim",
+      "label": "Researchers proposed STOP (Self-Taught OPtimiser) framework in 2024 for recursive self-improvement using scaffolding programs",
+      "confidence": "high",
+      "status": "active",
+      "first_seen": "2026-02-24T11:48:11.974675+00:00",
+      "last_updated": "2026-02-24T11:48:11.974675+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Researchers proposed STOP (Self-Taught OPtimiser) framework in 2024 for recursive self-improvement using scaffolding programs",
+        "sources": [
+          "https://en.wikipedia.org/wiki/Recursive_self-improvement"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_en_wikipedia_org_wiki_recursive_self_improvement",
+      "type": "source",
+      "label": "https://en.wikipedia.org/wiki/Recursive_self-improvement",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218188+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://en.wikipedia.org/wiki/Recursive_self-improvement"
+      }
+    },
+    {
+      "id": "claim_011",
+      "type": "claim",
+      "label": "Impulse AI uses agentic architecture for end-to-end ML automation including data cleaning, feature engineering, model selection, and deployment",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-03-02T09:56:57.236902+00:00",
+      "last_updated": "2026-03-02T09:56:57.236902+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Impulse AI uses agentic architecture for end-to-end ML automation including data cleaning, feature engineering, model selection, and deployment",
+        "sources": [
+          "https://www.impulselabs.ai/blog/launching-impulse-ai-an-autonomous-ml-engineer-that-placed-top-2.5-on-kaggle"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_012",
+      "type": "claim",
+      "label": "Co-improvement paradigm advocates human-AI collaboration in AI research loops as safer alternative to pure self-improvement",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-03-02T10:04:47.674729+00:00",
+      "last_updated": "2026-03-02T10:04:47.674729+00:00",
+      "source_count": 1,
+      "metadata": {
+        "full_text": "Co-improvement paradigm advocates human-AI collaboration in AI research loops as safer alternative to pure self-improvement",
+        "sources": [
+          "https://arxiv.org/html/2512.05356v1"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "claim_013",
+      "type": "claim",
+      "label": "AI governance frameworks include designated officers, bias testing, model monitoring, and policies for fairness, transparency, and security",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "2026-03-02T10:04:47.674729+00:00",
+      "last_updated": "2026-03-02T10:04:47.674729+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "AI governance frameworks include designated officers, bias testing, model monitoring, and policies for fairness, transparency, and security",
+        "sources": [
+          "https://www.ibm.com/think/insights/ai-governance-implementation",
+          "https://www.databricks.com/blog/ai-governance-best-practices-how-build-responsible-and-effective-ai-programs"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "source_https_www_ibm_com_think_insights_ai_governance_implementatio",
+      "type": "source",
+      "label": "https://www.ibm.com/think/insights/ai-governance-implementation",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218238+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.ibm.com/think/insights/ai-governance-implementation"
+      }
+    },
+    {
+      "id": "source_https_www_databricks_com_blog_ai_governance_best_practices_h",
+      "type": "source",
+      "label": "https://www.databricks.com/blog/ai-governance-best-practices-how-build-responsible-and-effective-ai-programs",
+      "confidence": "medium",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218250+00:00",
+      "source_count": 0,
+      "metadata": {
+        "url": "https://www.databricks.com/blog/ai-governance-best-practices-how-build-responsible-and-effective-ai-programs"
+      }
+    },
+    {
+      "id": "claim_014",
+      "type": "claim",
+      "label": "No specific numerical hyperparameters for PiEvolve are publicly disclosed in available sources",
+      "confidence": "corroborated",
+      "status": "active",
+      "first_seen": "2026-03-02T10:10:53.490038+00:00",
+      "last_updated": "2026-03-02T10:21:25.122353+00:00",
+      "source_count": 2,
+      "metadata": {
+        "full_text": "No specific numerical hyperparameters for PiEvolve are publicly disclosed in available sources",
+        "sources": [
+          "https://github.com/FractalAIResearchLabs/PiEvolve",
+          "https://fractal.ai/ai-research/pievolve"
+        ],
+        "notes": ""
+      }
+    },
+    {
+      "id": "gap_000",
+      "type": "gap",
+      "label": "Specific numerical hyperparameters and code-level implementation details for PiEvolve and similar systems",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218285+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Technical Architectures",
+        "full_text": "Specific numerical hyperparameters and code-level implementation details for PiEvolve and similar systems"
+      }
+    },
+    {
+      "id": "gap_001",
+      "type": "gap",
+      "label": "Concrete safety mechanisms and governance frameworks specifically designed for self-improving AI systems",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218294+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Safety and Governance",
+        "full_text": "Concrete safety mechanisms and governance frameworks specifically designed for self-improving AI systems"
+      }
+    },
+    {
+      "id": "gap_002",
+      "type": "gap",
+      "label": "Production scalability and reliability of self-learning systems in diverse environments beyond benchmarks",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218301+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Commercial Self-Learning Systems",
+        "full_text": "Production scalability and reliability of self-learning systems in diverse environments beyond benchmarks"
+      }
+    },
+    {
+      "id": "gap_003",
+      "type": "gap",
+      "label": "Timeline and mechanisms for achieving true recursive self-improvement versus current partial capabilities",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218308+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Self-Improvement Mechanisms",
+        "full_text": "Timeline and mechanisms for achieving true recursive self-improvement versus current partial capabilities"
+      }
+    },
+    {
+      "id": "gap_004",
+      "type": "gap",
+      "label": "Detailed architectural specifications for Impulse AI beyond high-level workflow descriptions",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218315+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "medium",
+        "related_topic": "Technical Architectures",
+        "full_text": "Detailed architectural specifications for Impulse AI beyond high-level workflow descriptions"
+      }
+    },
+    {
+      "id": "gap_005",
+      "type": "gap",
+      "label": "Risk assessment mechanisms for uncontrolled capability growth and mesa-optimization in self-improving systems",
+      "confidence": "low",
+      "status": "active",
+      "first_seen": "",
+      "last_updated": "2026-03-02T10:22:11.218321+00:00",
+      "source_count": 0,
+      "metadata": {
+        "priority": "high",
+        "related_topic": "Safety and Governance",
+        "full_text": "Risk assessment mechanisms for uncontrolled capability growth and mesa-optimization in self-improving systems"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "claim_001",
+      "target": "topic_commercial_self_learning_systems",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.217901+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_www_prnewswire_com_news_releases_fractal_launches_piev",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.217920+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_github_com_fractalairesearchlabs_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.217933+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_fractal_ai_about_us_media_fractal_launches_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.217944+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "source_https_fractal_ai_ai_research_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.217954+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "topic_commercial_self_learning_systems",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.217964+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_finance_yahoo_com_news_impulse_ai_launches_autonomous_",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.217978+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "source_https_www_impulselabs_ai_blog_launching_impulse_ai_an_autono",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.217991+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "topic_technical_architectures",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.217999+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_github_com_fractalairesearchlabs_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218010+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_fractal_ai_about_us_media_fractal_launches_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218018+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_fractal_ai_ai_research_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218026+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "source_https_www_prnewswire_com_news_releases_fractal_launches_piev",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218034+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "topic_technical_architectures",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218041+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_https_github_com_fractalairesearchlabs_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218049+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_https_fractal_ai_about_us_media_fractal_launches_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218056+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "source_https_fractal_ai_ai_research_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218063+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "topic_technical_architectures",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218071+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_https_github_com_fractalairesearchlabs_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218078+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_https_fractal_ai_about_us_media_fractal_launches_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218085+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "source_https_fractal_ai_ai_research_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218091+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "topic_commercial_self_learning_systems",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218099+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_https_github_com_fractalairesearchlabs_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218105+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_006",
+      "target": "source_https_fractal_ai_ai_research_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218113+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "topic_research_applications",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218121+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "source_https_www_eurekalert_org_news_releases_1113228",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218133+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "topic_self_improvement_mechanisms",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218141+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "source_https_arxiv_org_html_2512_05356v1",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218152+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "topic_research_applications",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218159+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_009",
+      "target": "source_https_hai_stanford_edu_news_stanford_ai_experts_predict_what",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218173+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "topic_self_improvement_mechanisms",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218180+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_010",
+      "target": "source_https_en_wikipedia_org_wiki_recursive_self_improvement",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218191+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "topic_technical_architectures",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218198+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "source_https_www_impulselabs_ai_blog_launching_impulse_ai_an_autono",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218207+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "topic_safety_and_governance",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218214+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "source_https_arxiv_org_html_2512_05356v1",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218222+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "topic_safety_and_governance",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218230+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_www_ibm_com_think_insights_ai_governance_implementatio",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218241+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_013",
+      "target": "source_https_www_databricks_com_blog_ai_governance_best_practices_h",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218252+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "topic_technical_architectures",
+      "type": "belongs_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218260+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_https_github_com_fractalairesearchlabs_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218268+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_014",
+      "target": "source_https_fractal_ai_ai_research_pievolve",
+      "type": "sourced_from",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218276+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_000",
+      "target": "topic_technical_architectures",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218289+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_001",
+      "target": "topic_safety_and_governance",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218297+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_002",
+      "target": "topic_commercial_self_learning_systems",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218304+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_003",
+      "target": "topic_self_improvement_mechanisms",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218311+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_004",
+      "target": "topic_technical_architectures",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218317+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "gap_005",
+      "target": "topic_safety_and_governance",
+      "type": "relates_to",
+      "weight": 1.0,
+      "created_at": "2026-03-02T10:22:11.218324+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_002",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218341+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_001",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218347+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_002",
+      "target": "claim_006",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218354+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_004",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218370+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218374+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218379+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_003",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218383+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_005",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218388+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218393+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_004",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218398+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_011",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218402+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_005",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218407+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_011",
+      "target": "claim_014",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218412+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_007",
+      "target": "claim_009",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218421+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_008",
+      "target": "claim_010",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218431+00:00",
+      "metadata": {}
+    },
+    {
+      "source": "claim_012",
+      "target": "claim_013",
+      "type": "relates_to",
+      "weight": 0.5,
+      "created_at": "2026-03-02T10:22:11.218441+00:00",
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "domain": "general",
+    "created_at": "2026-03-02T10:22:11.217676+00:00",
+    "updated_at": "2026-03-02T10:22:11.217676+00:00",
+    "node_count": 37,
+    "edge_count": 64,
+    "cluster_count": 5
+  },
+  "clusters": [
+    {
+      "id": "cluster_3",
+      "topics": [
+        "topic_technical_architectures"
+      ],
+      "claims": [
+        "claim_005",
+        "claim_011",
+        "claim_003",
+        "claim_004",
+        "claim_014"
+      ],
+      "size": 6,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_2",
+      "topics": [
+        "topic_commercial_self_learning_systems"
+      ],
+      "claims": [
+        "claim_001",
+        "claim_006",
+        "claim_002"
+      ],
+      "size": 4,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_0",
+      "topics": [
+        "topic_safety_and_governance"
+      ],
+      "claims": [
+        "claim_012",
+        "claim_013"
+      ],
+      "size": 3,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_1",
+      "topics": [
+        "topic_research_applications"
+      ],
+      "claims": [
+        "claim_009",
+        "claim_007"
+      ],
+      "size": 3,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_4",
+      "topics": [
+        "topic_self_improvement_mechanisms"
+      ],
+      "claims": [
+        "claim_010",
+        "claim_008"
+      ],
+      "size": 3,
+      "density": 1.0
+    }
+  ],
+  "gap_analysis": {
+    "isolated_nodes": [],
+    "weak_clusters": [],
+    "missing_connections": []
+  }
+}

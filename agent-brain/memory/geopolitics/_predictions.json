@@ -1,0 +1,22 @@
+[
+  {
+    "prediction": "European defense spending could reach \u20ac800 billion by 2030",
+    "deadline": "2030-12-31",
+    "source_claim_id": "claim_004",
+    "verification_query": "European defense spending 2030 total amount",
+    "category": "policy",
+    "status": "pending",
+    "extracted_at": "2026-03-02T09:58:53.152194+00:00",
+    "domain": "geopolitics"
+  },
+  {
+    "prediction": "NATO member nations increasing defense spending with 3.5% benchmark set for 2035",
+    "deadline": "2035-12-31",
+    "source_claim_id": "claim_004",
+    "verification_query": "NATO defense spending 3.5% GDP benchmark 2035",
+    "category": "policy",
+    "status": "pending",
+    "extracted_at": "2026-03-02T09:58:53.152205+00:00",
+    "domain": "geopolitics"
+  }
+]

@@ -215,6 +215,67 @@ class Watchdog:
             elapsed = time.monotonic() - self._last_heartbeat
             return elapsed > HEARTBEAT_TIMEOUT_SECONDS
 
+    def check_stall_and_act(self) -> tuple[bool, str]:
+        """
+        Check for stall and take corrective action.
+        
+        Unlike is_stalled() which is passive detection, this method:
+        1. Detects the stall
+        2. Records the event
+        3. Increments failure counter  
+        4. Returns (is_stalled, reason) so the daemon can skip/restart
+        
+        Returns:
+            (stalled: bool, reason: str)
+            If stalled=True, the caller should abort the current operation.
+        """
+        with self._lock:
+            if self._state in (SystemState.STOPPED, SystemState.PAUSED,
+                               SystemState.COOLDOWN, SystemState.CIRCUIT_OPEN,
+                               SystemState.BUDGET_HALT):
+                return False, "not running"
+            if self._last_heartbeat == 0:
+                return False, "never started"
+            
+            elapsed = time.monotonic() - self._last_heartbeat
+            if elapsed <= HEARTBEAT_TIMEOUT_SECONDS:
+                return False, "ok"
+            
+            # Stall detected — take action
+            self._consecutive_failures += 1
+            self._record_event(
+                "stall_detected",
+                f"System stalled: {elapsed:.0f}s since last heartbeat "
+                f"(threshold: {HEARTBEAT_TIMEOUT_SECONDS}s). "
+                f"Consecutive failures: {self._consecutive_failures}. "
+                f"Forcing skip to next operation.",
+                severity="critical",
+                details={
+                    "elapsed_seconds": round(elapsed),
+                    "threshold_seconds": HEARTBEAT_TIMEOUT_SECONDS,
+                    "consecutive_failures": self._consecutive_failures,
+                }
+            )
+            
+            # Check if we need to enter cooldown
+            if self._consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                self._state = SystemState.COOLDOWN
+                self._cooldown_until = time.monotonic() + FAILURE_COOLDOWN_SECONDS
+                self._record_event(
+                    "cooldown_entered",
+                    f"Entering cooldown after stall + {self._consecutive_failures} "
+                    f"consecutive failures.",
+                    severity="critical",
+                )
+            
+            # Reset heartbeat so we don't trigger again immediately
+            self._last_heartbeat = time.monotonic()
+            
+            return True, (
+                f"Stalled for {elapsed:.0f}s — forcing recovery "
+                f"({self._consecutive_failures} consecutive failures)"
+            )
+
     def get_heartbeat_age(self) -> float:
         """Seconds since last heartbeat."""
         with self._lock:

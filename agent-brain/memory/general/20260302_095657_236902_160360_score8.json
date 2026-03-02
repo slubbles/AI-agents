@@ -1,0 +1,143 @@
+{
+  "timestamp": "2026-03-02T09:56:57.236902+00:00",
+  "domain": "general",
+  "question": "What are the key technical architectures used in systems like PiEvolve to achieve autonomous learning, and how do they differ from traditional machine learning frameworks?",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the key technical architectures used in systems like PiEvolve to achieve autonomous learning, and how do they differ from traditional machine learning frameworks?",
+    "findings": [
+      {
+        "claim": "PiEvolve employs a graph-structured evolutionary search architecture using a directed acyclic graph (DAG) of solution states, where nodes encode reasoning, executable code, and empirical validation, and edges capture parent-child lineage across iterative improvements.",
+        "confidence": "high",
+        "reasoning": "Verified in multiple sources including detailed GitHub README and official Fractal announcements; DAG enables explicit reasoning over historical dependencies and fine-grained credit assignment, differing from traditional ML's static single-model training.",
+        "source": "https://github.com/FractalAIResearchLabs/PiEvolve"
+      },
+      {
+        "claim": "PiEvolve uses probabilistic action selection policy with adaptive priority scoring on solution chains to balance exploration (new drafts when performance weak) and exploitation (refinement/debugging on strong chains), orchestrated by LLM-driven agents for operations like drafting, improving, debugging, merging, and mutating.",
+        "confidence": "high",
+        "reasoning": "Directly from GitHub technical details, corroborated by Fractal.ai description of priority-based memory sampling with decay and dual strategy (improve high-performers, debug weak ones); contrasts traditional ML's fixed hyperparameters and manual iteration.",
+        "source": "https://github.com/FractalAIResearchLabs/PiEvolve"
+      },
+      {
+        "claim": "PiEvolve features persistent memory in the solution graph for continuous optimization, storing all traces, code, results, and scores; poorly performing chains are deprioritized, enabling reuse of intermediates without restarts.",
+        "confidence": "high",
+        "reasoning": "Explicit in GitHub and Fractal.ai (intelligent memory, pause/resume for production); traditional frameworks lack this self-improving loop, training once then deploying statically.",
+        "source": "https://fractal.ai/about-us/media/fractal-launches-pievolve"
+      },
+      {
+        "claim": "Unlike traditional ML models trained once and deployed statically, PiEvolve continuously evolves solutions iteratively within a compute budget (e.g., 24 hours), integrating reasoning-code-validation in a unified loop for complex optimization.",
+        "confidence": "high",
+        "reasoning": "Stated across PRNewswire, Fractal.ai, and GitHub; enables tackling multi-variable problems where static AI struggles, with efficiency (top performance even at 12 hours).",
+        "source": "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html"
+      },
+      {
+        "claim": "Impulse AI uses an agentic architecture for end-to-end ML automation (data cleaning, feature engineering, model selection, validation, deployment with monitoring/retraining), learning from production feedback, but lacks detailed graph/evolutionary specifics.",
+        "confidence": "medium",
+        "reasoning": "From single source (blog); similar autonomous agent focus but higher-level than PiEvolve's DAG; differs from traditional by full workflow automation without code/expertise.",
+        "source": "https://www.impulselabs.ai/blog/launching-impulse-ai-an-autonomous-ml-engineer-that-placed-top-2.5-on-kaggle"
+      }
+    ],
+    "key_insights": [
+      "PiEvolve's DAG-based evolutionary search with agentic operations and persistent memory enables sustained self-improvement via exploration-exploitation balance, outperforming static traditional ML on benchmarks like MLE-Bench.",
+      "Core trade-off: Compute-intensive iteration yields efficiency gains (e.g., 24h matches longer runs) but requires production controls like pause/resume; traditional ML is faster for simple tasks but fails on complex, evolving problems.",
+      "Compared to traditional frameworks (manual/static), these systems close reasoning-execution-feedback loops autonomously, implying scalability to R&D automation but with gaps in production reliability docs."
+    ],
+    "knowledge_gaps": [
+      "Detailed code-level implementation or hyperparameters for PiEvolve/Impulse (GitHub describes but no fetched code);",
+      "Safety mechanisms or governance for evolutionary self-improvement (from prior gaps);",
+      "Scalability/reliability in diverse production environments beyond benchmarks;",
+      "Architectural details for Impulse AI beyond high-level workflow."
+    ],
+    "sources_used": [
+      "https://github.com/FractalAIResearchLabs/PiEvolve",
+      "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html",
+      "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+      "https://www.impulselabs.ai/blog/launching-impulse-ai-an-autonomous-ml-engineer-that-placed-top-2.5-on-kaggle"
+    ],
+    "summary": "PiEvolve achieves autonomous learning via a DAG-structured evolutionary search with probabilistic agentic operations and persistent memory, continuously iterating reasoning-code-validation unlike traditional ML's one-time static training. This enables superior benchmark performance and efficiency on complex tasks. Impulse AI offers similar end-to-end agentic automation but with less disclosed architectural depth.",
+    "_searches_made": 4,
+    "_empty_searches": 0,
+    "_tool_log": [
+      {
+        "tool": "web_search",
+        "query": "PiEvolve Fractal architecture",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "PiEvolve Fractal technical details",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "Impulse AI autonomous ML architecture",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "PiEvolve vs traditional machine learning",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://github.com/FractalAIResearchLabs/PiEvolve",
+        "success": true,
+        "chars": 5174,
+        "title": "GitHub - FractalAIResearchLabs/PiEvolve: Pioneer Evolutionary Agent for solving "
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html",
+        "success": true,
+        "chars": 3767,
+        "title": "Fractal Launches PiEvolve, an Evolutionary Agentic Engine for Autonomous Machine"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://www.impulselabs.ai/blog/launching-impulse-ai-an-autonomous-ml-engineer-that-placed-top-2.5-on-kaggle",
+        "success": true,
+        "chars": 3071,
+        "title": "Launching Impulse AI: An Autonomous ML Engineer That Placed Top 2.5% on Kaggle -"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://fractal.ai/about-us/media/fractal-launches-pievolve",
+        "success": true,
+        "chars": 7115,
+        "title": "Fractal Launches PiEvolve, an Evolutionary Agentic Engine for Autonomous Machine"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://nexttechtoday.com/news/fractal-debuts-autonomous-ai-engine-pievolve/",
+        "success": false,
+        "chars": 0
+      }
+    ]
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 8.0,
+      "depth": 8.0,
+      "completeness": 8.0,
+      "specificity": 8.0,
+      "intellectual_honesty": 8.0
+    },
+    "overall_score": 8.5,
+    "strengths": [
+      "Pre-screened (not fully evaluated)"
+    ],
+    "weaknesses": [],
+    "actionable_feedback": "Passed pre-screen.",
+    "verdict": "accept",
+    "_prescreened": true,
+    "_prescreen_decision": "accept"
+  },
+  "overall_score": 8.5,
+  "accepted": true,
+  "verdict": "accept"
+}

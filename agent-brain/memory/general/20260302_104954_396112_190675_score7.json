@@ -1,0 +1,144 @@
+{
+  "timestamp": "2026-03-02T10:49:54.396112+00:00",
+  "domain": "general",
+  "question": "What are the specific numerical hyperparameters (e.g., mutation rates, action probabilities) used in PiEvolve's implementation, and how do they affect its autonomous learning capabilities?",
+  "attempt": 1,
+  "strategy_version": "default",
+  "research": {
+    "question": "What are the specific numerical hyperparameters (e.g., mutation rates, action probabilities) used in PiEvolve's implementation, and how do they affect its autonomous learning capabilities?",
+    "findings": [
+      {
+        "claim": "No specific numerical hyperparameters (e.g., mutation rates, action probabilities) for PiEvolve are publicly disclosed in official sources including the Fractal website, GitHub repository, or press releases.",
+        "confidence": "high",
+        "reasoning": "Verified across multiple primary sources: Fractal's PiEvolve page describes probabilistic action selection and adaptive priority scoring for exploration-exploitation balance but provides no numerical values; GitHub README details DAG evolution, agentic operations, and persistent memory without hyperparameters; consistent with prior corroborated knowledge.",
+        "source": "https://fractal.ai/ai-research/pievolve"
+      },
+      {
+        "claim": "https://github.com/FractalAIResearchLabs/PiEvolve"
+      },
+      {
+        "claim": "PiEvolve's probabilistic policy uses adaptive priority scoring on solution chains to balance exploration (new drafts) and exploitation (refinement), enabling 61%+ MLE-Bench success without disclosed rates affecting convergence speed and robustness.",
+        "confidence": "medium",
+        "reasoning": "Single-source description from GitHub; no numbers but explains mechanism (poor chains deprioritized) and impact (faster convergence, efficiency matching longer runs); trade-off: compute-intensive but scalable via memory.",
+        "source": "https://github.com/FractalAIResearchLabs/PiEvolve"
+      }
+    ],
+    "key_insights": [
+      "PiEvolve relies on non-numerical adaptive mechanisms (priority scoring, DAG lineage) for self-improvement, prioritizing flexibility over fixed hyperparameters.",
+      "Lack of disclosure suggests proprietary tuning; public details emphasize architecture enabling continuous optimization without restart.",
+      "Adaptive balance prevents premature convergence, yielding superior medium/high-difficulty performance vs. static baselines."
+    ],
+    "knowledge_gaps": [
+      "Exact numerical values for mutation rates, action probabilities, or scoring formulas.",
+      "Code-level implementation details (e.g., config files in GitHub repo not publicly detailing hypers).",
+      "Empirical sensitivity analysis of hypers on learning capabilities."
+    ],
+    "sources_used": [
+      "https://fractal.ai/ai-research/pievolve",
+      "https://github.com/FractalAIResearchLabs/PiEvolve",
+      "https://github.com/FractalAIResearchLabs/PiEvolve/releases",
+      "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html"
+    ],
+    "summary": "No specific numerical hyperparameters for PiEvolve are publicly available, consistent across official Fractal pages and GitHub. The system uses adaptive probabilistic policies for exploration-exploitation, enabling efficient autonomous learning (61%+ MLE-Bench) via DAG-structured evolution, but exact tuning remains proprietary.",
+    "_searches_made": 4,
+    "_empty_searches": 0,
+    "_tool_log": [
+      {
+        "tool": "web_search",
+        "query": "PiEvolve hyperparameters Fractal",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "\"PiEvolve\" \"mutation rate\" OR \"action probability\" OR \"hyperparameter\"",
+        "success": true,
+        "results": 8
+      },
+      {
+        "tool": "web_search",
+        "query": "PiEvolve GitHub code hyperparameters",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "web_search",
+        "query": "PiEvolve technical paper OR whitepaper",
+        "success": true,
+        "results": 5
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://fractal.ai/ai-research/pievolve",
+        "success": true,
+        "chars": 2296,
+        "title": "PiEvolve | Fractal Analytics"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://github.com/FractalAIResearchLabs/PiEvolve",
+        "success": true,
+        "chars": 5215,
+        "title": "GitHub - FractalAIResearchLabs/PiEvolve: Pioneer Evolutionary Agent for solving "
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://github.com/FractalAIResearchLabs/PiEvolve/releases",
+        "success": true,
+        "chars": 292,
+        "title": "Releases \u00b7 FractalAIResearchLabs/PiEvolve \u00b7 GitHub"
+      },
+      {
+        "tool": "fetch_page",
+        "url": "https://www.prnewswire.com/news-releases/fractal-launches-pievolve-an-evolutionary-agentic-engine-for-autonomous-machine-learning-and-scientific-discovery-302695385.html",
+        "success": true,
+        "chars": 3767,
+        "title": "Fractal Launches PiEvolve, an Evolutionary Agentic Engine for Autonomous Machine"
+      }
+    ]
+  },
+  "critique": {
+    "scores": {
+      "accuracy": 7.0,
+      "depth": 7.0,
+      "completeness": 7.0,
+      "specificity": 6.5,
+      "intellectual_honesty": 9.0
+    },
+    "overall_score": 7.23,
+    "strengths": [
+      "All cited sources were actually fetched and verified",
+      "Excellent intellectual honesty - clearly states when information is not available rather than speculating",
+      "Comprehensive source coverage including official website, GitHub, releases, and press materials",
+      "Properly distinguishes between what is disclosed (adaptive mechanisms) vs. what is not (specific numerical values)",
+      "Good use of confidence levels and reasoning for each claim",
+      "Accurate verification of claims across multiple primary sources."
+    ],
+    "weaknesses": [
+      "Second claim is malformed (just a URL with no actual claim text)",
+      "Could have attempted to find academic papers or technical documentation beyond the obvious sources",
+      "Performance metric (61%+ MLE-Bench) mentioned but not well contextualized",
+      "Limited exploration of why hyperparameters might be proprietary or what typical ranges might be for similar systems",
+      "Limited depth in explaining the adaptive mechanisms beyond surface-level descriptions.",
+      "Incomplete exploration of potential secondary sources or related literature that might provide indirect insights into hyperparameters.",
+      "[CONFIDENCE CHECK] 1 'high' confidence claim(s) lack multi-source backing (accuracy -1.0): 'No specific numerical hyperparameters (e.g., mutation rates, action probabilitie...' (high confidence, only 1 source(s))"
+    ],
+    "actionable_feedback": "Fix the malformed second claim. Consider searching for academic papers, conference presentations, or technical blogs that might contain more implementation details. When proprietary information is unavailable, provide more context about what typical hyperparameter ranges are for similar evolutionary/genetic algorithms to give readers a frame of reference. The 61% MLE-Bench result needs more context - what does this benchmark measure and how does this compare to other approaches?",
+    "verdict": "accept",
+    "_ensemble": true,
+    "_ensemble_scores": [
+      7.6,
+      7.3
+    ],
+    "_ensemble_divergence": 0.3,
+    "_confidence_penalty": {
+      "count": 1,
+      "penalty_applied": 1.0,
+      "original_accuracy": 8.0,
+      "new_accuracy": 7.0
+    }
+  },
+  "overall_score": 7.23,
+  "accepted": true,
+  "verdict": "accept"
+}

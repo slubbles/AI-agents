@@ -1,0 +1,10 @@
+[
+  {
+    "lesson": "Accuracy failure (scored 3.0): verify claims against fetched content before including them",
+    "source": "critic_rejection",
+    "details": "5/5 searches returned 0 results",
+    "hit_count": 1,
+    "created": "2026-03-02T11:01:21.905092+00:00",
+    "last_seen": "2026-03-02T11:01:21.905099+00:00"
+  }
+]
