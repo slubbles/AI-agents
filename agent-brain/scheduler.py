@@ -800,18 +800,21 @@ def run_daemon(
                                 main_mod = importlib.import_module("main")
                                 return main_mod.run_loop(question=question, domain=domain)
                             
-                            with ThreadPoolExecutor(max_workers=1) as pool:
-                                future = pool.submit(_run_round)
-                                try:
-                                    result = future.result(timeout=MAX_ROUND_DURATION_SECONDS)
-                                except FutureTimeoutError:
-                                    _log_daemon(
-                                        f"  {domain} round {r+1}: TIMEOUT after "
-                                        f"{MAX_ROUND_DURATION_SECONDS}s — killed",
-                                        "error"
-                                    )
-                                    # Count as a failure but continue to next round
-                                    continue
+                            executor = ThreadPoolExecutor(max_workers=1)
+                            future = executor.submit(_run_round)
+                            try:
+                                result = future.result(timeout=MAX_ROUND_DURATION_SECONDS)
+                                executor.shutdown(wait=False)
+                            except FutureTimeoutError:
+                                # Don't wait for the stuck thread — shut down immediately
+                                executor.shutdown(wait=False, cancel_futures=True)
+                                _log_daemon(
+                                    f"  {domain} round {r+1}: TIMEOUT after "
+                                    f"{MAX_ROUND_DURATION_SECONDS}s — killed",
+                                    "error"
+                                )
+                                # Count as a failure but continue to next round
+                                continue
                             
                             score = result.get("critique", {}).get("overall_score", 0)
                             round_cost = result.get("_cost", 0)
