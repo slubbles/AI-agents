@@ -11,6 +11,8 @@ import json
 import os
 from datetime import datetime, timezone, date
 from config import LOG_DIR, COST_PER_1K, DAILY_BUDGET_USD, TOTAL_BALANCE_USD
+from config import DAILY_BUDGET_CLAUDE, DAILY_BUDGET_OPENROUTER
+from config import BALANCE_CLAUDE, BALANCE_OPENROUTER, MODEL_PROVIDER
 
 
 COST_LOG = os.path.join(LOG_DIR, "costs.jsonl")
@@ -53,7 +55,8 @@ def get_daily_spend(target_date: str | None = None) -> dict:
     Get total estimated spend for a given date (default: today).
 
     Returns:
-        {date, total_usd, calls, by_agent: {role: usd}, by_model: {model: usd}}
+        {date, total_usd, calls, by_agent: {role: usd}, by_model: {model: usd},
+         by_provider: {claude: usd, openrouter: usd}}
     """
     if target_date is None:
         target_date = date.today().isoformat()
@@ -62,9 +65,11 @@ def get_daily_spend(target_date: str | None = None) -> dict:
     calls = 0
     by_agent = {}
     by_model = {}
+    by_provider = {"claude": 0.0, "openrouter": 0.0}
 
     if not os.path.exists(COST_LOG):
-        return {"date": target_date, "total_usd": 0, "calls": 0, "by_agent": {}, "by_model": {}}
+        return {"date": target_date, "total_usd": 0, "calls": 0,
+                "by_agent": {}, "by_model": {}, "by_provider": by_provider}
 
     with open(COST_LOG) as f:
         for line in f:
@@ -88,29 +93,70 @@ def get_daily_spend(target_date: str | None = None) -> dict:
             model = entry.get("model", "unknown")
             by_model[model] = by_model.get(model, 0) + cost
 
+            # Provider breakdown
+            provider = MODEL_PROVIDER.get(model, "openrouter")
+            by_provider[provider] = by_provider.get(provider, 0) + cost
+
     return {
         "date": target_date,
         "total_usd": round(total, 4),
         "calls": calls,
         "by_agent": {k: round(v, 4) for k, v in by_agent.items()},
         "by_model": {k: round(v, 4) for k, v in by_model.items()},
+        "by_provider": {k: round(v, 4) for k, v in by_provider.items()},
     }
 
 
 def check_budget() -> dict:
     """
-    Check if today's spend is within budget.
+    Check if today's spend is within budget (per-provider aware).
+
+    Budget is considered within limits if BOTH providers are under their
+    individual daily caps. The combined total is also tracked.
 
     Returns:
-        {within_budget: bool, spent: float, limit: float, remaining: float}
+        {within_budget: bool, spent: float, limit: float, remaining: float,
+         by_provider: {claude: {spent, limit, remaining, within},
+                       openrouter: {spent, limit, remaining, within}},
+         violated_provider: str|None}
     """
     daily = get_daily_spend()
     spent = daily["total_usd"]
+    by_prov = daily.get("by_provider", {"claude": 0, "openrouter": 0})
+
+    claude_spent = by_prov.get("claude", 0)
+    openrouter_spent = by_prov.get("openrouter", 0)
+
+    claude_ok = claude_spent < DAILY_BUDGET_CLAUDE
+    openrouter_ok = openrouter_spent < DAILY_BUDGET_OPENROUTER
+
+    # Identify which provider (if any) is over budget
+    violated = None
+    if not claude_ok:
+        violated = "claude"
+    elif not openrouter_ok:
+        violated = "openrouter"
+
     return {
-        "within_budget": spent < DAILY_BUDGET_USD,
+        "within_budget": claude_ok and openrouter_ok,
         "spent": spent,
         "limit": DAILY_BUDGET_USD,
         "remaining": round(DAILY_BUDGET_USD - spent, 4),
+        "by_provider": {
+            "claude": {
+                "spent": claude_spent,
+                "limit": DAILY_BUDGET_CLAUDE,
+                "remaining": round(DAILY_BUDGET_CLAUDE - claude_spent, 4),
+                "within": claude_ok,
+            },
+            "openrouter": {
+                "spent": openrouter_spent,
+                "limit": DAILY_BUDGET_OPENROUTER,
+                "remaining": round(DAILY_BUDGET_OPENROUTER - openrouter_spent, 4),
+                "within": openrouter_ok,
+            },
+        },
+        "violated_provider": violated,
     }
 
 
@@ -119,31 +165,53 @@ def check_balance() -> dict:
     Check remaining API credit balance (total, not daily).
 
     Subtracts all-time tracked spend from TOTAL_BALANCE_USD.
-    Compare with Claude console to verify accuracy.
+    Compare with Claude console / OpenRouter dashboard to verify accuracy.
 
     Returns:
-        {starting_balance, total_spent, remaining_balance, accuracy_note}
+        {starting_balance, total_spent, remaining_balance, accuracy_note,
+         by_provider: {claude: {...}, openrouter: {...}}}
     """
     alltime = get_all_time_spend()
     total_spent = alltime["total_usd"]
     remaining = round(TOTAL_BALANCE_USD - total_spent, 4)
+
+    # Per-provider balance (all-time spend by model → provider)
+    by_prov_spent = {"claude": 0.0, "openrouter": 0.0}
+    for model, cost in alltime.get("by_model", {}).items():
+        provider = MODEL_PROVIDER.get(model, "openrouter")
+        by_prov_spent[provider] = by_prov_spent.get(provider, 0) + cost
+
     return {
         "starting_balance": TOTAL_BALANCE_USD,
         "total_spent": total_spent,
         "remaining_balance": remaining,
         "total_calls": alltime["calls"],
-        "accuracy_note": "Compare with Claude console to verify. Update TOTAL_BALANCE_USD in config.py if drifted.",
+        "by_provider": {
+            "claude": {
+                "balance": BALANCE_CLAUDE,
+                "spent": round(by_prov_spent["claude"], 4),
+                "remaining": round(BALANCE_CLAUDE - by_prov_spent["claude"], 4),
+            },
+            "openrouter": {
+                "balance": BALANCE_OPENROUTER,
+                "spent": round(by_prov_spent["openrouter"], 4),
+                "remaining": round(BALANCE_OPENROUTER - by_prov_spent["openrouter"], 4),
+            },
+        },
+        "accuracy_note": "Compare with Claude console / OpenRouter dashboard. "
+                         "Update BALANCE_CLAUDE and BALANCE_OPENROUTER in config.py if drifted.",
     }
 
 
 def get_all_time_spend() -> dict:
     """Get total spend across all days."""
     if not os.path.exists(COST_LOG):
-        return {"total_usd": 0, "calls": 0, "days": 0, "by_date": {}}
+        return {"total_usd": 0, "calls": 0, "days": 0, "by_date": {}, "by_model": {}}
 
     total = 0.0
     calls = 0
     by_date = {}
+    by_model = {}
 
     with open(COST_LOG) as f:
         for line in f:
@@ -162,9 +230,13 @@ def get_all_time_spend() -> dict:
             d = entry.get("date", "unknown")
             by_date[d] = by_date.get(d, 0) + cost
 
+            model = entry.get("model", "unknown")
+            by_model[model] = by_model.get(model, 0) + cost
+
     return {
         "total_usd": round(total, 4),
         "calls": calls,
         "days": len(by_date),
         "by_date": {k: round(v, 4) for k, v in sorted(by_date.items())},
+        "by_model": {k: round(v, 4) for k, v in by_model.items()},
     }

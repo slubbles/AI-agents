@@ -417,10 +417,13 @@ class TestCostTracker:
     def test_check_budget_exceeded(self, tmp_logs):
         from cost_tracker import log_cost, check_budget
 
-        with patch("cost_tracker.DAILY_BUDGET_USD", 0.001):
+        with patch("cost_tracker.DAILY_BUDGET_USD", 0.001), \
+             patch("cost_tracker.DAILY_BUDGET_CLAUDE", 0.001), \
+             patch("cost_tracker.DAILY_BUDGET_OPENROUTER", 0.001):
             log_cost("claude-sonnet-4-20250514", 100000, 50000, "critic", "test")
             budget = check_budget()
             assert budget["within_budget"] is False
+            assert budget["violated_provider"] == "claude"
 
     def test_get_all_time_spend(self, tmp_logs):
         from cost_tracker import log_cost, get_all_time_spend

@@ -88,10 +88,25 @@ COST_PER_1K = {
     # DeepSeek V3.2 via OpenRouter (cheapest)
     "deepseek/deepseek-chat": {"input": 0.00027, "output": 0.0011},
 }
-DAILY_BUDGET_USD = 2.00  # Normal daily budget — the actual gate that blocks execution
-# Display-only: approximate API credit balance. Not a gate — just shown in status output.
-# Update with: python main.py --sync-balance  (or manually from Claude console)
-TOTAL_BALANCE_USD = float(os.environ.get("TOTAL_BALANCE_USD", "11.74"))
+DAILY_BUDGET_USD = 7.00  # Combined daily budget (sum of per-provider limits)
+
+# Per-provider daily budget limits
+DAILY_BUDGET_CLAUDE = float(os.environ.get("DAILY_BUDGET_CLAUDE", "2.00"))
+DAILY_BUDGET_OPENROUTER = float(os.environ.get("DAILY_BUDGET_OPENROUTER", "5.00"))
+
+# Display-only: approximate API credit balances. Not gates — just shown in status.
+# Update with: python main.py --sync-balance (or manually from provider consoles)
+TOTAL_BALANCE_USD = float(os.environ.get("TOTAL_BALANCE_USD", "13.31"))
+BALANCE_CLAUDE = float(os.environ.get("BALANCE_CLAUDE", "3.90"))
+BALANCE_OPENROUTER = float(os.environ.get("BALANCE_OPENROUTER", "9.41"))
+
+# Model → provider mapping (for per-provider budget tracking)
+MODEL_PROVIDER = {
+    "claude-haiku-4-5-20251001": "claude",
+    "claude-sonnet-4-20250514": "claude",
+    "x-ai/grok-4.1-fast": "openrouter",
+    "deepseek/deepseek-chat": "openrouter",
+}
 
 # --- Loop ---
 DEFAULT_DOMAIN = "general"
