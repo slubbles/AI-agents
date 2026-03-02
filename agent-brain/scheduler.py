@@ -751,7 +751,10 @@ def run_daemon(
                 
                 completed = 0
                 domain_results = []
-                cycle_cost = 0.0
+                
+                # Track cycle cost by measuring daily spend before/after
+                from cost_tracker import get_daily_spend
+                spend_before = get_daily_spend()["total_usd"]
                 
                 for alloc in allocation:
                     if _daemon_stop_event.is_set():
@@ -817,9 +820,7 @@ def run_daemon(
                                 continue
                             
                             score = result.get("critique", {}).get("overall_score", 0)
-                            round_cost = result.get("_cost", 0)
                             domain_scores.append(score)
-                            cycle_cost += round_cost
                             completed += 1
                             _log_daemon(f"  {domain} round {r+1}: score {score}/10")
                             
@@ -838,6 +839,10 @@ def run_daemon(
 
                 cycle_end = datetime.now(timezone.utc)
                 duration = (cycle_end - cycle_start).total_seconds()
+                
+                # Compute actual cycle cost from daily spend delta
+                spend_after = get_daily_spend()["total_usd"]
+                cycle_cost = round(spend_after - spend_before, 4)
                 
                 # Calculate cycle average score
                 all_scores = []
@@ -934,11 +939,20 @@ def run_daemon(
         signal.signal(signal.SIGINT, original_sigint)
         signal.signal(signal.SIGTERM, original_sigterm)
         _log_daemon("Daemon stopped.")
-        _save_daemon_state({
+        # Preserve last cycle results in the stopped state
+        prev_state = _load_daemon_state() or {}
+        stopped_state = {
             "status": "stopped",
             "total_cycles": cycle,
             "stopped_at": datetime.now(timezone.utc).isoformat(),
-        })
+        }
+        # Carry forward last cycle's results for visibility
+        for key in ("last_run", "last_completed", "duration_seconds",
+                     "rounds_completed", "avg_score", "cycle_cost",
+                     "domain_results"):
+            if key in prev_state:
+                stopped_state[key] = prev_state[key]
+        _save_daemon_state(stopped_state)
 
 
 def stop_daemon():
