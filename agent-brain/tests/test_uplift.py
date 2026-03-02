@@ -297,6 +297,7 @@ class TestCriticEnsemble:
             "verdict": "accept" if overall >= 6 else "reject",
         }
 
+    @patch("config.CRITIC_ENSEMBLE_MODEL_B", None)
     @patch("agents.critic._critique_single")
     def test_ensemble_averages_scores(self, mock_single):
         from agents.critic import _critique_ensemble, DEFAULT_RUBRIC_WEIGHTS
@@ -313,6 +314,7 @@ class TestCriticEnsemble:
         assert result["_ensemble_scores"] == [7.0, 7.0]
         assert mock_single.call_count == 2
 
+    @patch("config.CRITIC_ENSEMBLE_MODEL_B", None)
     @patch("agents.critic._critique_single")
     def test_ensemble_parse_error_fallback_a(self, mock_single):
         from agents.critic import _critique_ensemble, DEFAULT_RUBRIC_WEIGHTS
@@ -325,6 +327,7 @@ class TestCriticEnsemble:
         assert result["scores"]["accuracy"] == 7
         assert result["_ensemble"] == "fallback_b"
 
+    @patch("config.CRITIC_ENSEMBLE_MODEL_B", None)
     @patch("agents.critic._critique_single")
     def test_ensemble_parse_error_fallback_b(self, mock_single):
         from agents.critic import _critique_ensemble, DEFAULT_RUBRIC_WEIGHTS
@@ -337,6 +340,7 @@ class TestCriticEnsemble:
         assert result["scores"]["accuracy"] == 7
         assert result["_ensemble"] == "fallback_a"
 
+    @patch("config.CRITIC_ENSEMBLE_MODEL_B", None)
     @patch("agents.critic._critique_single")
     def test_ensemble_divergence_warning(self, mock_single):
         from agents.critic import _critique_ensemble, DEFAULT_RUBRIC_WEIGHTS
@@ -349,6 +353,7 @@ class TestCriticEnsemble:
         assert result["_ensemble_divergence"] == 4.0
         assert any("ENSEMBLE WARNING" in w for w in result["weaknesses"])
 
+    @patch("config.CRITIC_ENSEMBLE_MODEL_B", None)
     @patch("agents.critic._critique_single")
     def test_ensemble_no_divergence_warning_when_close(self, mock_single):
         from agents.critic import _critique_ensemble, DEFAULT_RUBRIC_WEIGHTS
@@ -361,6 +366,7 @@ class TestCriticEnsemble:
         assert result["_ensemble_divergence"] == 0.5
         assert not any("ENSEMBLE WARNING" in w for w in result["weaknesses"])
 
+    @patch("config.CRITIC_ENSEMBLE_MODEL_B", None)
     @patch("agents.critic._critique_single")
     def test_ensemble_deduplicates_strengths(self, mock_single):
         from agents.critic import _critique_ensemble, DEFAULT_RUBRIC_WEIGHTS

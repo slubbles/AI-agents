@@ -354,13 +354,21 @@ def _call_openrouter(
     if openai_tools:
         call_kwargs["tools"] = openai_tools
     
-    # Reasoning support (Grok, DeepSeek-R1, etc.)
-    # Sends reasoning.effort via extra_body so the model chains thought
-    # before responding. Valid values: "low", "medium", "high".
-    if reasoning_effort and reasoning_effort in ("low", "medium", "high"):
-        call_kwargs["extra_body"] = {
-            "reasoning": {"effort": reasoning_effort}
-        }
+    # Reasoning support — model-specific parameter formats:
+    # - Grok 4.1:     reasoning.effort via extra_body ("low", "medium", "high")
+    # - DeepSeek V3.2: reasoning_enabled boolean via extra_body (True/False)
+    if reasoning_effort:
+        if "deepseek" in model.lower():
+            # DeepSeek uses a boolean reasoning_enabled parameter
+            # Accept True/truthy or string values → convert to boolean
+            enabled = reasoning_effort is True or reasoning_effort in ("high", "medium", "low", "true", "True")
+            if enabled:
+                call_kwargs["extra_body"] = {"reasoning_enabled": True}
+        elif reasoning_effort in ("low", "medium", "high"):
+            # Grok and others use reasoning.effort
+            call_kwargs["extra_body"] = {
+                "reasoning": {"effort": reasoning_effort}
+            }
     
     # Add OpenRouter-specific headers
     call_kwargs["extra_headers"] = {
@@ -425,7 +433,8 @@ def check_providers() -> dict:
 # Cheap models via OpenRouter
 OPENROUTER_MODELS = {
     "grok-4.1-fast": "x-ai/grok-4.1-fast",
-    "deepseek-v3": "deepseek/deepseek-chat",
+    "deepseek-v3": "deepseek/deepseek-chat",        # DeepSeek V3.2
+    "deepseek-v3.2": "deepseek/deepseek-chat",      # alias
     "deepseek-r1": "deepseek/deepseek-reasoner",
     "llama-3.3-70b": "meta-llama/llama-3.3-70b-instruct",
     "llama-3.1-8b": "meta-llama/llama-3.1-8b-instruct",

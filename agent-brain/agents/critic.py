@@ -241,13 +241,24 @@ def _critique_ensemble(
     sources_summary: list[dict] | None,
 ) -> dict:
     """
-    Run 2 independent critic evaluations and average the scores.
+    Cross-model ensemble critic: Claude Sonnet (A) + DeepSeek V3.2 (B).
     
-    This catches single-critic hallucination and provides more calibrated
-    scoring. Cost: 2x critic API calls.
+    Two different model architectures scoring the same output = less correlated
+    failure modes and more calibrated scoring. ~40% cheaper than 2x Claude.
+    Falls back to same-model ensemble if cross-model config is absent.
     """
+    import config as _cfg
+    
+    # Critic A: Claude Sonnet (the primary, highest-quality critic)
     result_a = _critique_single(research_output, domain, weights, sources_summary)
-    result_b = _critique_single(research_output, domain, weights, sources_summary)
+    
+    # Critic B: DeepSeek V3.2 (different architecture, reasoning enabled)
+    ensemble_model = getattr(_cfg, "CRITIC_ENSEMBLE_MODEL_B", None)
+    if ensemble_model and ensemble_model != MODELS.get("critic"):
+        result_b = _critique_cross_model(research_output, domain, weights, sources_summary, ensemble_model)
+    else:
+        # Fallback: same model, different call (original behavior)
+        result_b = _critique_single(research_output, domain, weights, sources_summary)
     
     # If either had a parse error, use the other
     if result_a.get("_parse_error"):
@@ -305,6 +316,78 @@ def _critique_ensemble(
         )
     
     return result
+
+
+def _critique_cross_model(
+    research_output: dict,
+    domain: str,
+    weights: dict,
+    sources_summary: list[dict] | None,
+    model: str,
+) -> dict:
+    """
+    Run a critic evaluation using an alternative model via llm_router.
+    
+    Used for the cross-model ensemble: sends the same prompt to DeepSeek V3.2
+    (or any configured model) with reasoning enabled for deeper analysis.
+    """
+    import config as _cfg
+    from llm_router import call_llm
+    
+    system_prompt = _build_critic_prompt(weights)
+    user_message = _build_user_message(research_output, sources_summary)
+    
+    # Get reasoning setting for ensemble critic B
+    reasoning = getattr(_cfg, "REASONING_EFFORT", {}).get("critic_ensemble_b", None)
+    
+    try:
+        response = call_llm(
+            model=model,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_message}],
+            max_tokens=2048,
+            temperature=0.3,  # Lower temp for evaluation tasks
+            reasoning_effort=reasoning,
+        )
+        
+        # Track cost
+        if response.usage:
+            log_cost(model, response.usage.input_tokens, response.usage.output_tokens,
+                     "critic_ensemble_b", domain or "general")
+        
+        # Extract text from normalized response
+        raw_text = ""
+        for block in response.content:
+            if hasattr(block, "text"):
+                raw_text += block.text
+        raw_text = raw_text.strip()
+        
+        EXPECTED_KEYS = {"scores", "overall_score", "verdict"}
+        result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
+        
+        if result is None:
+            if getattr(_cfg, "CRITIC_LOG_PARSE_FAILURES", True):
+                _log_parse_failure(domain, f"[CROSS-MODEL {model}] {raw_text}")
+            return {
+                "scores": {"accuracy": 0, "depth": 0, "completeness": 0, "specificity": 0, "intellectual_honesty": 0},
+                "overall_score": 0,
+                "strengths": [],
+                "weaknesses": [f"Cross-model critic ({model}) failed to produce structured output"],
+                "actionable_feedback": "Unable to evaluate",
+                "verdict": "reject",
+                "_parse_error": True,
+            }
+        
+        if "overall_score" in result and "verdict" not in result:
+            result["verdict"] = "accept" if result["overall_score"] >= 6 else "reject"
+        
+        result["_model"] = model
+        return result
+        
+    except Exception as e:
+        logger.warning(f"Cross-model critic ({model}) failed: {e}")
+        # Fallback to primary critic
+        return _critique_single(research_output, domain, weights, sources_summary)
 
 
 def _build_user_message(research_output: dict, sources_summary: list[dict] | None) -> str:

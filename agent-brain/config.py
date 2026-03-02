@@ -13,27 +13,50 @@ load_dotenv(Path(__file__).parent / ".env")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 
-# Cheap model via OpenRouter (Grok 4.1 Fast)
-# Falls back to Claude Haiku if OpenRouter not configured
-CHEAP_MODEL = (
-    "x-ai/grok-4.1-fast"  # fast + cheap via OpenRouter
-    if OPENROUTER_API_KEY 
-    else "claude-haiku-4-5-20251001"
+# ── 3-Tier Model Architecture ──────────────────────────────────────────
+# Tier 1 (CHEAPEST): DeepSeek V3.2 — high-volume, low-stakes tasks
+# Tier 2 (FAST):     Grok 4.1 Fast — latency-sensitive, tool-use loops
+# Tier 3 (PREMIUM):  Claude Sonnet  — sacred quality tasks, reasoning
+#
+# Zero overlap: each model serves a distinct purpose based on task profile.
+
+_FALLBACK = "claude-haiku-4-5-20251001"  # when OpenRouter not configured
+
+CHEAPEST_MODEL = (
+    "deepseek/deepseek-chat"  # DeepSeek V3.2 — cheapest, strong reasoning
+    if OPENROUTER_API_KEY
+    else _FALLBACK
 )
 
+FAST_MODEL = (
+    "x-ai/grok-4.1-fast"  # Grok 4.1 — low latency, tool-use loops
+    if OPENROUTER_API_KEY
+    else _FALLBACK
+)
+
+PREMIUM_MODEL = "claude-sonnet-4-20250514"  # Sacred — never cut corners
+
+# Backward compat alias (some tests/modules reference CHEAP_MODEL)
+CHEAP_MODEL = FAST_MODEL
+
 # Model assignments per agent role
-# Critic gets the strongest model — it's the quality signal, don't cut corners.
-# Researcher uses a cheap model — it just searches and compiles.
-# Meta-analyst needs reasoning for pattern extraction — uses Sonnet.
+# Tier 1 = cheapest (synthesis/routing), Tier 2 = fast (interactive/tools),
+# Tier 3 = premium (quality-critical judgment)
 MODELS = {
-    "researcher": CHEAP_MODEL,                     # cheap — searches + compiles
-    "critic": "claude-sonnet-4-20250514",         # strong — quality is sacred
-    "meta_analyst": "claude-sonnet-4-20250514",   # strong — pattern extraction needs reasoning
-    "synthesizer": "claude-sonnet-4-20250514",    # strong — contradiction detection + integration
-    "cross_domain": "claude-sonnet-4-20250514",   # strong — principle abstraction
-    "question_generator": CHEAP_MODEL,             # cheap — routing/synthesis task
-    "verifier": "claude-sonnet-4-20250514",        # strong — reality checking is sacred (don't cut corners)
-    "cortex_orchestrator": "claude-sonnet-4-20250514",  # strong — strategic reasoning above Brain+Hands
+    # Tier 1 — DeepSeek V3.2 (cheapest, high volume)
+    "question_generator": CHEAPEST_MODEL,          # synthesis task — cheapest wins
+    "prescreen": CHEAPEST_MODEL,                    # pre-filter before Claude critic
+    "progress_tracker": CHEAPEST_MODEL,             # periodic assessment
+    # Tier 2 — Grok 4.1 Fast (low latency, tool-use loops)
+    "researcher": FAST_MODEL,                       # many tool-use round trips, speed matters
+    "chat": FAST_MODEL,                             # interactive, latency matters
+    # Tier 3 — Claude Sonnet (sacred quality tasks)
+    "critic": PREMIUM_MODEL,                        # quality signal — NEVER cut corners
+    "meta_analyst": PREMIUM_MODEL,                  # pattern extraction needs reasoning
+    "synthesizer": PREMIUM_MODEL,                   # contradiction detection + integration
+    "cross_domain": PREMIUM_MODEL,                  # principle abstraction
+    "verifier": PREMIUM_MODEL,                      # reality checking is sacred
+    "cortex_orchestrator": PREMIUM_MODEL,           # strategic reasoning above Brain+Hands
 }
 
 # --- Quality Gate ---
@@ -41,7 +64,8 @@ QUALITY_THRESHOLD = 6  # minimum score (1-10) to accept output
 MAX_RETRIES = 2  # how many times researcher retries after rejection
 
 # --- Critic Enhancements ---
-CRITIC_ENSEMBLE = False           # run 2 critics and average scores (2x critic cost)
+CRITIC_ENSEMBLE = True            # cross-model ensemble: Claude Sonnet + DeepSeek V3.2
+CRITIC_ENSEMBLE_MODEL_B = CHEAPEST_MODEL  # second critic voice (different architecture = less correlated errors)
 CRITIC_LOG_PARSE_FAILURES = True  # write raw critic response to logs/ on parse failure
 CONFIDENCE_VALIDATION = True      # post-hoc check: "high" claims must cite 2+ sources
 CONFIDENCE_PENALTY = 1.0          # accuracy deduction for invalid high-confidence claims
@@ -61,7 +85,7 @@ COST_PER_1K = {
     "claude-sonnet-4-20250514": {"input": 0.003, "output": 0.015},
     # Grok via OpenRouter
     "x-ai/grok-4.1-fast": {"input": 0.0005, "output": 0.002},
-    # Deepseek via OpenRouter
+    # DeepSeek V3.2 via OpenRouter (cheapest)
     "deepseek/deepseek-chat": {"input": 0.00027, "output": 0.0011},
 }
 DAILY_BUDGET_USD = 2.00  # Normal daily budget — the actual gate that blocks execution
@@ -78,20 +102,27 @@ MAX_SEARCHES = 10     # hard cap on total web searches per run
 MAX_FETCHES = 8       # hard cap on total page fetches per run
 
 # --- Reasoning (OpenRouter models with reasoning support) ---
-# Controls chain-of-thought reasoning for models like Grok 4.1.
-# Valid: None (disabled), "low", "medium", "high"
-# Higher effort = better quality but more tokens (more cost).
-# Per-role override: set reasoning effort where it helps most.
+# Grok 4.1:    reasoning.effort via extra_body ("low", "medium", "high")
+# DeepSeek V3.2: reasoning_enabled boolean via extra_body
+# Claude:      N/A (reasoning is native, no toggle)
+#
+# Per-role override: set reasoning where it helps most.
 REASONING_EFFORT = {
-    "researcher": None,            # keep cheap — searches + compiles, reasoning not needed
+    # Tier 1 — DeepSeek (reasoning_enabled boolean)
     "question_generator": None,    # keep cheap — synthesis task
-    "chat": None,                  # keep cheap — conversational, fast responses
-    "critic": None,                # N/A — uses Claude (Anthropic), not OpenRouter
-    "meta_analyst": None,          # N/A — uses Claude
-    "synthesizer": None,           # N/A — uses Claude
-    "cross_domain": None,          # N/A — uses Claude
-    "verifier": None,              # N/A — uses Claude
-    "cortex_orchestrator": None,   # N/A — uses Claude
+    "prescreen": None,             # keep cheap — pre-filter
+    "progress_tracker": None,      # keep cheap — assessment
+    "critic_ensemble_b": True,     # ENABLE reasoning for DeepSeek critic (quality matters)
+    # Tier 2 — Grok (reasoning.effort: low/medium/high)
+    "researcher": None,            # keep fast — tool-use loops, reasoning slows down
+    "chat": None,                  # keep fast — conversational, low latency
+    # Tier 3 — Claude (N/A — reasoning is native)
+    "critic": None,
+    "meta_analyst": None,
+    "synthesizer": None,
+    "cross_domain": None,
+    "verifier": None,
+    "cortex_orchestrator": None,
 }
 
 # --- RAG (Retrieval-Augmented Generation) ---
@@ -192,10 +223,10 @@ RATE_LIMIT_FETCHES_PER_MINUTE = 20    # max page fetches per minute
 
 # Model assignments for execution agents
 MODELS.update({
-    "planner": "claude-sonnet-4-20250514",       # strong — plan decomposition needs reasoning
-    "executor": CHEAP_MODEL,                    # cheap — follows plans, uses tools
-    "exec_validator": "claude-sonnet-4-20250514",# strong — quality judgment is sacred
-    "exec_meta_analyst": "claude-sonnet-4-20250514",  # strong — pattern extraction
+    "planner": PREMIUM_MODEL,                    # strong — plan decomposition needs reasoning
+    "executor": CHEAPEST_MODEL,                  # cheapest — follows plans, uses tools
+    "exec_validator": PREMIUM_MODEL,             # strong — quality judgment is sacred
+    "exec_meta_analyst": PREMIUM_MODEL,          # strong — pattern extraction
 })
 
 # --- Execution Quality Gate ---

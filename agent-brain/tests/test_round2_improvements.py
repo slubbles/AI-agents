@@ -228,7 +228,8 @@ class TestCriticSourceVerification:
         mock_response.usage = MagicMock(input_tokens=100, output_tokens=50)
         
         with patch("agents.critic.create_message", return_value=mock_response), \
-             patch("agents.critic.log_cost"):
+             patch("agents.critic.log_cost"), \
+             patch("config.CRITIC_ENSEMBLE", False):
             result = critique({"question": "Q", "findings": [], "summary": "S"}, sources_summary=None)
         
         assert result["verdict"] == "accept"
