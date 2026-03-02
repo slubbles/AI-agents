@@ -147,6 +147,16 @@ def _build_system_prompt(domain_strategy: str | None = None, domain: str = "") -
     """
     baseline = _build_baseline()
     
+    # Inject identity layer — system values and constraints
+    identity_block = ""
+    try:
+        from identity_loader import get_identity_summary
+        identity_summary = get_identity_summary()
+        if identity_summary:
+            identity_block = f"\n=== IDENTITY (who you are) ===\n{identity_summary}\n=== END IDENTITY ==="
+    except Exception:
+        pass
+    
     # Inject domain goal — the user's actual intent
     goal_block = ""
     if domain:
@@ -176,6 +186,9 @@ academic knowledge (market size reports, industry frameworks, analyst forecasts)
             pass
     
     parts = [baseline]
+    
+    if identity_block:
+        parts.append(identity_block)
     
     if goal_block:
         parts.append(goal_block)

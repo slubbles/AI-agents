@@ -77,6 +77,23 @@ MAX_TOOL_ROUNDS = 8   # max rounds of tool-use before forcing output
 MAX_SEARCHES = 10     # hard cap on total web searches per run
 MAX_FETCHES = 8       # hard cap on total page fetches per run
 
+# --- Reasoning (OpenRouter models with reasoning support) ---
+# Controls chain-of-thought reasoning for models like Grok 4.1.
+# Valid: None (disabled), "low", "medium", "high"
+# Higher effort = better quality but more tokens (more cost).
+# Per-role override: set reasoning effort where it helps most.
+REASONING_EFFORT = {
+    "researcher": None,            # keep cheap — searches + compiles, reasoning not needed
+    "question_generator": None,    # keep cheap — synthesis task
+    "chat": None,                  # keep cheap — conversational, fast responses
+    "critic": None,                # N/A — uses Claude (Anthropic), not OpenRouter
+    "meta_analyst": None,          # N/A — uses Claude
+    "synthesizer": None,           # N/A — uses Claude
+    "cross_domain": None,          # N/A — uses Claude
+    "verifier": None,              # N/A — uses Claude
+    "cortex_orchestrator": None,   # N/A — uses Claude
+}
+
 # --- RAG (Retrieval-Augmented Generation) ---
 RAG_ENABLED = True                # use vector embeddings for semantic retrieval
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # local, free, 384 dimensions

@@ -19,13 +19,15 @@ Usage:
 import json
 import os
 import sys
+import re
+import time as _time
 import readline  # enables arrow keys, history in input()
 from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from config import MODELS, DEFAULT_DOMAIN, DAILY_BUDGET_USD, CHEAP_MODEL
+from config import MODELS, DEFAULT_DOMAIN, DAILY_BUDGET_USD, CHEAP_MODEL, REASONING_EFFORT
 from llm_router import call_llm
 from cost_tracker import log_cost
 
@@ -117,6 +119,19 @@ def _summarize_conversation(messages: list) -> str:
             text = m["content"][:80]
             return text + ("..." if len(m["content"]) > 80 else "")
     return ""
+
+
+# ============================================================
+# Identity Helper
+# ============================================================
+
+def _get_identity_for_chat() -> str:
+    """Load identity summary for injection into chat system prompt."""
+    try:
+        from identity_loader import get_identity_summary
+        return get_identity_summary()
+    except Exception:
+        return "(Identity layer not loaded)"
 
 
 # ============================================================
@@ -315,6 +330,9 @@ CRITICAL BEHAVIOR: When the user wants to research something or run cycles:
 Never run research cycles without a goal. The whole point is directed research, not academic browsing.
 
 {goal_info}
+
+IDENTITY:
+{_get_identity_for_chat()}
 
 CURRENT STATE:
   Domain: {domain}
@@ -1485,42 +1503,45 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
 # ============================================================
 
 WELCOME = """
-╔══════════════════════════════════════════════════════════════╗
-║              CORTEX — Autonomous Agent System                ║
-║       Chat (Grok) → Orchestrator (Sonnet) → Brain + Hands   ║
-╠══════════════════════════════════════════════════════════════╣
-║  Talk to the full system naturally. Research, build, manage.║
-║  Complex reasoning routes through the Cortex Orchestrator.  ║
-║                                                             ║
-║  Research:                                                  ║
-║    "What do you know about crypto?"                         ║
-║    "Research the latest React 19 features"                  ║
-║    "What are the knowledge gaps in productized-services?"   ║
-║                                                             ║
-║  Strategic (→ Orchestrator):                                ║
-║    "What should we focus on next?"                          ║
-║    "Interpret the productized-services research"            ║
-║    "What should Hands build based on our research?"         ║
-║    "Give me a full system health assessment"                ║
-║                                                             ║
-║  Build:                                                     ║
-║    "Build a REST API for user management"                   ║
-║    "Auto-build something for the nextjs-react domain"       ║
-║    "Start a project: build a SaaS dashboard"                ║
-║                                                             ║
-║  System feedback:                                           ║
-║    "How is the system performing?"                          ║
-║    "What have we built so far?"                             ║
-║    "Give me feedback on the architecture"                   ║
-║                                                             ║
-║  Type 'quit' or 'exit' to leave. Ctrl+C also works.        ║
-║  Type '/domain <name>' to switch domains.                   ║
-║  Type '/clear' to reset conversation history.               ║
-║  Type '/sessions' to list saved conversations.              ║
-║  Type '/load <id>' to resume a previous conversation.       ║
-║  Type '/new' to start a fresh conversation.                 ║
-╚══════════════════════════════════════════════════════════════╝
+\033[1;36m╔══════════════════════════════════════════════════════════════╗
+║                       CORTEX                                 ║
+║          Autonomous Research & Execution System              ║
+╠══════════════════════════════════════════════════════════════╣\033[0m
+  \033[1mArchitecture:\033[0m Chat (Grok) → Orchestrator (Sonnet) → Brain + Hands
+
+  \033[1;33mResearch:\033[0m  "Research the latest React 19 features"
+  \033[1;33mStrategic:\033[0m "What should we focus on next?"  →  Orchestrator
+  \033[1;33mBuild:\033[0m     "Build a REST API for user management"
+  \033[1;33mStatus:\033[0m    "How is the system performing?"
+
+  \033[2mCommands:\033[0m
+    /domain <name>  Switch domain       /sessions  List conversations
+    /clear          Reset history        /load <id> Resume conversation
+    /new            Fresh session         /context  Show current state
+    /reasoning      Toggle Grok reasoning (off by default)
+    /help           Show this message    quit/exit  Leave
+\033[1;36m╚══════════════════════════════════════════════════════════════╝\033[0m
 """
+
+
+def _format_markdown(text: str) -> str:
+    """Convert markdown formatting to ANSI terminal codes."""
+    # Bold: **text** → \033[1mtext\033[0m
+    text = re.sub(r'\*\*(.+?)\*\*', r'\033[1m\1\033[0m', text)
+    # Italic: *text* → \033[3mtext\033[0m (but not ** or list items)
+    text = re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'\033[3m\1\033[0m', text)
+    # Inline code: `text` → \033[33mtext\033[0m (yellow)
+    text = re.sub(r'`([^`]+)`', r'\033[33m\1\033[0m', text)
+    # Headers: ## text → bold + underline
+    text = re.sub(r'^(#{1,3})\s+(.+)$', r'\033[1;4m\2\033[0m', text, flags=re.MULTILINE)
+    # Bullet points: - text or • text → colored bullet
+    text = re.sub(r'^(\s*)[-•]\s', r'\1\033[36m•\033[0m ', text, flags=re.MULTILINE)
+    # Score formatting: [7.0] or [8.5] → colored
+    text = re.sub(r'\[(\d+\.\d+)\]', r'\033[1;33m[\1]\033[0m', text)
+    # Checkmarks
+    text = text.replace('✓', '\033[32m✓\033[0m')
+    text = text.replace('✗', '\033[31m✗\033[0m')
+    return text
 
 
 def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
@@ -1576,12 +1597,16 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
     
     print(f"  Active domain: {domain}")
     print(f"  Session: {session_id}")
-    print(f"  Model: {CHEAP_MODEL} (chat) / Sonnet (orchestrator + research)\n")
-    
-    system_prompt = _build_system_context(domain)
     
     # Use the cheap model for conversation (fast + affordable)
     chat_model = CHEAP_MODEL
+    
+    # Reasoning toggle — starts based on config, togglable via /reasoning
+    chat_reasoning = REASONING_EFFORT.get("chat")
+    reasoning_label = f" + reasoning={chat_reasoning}" if chat_reasoning else ""
+    print(f"  Model: {CHEAP_MODEL} (chat{reasoning_label}) / Sonnet (orchestrator + research)\n")
+    
+    system_prompt = _build_system_context(domain)
     
     while True:
         try:
@@ -1656,11 +1681,37 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
             print(WELCOME)
             continue
         
+        if user_input.lower().startswith("/reasoning"):
+            parts = user_input.split()
+            if len(parts) == 1:
+                # Toggle: off → high, or any → off
+                if chat_reasoning:
+                    chat_reasoning = None
+                    print("  Reasoning: \033[31mOFF\033[0m (faster, cheaper)\n")
+                else:
+                    chat_reasoning = "high"
+                    print("  Reasoning: \033[32mHIGH\033[0m (better quality, more tokens)\n")
+            elif len(parts) == 2 and parts[1].lower() in ("off", "low", "medium", "high"):
+                level = parts[1].lower()
+                if level == "off":
+                    chat_reasoning = None
+                    print("  Reasoning: \033[31mOFF\033[0m\n")
+                else:
+                    chat_reasoning = level
+                    print(f"  Reasoning: \033[32m{level.upper()}\033[0m\n")
+            else:
+                print("  Usage: /reasoning [off|low|medium|high]  (no arg = toggle)\n")
+            continue
+        
         if user_input.lower() == "/context":
+            from cost_tracker import get_daily_spend
+            daily = get_daily_spend()
+            reasoning_str = f", reasoning={chat_reasoning}" if chat_reasoning else ""
             print(f"\n  Domain: {domain}")
             print(f"  Session: {session_id}")
             print(f"  History: {len(conversation)} messages")
-            print(f"  Model: {chat_model}\n")
+            print(f"  Model: {chat_model}{reasoning_str}")
+            print(f"  Budget: ${daily.get('total_usd', 0):.2f} / ${DAILY_BUDGET_USD:.2f} today\n")
             continue
         
         # Add user message
@@ -1672,6 +1723,10 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
         
         # Call LLM with tools
         try:
+            t_start = _time.monotonic()
+            total_input_tokens = 0
+            total_output_tokens = 0
+            
             response = call_llm(
                 model=chat_model,
                 system=system_prompt,
@@ -1679,10 +1734,13 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
                 tools=CHAT_TOOLS,
                 max_tokens=2048,
                 temperature=0.7,
+                reasoning_effort=chat_reasoning,
             )
             
             # Track cost
             if response.usage:
+                total_input_tokens += response.usage.input_tokens
+                total_output_tokens += response.usage.output_tokens
                 log_cost(
                     model=chat_model,
                     input_tokens=response.usage.input_tokens,
@@ -1714,9 +1772,11 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
                         })
                         
                         # Execute the tool
-                        print(f"\033[1;33m  [{block.name}]\033[0m ", end="", flush=True)
+                        tool_start = _time.monotonic()
+                        print(f"  \033[2m\u25B6 {block.name}\033[0m ", end="", flush=True)
                         result = _execute_tool(block.name, block.input, domain)
-                        print("done")
+                        tool_elapsed = _time.monotonic() - tool_start
+                        print(f"\033[2m({tool_elapsed:.1f}s)\033[0m")
                         
                         tool_results.append({
                             "type": "tool_result",
@@ -1736,9 +1796,12 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
                     tools=CHAT_TOOLS,
                     max_tokens=2048,
                     temperature=0.7,
+                    reasoning_effort=chat_reasoning,
                 )
                 
                 if response.usage:
+                    total_input_tokens += response.usage.input_tokens
+                    total_output_tokens += response.usage.output_tokens
                     log_cost(
                         model=chat_model,
                         input_tokens=response.usage.input_tokens,
@@ -1746,6 +1809,8 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
                         agent_role="chat",
                         domain=domain,
                     )
+            
+            t_elapsed = _time.monotonic() - t_start
             
             # Extract final text response
             text_parts = []
@@ -1758,8 +1823,16 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
             # Add to conversation history
             conversation.append({"role": "assistant", "content": assistant_text})
             
-            # Print response
-            print(f"\n\033[1;32m Agent:\033[0m {assistant_text}\n")
+            # Print response with markdown formatting
+            formatted = _format_markdown(assistant_text)
+            print(f"\n\033[1;32m Agent:\033[0m {formatted}")
+            
+            # Response metadata line (tokens, time, cost estimate)
+            from llm_router import get_model_cost
+            costs = get_model_cost(chat_model)
+            est_cost = (total_input_tokens * costs["input"] + total_output_tokens * costs["output"]) / 1_000_000
+            reasoning_tag = f" \033[35mreasoning={chat_reasoning}\033[0m" if chat_reasoning else ""
+            print(f"  \033[2m{total_input_tokens}+{total_output_tokens} tokens \u2022 {t_elapsed:.1f}s \u2022 ~${est_cost:.4f}{reasoning_tag}\033[0m\n")
             
             # Auto-save after each exchange
             _save_session(session_id, domain, conversation, _summarize_conversation(conversation))

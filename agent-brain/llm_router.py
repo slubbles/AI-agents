@@ -259,6 +259,7 @@ def call_llm(
     max_tokens: int = 4096,
     tools: list[dict] = None,
     temperature: float = 0.7,
+    reasoning_effort: str = None,
     **kwargs
 ) -> NormalizedResponse:
     """
@@ -271,6 +272,10 @@ def call_llm(
         max_tokens: Maximum tokens to generate
         tools: List of tool definitions (Anthropic format)
         temperature: Sampling temperature
+        reasoning_effort: Reasoning effort level for models that support it
+                         ("low", "medium", "high"). Only applies to OpenRouter
+                         models like Grok that support the reasoning parameter.
+                         None = disabled (default).
         **kwargs: Additional provider-specific arguments
     
     Returns:
@@ -280,7 +285,7 @@ def call_llm(
     if is_claude_model(model):
         return _call_anthropic(model, messages, system, max_tokens, tools, temperature, **kwargs)
     else:
-        return _call_openrouter(model, messages, system, max_tokens, tools, temperature, **kwargs)
+        return _call_openrouter(model, messages, system, max_tokens, tools, temperature, reasoning_effort=reasoning_effort, **kwargs)
 
 
 def _call_anthropic(
@@ -329,6 +334,7 @@ def _call_openrouter(
     max_tokens: int,
     tools: list[dict],
     temperature: float,
+    reasoning_effort: str = None,
     **kwargs
 ) -> NormalizedResponse:
     """Call OpenRouter API (OpenAI-compatible)."""
@@ -347,6 +353,14 @@ def _call_openrouter(
     
     if openai_tools:
         call_kwargs["tools"] = openai_tools
+    
+    # Reasoning support (Grok, DeepSeek-R1, etc.)
+    # Sends reasoning.effort via extra_body so the model chains thought
+    # before responding. Valid values: "low", "medium", "high".
+    if reasoning_effort and reasoning_effort in ("low", "medium", "high"):
+        call_kwargs["extra_body"] = {
+            "reasoning": {"effort": reasoning_effort}
+        }
     
     # Add OpenRouter-specific headers
     call_kwargs["extra_headers"] = {

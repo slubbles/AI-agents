@@ -303,10 +303,22 @@ def _truncate_state(state: dict, max_chars: int = MAX_CONTEXT_CHARS) -> str:
 
 # ── Orchestrator System Prompt ───────────────────────────────────────────
 
-ORCHESTRATOR_SYSTEM = """You are the Cortex Orchestrator — the strategic reasoning layer
-above Agent Brain (research) and Agent Hands (execution).
+def _build_orchestrator_system() -> str:
+    """Build orchestrator system prompt with identity layer."""
+    identity_block = ""
+    try:
+        from identity_loader import get_identity_summary
+        summary = get_identity_summary()
+        if summary:
+            identity_block = "\nSYSTEM IDENTITY (your values — these override everything):\n" + summary + "\n"
+    except Exception:
+        pass
 
-Your role:
+    header = ("You are the Cortex Orchestrator — the strategic reasoning layer\n"
+              "above Agent Brain (research) and Agent Hands (execution).\n"
+              + identity_block + "\n")
+
+    return header + """Your role:
 1. INTERPRET — What does the system's data mean? What are the insights?
 2. DECIDE — What should Brain research next? What should Hands build?
 3. COORDINATE — How should research findings become actionable tasks?
@@ -344,6 +356,8 @@ RESPONSE FORMAT (always JSON):
 
 Be concise. Don't pad. Every word should add value.
 """
+
+ORCHESTRATOR_SYSTEM = _build_orchestrator_system()
 
 
 # ── Core Functions ───────────────────────────────────────────────────────

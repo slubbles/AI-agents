@@ -96,9 +96,19 @@ def _build_critic_prompt(weights: dict | None = None) -> str:
     spe_pct = int(w["specificity"] * 100)
     hon_pct = int(w["intellectual_honesty"] * 100)
     
+    # Load identity for ethics context
+    identity_note = ""
+    try:
+        from identity_loader import get_identity_summary
+        summary = get_identity_summary()
+        if summary:
+            identity_note = f"\nSYSTEM IDENTITY:\n{summary}\n"
+    except Exception:
+        pass
+    
     return f"""\
 You are a strict research critic. Your job is to evaluate research findings for quality, accuracy, and depth.
-
+{identity_note}
 TODAY'S DATE: {today}
 The current year is {date.today().year}. Events and data from {date.today().year} or earlier are NOT future events.
 Do NOT penalize research for reporting on events that have already occurred as of {today}.
