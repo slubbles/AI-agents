@@ -35,16 +35,18 @@ Key files and what they establish:
 - `SYSTEM_DEEP_DIVE.md` — Full 1,462-line technical documentation of the complete system.
 - `OLJstrat-mar1.md` — First monetization strategy (productized Next.js services via OnlineJobsPH).
 - `ideal-thoughts.md` — The full ideal architecture: 26 agents across 5 layers (Identity → Orchestrator → Brain/Hands → Sensors → Learning). The 100% autonomy roadmap. Cost optimization strategy. Model routing. How the system eventually outperforms human teams through volume + compounding.
+- `my-huge-perspetive.md` — The architect's big-picture vision: the transistor→H100 analogy. One autonomous instance per domain → multiple instances across VPS → Meta Orchestrator finding cross-domain connections. Scaling path from one system to civilizational-scale problem solving. The Identity Layer defined today becomes the values of the entire network. **Build the transistor right first.**
 
 **Principles distilled from these notes:**
-1. **Revenue before polish.** The system needs to earn money to survive. Every feature decision should ask: "does this help generate revenue or does it just feel productive?"
-2. **Don't let it stay a demo.** The biggest risk is building inward forever. Point the system at a real problem, let it break, learn from the breaks.
-3. **The critic is the load-bearing component.** If the critic gives inflated scores, the entire loop learns wrong lessons. The system that judges quality must always be sharper than the system that produces it.
-4. **Philosophy is ahead of implementation — keep closing the gap.** The vision documents describe a system that doesn't fully exist yet. That's fine if we're actively building toward it. Dangerous if the vision provides emotional satisfaction that substitutes for unglamorous activation work.
-5. **The system has never run unsupervised.** Every improvement happened during supervised sessions. Until the daemon runs autonomously, the thesis is unproven.
-6. **First 3 deliveries matter more than first 50 outreach messages.** Portfolio flywheel: deliver exceptionally → get testimonial → conversion rate compounds.
-7. **Cheap before smart.** Local models for 80% of tasks, Claude only where reasoning matters. The system must be affordable to run 24/7 before it can be smart 24/7.
-8. **Validate before scale.** Prove the loop works on limited runs. Then go 24/7. Running a flawed loop at scale compounds mistakes.
+1. **Autonomous first.** The system must run 100% confidently on its own before anything else matters. If it crashes at 3am, no other optimization matters. This is the prerequisite for everything below.
+2. **Revenue before polish.** The system needs to earn money to survive. Every feature decision should ask: "does this help generate revenue or does it just feel productive?"
+3. **Don't let it stay a demo.** The biggest risk is building inward forever. Point the system at a real problem, let it break, learn from the breaks.
+4. **The critic is the load-bearing component.** If the critic gives inflated scores, the entire loop learns wrong lessons. The system that judges quality must always be sharper than the system that produces it.
+5. **Philosophy is ahead of implementation — keep closing the gap.** The vision documents describe a system that doesn't fully exist yet. That's fine if we're actively building toward it. Dangerous if the vision provides emotional satisfaction that substitutes for unglamorous activation work.
+6. **The system has never run unsupervised.** Every improvement happened during supervised sessions. Until the daemon runs autonomously, the thesis is unproven.
+7. **First 3 deliveries matter more than first 50 outreach messages.** Portfolio flywheel: deliver exceptionally → get testimonial → conversion rate compounds.
+8. **Cheap before smart.** Local models for 80% of tasks, Claude only where reasoning matters. The system must be affordable to run 24/7 before it can be smart 24/7. Comes AFTER autonomy is proven.
+9. **Validate before scale.** Prove the loop works on limited runs. Then go 24/7. Running a flawed loop at scale compounds mistakes. Comes AFTER cost is controlled.
 
 ## What We're Building
 
