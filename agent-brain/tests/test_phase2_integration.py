@@ -182,6 +182,14 @@ def _enter_standard_mocks(
         patch("cost_tracker.get_daily_spend",
               return_value={"total_usd": daily_spend}))
 
+    # Cortex orchestrator — prevent real LLM calls from Phase 7 wiring
+    stack.enter_context(
+        patch("scheduler.cortex_plan_cycle", return_value=None))
+    stack.enter_context(
+        patch("scheduler.cortex_interpret_cycle", return_value=None))
+    stack.enter_context(
+        patch("scheduler.cortex_daily_assessment", return_value=None))
+
     # Signal handlers — can't register from non-main thread
     # Mock signal.signal to be a no-op so run_daemon() works in threads
     stack.enter_context(

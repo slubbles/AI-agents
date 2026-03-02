@@ -89,15 +89,15 @@ class TestRoundTimeout:
         assert MAX_ROUND_DURATION_SECONDS <= 600  # Shouldn't be more than 10 min
 
     def test_scheduler_imports_timeout_machinery(self):
-        """Scheduler module must import the timeout tools."""
+        """Scheduler module must have round timeout via daemon threads."""
         import scheduler
-        # Verify the import exists at module level
         source_file = scheduler.__file__
         with open(source_file) as f:
             source = f.read()
-        assert "FutureTimeoutError" in source
-        assert "ThreadPoolExecutor" in source
         assert "MAX_ROUND_DURATION_SECONDS" in source
+        # Uses daemon threads for timeout (replaced ThreadPoolExecutor)
+        assert "daemon=True" in source
+        assert "round_thread" in source
 
 
 # ============================================================
@@ -381,7 +381,7 @@ class TestDaemonSafetyWiring:
         with open(scheduler.__file__) as f:
             source = f.read()
         assert "MAX_ROUND_DURATION_SECONDS" in source
-        assert "FutureTimeoutError" in source
+        assert "round_thread.join" in source
 
     def test_daemon_source_has_log_rotation(self):
         """run_daemon must call _rotate_logs."""

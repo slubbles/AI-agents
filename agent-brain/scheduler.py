@@ -426,7 +426,6 @@ def display_recommendations(recs: list[dict]):
 import signal
 import time
 import threading
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
 # Daemon state
 _daemon_running = False
@@ -436,6 +435,12 @@ _daemon_log = []  # Recent daemon activity log
 
 # Cycle history file — persistent append-only log of all completed cycles
 CYCLE_HISTORY_FILE = os.path.join(LOG_DIR, "cycle_history.jsonl")
+
+# Cortex journal — persistent log of Cortex Orchestrator insights
+CORTEX_JOURNAL_FILE = os.path.join(LOG_DIR, "cortex_journal.jsonl")
+
+# Track last daily assessment date to avoid repeating
+_last_daily_assessment_date: str | None = None
 
 
 def _log_daemon(message: str, level: str = "info"):
@@ -509,6 +514,329 @@ def get_cycle_history(last_n: int = 20) -> list[dict]:
     return records[-last_n:]
 
 
+# ============================================================
+# Cortex Orchestrator Integration — Strategic Decision Layer
+# ============================================================
+
+def _append_cortex_journal(entry: dict):
+    """Append an entry to the persistent Cortex journal."""
+    os.makedirs(LOG_DIR, exist_ok=True)
+    try:
+        with open(CORTEX_JOURNAL_FILE, "a") as f:
+            f.write(json.dumps(entry, default=str) + "\n")
+    except IOError as e:
+        _log_daemon(f"Failed to write cortex journal: {e}", "warning")
+
+
+def get_cortex_journal(last_n: int = 10) -> list[dict]:
+    """Read last N entries from the Cortex journal."""
+    if not os.path.exists(CORTEX_JOURNAL_FILE):
+        return []
+    records = []
+    try:
+        with open(CORTEX_JOURNAL_FILE) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        records.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+    except IOError:
+        return []
+    return records[-last_n:]
+
+
+def _apply_cortex_priorities(plan: dict, cortex_plan: dict):
+    """
+    Adjust plan allocation based on Cortex recommendations.
+    
+    Strategy: if Cortex recommends focus domains, boost their allocation 
+    by shifting 1 round from lower-priority domains. This is advisory —
+    never removes a domain entirely.
+    """
+    focus = cortex_plan.get("focus_domains", [])
+    if not focus or not plan.get("allocation"):
+        return
+    
+    alloc = plan["allocation"]
+    alloc_by_domain = {a["domain"]: a for a in alloc}
+    
+    # Find focus domains that are already in the plan
+    boosted = []
+    for d in focus:
+        if d in alloc_by_domain:
+            boosted.append(d)
+    
+    if not boosted:
+        return
+    
+    # Find domains to borrow from (non-focus, rounds > 1)
+    donors = [a for a in alloc if a["domain"] not in focus and a["rounds"] > 1]
+    
+    rounds_to_shift = min(len(boosted), len(donors))  # max 1 round per boost
+    for i in range(rounds_to_shift):
+        donors[i]["rounds"] -= 1
+        alloc_by_domain[boosted[i]]["rounds"] += 1
+    
+    if rounds_to_shift > 0:
+        _log_daemon(
+            f"Cortex boosted: {boosted[:rounds_to_shift]} "
+            f"(+1 round each from donors)"
+        )
+
+
+def cortex_plan_cycle(cycle: int, budget_remaining: float) -> dict | None:
+    """
+    Ask Cortex Orchestrator to plan the next daemon cycle.
+    
+    Calls plan_next_actions() and translates Cortex's strategic 
+    recommendations into daemon-usable format.
+    
+    Budget-gated: skips if remaining budget < $0.20 (save budget for 
+    actual research, not planning).
+    
+    Args:
+        cycle: Current cycle number
+        budget_remaining: Remaining daily budget in USD
+        
+    Returns:
+        Dict with cortex insights, or None if skipped/failed.
+        {
+            "domain_priorities": ["domain1", "domain2", ...],
+            "focus_domains": ["domain1"],  # Cortex-recommended focus
+            "action_types": ["brain_research", "strategy_change", ...],
+            "insights": ["insight1", ...],
+            "interpretation": "...",
+            "system_health": "healthy|warning|critical",
+            "next_question": "...",
+        }
+    """
+    # Budget gate: don't spend on planning if budget is tight
+    if budget_remaining < 0.20:
+        _log_daemon(f"Cortex plan skipped: budget ${budget_remaining:.2f} < $0.20", "info")
+        return None
+    
+    try:
+        from agents.cortex import plan_next_actions
+        
+        _log_daemon(f"Cortex planning cycle {cycle}...")
+        result = plan_next_actions()
+        
+        if "error" in result and not result.get("interpretation"):
+            _log_daemon(f"Cortex plan failed: {result['error']}", "warning")
+            return None
+        
+        # Extract actionable info
+        plan = {
+            "domain_priorities": [],
+            "focus_domains": [],
+            "action_types": [],
+            "insights": result.get("key_insights", []),
+            "interpretation": result.get("interpretation", ""),
+            "system_health": result.get("system_health", "unknown"),
+            "next_question": result.get("next_question"),
+            "risks": result.get("risks", []),
+        }
+        
+        # Extract domain priorities from recommended actions
+        for action in result.get("recommended_actions", []):
+            atype = action.get("type", "")
+            domain = action.get("domain", "")
+            priority = action.get("priority", "medium")
+            
+            if atype not in plan["action_types"]:
+                plan["action_types"].append(atype)
+            
+            if domain and domain not in plan["domain_priorities"]:
+                plan["domain_priorities"].append(domain)
+            
+            # High/critical priority domains become focus domains
+            if domain and priority in ("critical", "high") and domain not in plan["focus_domains"]:
+                plan["focus_domains"].append(domain)
+        
+        # Log to journal
+        _append_cortex_journal({
+            "type": "cycle_plan",
+            "cycle": cycle,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "focus_domains": plan["focus_domains"],
+            "action_types": plan["action_types"],
+            "insights_count": len(plan["insights"]),
+            "system_health": plan["system_health"],
+            "interpretation_preview": plan["interpretation"][:200],
+        })
+        
+        insight_summary = "; ".join(plan["insights"][:3]) if plan["insights"] else "none"
+        _log_daemon(
+            f"Cortex plan: focus={plan['focus_domains'] or 'none'}, "
+            f"health={plan['system_health']}, "
+            f"insights={insight_summary[:80]}"
+        )
+        
+        return plan
+        
+    except Exception as e:
+        _log_daemon(f"Cortex plan error: {e}", "warning")
+        return None
+
+
+def cortex_interpret_cycle(
+    cycle: int,
+    domain_results: list[dict],
+    cycle_avg: float,
+    cycle_cost: float,
+    duration_seconds: float,
+) -> dict | None:
+    """
+    Ask Cortex to interpret cycle results and generate insights.
+    
+    Called after each successful cycle. Logs to cortex_journal.jsonl.
+    
+    Budget-gated: skips if remaining budget < $0.15.
+    
+    Returns:
+        Cortex interpretation dict, or None if skipped/failed.
+    """
+    budget = check_budget()
+    if budget.get("remaining", 0) < 0.15:
+        _log_daemon("Cortex interpretation skipped: low budget", "info")
+        return None
+    
+    try:
+        from agents.cortex import query_orchestrator
+        
+        # Build a focused question about this cycle's results
+        results_summary = []
+        for dr in domain_results:
+            d = dr.get("domain", "?")
+            r = dr.get("rounds_completed", 0)
+            s = dr.get("avg_score", 0)
+            skipped = dr.get("skipped")
+            if skipped:
+                results_summary.append(f"{d}: skipped ({skipped})")
+            else:
+                results_summary.append(f"{d}: {r} rounds, avg {s:.1f}")
+        
+        question = (
+            f"Cycle {cycle} just completed. Results:\n"
+            f"- Rounds completed: {sum(dr.get('rounds_completed', 0) for dr in domain_results)}\n"
+            f"- Average score: {cycle_avg:.1f}\n"
+            f"- Cost: ${cycle_cost:.4f}\n"
+            f"- Duration: {duration_seconds:.0f}s\n"
+            f"- Domain results: {'; '.join(results_summary)}\n\n"
+            f"What does this cycle tell us? What should change for the next cycle? "
+            f"Are there patterns in which domains score well vs poorly? "
+            f"Any concerns about cost efficiency or quality trends?"
+        )
+        
+        _log_daemon(f"Cortex interpreting cycle {cycle}...")
+        result = query_orchestrator(
+            question,
+            include_brain=True,
+            include_hands=False,
+            include_infra=True,
+        )
+        
+        if "error" in result and not result.get("interpretation"):
+            _log_daemon(f"Cortex interpret failed: {result['error']}", "warning")
+            return None
+        
+        # Log to journal
+        journal_entry = {
+            "type": "cycle_interpretation",
+            "cycle": cycle,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "cycle_avg": cycle_avg,
+            "cycle_cost": cycle_cost,
+            "domain_results": domain_results,
+            "interpretation": result.get("interpretation", ""),
+            "key_insights": result.get("key_insights", []),
+            "recommended_actions": result.get("recommended_actions", []),
+            "system_health": result.get("system_health", "unknown"),
+        }
+        _append_cortex_journal(journal_entry)
+        
+        insights = result.get("key_insights", [])
+        _log_daemon(
+            f"Cortex cycle {cycle} insights: "
+            f"{'; '.join(insights[:2]) if insights else 'none'}"
+        )
+        
+        return result
+        
+    except Exception as e:
+        _log_daemon(f"Cortex interpret error: {e}", "warning")
+        return None
+
+
+def cortex_daily_assessment(cycle: int) -> dict | None:
+    """
+    Ask Cortex for a comprehensive daily system assessment.
+    
+    Called at most once per day (tracks date to avoid repeating).
+    Produces a strategic review of the entire system.
+    
+    Budget-gated: skips if remaining budget < $0.25.
+    
+    Returns:
+        Cortex assessment dict, or None if skipped/already done today.
+    """
+    global _last_daily_assessment_date
+    
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Already assessed today?
+    if _last_daily_assessment_date == today:
+        return None
+    
+    # Budget gate
+    budget = check_budget()
+    if budget.get("remaining", 0) < 0.25:
+        _log_daemon("Cortex daily assessment skipped: low budget", "info")
+        return None
+    
+    try:
+        from agents.cortex import assess_system
+        
+        _log_daemon(f"Cortex daily assessment starting (cycle {cycle})...")
+        result = assess_system()
+        
+        if "error" in result and not result.get("interpretation"):
+            _log_daemon(f"Cortex assessment failed: {result['error']}", "warning")
+            return None
+        
+        _last_daily_assessment_date = today
+        
+        # Log to journal
+        journal_entry = {
+            "type": "daily_assessment",
+            "date": today,
+            "cycle": cycle,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "interpretation": result.get("interpretation", ""),
+            "key_insights": result.get("key_insights", []),
+            "recommended_actions": result.get("recommended_actions", []),
+            "risks": result.get("risks", []),
+            "system_health": result.get("system_health", "unknown"),
+        }
+        _append_cortex_journal(journal_entry)
+        
+        health = result.get("system_health", "unknown")
+        insights = result.get("key_insights", [])
+        risks = result.get("risks", [])
+        _log_daemon(
+            f"Cortex daily assessment: health={health}, "
+            f"{len(insights)} insights, {len(risks)} risks"
+        )
+        
+        return result
+        
+    except Exception as e:
+        _log_daemon(f"Cortex assessment error: {e}", "warning")
+        return None
+
+
 def generate_daemon_report(last_n: int = 10) -> dict:
     """
     Generate a comprehensive daemon health report.
@@ -531,6 +859,7 @@ def generate_daemon_report(last_n: int = 10) -> dict:
         "watchdog": {},
         "domains": {},
         "sync": {},
+        "cortex": {},
     }
     
     # 1. Daemon state
@@ -582,6 +911,17 @@ def generate_daemon_report(last_n: int = 10) -> dict:
         report["sync"] = check_sync()
     except Exception as e:
         report["sync"] = {"error": str(e)}
+    
+    # 7. Cortex journal (latest insights)
+    try:
+        journal = get_cortex_journal(last_n=5)
+        report["cortex"] = {
+            "recent_entries": journal,
+            "total_entries": len(get_cortex_journal(last_n=9999)),
+            "last_assessment_date": _last_daily_assessment_date,
+        }
+    except Exception as e:
+        report["cortex"] = {"error": str(e)}
     
     return report
 
@@ -828,9 +1168,16 @@ def run_daemon(
                     break
                 continue
 
+            # === Cortex pre-cycle planning (strategic layer) ===
+            cortex_plan = cortex_plan_cycle(cycle, budget["remaining"])
+
             # Create and evaluate plan
             plan = create_plan(aggressive=aggressive)
             
+            # If Cortex recommends focus domains, boost their allocation
+            if cortex_plan and cortex_plan.get("focus_domains") and plan.get("executable"):
+                _apply_cortex_priorities(plan, cortex_plan)
+
             if not plan["executable"]:
                 _log_daemon(f"No executable plan: {plan['reason']}", "warning")
                 _save_daemon_state({
@@ -932,29 +1279,41 @@ def run_daemon(
                                 _log_daemon(f"No question for {domain}, skipping", "warning")
                                 break
                             
-                            # Run the research round with a timeout
-                            # If round exceeds MAX_ROUND_DURATION_SECONDS, kill it
+                            # Run the research round with a timeout.
+                            # Use a daemon thread (not ThreadPoolExecutor) so
+                            # stuck threads don't block process exit via atexit.
+                            _round_result = [None]
+                            _round_error = [None]
+
                             def _run_round():
-                                import importlib
-                                main_mod = importlib.import_module("main")
-                                return main_mod.run_loop(question=question, domain=domain)
-                            
-                            executor = ThreadPoolExecutor(max_workers=1)
-                            future = executor.submit(_run_round)
-                            try:
-                                result = future.result(timeout=MAX_ROUND_DURATION_SECONDS)
-                                executor.shutdown(wait=False)
-                            except FutureTimeoutError:
-                                # Don't wait for the stuck thread — shut down immediately
-                                executor.shutdown(wait=False, cancel_futures=True)
+                                try:
+                                    import importlib
+                                    main_mod = importlib.import_module("main")
+                                    _round_result[0] = main_mod.run_loop(
+                                        question=question, domain=domain)
+                                except Exception as exc:
+                                    _round_error[0] = exc
+
+                            round_thread = threading.Thread(
+                                target=_run_round, daemon=True)
+                            round_thread.start()
+                            round_thread.join(
+                                timeout=MAX_ROUND_DURATION_SECONDS)
+
+                            if round_thread.is_alive():
+                                # Thread stuck — daemon flag means it won't
+                                # block process exit
                                 _log_daemon(
                                     f"  {domain} round {r+1}: TIMEOUT after "
                                     f"{MAX_ROUND_DURATION_SECONDS}s — killed",
                                     "error"
                                 )
-                                # Count as a failure but continue to next round
                                 continue
-                            
+
+                            if _round_error[0]:
+                                raise _round_error[0]
+                            result = _round_result[0]
+
                             score = result.get("critique", {}).get("overall_score", 0)
                             domain_scores.append(score)
                             completed += 1
@@ -1026,6 +1385,15 @@ def run_daemon(
                     "domain_results": domain_results,
                 })
 
+                # === Cortex post-cycle interpretation (strategic layer) ===
+                cortex_interpret_cycle(
+                    cycle=cycle,
+                    domain_results=domain_results,
+                    cycle_avg=cycle_avg,
+                    cycle_cost=cycle_cost,
+                    duration_seconds=duration,
+                )
+
             except Exception as e:
                 _log_daemon(f"Cycle {cycle} failed: {e}", "error")
                 watchdog.record_cycle_failure(str(e))
@@ -1080,6 +1448,9 @@ def run_daemon(
             # Auto-approve pending strategies (every 5 cycles, if autonomous)
             if not require_approval and cycle % 5 == 0:
                 _auto_approve_pending_strategies()
+
+            # === Cortex daily assessment (strategic layer) ===
+            cortex_daily_assessment(cycle)
 
             # Log rotation (every 10 cycles to prevent unbounded growth)
             if cycle % 10 == 0:
