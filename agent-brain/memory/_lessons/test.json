@@ -1,0 +1,18 @@
+[
+  {
+    "lesson": "Accuracy failure (scored 1.0): verify claims against fetched content before including them",
+    "source": "critic_rejection",
+    "details": "No research question provided, incomplete summary, only 1 vague finding with blank source and no actual content.",
+    "hit_count": 2,
+    "created": "2026-03-02T02:38:39.380553+00:00",
+    "last_seen": "2026-03-02T02:40:08.024052+00:00"
+  },
+  {
+    "lesson": "Accuracy failure (scored 2.0): verify claims against fetched content before including them",
+    "source": "critic_rejection",
+    "details": "Only 1 finding with empty source, no question specified, incomplete and low quality research",
+    "hit_count": 2,
+    "created": "2026-03-02T02:40:37.100028+00:00",
+    "last_seen": "2026-03-02T02:41:29.885387+00:00"
+  }
+]

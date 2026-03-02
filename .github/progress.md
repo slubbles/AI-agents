@@ -38,6 +38,42 @@ Every session, what we did, why, how, and results. Newest first.
 - Our research_lessons.py is the seed of the doc's "Preference Store"
 - Budget: $15.51 total ($9.70 OpenRouter + $5.81 Claude)
 
+### Implementation (Session 12 continued)
+
+Built and wired all three priority improvements:
+
+**1. Pre-screen Critic** (`prescreen.py`, 246 lines)
+- Structural prechecks (zero-cost): zero findings, parse errors, empty searches → instant reject
+- Grok LLM prescreen: scores 1-10. Accept ≥7.5, Reject ≤3.5, Escalate 4-7 to Claude
+- Wired into `main.py:_run_loop_inner()` — runs BEFORE Claude critic call
+- Expected savings: ~40% reduction in Claude critic API calls
+- 14 tests
+
+**2. Loop Guard** (`loop_guard.py`, 208 lines)
+- Real-time loop protection during auto mode (pure logic, no LLM)
+- Detects: consecutive failures (3x), question similarity (>70%), cost velocity (>80% budget), score regression, same-error repetition
+- `LoopGuard` class with `check_before_round()`, `record_round()`, `check_after_round()`
+- Raises `LoopGuardError` to stop auto mode gracefully
+- Wired into `cli/research.py:run_auto()` — wraps every round
+- 17 tests
+
+**3. Progress Tracker** (`progress_tracker.py`, 208 lines)
+- Cheap grok assessment: "given goal X and research Y, how close are we to acting?"
+- Returns readiness score (0-100%), gaps list, recommendation (keep/act/pivot)
+- Tracks history + trend (↑/↓ since last check)
+- Runs every 5 accepted outputs, or on-demand via `--progress` CLI flag
+- Wired into `cli/research.py:run_auto()` — checks at end of each run
+- `display_progress()` renders progress bar + gaps + strengths
+- 14 tests
+
+**Wiring summary:**
+- `main.py`: prescreen import + prescreen→critique flow (7 lines)
+- `cli/research.py`: LoopGuard init + check_before/after + progress assessment (25 lines)
+- `main.py CLI`: `--progress` flag for on-demand goal progress display
+- `tests/test_hardening.py`: fixed integration test to mock prescreen
+
+**Tests:** 1,218 passing (was 1,173 — 45 new tests added)
+
 ---
 
 ## Session 11 — Mar 1, 2026 (evening)

@@ -153,6 +153,8 @@ def run_auto(domain: str, rounds: int = 1):
     """
     from main import run_loop  # lazy import — avoids circular dependency
     from domain_goals import get_goal
+    from loop_guard import LoopGuard, LoopGuardError
+    from progress_tracker import should_assess, assess_progress, display_progress
 
     goal = get_goal(domain)
 
@@ -166,6 +168,14 @@ def run_auto(domain: str, rounds: int = 1):
         print(f"  Goal: NOT SET — research may not be actionable")
         print(f"         Set with: python main.py --set-goal --domain {domain}")
     print(f"{'='*60}\n")
+
+    # Initialize loop guard
+    daily_spend = get_daily_spend()
+    guard = LoopGuard(
+        domain=domain,
+        daily_budget=2.00,  # from config.DAILY_BUDGET_USD
+        starting_spend=daily_spend["total_usd"],
+    )
 
     question = None  # Initialize before loop to avoid NameError in summary
     round_results = []
@@ -182,6 +192,14 @@ def run_auto(domain: str, rounds: int = 1):
             break
 
         print(f"[BUDGET] ${budget['remaining']:.4f} remaining")
+
+        # Loop guard: pre-round check
+        try:
+            guard.check_before_round(round_num)
+        except LoopGuardError as e:
+            print(f"\n[GUARD] {'⚠' if e.severity == 'warning' else '✗'} {e.reason}")
+            print(f"[GUARD] Stopping auto mode early.")
+            break
 
         # Stage 1+2: Diagnose needs → Set goal
         print(f"\n[STAGE 1+2] Diagnosing knowledge gaps and generating next question...")
@@ -239,6 +257,14 @@ def run_auto(domain: str, rounds: int = 1):
                 "score": 0,
                 "verdict": "failed",
             })
+            # Record failure in guard
+            guard.record_round(question or "", 0, "failed", 0, error="no result returned")
+            try:
+                guard.check_after_round()
+            except LoopGuardError as e:
+                print(f"\n[GUARD] {'⚠' if e.severity == 'warning' else '✗'} {e.reason}")
+                print(f"[GUARD] Stopping auto mode early.")
+                break
             continue
 
         score = result.get("critique", {}).get("overall_score", 0)
@@ -250,6 +276,16 @@ def run_auto(domain: str, rounds: int = 1):
             "verdict": verdict,
         })
 
+        # Record round in guard
+        round_cost = result.get("_cost", 0)  # may not be set — guard handles 0
+        guard.record_round(question or "", score, verdict, round_cost)
+        try:
+            guard.check_after_round()
+        except LoopGuardError as e:
+            print(f"\n[GUARD] {'⚠' if e.severity == 'warning' else '✗'} {e.reason}")
+            print(f"[GUARD] Stopping auto mode early.")
+            break
+
         print(f"\n[ROUND {round_num} COMPLETE] Score: {score}/10 — {verdict}")
 
         if round_num < rounds:
@@ -260,6 +296,22 @@ def run_auto(domain: str, rounds: int = 1):
     expiry = expire_stale_claims(domain)
     if expiry["flagged"] > 0 or expiry["expired"] > 0:
         print(f"\n[CLAIM EXPIRY] Flagged {expiry['flagged']} stale, expired {expiry['expired']} claims")
+
+    # Progress-toward-goal assessment (if applicable)
+    if should_assess(domain):
+        print(f"\n[PROGRESS] Assessing progress toward goal...")
+        progress = assess_progress(domain)
+        if progress:
+            display_progress(domain)
+    elif goal:
+        # Show existing progress if available
+        from progress_tracker import get_progress
+        existing = get_progress(domain)
+        if existing:
+            display_progress(domain)
+
+    # Loop guard summary
+    print(f"\n{guard.summary()}")
 
     # Generate digest
     digest = generate_digest(domain, round_results, dedup_skipped)

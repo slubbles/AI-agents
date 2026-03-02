@@ -927,6 +927,7 @@ class TestIntegration:
 
         with patch("main.research", side_effect=mock_research_fn), \
              patch("main.critique", side_effect=mock_critique_fn), \
+             patch("main.prescreen", return_value={"prescreen_score": 5, "decision": "escalate", "reason": "test", "skip_claude": False}), \
              patch("main.check_budget", return_value={"within_budget": True, "remaining": 5.0, "spent": 0}), \
              patch("main.get_strategy", return_value=(None, "default")), \
              patch("main.get_strategy_status", return_value="active"), \

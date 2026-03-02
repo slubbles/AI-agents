@@ -55,6 +55,7 @@ from agents.researcher import research
 from agents.critic import critique
 from agents.consensus import consensus_research
 from agents.meta_analyst import analyze_and_evolve
+from prescreen import prescreen, build_prescreen_critique
 from config import (
     QUALITY_THRESHOLD, MAX_RETRIES, DEFAULT_DOMAIN, LOG_DIR,
     MIN_OUTPUTS_FOR_ANALYSIS, EVOLVE_EVERY_N,
@@ -213,22 +214,33 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
             total_searches = research_output.get("_searches_made", 0)
             print(f"[RESEARCHER] ⚠ {empty_searches}/{total_searches} searches returned 0 results")
 
-        # Step 2: Critique
-        print("[CRITIC] Evaluating findings...")
-        try:
-            critique_output = critique(research_output, domain=domain, sources_summary=research_output.get("_tool_log"))
-        except Exception as e:
-            print(f"[CRITIC] ✗ Agent error: {type(e).__name__}: {e}")
-            # Use a minimal critique so we can still store the output
-            critique_output = {
-                "overall_score": 3,
-                "verdict": "reject",
-                "scores": {},
-                "strengths": [],
-                "weaknesses": [f"Critic crashed: {e}"],
-                "actionable_feedback": "Critic was unable to evaluate. Retry needed.",
-                "_error": str(e),
-            }
+        # Step 2: Pre-screen (cheap grok check before expensive Claude critic)
+        print("[PRE-SCREEN] Quick quality check...")
+        prescreen_result = prescreen(research_output, domain=domain)
+        prescreen_decision = prescreen_result.get("decision", "escalate")
+        prescreen_score = prescreen_result.get("prescreen_score", 0)
+
+        if prescreen_result.get("skip_claude"):
+            print(f"[PRE-SCREEN] {prescreen_score}/10 → {prescreen_decision.upper()} (skipping Claude critic)")
+            critique_output = build_prescreen_critique(prescreen_result)
+        else:
+            print(f"[PRE-SCREEN] {prescreen_score}/10 → ESCALATE to Claude critic")
+            # Step 2b: Full Critique (Claude)
+            print("[CRITIC] Evaluating findings...")
+            try:
+                critique_output = critique(research_output, domain=domain, sources_summary=research_output.get("_tool_log"))
+            except Exception as e:
+                print(f"[CRITIC] ✗ Agent error: {type(e).__name__}: {e}")
+                # Use a minimal critique so we can still store the output
+                critique_output = {
+                    "overall_score": 3,
+                    "verdict": "reject",
+                    "scores": {},
+                    "strengths": [],
+                    "weaknesses": [f"Critic crashed: {e}"],
+                    "actionable_feedback": "Critic was unable to evaluate. Retry needed.",
+                    "_error": str(e),
+                }
 
         score = critique_output.get("overall_score", 0)
         verdict = critique_output.get("verdict", "unknown")
@@ -524,6 +536,7 @@ def main():
     parser.add_argument("--rounds", type=int, default=1, help="Number of auto rounds to run (default: 1)")
     parser.add_argument("--set-goal", action="store_true", help="Set the goal/intent for a domain (interactive prompt)")
     parser.add_argument("--show-goal", action="store_true", help="Show the current goal for a domain")
+    parser.add_argument("--progress", action="store_true", help="Show progress toward domain goal")
     parser.add_argument("--synthesize", action="store_true", help="Synthesize domain outputs into knowledge base")
     parser.add_argument("--kb", action="store_true", help="Show the synthesized knowledge base for a domain")
     parser.add_argument("--kb-versions", action="store_true", help="List knowledge base version history")
@@ -711,6 +724,11 @@ def main():
             print(f"\nPrevious goals ({len(record['previous_goals'])}):")
             for prev in record['previous_goals']:
                 print(f"  - {prev['goal'][:80]} (replaced {prev['replaced_at'][:10]})")
+        return
+    if getattr(args, 'progress', False):
+        from progress_tracker import display_progress, assess_progress
+        assess_progress(args.domain, force=True)
+        display_progress(args.domain)
         return
     if args.auto:
         from cli.research import run_auto
