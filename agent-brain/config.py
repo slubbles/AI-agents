@@ -33,6 +33,7 @@ MODELS = {
     "cross_domain": "claude-sonnet-4-20250514",   # strong — principle abstraction
     "question_generator": CHEAP_MODEL,             # cheap — routing/synthesis task
     "verifier": "claude-sonnet-4-20250514",        # strong — reality checking is sacred (don't cut corners)
+    "cortex_orchestrator": "claude-sonnet-4-20250514",  # strong — strategic reasoning above Brain+Hands
 }
 
 # --- Quality Gate ---

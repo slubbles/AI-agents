@@ -228,7 +228,19 @@ def _build_system_context(domain: str) -> str:
     
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     
-    return f"""You are the chat interface for Agent Brain. Today is {today}.
+    return f"""You are the chat interface for Cortex — a dual-agent autonomous system. Today is {today}.
+
+ARCHITECTURE:
+  You (Chat, Grok) — conversational layer, handles simple queries and tool routing.
+  Cortex Orchestrator (Claude Sonnet) — strategic reasoning layer above Brain + Hands.
+  Agent Brain — self-learning research engine (web search, scoring, strategy evolution).
+  Agent Hands — execution engine (code generation, project management, deployment).
+
+For simple queries (status, budget, file listing), handle them directly.
+For strategic reasoning (what to do next, interpreting research, coordinating Brain→Hands),
+route to the Cortex Orchestrator via ask_orchestrator, orchestrator_plan, orchestrator_interpret,
+orchestrator_coordinate, or orchestrator_assess. The Orchestrator uses Claude Sonnet (the best
+reasoning model) — don't try to do its job with your cheaper model.
 
 Be honest about what this system can and cannot do. Never oversell. Never bullshit.
 
@@ -239,6 +251,7 @@ WHAT ACTUALLY WORKS (proven, tested, has data):
 - Cross-domain transfer: extracts general principles from proven strategies → seeds new domains. Tested.
 - Self-directed learning: identifies knowledge gaps → generates next questions → researches them. Tested.
 - Strategy safety: pending/trial/active/rollback lifecycle. Human approval required. Never deploys strategy scoring >20% below current best.
+- Cortex Orchestrator: interprets research, coordinates Brain→Hands, plans strategy, assesses system health. Uses Sonnet.
 - All storage is JSON files on disk. Not a vector database. Not Supabase. JSON files.
 
 WHAT EXISTS AS CODE BUT IS NOT PRODUCTION-PROVEN:
@@ -268,12 +281,22 @@ This runs every 3 outputs per domain (cooldown), not every run.
 This is behavioral adaptation through structured feedback loops. Call it that. Don't call it "self-learning" unless you're being precise about what you mean.
 
 ARCHITECTURE (honest version):
-1. Brain: research + scoring + strategy evolution + knowledge base. This is the core. It works.
-2. Hands: code generation + execution. This exists. It's early-stage.
-3. Infrastructure: browser, crawler, vault, scheduler, deployment. This exists. Most of it is untested in production.
+1. Cortex Orchestrator: strategic reasoning layer (Claude Sonnet). Interprets Brain data + Hands output. Coordinates the pipeline. This is new and needs battle-testing.
+2. Brain: research + scoring + strategy evolution + knowledge base. This is the core. It works.
+3. Hands: code generation + execution. This exists. It's early-stage.
+4. Infrastructure: browser, crawler, vault, scheduler, deployment, watchdog, sync. Most untested in production.
 
 The Brain is Layer 1-5. Each layer was earned by getting the previous one working.
+The Orchestrator coordinates Brain+Hands via Claude Sonnet reasoning.
 The Hands and infrastructure are built but haven't gone through the same prove-it-works cycle.
+
+WHEN TO USE THE ORCHESTRATOR:
+- User asks "what should we focus on?" → orchestrator_plan
+- User asks "what did we learn?" → orchestrator_interpret
+- User asks "what should Hands build?" → orchestrator_coordinate
+- User asks "how's the system?" → orchestrator_assess
+- User asks a complex strategic question → ask_orchestrator
+- User asks for simple data (budget, status, list) → handle directly, don't waste Sonnet tokens
 
 CONVERSATION MEMORY:
 Sessions persist across restarts (JSON files in logs/chat_sessions/).
@@ -712,6 +735,86 @@ CHAT_TOOLS = [
                     "description": "Number of research rounds to run (default: 1, max: 10)"
                 }
             },
+            "required": []
+        }
+    },
+    # === CORTEX ORCHESTRATOR TOOLS ===
+    # These route complex reasoning through Claude Sonnet instead of the chat model.
+    # Use these for strategic decisions, interpretation, and coordination.
+    {
+        "name": "ask_orchestrator",
+        "description": "Route a complex question to the Cortex Orchestrator (Claude Sonnet) for strategic reasoning. Use this when the user asks for analysis, interpretation, strategic advice, 'what should we do next', or anything requiring deep reasoning about the system's state. The Orchestrator sees all Brain data + Hands output and provides strategic insight. This is the most powerful reasoning tool available — use it for important decisions.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string",
+                    "description": "The strategic question to reason about"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Focus domain (optional, considers all if omitted)"
+                },
+                "context": {
+                    "type": "string",
+                    "description": "Additional context from the conversation (optional)"
+                }
+            },
+            "required": ["question"]
+        }
+    },
+    {
+        "name": "orchestrator_plan",
+        "description": "Ask the Cortex Orchestrator to create a strategic plan — what should Brain research and Hands build next. Use when user asks 'what's next?', 'what should we focus on?', or wants a strategic roadmap.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Focus domain (optional)"
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "orchestrator_interpret",
+        "description": "Ask the Cortex Orchestrator to interpret research findings — turns raw data into strategic insights. Use when user asks 'what did we learn?', 'what does the research say?', or wants an executive summary of a domain's knowledge.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Domain to interpret findings for"
+                },
+                "focus": {
+                    "type": "string",
+                    "description": "Specific aspect to focus on (optional)"
+                }
+            },
+            "required": ["domain"]
+        }
+    },
+    {
+        "name": "orchestrator_coordinate",
+        "description": "Ask the Cortex Orchestrator to identify what Hands should build based on Brain's research. The Brain→Hands pipeline. Use when user says 'turn research into action', 'what should we build?', or wants to translate findings into concrete tasks.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Domain to coordinate Brain→Hands for"
+                }
+            },
+            "required": ["domain"]
+        }
+    },
+    {
+        "name": "orchestrator_assess",
+        "description": "Ask the Cortex Orchestrator for a full system health assessment. Checks Brain, Hands, infrastructure, budget — everything. Use when user asks 'how's the system?', 'give me a health check', or 'are we on track?'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
             "required": []
         }
     },
@@ -1326,6 +1429,54 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
         except Exception as e:
             return f"Research cycle failed: {e}"
     
+    # === CORTEX ORCHESTRATOR TOOLS ===
+    elif name == "ask_orchestrator":
+        try:
+            from agents.cortex import query_orchestrator, format_orchestrator_response
+            result = query_orchestrator(
+                question=args["question"],
+                domain=args.get("domain", domain),
+                extra_context=args.get("context", ""),
+            )
+            return format_orchestrator_response(result)
+        except Exception as e:
+            return f"Orchestrator query failed: {e}"
+    
+    elif name == "orchestrator_plan":
+        try:
+            from agents.cortex import plan_next_actions, format_orchestrator_response
+            result = plan_next_actions(domain=args.get("domain", domain))
+            return format_orchestrator_response(result)
+        except Exception as e:
+            return f"Orchestrator planning failed: {e}"
+    
+    elif name == "orchestrator_interpret":
+        try:
+            from agents.cortex import interpret_findings, format_orchestrator_response
+            result = interpret_findings(
+                domain=args["domain"],
+                question=args.get("focus", ""),
+            )
+            return format_orchestrator_response(result)
+        except Exception as e:
+            return f"Orchestrator interpretation failed: {e}"
+    
+    elif name == "orchestrator_coordinate":
+        try:
+            from agents.cortex import coordinate_brain_to_hands, format_orchestrator_response
+            result = coordinate_brain_to_hands(domain=args["domain"])
+            return format_orchestrator_response(result)
+        except Exception as e:
+            return f"Brain→Hands coordination failed: {e}"
+    
+    elif name == "orchestrator_assess":
+        try:
+            from agents.cortex import assess_system, format_orchestrator_response
+            result = assess_system()
+            return format_orchestrator_response(result)
+        except Exception as e:
+            return f"System assessment failed: {e}"
+    
     return f"Unknown tool: {name}"
 
 
@@ -1335,15 +1486,22 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
 
 WELCOME = """
 ╔══════════════════════════════════════════════════════════════╗
-║              AGENT BRAIN + HANDS — Chat Mode                ║
+║              CORTEX — Autonomous Agent System                ║
+║       Chat (Grok) → Orchestrator (Sonnet) → Brain + Hands   ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Talk to the full system naturally. Research, build, manage.║
-║  Conversations are saved and remembered across sessions.    ║
+║  Complex reasoning routes through the Cortex Orchestrator.  ║
 ║                                                             ║
 ║  Research:                                                  ║
 ║    "What do you know about crypto?"                         ║
 ║    "Research the latest React 19 features"                  ║
 ║    "What are the knowledge gaps in productized-services?"   ║
+║                                                             ║
+║  Strategic (→ Orchestrator):                                ║
+║    "What should we focus on next?"                          ║
+║    "Interpret the productized-services research"            ║
+║    "What should Hands build based on our research?"         ║
+║    "Give me a full system health assessment"                ║
 ║                                                             ║
 ║  Build:                                                     ║
 ║    "Build a REST API for user management"                   ║
@@ -1418,7 +1576,7 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
     
     print(f"  Active domain: {domain}")
     print(f"  Session: {session_id}")
-    print(f"  Model: {CHEAP_MODEL} (chat) / Sonnet (research)\n")
+    print(f"  Model: {CHEAP_MODEL} (chat) / Sonnet (orchestrator + research)\n")
     
     system_prompt = _build_system_context(domain)
     

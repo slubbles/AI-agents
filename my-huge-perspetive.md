@@ -596,3 +596,14 @@ and what this becomes.
 
 Build the transistor right.
 The rest follows from that choice.
+
+1. ✅ Brain self-learning loop (5 layers, proven)
+2. ✅ Hands coding execution (chat mode, 24 tools)
+3. ✅ Prescreen + Loop Guard + Progress Tracker
+4. ◀── YOU ARE HERE ──▶  Orchestrator (24/7 stability)
+5. ⏳ Signal Agent
+6. ⏳ Validation Agent
+7. ⏳ Expand Hands beyond coding
+8. ⏳ Economics Agent
+9. ⏳ Behavior + Analytics agents
+10. ⏳ Learning Layer upgrade
