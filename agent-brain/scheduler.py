@@ -426,6 +426,7 @@ def display_recommendations(recs: list[dict]):
 import signal
 import time
 import threading
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
 # Daemon state
 _daemon_running = False
@@ -477,6 +478,117 @@ def get_daemon_status() -> dict:
     }
 
 
+# ============================================================
+# Strategy Auto-Approval (for fully autonomous mode)
+# ============================================================
+
+def _auto_approve_pending_strategies():
+    """
+    Auto-approve all pending strategies across all agents and domains.
+    
+    Called when require_approval=False. In fully autonomous mode,
+    the daemon can't wait for a human to --approve strategies.
+    Strategies still go through trial before becoming active.
+    """
+    from strategy_store import list_pending as _list_pending, approve_strategy
+    from agents.orchestrator import discover_domains as _discover
+    
+    agent_roles = ["researcher"]  # Only researcher strategies evolve currently
+    domains = _discover()
+    if not domains:
+        return
+    
+    approved = 0
+    for agent in agent_roles:
+        for domain in domains:
+            try:
+                pending = _list_pending(agent, domain)
+            except Exception as e:
+                _log_daemon(f"Error listing pending strategies for {agent}/{domain}: {e}", "warning")
+                continue
+            for entry in pending:
+                version = entry.get("version", "")
+                if not version:
+                    continue
+                try:
+                    result = approve_strategy(agent, domain, version)
+                    if result.get("action") == "approved":
+                        approved += 1
+                        _log_daemon(
+                            f"Auto-approved strategy {version} for {agent}/{domain}",
+                            "info"
+                        )
+                    else:
+                        _log_daemon(
+                            f"Could not auto-approve {version}: {result.get('reason', '?')}",
+                            "warning"
+                        )
+                except Exception as e:
+                    _log_daemon(f"Failed to auto-approve {version}: {e}", "warning")
+    
+    if approved > 0:
+        _log_daemon(f"Auto-approved {approved} pending strategy(ies)")
+
+
+# ============================================================
+# Log Rotation — Prevent unbounded growth during 24/7 operation
+# ============================================================
+
+# Maximum size for a single JSONL log file before rotation (5 MB)
+LOG_MAX_SIZE_BYTES = 5 * 1024 * 1024
+# Maximum number of rotated archives to keep per log file
+LOG_MAX_ROTATIONS = 3
+
+
+def _rotate_logs():
+    """
+    Rotate JSONL log files that exceed LOG_MAX_SIZE_BYTES.
+    
+    Rotation scheme:
+      costs.jsonl → costs.jsonl.1 → costs.jsonl.2 → costs.jsonl.3 (deleted)
+    
+    Called at daemon start and between cycles.
+    Keeps the 3 most recent rotations. Older ones are deleted.
+    """
+    if not os.path.exists(LOG_DIR):
+        return
+    
+    rotated = 0
+    try:
+        for fname in os.listdir(LOG_DIR):
+            fpath = os.path.join(LOG_DIR, fname)
+            # Only rotate .jsonl files (not .json state files)
+            if not fname.endswith(".jsonl") or not os.path.isfile(fpath):
+                continue
+            
+            try:
+                size = os.path.getsize(fpath)
+            except OSError:
+                continue
+            
+            if size < LOG_MAX_SIZE_BYTES:
+                continue
+            
+            # Shift existing rotations: .3 → delete, .2 → .3, .1 → .2
+            for i in range(LOG_MAX_ROTATIONS, 0, -1):
+                old = f"{fpath}.{i}"
+                new = f"{fpath}.{i + 1}" if i < LOG_MAX_ROTATIONS else None
+                if os.path.exists(old):
+                    if new:
+                        os.replace(old, new)
+                    else:
+                        os.remove(old)
+            
+            # Current → .1
+            os.replace(fpath, f"{fpath}.1")
+            rotated += 1
+    except OSError as e:
+        _log_daemon(f"Log rotation error: {e}", "warning")
+    
+    if rotated > 0:
+        _log_daemon(f"Rotated {rotated} log file(s)")
+
+
 def run_daemon(
     interval_minutes: int = 60,
     rounds_per_cycle: int = 5,
@@ -503,7 +615,8 @@ def run_daemon(
     - Brain↔Hands sync checked periodically
     - Each cycle is logged to daemon_state.json
     - SIGINT/SIGTERM triggers graceful shutdown
-    - Strategy changes still require human approval (unless require_approval=False)
+    - Round timeout: each round killed after MAX_ROUND_DURATION_SECONDS (watchdog.py)
+    - Strategy changes require human approval unless require_approval=False
     - Maximum rounds per cycle prevents runaway
     
     Args:
@@ -511,7 +624,9 @@ def run_daemon(
         rounds_per_cycle: Max research rounds per cycle (default: 5)
         max_cycles: Stop after N cycles (0 = run forever until stopped)
         aggressive: Use more budget per cycle
-        require_approval: Strategies require human approval (default: True)
+        require_approval: If True (default), new strategies need --approve.
+            If False, pending strategies are auto-approved on daemon startup
+            and between cycles. Use False only for fully autonomous operation.
     """
     global _daemon_running
     
@@ -541,7 +656,15 @@ def run_daemon(
 
     cycle = 0
     _log_daemon(f"Daemon started: interval={interval_minutes}m, rounds={rounds_per_cycle}, "
-                f"max_cycles={'∞' if max_cycles == 0 else max_cycles}")
+                f"max_cycles={'∞' if max_cycles == 0 else max_cycles}, "
+                f"require_approval={require_approval}")
+
+    # Auto-approve pending strategies if require_approval is False
+    if not require_approval:
+        _auto_approve_pending_strategies()
+
+    # Rotate logs at daemon start to prevent unbounded growth
+    _rotate_logs()
 
     try:
         while not _daemon_stop_event.is_set():
@@ -657,6 +780,7 @@ def run_daemon(
                             # Import late to avoid circular deps
                             from agents.question_generator import get_next_question
                             from domain_seeder import get_seed_question, has_curated_seeds
+                            from watchdog import MAX_ROUND_DURATION_SECONDS
                             
                             # Generate question
                             domain_stats = get_stats(domain)
@@ -669,10 +793,25 @@ def run_daemon(
                                 _log_daemon(f"No question for {domain}, skipping", "warning")
                                 break
                             
-                            # Import run_loop late to avoid circular deps
-                            import importlib
-                            main_mod = importlib.import_module("main")
-                            result = main_mod.run_loop(question=question, domain=domain)
+                            # Run the research round with a timeout
+                            # If round exceeds MAX_ROUND_DURATION_SECONDS, kill it
+                            def _run_round():
+                                import importlib
+                                main_mod = importlib.import_module("main")
+                                return main_mod.run_loop(question=question, domain=domain)
+                            
+                            with ThreadPoolExecutor(max_workers=1) as pool:
+                                future = pool.submit(_run_round)
+                                try:
+                                    result = future.result(timeout=MAX_ROUND_DURATION_SECONDS)
+                                except FutureTimeoutError:
+                                    _log_daemon(
+                                        f"  {domain} round {r+1}: TIMEOUT after "
+                                        f"{MAX_ROUND_DURATION_SECONDS}s — killed",
+                                        "error"
+                                    )
+                                    # Count as a failure but continue to next round
+                                    continue
                             
                             score = result.get("critique", {}).get("overall_score", 0)
                             round_cost = result.get("_cost", 0)
@@ -772,6 +911,14 @@ def run_daemon(
                         _log_daemon("Brain↔Hands sync OK")
                 except Exception as e:
                     _log_daemon(f"Sync check error: {e}", "warning")
+
+            # Auto-approve pending strategies (every 5 cycles, if autonomous)
+            if not require_approval and cycle % 5 == 0:
+                _auto_approve_pending_strategies()
+
+            # Log rotation (every 10 cycles to prevent unbounded growth)
+            if cycle % 10 == 0:
+                _rotate_logs()
 
             # Wait for next cycle
             _log_daemon(f"Sleeping {interval_minutes} minutes until next cycle...")

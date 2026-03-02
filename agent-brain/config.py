@@ -64,8 +64,10 @@ COST_PER_1K = {
     # Deepseek via OpenRouter
     "deepseek/deepseek-chat": {"input": 0.00027, "output": 0.0011},
 }
-DAILY_BUDGET_USD = 2.00  # Normal daily budget
-TOTAL_BALANCE_USD = 11.74  # Synced from Claude console Feb 28. Update after checking actual balance.
+DAILY_BUDGET_USD = 2.00  # Normal daily budget — the actual gate that blocks execution
+# Display-only: approximate API credit balance. Not a gate — just shown in status output.
+# Update with: python main.py --sync-balance  (or manually from Claude console)
+TOTAL_BALANCE_USD = float(os.environ.get("TOTAL_BALANCE_USD", "11.74"))
 
 # --- Loop ---
 DEFAULT_DOMAIN = "general"

@@ -574,6 +574,7 @@ def main():
     parser.add_argument("--check-health", action="store_true", help="Run health checks and monitoring")
     parser.add_argument("--watchdog", action="store_true", help="Show watchdog status (circuit breaker, health, budget)")
     parser.add_argument("--sync", action="store_true", help="Show Brain↔Hands sync status")
+    parser.add_argument("--sync-balance", type=float, metavar="AMOUNT", help="Update the API credit balance (e.g., --sync-balance 9.50)")
 
     # Agent Hands — Execution Layer
     parser.add_argument("--execute", action="store_true", help="Execute a task using Agent Hands (code generation)")
@@ -857,6 +858,31 @@ def main():
     if getattr(args, 'sync', False):
         from cli.infrastructure import show_sync_status
         show_sync_status()
+        return
+    if getattr(args, 'sync_balance', None) is not None:
+        new_balance = args.sync_balance
+        if new_balance <= 0:
+            print("  ✗ Balance must be positive.")
+            return
+        # Write to .env file so it persists
+        env_path = os.path.join(os.path.dirname(__file__), ".env")
+        # Read existing .env, update or add TOTAL_BALANCE_USD
+        lines = []
+        found = False
+        if os.path.exists(env_path):
+            with open(env_path) as f:
+                for line in f:
+                    if line.strip().startswith("TOTAL_BALANCE_USD="):
+                        lines.append(f"TOTAL_BALANCE_USD={new_balance}\n")
+                        found = True
+                    else:
+                        lines.append(line)
+        if not found:
+            lines.append(f"TOTAL_BALANCE_USD={new_balance}\n")
+        with open(env_path, "w") as f:
+            f.writelines(lines)
+        print(f"  ✓ Balance updated to ${new_balance:.2f}")
+        print(f"    Saved to .env (takes effect on next run)")
         return
 
     # --- Agent Hands dispatch ---
