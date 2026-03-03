@@ -270,6 +270,22 @@ def analyze_and_evolve(domain: str) -> dict | None:
         analytics_block += f"  Improvement: {trajectory.get('improvement', 0):+.1f} points\n"
         analytics_block += f"  Rolling average (last 3): {trajectory.get('rolling_avg', [])[-3:]}\n"
 
+    # Inject verifier stats: prediction accuracy = reality-grounding signal
+    try:
+        from agents.verifier import get_verification_stats
+        vstats = get_verification_stats(domain)
+        if vstats.get("total", 0) > 0:
+            analytics_block += f"\nVERIFIER (prediction accuracy — reality check):\n"
+            analytics_block += f"  Total predictions tracked: {vstats['total']}\n"
+            analytics_block += f"  Confirmed: {vstats.get('confirmed', 0)}, Refuted: {vstats.get('refuted', 0)}, Pending: {vstats.get('pending', 0)}\n"
+            if vstats.get("accuracy_rate") is not None:
+                analytics_block += f"  Accuracy rate: {vstats['accuracy_rate']*100:.0f}%\n"
+                if vstats["accuracy_rate"] < 0.5:
+                    analytics_block += f"  ⚠ LOW ACCURACY — the system's predictions are frequently wrong. "\
+                                       f"Strategy should emphasize source verification and hedging.\n"
+    except Exception:
+        pass
+
     user_message = (
         f"Analyze these scored research outputs and generate an improved strategy.\n\n"
         f"DATA:\n{analysis_data}{analytics_block}"

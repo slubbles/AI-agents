@@ -476,9 +476,11 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
                 print(f"[VERIFIER] ⚠ Prediction extraction failed: {e}")
 
     # Step 6.75: Auto-verify past-deadline predictions (reality-grounding)
+    # This is the KEY anti-circular mechanism: verifier checks LLM claims
+    # against external reality, breaking the LLM-judging-LLM loop.
     if final_verdict == "accept":
         try:
-            from agents.verifier import verify_predictions, load_predictions
+            from agents.verifier import verify_predictions, load_predictions, get_verification_stats
             predictions = load_predictions(domain)
             pending = [p for p in predictions if p.get("status") == "pending"]
             if pending:
@@ -489,8 +491,30 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
                     print(f"\n[VERIFIER] {len(past_deadline)} prediction(s) past deadline — verifying...")
                     results = verify_predictions(domain, max_checks=3)
                     for r in results:
-                        status_icon = {"confirmed": "✓", "refuted": "✗", "partially_confirmed": "~", "inconclusive": "?"}.get(r.get("status"), "?")
-                        print(f"  {status_icon} {r.get('prediction', '?')[:80]} → {r.get('status', '?')}")
+                        status_icon = {"confirmed": "✓", "refuted": "✗", "partially_confirmed": "~", "inconclusive": "?"}.get(r.get("verdict"), "?")
+                        print(f"  {status_icon} {r.get('prediction', '?')[:80]} → {r.get('verdict', '?')}")
+                    
+                    # Feed verification results back as lessons (reality-grounding signal)
+                    refuted = [r for r in results if r.get("verdict") == "refuted"]
+                    for r in refuted:
+                        try:
+                            from research_lessons import add_lesson
+                            add_lesson(
+                                domain,
+                                lesson=f"REFUTED prediction: \"{r.get('prediction', '')[:150]}\" — "
+                                       f"Evidence: {r.get('evidence', '')[:200]}",
+                                source="verifier_refutation",
+                                details=f"The system predicted something that turned out to be wrong. "
+                                        f"This indicates overconfidence or poor source quality in this area."
+                            )
+                        except Exception:
+                            pass
+                    
+                    # Print accuracy stats as a reality-check signal
+                    stats = get_verification_stats(domain)
+                    if stats.get("accuracy_rate") is not None:
+                        print(f"\n[VERIFIER] Prediction accuracy: {stats['accuracy_rate']*100:.0f}% "
+                              f"({stats['confirmed']} confirmed, {stats['refuted']} refuted)")
         except Exception as e:
             pass  # Non-blocking — verification failure shouldn't stop the loop
 
@@ -553,11 +577,13 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     # Step 9: Auto-monitoring — run health check after each loop
     try:
         from monitoring import run_health_check
-        health = run_health_check(domain)
-        if health and health.get("alerts"):
-            print(f"[MONITORING] {len(health['alerts'])} alert(s):")
-            for alert in health["alerts"][:3]:
-                print(f"  ⚠ {alert}")
+        health = run_health_check(verbose=True)
+        health_status = health.get("status", "unknown") if health else "unknown"
+        alerts_count = health.get("alerts_generated", 0) if health else 0
+        if alerts_count > 0:
+            print(f"  [INFO] {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')} Health: {health_status} ({alerts_count} alerts)")
+        elif health_status != "healthy":
+            print(f"  [INFO] {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')} Health: {health_status}")
     except Exception as e:
         pass  # Non-blocking — monitoring failure shouldn't stop the loop
 
@@ -580,6 +606,9 @@ def log_run(domain: str, question: str, attempts: int, research: dict, critique:
         "attempts": attempts,
         "score": critique.get("overall_score", 0),
         "verdict": critique.get("verdict", "unknown"),
+        "dimensions": critique.get("scores", {}),
+        "feedback": critique.get("actionable_feedback", ""),
+        "weaknesses": critique.get("weaknesses", []),
         "strategy_version": strategy_version,
         "consensus": research.get("_consensus", False),
         "consensus_level": research.get("consensus_level"),

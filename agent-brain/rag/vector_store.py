@@ -27,9 +27,13 @@ import time
 from datetime import datetime, timezone
 from typing import Optional
 
+# Disable ChromaDB telemetry — prevents recursion in serialization
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "false")
+os.environ.setdefault("CHROMA_TELEMETRY", "false")
+
 import chromadb
 
-from rag.embeddings import get_embedding_fn
+from rag.embeddings import get_embedding_fn, embed_texts
 
 
 # ── Configuration ─────────────────────────────────────────────────────
@@ -332,8 +336,11 @@ def search_claims(
         where = {"$and": where_filters}
     
     try:
+        # Pre-compute embedding ourselves to bypass ChromaDB's internal
+        # embedding function callback, which triggers recursion in 1.5.x
+        query_embedding = embed_texts([query])
         results = claims_col.query(
-            query_texts=[query],
+            query_embeddings=query_embedding,
             n_results=min(max_results * 2, 50),  # Over-fetch for post-filtering
             where=where,
             include=["documents", "metadatas", "distances"],
@@ -402,8 +409,10 @@ def search_similar_questions(
     where = {"domain": {"$eq": domain}} if domain else None
     
     try:
+        # Pre-compute embedding to bypass ChromaDB recursion bug
+        query_embedding = embed_texts([question])
         results = questions_col.query(
-            query_texts=[question],
+            query_embeddings=query_embedding,
             n_results=max_results,
             where=where,
             include=["documents", "metadatas", "distances"],
