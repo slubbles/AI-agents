@@ -672,6 +672,9 @@ def execute_plan(
                 agent_role="executor",
                 domain=domain,
             )
+            # Cleanup visual gate before returning (prevent resource leak)
+            if visual_gate:
+                visual_gate.cleanup()
             return {
                 "success": False,
                 "error": f"Execution aborted: {reason}",

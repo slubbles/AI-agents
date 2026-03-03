@@ -73,12 +73,40 @@ def get_seed_build_task(domain: str) -> str:
     ))
 
 
-def run_execute(domain: str, goal: str, workspace_dir: str = ""):
+def _detect_page_type(goal: str) -> str:
+    """Detect page type from goal text for design system selection.
+
+    Returns 'marketing' for landing pages, sales pages, etc.
+    Returns 'app' for everything else (default).
+    """
+    marketing_keywords = [
+        "landing page", "marketing", "sales page", "lead gen",
+        "conversion page", "hero section", "squeeze page", "opt-in",
+        "launch page", "promo page", "coming soon",
+    ]
+    goal_lower = goal.lower()
+    for kw in marketing_keywords:
+        if kw in goal_lower:
+            return "marketing"
+    return "app"
+
+
+def run_execute(domain: str, goal: str, workspace_dir: str = "", page_type: str = ""):
     """
     Execute a task using Agent Hands.
 
     Pipeline: Plan → Execute → Validate → (retry if needed) → Store
+
+    Args:
+        domain: Domain context for execution.
+        goal: The task/goal description.
+        workspace_dir: Base directory for file operations.
+        page_type: 'app' or 'marketing'. Auto-detected from goal if empty.
     """
+    # Auto-detect page_type from goal if not explicitly set
+    if not page_type:
+        page_type = _detect_page_type(goal)
+
     from hands.planner import plan as create_plan_hands
     from hands.executor import execute_plan
     from hands.validator import validate_execution, identify_failing_steps
@@ -107,6 +135,7 @@ def run_execute(domain: str, goal: str, workspace_dir: str = ""):
     print(f"  AGENT HANDS — Execution Mode")
     print(f"  Domain: {domain}")
     print(f"  Goal: {goal}")
+    print(f"  Page type: {page_type}")
     print(f"  Budget: ${budget['remaining']:.4f} remaining")
     print(f"{'='*60}\n")
 
@@ -351,6 +380,9 @@ def run_execute(domain: str, goal: str, workspace_dir: str = ""):
             execution_strategy=strategy_with_exemplars,
             workspace_dir=workspace_dir,
             resume_from=_resume_data if _use_surgical_retry else None,
+            page_type=page_type,
+            research_context=domain_knowledge,
+            visual_context=goal,
         )
         # Reset surgical retry state after use
         _use_surgical_retry = False

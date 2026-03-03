@@ -9,6 +9,8 @@ Rules extracted from corrections. Reviewed at session start. Updated after every
 - **Function names in cli/ don't always match the flag name**: e.g., `cli/tools_cmd.py` has `crawl()` not `crawl_site()`, `fetch()` not `fetch_url()`. Always read the actual function before wiring.
 - **Return types vary across cli/ functions**: `list_pending()` returns `list[dict]` not `list[str]`. `approve_strategy()` returns `{"action": "approved"}` not `{"approved": true}`. Never assume — read the return.
 - **System prompt honesty**: When describing what the system can do, distinguish "proven and tested" from "code exists but unproven." The user corrected this pattern — don't regress.
+- **Resource cleanup on all exit paths**: When a function creates resources (subprocesses, browser sessions), verify cleanup runs on ALL exit paths: normal return, early return (_abort), exceptions. The executor `_abort` handler returned without calling `visual_gate.cleanup()`, leaking dev servers. Always audit every `return` statement in functions that own resources.
+- **New features must be wired to all callers**: When adding params to a function (e.g., `page_type` to `execute_plan`), grep ALL call sites and update them. The CLI's `execute_plan()` call was missing `page_type`, `research_context`, `visual_context` — making Obj 4/5 features unreachable from CLI.
 
 ## General Patterns
 

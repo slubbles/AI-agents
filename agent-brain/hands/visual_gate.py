@@ -324,6 +324,15 @@ class VisualGate:
             BrowserSession.close()
         except Exception:
             pass
+
+    def __del__(self):
+        """Safety net: cleanup resources if cleanup() was never called explicitly.
+
+        Mirrors Python's subprocess.Popen.__del__ pattern for resource cleanup.
+        Since cleanup() is idempotent (checks _dev_server_proc before acting),
+        this is safe even if cleanup() was already called.
+        """
+        self.cleanup()
     
     def get_summary(self) -> dict:
         """Return summary of visual gate activity for the execution report."""
