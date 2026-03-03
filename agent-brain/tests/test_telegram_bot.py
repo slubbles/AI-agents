@@ -282,6 +282,67 @@ class TestSecurity:
 
 # ── Module-level Checks ──────────────────────────────────────────────
 
+class TestGetLiveDaemonState:
+    """Test _get_live_daemon_state() — reads daemon_state.json."""
+
+    def test_no_state_file(self, tmp_path, monkeypatch):
+        from telegram_bot import _get_live_daemon_state
+        monkeypatch.setattr("telegram_bot.LOG_DIR", str(tmp_path / "nonexistent"))
+        result = _get_live_daemon_state()
+        assert "not running" in result
+
+    def test_idle_state(self, tmp_path, monkeypatch):
+        from telegram_bot import _get_live_daemon_state
+        monkeypatch.setattr("telegram_bot.LOG_DIR", str(tmp_path))
+        state = {
+            "status": "idle", "cycle": 8, "avg_score": 7.2,
+            "next_run": "2026-03-04T12:00:00",
+            "domain_results": [{"domain": "saas", "avg_score": 7.2}],
+        }
+        (tmp_path / "daemon_state.json").write_text(json.dumps(state))
+        result = _get_live_daemon_state()
+        assert "IDLE" in result
+        assert "cycle 8" in result
+        assert "saas" in result
+
+    def test_running_state(self, tmp_path, monkeypatch):
+        from telegram_bot import _get_live_daemon_state
+        monkeypatch.setattr("telegram_bot.LOG_DIR", str(tmp_path))
+        state = {
+            "status": "running", "cycle": 9, "domains": ["ai-tools"],
+            "planned_rounds": 3, "started_at": "2026-03-04T12:00:00",
+        }
+        (tmp_path / "daemon_state.json").write_text(json.dumps(state))
+        result = _get_live_daemon_state()
+        assert "RUNNING" in result
+        assert "ai-tools" in result
+
+    def test_budget_state(self, tmp_path, monkeypatch):
+        from telegram_bot import _get_live_daemon_state
+        monkeypatch.setattr("telegram_bot.LOG_DIR", str(tmp_path))
+        state = {"status": "waiting_budget", "budget_spent": 1.95, "budget_limit": 2.0}
+        (tmp_path / "daemon_state.json").write_text(json.dumps(state))
+        result = _get_live_daemon_state()
+        assert "PAUSED" in result
+        assert "$1.95" in result
+
+    def test_corrupt_file(self, tmp_path, monkeypatch):
+        from telegram_bot import _get_live_daemon_state
+        monkeypatch.setattr("telegram_bot.LOG_DIR", str(tmp_path))
+        (tmp_path / "daemon_state.json").write_text("NOT JSON")
+        result = _get_live_daemon_state()
+        assert "unreadable" in result
+
+
+class TestKitchenCommand:
+    def test_kitchen_command(self):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/kitchen")
+        assert resp is not None
+        # Should include daemon state (even if "not running")
+        assert "Daemon" in resp or "daemon" in resp.lower()
+
+
 class TestModuleStructure:
     def test_imports(self):
         import telegram_bot
@@ -290,6 +351,7 @@ class TestModuleStructure:
         assert hasattr(telegram_bot, "_handle_command")
         assert hasattr(telegram_bot, "_send_message")
         assert hasattr(telegram_bot, "ConversationManager")
+        assert hasattr(telegram_bot, "_get_live_daemon_state")
     
     def test_max_msg_len(self):
         from telegram_bot import MAX_MSG_LEN

@@ -49,7 +49,9 @@ MODELS = {
     "progress_tracker": CHEAPEST_MODEL,             # periodic assessment
     # Tier 2 — Grok 4.1 Fast (low latency, tool-use loops)
     "researcher": FAST_MODEL,                       # many tool-use round trips, speed matters
-    "chat": FAST_MODEL,                             # interactive, latency matters
+    # Chat is the human interface — the "waiter" in the restaurant.
+    # It must speak with orchestrator-level intelligence. Sonnet is worth the cost.
+    "chat": PREMIUM_MODEL,                          # human interface — quality is sacred
     # Tier 3 — Claude Sonnet (sacred quality tasks)
     "critic": PREMIUM_MODEL,                        # quality signal — NEVER cut corners
     "meta_analyst": PREMIUM_MODEL,                  # pattern extraction needs reasoning
@@ -130,7 +132,8 @@ REASONING_EFFORT = {
     "critic_ensemble_b": True,     # ENABLE reasoning for DeepSeek critic (quality matters)
     # Tier 2 — Grok (reasoning.effort: low/medium/high)
     "researcher": None,            # keep fast — tool-use loops, reasoning slows down
-    "chat": None,                  # keep fast — conversational, low latency
+    # Chat is now Claude Sonnet — reasoning is native, no toggle needed
+    "chat": None,                  # Claude Sonnet — reasoning is native
     # Tier 3 — Claude (N/A — reasoning is native)
     "critic": None,
     "meta_analyst": None,

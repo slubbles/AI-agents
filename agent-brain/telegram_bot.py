@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 # Load .env before anything else
 from config import (
-    DEFAULT_DOMAIN, DAILY_BUDGET_USD, CHEAP_MODEL, REASONING_EFFORT
+    DEFAULT_DOMAIN, DAILY_BUDGET_USD, MODELS, REASONING_EFFORT, LOG_DIR
 )
 from llm_router import call_llm
 from cost_tracker import log_cost
@@ -157,6 +157,53 @@ _conversations = ConversationManager()
 
 # ── Chat Pipeline (reuses cli/chat.py components) ─────────────────────
 
+def _get_live_daemon_state() -> str:
+    """Read daemon_state.json to know what the kitchen is doing right now."""
+    state_file = os.path.join(LOG_DIR, "daemon_state.json")
+    if not os.path.exists(state_file):
+        return "Daemon: not running (no state file)"
+    try:
+        with open(state_file) as f:
+            state = json.load(f)
+        status = state.get("status", "unknown")
+        cycle = state.get("cycle", "?")
+        
+        if status == "idle":
+            last_completed = state.get("last_completed", "")
+            avg_score = state.get("avg_score", "?")
+            next_run = state.get("next_run", "")
+            domain_results = state.get("domain_results", [])
+            domains_summary = ", ".join(
+                f"{d['domain']} ({d['avg_score']})" for d in domain_results
+            ) if domain_results else "none"
+            return (
+                f"Daemon: IDLE after cycle {cycle}. "
+                f"Last cycle scored {avg_score}/10 across [{domains_summary}]. "
+                f"Next run: {next_run[:16] if next_run else 'unknown'}"
+            )
+        elif status == "running":
+            domains = state.get("domains", [])
+            planned = state.get("planned_rounds", "?")
+            return (
+                f"Daemon: RUNNING cycle {cycle} — "
+                f"{planned} rounds across {', '.join(domains)}. "
+                f"Started: {state.get('started_at', '?')[:16]}"
+            )
+        elif status == "waiting_budget":
+            return (
+                f"Daemon: PAUSED (budget limit reached). "
+                f"Spent ${state.get('budget_spent', 0):.2f}/${state.get('budget_limit', 0):.2f}"
+            )
+        elif status == "watchdog_blocked":
+            return f"Daemon: BLOCKED by watchdog — {state.get('reason', '?')}"
+        elif status == "stopped":
+            return f"Daemon: STOPPED at cycle {cycle}. {state.get('stop_reason', '')}"
+        else:
+            return f"Daemon: {status} (cycle {cycle})"
+    except Exception:
+        return "Daemon: state unreadable"
+
+
 def _process_message(chat_id: str, text: str) -> str:
     """Process a user message through the LLM + tools pipeline.
     
@@ -167,13 +214,17 @@ def _process_message(chat_id: str, text: str) -> str:
     )
     
     domain = _conversations.get_domain(chat_id)
-    system_prompt = _build_system_context(domain)
+    
+    # Build system prompt with live daemon state injected
+    base_prompt = _build_system_context(domain)
+    live_state = _get_live_daemon_state()
+    system_prompt = base_prompt + f"\n\nLIVE DAEMON STATUS:\n  {live_state}\n"
     
     # Add user message to history
     _conversations.add_message(chat_id, "user", text)
     conversation = _conversations.get_messages(chat_id)
     
-    chat_model = CHEAP_MODEL
+    chat_model = MODELS.get("chat", "claude-sonnet-4-20250514")
     chat_reasoning = REASONING_EFFORT.get("chat")
     
     # Call LLM
@@ -344,12 +395,14 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "• Strategic planning via Cortex Orchestrator\n\n"
             "<b>Commands:</b>\n"
             "/status — System status + budget\n"
+            "/kitchen — What's cooking right now (live daemon view)\n"
             "/domains — List all research domains\n"
             "/domain &lt;name&gt; — Switch active domain\n"
             "/clear — Clear conversation history\n"
-            "/daemon — Show daemon status\n"
+            "/daemon — Full daemon status\n"
             "/help — Show this message\n\n"
-            "Or just type naturally — I understand plain English."
+            "Or just type naturally — I understand plain English.\n"
+            "I'm powered by Claude Sonnet for quality conversations."
         )
     
     if cmd_name == "/help":
@@ -380,6 +433,8 @@ def _handle_command(chat_id: str, command: str) -> str | None:
         claude_info = b.get("by_provider", {}).get("claude", {})
         openrouter_info = b.get("by_provider", {}).get("openrouter", {})
         
+        live = _get_live_daemon_state()
+        
         return (
             f"📊 <b>System Status</b>\n\n"
             f"Active domain: {domain}\n"
@@ -387,20 +442,60 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             f"Claude: ${claude_info.get('spent', 0):.2f} / ${claude_info.get('limit', 0):.2f}\n"
             f"OpenRouter: ${openrouter_info.get('spent', 0):.2f} / ${openrouter_info.get('limit', 0):.2f}\n"
             f"Budget OK: {'✅' if b['within_budget'] else '❌'}\n"
-            f"Calls today: {d['calls']}"
+            f"Calls today: {d['calls']}\n\n"
+            f"🔄 {live}"
         )
     
     if cmd_name == "/daemon":
-        from scheduler import get_daemon_status
-        s = get_daemon_status()
-        state = s.get("state", {})
-        status = state.get("status", "unknown")
-        cycle = state.get("cycle", 0)
+        live = _get_live_daemon_state()
+        # Also try the full status from scheduler
+        try:
+            from scheduler import get_daemon_status
+            s = get_daemon_status()
+            state = s.get("state", {})
+            cycle = state.get("cycle", 0)
+            avg = state.get("avg_score", "?")
+            cost = state.get("cycle_cost", 0)
+            domains = state.get("domain_results", [])
+            domain_lines = "\n".join(
+                f"  • {d['domain']}: {d.get('avg_score', '?')}/10 ({d.get('rounds_completed', '?')} rounds)"
+                for d in domains
+            ) if domains else "  (no domain results)"
+            return (
+                f"🤖 <b>Daemon Status</b>\n\n"
+                f"{live}\n\n"
+                f"<b>Last cycle results:</b>\n"
+                f"{domain_lines}\n"
+                f"Cost: ${cost:.4f} | Avg: {avg}/10"
+            )
+        except Exception:
+            return f"🤖 <b>Daemon Status</b>\n\n{live}"
+    
+    if cmd_name == "/kitchen":
+        """What's cooking right now? Live view of daemon activity."""
+        live = _get_live_daemon_state()
+        # Get recent cycle history
+        history_file = os.path.join(LOG_DIR, "daemon_history.jsonl")
+        recent_cycles = []
+        if os.path.exists(history_file):
+            try:
+                with open(history_file) as f:
+                    lines = f.readlines()
+                for line in lines[-5:]:
+                    entry = json.loads(line.strip())
+                    c = entry.get("cycle", "?")
+                    d = entry.get("domains", [])
+                    s = entry.get("avg_score", "?")
+                    cost = entry.get("cycle_cost", 0)
+                    recent_cycles.append(f"  Cycle {c}: {s}/10 • ${cost:.3f} • {', '.join(d)}")
+            except Exception:
+                pass
+        
+        history_text = "\n".join(recent_cycles) if recent_cycles else "  (no history yet)"
         return (
-            f"🤖 <b>Daemon Status</b>\n\n"
-            f"Running: {'✅' if s.get('running') else '❌'}\n"
-            f"Status: {status}\n"
-            f"Cycle: {cycle}"
+            f"🍳 <b>Kitchen Status</b>\n\n"
+            f"{live}\n\n"
+            f"<b>Recent cycles:</b>\n{history_text}"
         )
     
     return None  # Not a recognized command
@@ -450,7 +545,7 @@ def run_telegram_bot():
     
     print(f"  📱 Listening for messages from chat_id {allowed_chat_id}...")
     print(f"  Active domain: {DEFAULT_DOMAIN}")
-    print(f"  Model: {CHEAP_MODEL}")
+    print(f"  Model: {MODELS.get('chat', 'unknown')}")
     print(f"  Press Ctrl+C to stop.\n")
     
     # Notify on Telegram
