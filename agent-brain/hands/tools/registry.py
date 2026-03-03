@@ -333,11 +333,13 @@ def create_default_registry() -> ToolRegistry:
     from hands.tools.git import GitTool
     from hands.tools.http import HttpTool
     from hands.tools.search import SearchTool
+    from hands.tools.browser import BrowserTool
 
     registry.register(CodeTool())
     registry.register(TerminalTool())
     registry.register(GitTool())
     registry.register(HttpTool())
     registry.register(SearchTool())
+    registry.register(BrowserTool())
 
     return registry

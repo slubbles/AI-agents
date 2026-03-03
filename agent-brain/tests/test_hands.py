@@ -1334,14 +1334,14 @@ class TestExpandedRegistry:
         assert "git" in tools
         assert "http" in tools
         assert "search" in tools
-        assert len(tools) == 5
+        assert len(tools) == 6
 
     def test_registry_claude_tools_format(self):
         """All tools produce valid Claude tool definitions."""
         from hands.tools.registry import create_default_registry
         registry = create_default_registry()
         claude_tools = registry.get_claude_tools()
-        assert len(claude_tools) == 5
+        assert len(claude_tools) == 6
         for tool in claude_tools:
             assert "name" in tool
             assert "description" in tool
@@ -4730,7 +4730,7 @@ class TestNativeToolUse:
         assert "_abort" in names
         assert "code" in names
         assert "terminal" in names
-        assert len(tools) == 7  # 5 real + 2 synthetic
+        assert len(tools) == 8  # 6 real + 2 synthetic
 
     def test_control_tool_schemas(self):
         """Synthetic control tools have valid input schemas."""

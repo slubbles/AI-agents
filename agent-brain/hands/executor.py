@@ -37,6 +37,7 @@ from hands.error_analyzer import analyze_error, format_retry_guidance
 from hands.tool_health import ToolHealthMonitor
 from hands.timeout_adapter import TimeoutAdapter
 from hands.mid_validator import MidExecutionValidator
+from hands.visual_gate import VisualGate
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -394,6 +395,9 @@ def execute_plan(
     resume_from: dict | None = None,
     enable_mid_gates: bool = True,
     research_context: str = "",
+    visual_context: str = "",
+    enable_visual_gate: bool = True,
+    page_type: str = "app",
 ) -> dict:
     """
     Execute a plan step-by-step using tools.
@@ -407,6 +411,9 @@ def execute_plan(
         resume_from: Checkpoint data for partial re-execution (completed steps to skip)
         enable_mid_gates: Whether to run mid-execution quality gates
         research_context: Research context from Brain's knowledge base (injected by Cortex)
+        visual_context: Description of the page for visual evaluation (e.g. "Landing page for logistics SaaS")
+        enable_visual_gate: Whether to enable mid-build visual quality checks via screenshots
+        page_type: Type of page ("app" or "marketing") for design standard selection
 
     Returns:
         Execution report dict with step results, artifacts, and summary
@@ -437,6 +444,17 @@ def execute_plan(
     if mid_validator and mid_validator.gate_points:
         print(f"  [EXECUTOR] Quality gates at steps: {sorted(mid_validator.gate_points)}")
     mid_gate_corrections = 0  # Track how many corrections were injected
+
+    # Initialize visual gate for frontend builds (screenshots → Claude Vision → fix instructions)
+    visual_gate = None
+    visual_corrections = 0
+    if enable_visual_gate:
+        visual_gate = VisualGate(
+            workspace_dir=workspace_dir,
+            domain=domain,
+            context=visual_context or plan.get("task_summary", ""),
+            page_type=page_type,
+        )
 
     # Handle resume_from (partial re-execution)
     resumed_steps = []
@@ -812,6 +830,18 @@ def execute_plan(
         if gate_correction:
             result_text += f"\n\n{gate_correction}"
 
+        # Visual quality gate (screenshots + Claude Vision)
+        visual_correction = ""
+        if visual_gate and result.success and visual_gate.should_check(step_num, all_artifacts):
+            visual_gate._last_check_step = step_num
+            visual_correction = visual_gate.run_check(
+                task_id=plan.get("task_summary", "build")[:30],
+                iteration=visual_corrections,
+            )
+            if visual_correction:
+                visual_corrections += 1
+                result_text += visual_correction
+
         # Step-directed prompt: tell the LLM exactly what comes next
         next_step_num = step_num + 1
         if next_step_num <= len(steps):
@@ -871,10 +901,16 @@ def execute_plan(
         "total_turns": last_turn + 1,
         "tool_health": health_monitor.get_health_report(),
         "mid_gate_corrections": mid_gate_corrections,
+        "visual_corrections": visual_corrections,
+        "visual_gate": visual_gate.get_summary() if visual_gate else {},
         "timeout_stats": timeout_adapter.stats(),
         "resumed_steps": len(resumed_steps),
         "is_repair": plan.get("is_repair", False),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+    # Cleanup visual gate (kill dev server, close browser)
+    if visual_gate:
+        visual_gate.cleanup()
 
     return report
