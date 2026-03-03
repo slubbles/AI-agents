@@ -54,7 +54,9 @@ FAILURE_COOLDOWN_SECONDS = 1800  # 30 minutes
 HARD_COST_CEILING_USD = DAILY_BUDGET_USD * 1.5
 
 # Stall detection: max time for a single research round (seconds)
-MAX_ROUND_DURATION_SECONDS = 300  # 5 minutes
+# Includes research + scoring + synthesis + verification + meta-analysis.
+# 300s was too tight — synthesis alone can take 60-120s on top of research.
+MAX_ROUND_DURATION_SECONDS = 600  # 10 minutes
 
 # State file
 WATCHDOG_STATE_FILE = os.path.join(LOG_DIR, "watchdog_state.json")

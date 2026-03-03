@@ -87,8 +87,10 @@ _ACTION_KEYWORDS = {
     "deploy": "deploy",
     "launch": "deploy",
     "ship": "deploy",
+    "publish": "deploy",
     "investigate": "investigate",
     "analyze": "investigate",
+    "research": "investigate",
     "test": "investigate",
     "fix": "action",
     "optimize": "action",
@@ -96,7 +98,16 @@ _ACTION_KEYWORDS = {
     "automate": "action",
     "set up": "action",
     "configure": "action",
+    "migrate": "action",
+    "refactor": "action",
+    "upgrade": "action",
+    "scale": "action",
 }
+
+# Task types that get "high" priority (auto-executable by Hands)
+_HIGH_PRIORITY_TYPES = {"build", "deploy", "action"}
+# Task types that stay "medium" (manual or future auto-exec)
+_MEDIUM_PRIORITY_TYPES = {"investigate"}
 
 
 def _create_tasks_from_research(domain: str, research: dict, output_id: str) -> None:
@@ -123,12 +134,14 @@ def _create_tasks_from_research(domain: str, research: dict, output_id: str) -> 
                 task_type = ttype
                 break
         if task_type and insight.lower()[:60] not in existing_titles:
+            # Actionable types get high priority (auto-executable by Hands)
+            priority = "high" if task_type in _HIGH_PRIORITY_TYPES else "medium"
             create_task(
                 title=insight[:80],
                 description=f"From research in '{domain}': {insight}",
                 source_domain=domain,
                 task_type=task_type,
-                priority="medium",
+                priority=priority,
                 source_output_id=output_id,
             )
             created += 1
