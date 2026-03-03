@@ -54,6 +54,9 @@ def get_daily_spend(target_date: str | None = None) -> dict:
     """
     Get total estimated spend for a given date (default: today).
 
+    Source of truth: SQLite DB (fast, accurate).
+    Falls back to JSONL only if DB query fails.
+
     Returns:
         {date, total_usd, calls, by_agent: {role: usd}, by_model: {model: usd},
          by_provider: {claude: usd, openrouter: usd}}
@@ -61,6 +64,23 @@ def get_daily_spend(target_date: str | None = None) -> dict:
     if target_date is None:
         target_date = date.today().isoformat()
 
+    # Primary: read from DB
+    try:
+        from db import get_daily_spend_db
+        db_result = get_daily_spend_db(target_date)
+
+        # DB result doesn't include by_provider — compute it from by_model
+        by_provider = {"claude": 0.0, "openrouter": 0.0}
+        for model, cost in db_result.get("by_model", {}).items():
+            provider = MODEL_PROVIDER.get(model, "openrouter")
+            by_provider[provider] = by_provider.get(provider, 0) + cost
+
+        db_result["by_provider"] = {k: round(v, 4) for k, v in by_provider.items()}
+        return db_result
+    except Exception as e:
+        print(f"[COST] ⚠ DB read failed, falling back to JSONL: {e}")
+
+    # Fallback: read from JSONL (backward compat)
     total = 0.0
     calls = 0
     by_agent = {}
@@ -204,7 +224,31 @@ def check_balance() -> dict:
 
 
 def get_all_time_spend() -> dict:
-    """Get total spend across all days."""
+    """Get total spend across all days. Source of truth: DB, fallback: JSONL."""
+    # Primary: read from DB
+    try:
+        from db import get_all_time_spend_db
+        db_result = get_all_time_spend_db()
+
+        # DB result doesn't include by_model — add it from a targeted query
+        try:
+            from db import get_connection, init_db
+            init_db()
+            by_model = {}
+            with get_connection() as conn:
+                for r in conn.execute(
+                    "SELECT model, SUM(estimated_cost_usd) as s FROM costs GROUP BY model"
+                ).fetchall():
+                    by_model[r["model"]] = round(r["s"], 4)
+            db_result["by_model"] = by_model
+        except Exception:
+            db_result["by_model"] = {}
+
+        return db_result
+    except Exception as e:
+        print(f"[COST] ⚠ DB read failed, falling back to JSONL: {e}")
+
+    # Fallback: read from JSONL
     if not os.path.exists(COST_LOG):
         return {"total_usd": 0, "calls": 0, "days": 0, "by_date": {}, "by_model": {}}
 

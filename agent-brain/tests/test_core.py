@@ -47,13 +47,24 @@ def tmp_strategy(tmp_path):
 
 @pytest.fixture
 def tmp_logs(tmp_path):
-    """Create a temporary log directory and patch LOG_DIR + COST_LOG."""
+    """Create a temporary log directory and patch LOG_DIR + COST_LOG + DB."""
     log_dir = str(tmp_path / "logs")
     os.makedirs(log_dir)
     cost_log = os.path.join(log_dir, "costs.jsonl")
+    db_path = os.path.join(log_dir, "agent_brain_test.db")
+    import db as db_module
+    old_db_path = db_module.DB_PATH
+    old_initialized = db_module._initialized
     with patch("cost_tracker.LOG_DIR", log_dir), \
          patch("cost_tracker.COST_LOG", cost_log):
-        yield log_dir
+        # Reset DB to use temp path so cost reads go to the right DB
+        db_module.DB_PATH = db_path
+        db_module._initialized = False
+        try:
+            yield log_dir
+        finally:
+            db_module.DB_PATH = old_db_path
+            db_module._initialized = old_initialized
 
 
 @pytest.fixture

@@ -93,10 +93,10 @@ _ACTION_KEYWORDS = {
     "launch": "deploy",
     "ship": "deploy",
     "publish": "deploy",
-    "investigate": "investigate",
-    "analyze": "investigate",
-    "research": "investigate",
-    "test": "investigate",
+    "investigate": "action",     # was "investigate" — Hands can only exec build/action/deploy
+    "analyze": "action",         # was "investigate" — remapped so tasks are actually picked up
+    "research": "action",        # was "investigate" — Brain→Hands pipeline requires these types
+    "test": "action",            # was "investigate" — testing is an executable action
     "fix": "action",
     "optimize": "action",
     "integrate": "action",
@@ -111,8 +111,8 @@ _ACTION_KEYWORDS = {
 
 # Task types that get "high" priority (auto-executable by Hands)
 _HIGH_PRIORITY_TYPES = {"build", "deploy", "action"}
-# Task types that stay "medium" (manual or future auto-exec)
-_MEDIUM_PRIORITY_TYPES = {"investigate"}
+# No more "investigate" type — all tasks are executable by Hands
+_MEDIUM_PRIORITY_TYPES = set()
 
 
 def _create_tasks_from_research(domain: str, research: dict, output_id: str) -> None:
@@ -151,7 +151,8 @@ def _create_tasks_from_research(domain: str, research: dict, output_id: str) -> 
             )
             created += 1
 
-    # Scan knowledge_gaps — these become "investigate" tasks
+    # Scan knowledge_gaps — these become low-priority "action" tasks
+    # (was "investigate" which Hands never picked up — remapped to executable type)
     for gap in research.get("knowledge_gaps", [])[:3]:
         gap_lower = gap.lower()
         if gap_lower[:60] not in existing_titles:
@@ -159,7 +160,7 @@ def _create_tasks_from_research(domain: str, research: dict, output_id: str) -> 
                 title=f"Research gap: {gap[:70]}",
                 description=f"Knowledge gap identified in '{domain}': {gap}",
                 source_domain=domain,
-                task_type="investigate",
+                task_type="action",
                 priority="low",
                 source_output_id=output_id,
             )

@@ -585,7 +585,26 @@ def _apply_cortex_priorities(plan: dict, cortex_plan: dict):
     focus = cortex_plan.get("focus_domains", [])
     if not focus or not plan.get("allocation"):
         return
-    
+
+    # Filter out meta-domains that aren't real research domains.
+    # Cortex LLM sometimes returns "all", "general", "system" etc.
+    # These cause phantom allocations → downstream failures → watchdog cooldowns.
+    real_domains = set()
+    try:
+        from agents.orchestrator import discover_domains
+        real_domains = set(discover_domains())
+    except Exception:
+        pass
+    if real_domains:
+        focus = [d for d in focus if d in real_domains]
+    else:
+        # Fallback: at minimum filter obvious meta-domain names
+        _META_DOMAINS = {"all", "system", "general", "none", "meta", "overall"}
+        focus = [d for d in focus if d.lower() not in _META_DOMAINS]
+
+    if not focus:
+        return
+
     alloc = plan["allocation"]
     alloc_by_domain = {a["domain"]: a for a in alloc}
     
@@ -1101,8 +1120,8 @@ def _execute_hands_tasks(cycle: int, budget_remaining: float) -> list[dict]:
             domain = task.get("source_domain", "general")
             task_type = task.get("task_type", "action")
             
-            # Only auto-execute "build" and "action" types
-            if task_type not in ("build", "action"):
+            # Auto-execute build, action, and deploy types
+            if task_type not in ("build", "action", "deploy"):
                 _log_daemon(f"Hands skipping task {task_id}: type={task_type}", "info")
                 continue
             

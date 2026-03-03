@@ -244,8 +244,8 @@ class TestApplyCortexPriorities:
         assert alloc["ai"] == 1
         assert alloc["seo"] == 1
 
-    def test_unknown_focus_domain_gets_injected(self):
-        """Focus domain not in plan is INJECTED by stealing a round."""
+    def test_unknown_focus_domain_gets_filtered(self):
+        """Focus domain not in real domains is FILTERED OUT (prevents phantom allocations)."""
         from scheduler import _apply_cortex_priorities
         plan = {
             "executable": True,
@@ -255,14 +255,16 @@ class TestApplyCortexPriorities:
             ],
         }
         cortex_plan = {"focus_domains": ["blockchain"]}
-        _apply_cortex_priorities(plan, cortex_plan)
+        # Mock discover_domains to return real domains (blockchain not included)
+        with patch("agents.orchestrator.discover_domains", return_value=["ai", "seo"]):
+            _apply_cortex_priorities(plan, cortex_plan)
         
         alloc = {a["domain"]: a["rounds"] for a in plan["allocation"]}
-        # blockchain should be injected with 1 round, stolen from ai (highest)
-        assert "blockchain" in alloc, "Focus domain should be injected"
-        assert alloc["blockchain"] >= 1
-        # Total rounds should be preserved
-        assert sum(alloc.values()) == 5
+        # blockchain should NOT be injected — it's not a real domain
+        assert "blockchain" not in alloc, "Unknown domain should be filtered out"
+        # Original allocation preserved
+        assert alloc["ai"] == 3
+        assert alloc["seo"] == 2
 
     def test_empty_focus_domains_noop(self):
         """Empty focus_domains is a no-op."""
@@ -287,7 +289,9 @@ class TestApplyCortexPriorities:
             ],
         }
         cortex_plan = {"focus_domains": ["ai", "seo"]}
-        _apply_cortex_priorities(plan, cortex_plan)
+        # Mock discover_domains to include all test domains
+        with patch("agents.orchestrator.discover_domains", return_value=["ai", "seo", "crypto", "devops"]):
+            _apply_cortex_priorities(plan, cortex_plan)
         
         alloc = {a["domain"]: a["rounds"] for a in plan["allocation"]}
         assert alloc["ai"] == 3  # boosted
