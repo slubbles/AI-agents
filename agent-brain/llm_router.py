@@ -364,6 +364,12 @@ def _call_openrouter(
             enabled = reasoning_effort is True or reasoning_effort in ("high", "medium", "low", "true", "True")
             if enabled:
                 call_kwargs["extra_body"] = {"reasoning_enabled": True}
+        elif "gemini" in model.lower():
+            # Gemini models support thinking via reasoning parameter
+            if reasoning_effort in ("low", "medium", "high"):
+                call_kwargs["extra_body"] = {
+                    "reasoning": {"effort": reasoning_effort}
+                }
         elif reasoning_effort in ("low", "medium", "high"):
             # Grok and others use reasoning.effort
             call_kwargs["extra_body"] = {
@@ -451,11 +457,11 @@ MODEL_COSTS = {
     "deepseek/deepseek-chat": {"input": 0.27, "output": 1.10},
     "x-ai/grok-4.1-fast": {"input": 0.50, "output": 2.00},  # Grok 4.1 Fast
     "deepseek/deepseek-reasoner": {"input": 0.55, "output": 2.19},
+    # Gemini via OpenRouter
+    "google/gemini-2.0-flash-001": {"input": 0.075, "output": 0.30},
     # Llama via OpenRouter
     "meta-llama/llama-3.3-70b-instruct": {"input": 0.59, "output": 0.79},
     "meta-llama/llama-3.1-8b-instruct": {"input": 0.05, "output": 0.08},
-    # Gemini via OpenRouter  
-    "google/gemini-2.0-flash-001": {"input": 0.075, "output": 0.30},
 }
 
 

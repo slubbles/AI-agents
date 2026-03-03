@@ -27,7 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from config import MODELS, DEFAULT_DOMAIN, DAILY_BUDGET_USD, CHEAP_MODEL, REASONING_EFFORT
+from config import MODELS, DEFAULT_DOMAIN, DAILY_BUDGET_USD, CHEAP_MODEL, REASONING_EFFORT, AVAILABLE_CHAT_MODELS, CHAT_MODEL
 from llm_router import call_llm
 from cost_tracker import log_cost
 
@@ -257,7 +257,8 @@ ARCHITECTURE (you oversee all of this):
   Agent Brain — self-learning research engine (web search → critic scoring → strategy evolution).
   Agent Hands — execution engine (code generation, project management, deployment).
   Daemon — runs autonomous research cycles in the background (you can see its current state).
-  You — the orchestrator's voice. Claude Sonnet. You coordinate, interpret, and advise.
+  You — the orchestrator's chat interface. When you need deep strategic reasoning, you route through
+  orchestrator tools (Claude Sonnet). Your job: coordinate, interpret, and advise.
 
 Be honest about what this system can and cannot do. Never oversell. Never bullshit.
 
@@ -1516,7 +1517,7 @@ WELCOME = """
 ║                       CORTEX                                 ║
 ║          Autonomous Research & Execution System              ║
 ╠══════════════════════════════════════════════════════════════╣\033[0m
-  \033[1mArchitecture:\033[0m Chat (Grok) → Orchestrator (Sonnet) → Brain + Hands
+  \033[1mArchitecture:\033[0m Chat (Gemini Flash) → Orchestrator (Sonnet) → Brain + Hands
 
   \033[1;33mResearch:\033[0m  "Research the latest React 19 features"
   \033[1;33mStrategic:\033[0m "What should we focus on next?"  →  Orchestrator
@@ -1527,7 +1528,7 @@ WELCOME = """
     /domain <name>  Switch domain       /sessions  List conversations
     /clear          Reset history        /load <id> Resume conversation
     /new            Fresh session         /context  Show current state
-    /reasoning      Toggle Grok reasoning (off by default)
+    /model          Switch chat model    /reasoning Toggle reasoning
     /help           Show this message    quit/exit  Leave
 \033[1;36m╚══════════════════════════════════════════════════════════════╝\033[0m
 """
@@ -1607,13 +1608,19 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
     print(f"  Active domain: {domain}")
     print(f"  Session: {session_id}")
     
-    # Use the cheap model for conversation (fast + affordable)
-    chat_model = CHEAP_MODEL
+    # Use Gemini Flash for conversation (cheap + reasoning)
+    chat_model = CHAT_MODEL
     
     # Reasoning toggle — starts based on config, togglable via /reasoning
     chat_reasoning = REASONING_EFFORT.get("chat")
     reasoning_label = f" + reasoning={chat_reasoning}" if chat_reasoning else ""
-    print(f"  Model: {CHEAP_MODEL} (chat{reasoning_label}) / Sonnet (orchestrator + research)\n")
+    # Find short name for display
+    _model_short = chat_model
+    for alias, info in AVAILABLE_CHAT_MODELS.items():
+        if info["id"] == chat_model:
+            _model_short = f"{info['label']} ({alias})"
+            break
+    print(f"  Model: {_model_short}{reasoning_label} / Sonnet (orchestrator + research)\n")
     
     system_prompt = _build_system_context(domain)
     
@@ -1716,11 +1723,47 @@ def run_chat(domain: str = DEFAULT_DOMAIN, session_id: str = ""):
             from cost_tracker import get_daily_spend
             daily = get_daily_spend()
             reasoning_str = f", reasoning={chat_reasoning}" if chat_reasoning else ""
+            _model_display = chat_model
+            for alias, info in AVAILABLE_CHAT_MODELS.items():
+                if info["id"] == chat_model:
+                    _model_display = f"{info['label']} ({alias})"
+                    break
             print(f"\n  Domain: {domain}")
             print(f"  Session: {session_id}")
             print(f"  History: {len(conversation)} messages")
-            print(f"  Model: {chat_model}{reasoning_str}")
+            print(f"  Model: {_model_display}{reasoning_str}")
             print(f"  Budget: ${daily.get('total_usd', 0):.2f} / ${DAILY_BUDGET_USD:.2f} today\n")
+            continue
+        
+        if user_input.lower().startswith("/model"):
+            parts = user_input.split()
+            if len(parts) == 1:
+                # Show available models
+                print("\n  \033[1mAvailable chat models:\033[0m")
+                for alias, info in AVAILABLE_CHAT_MODELS.items():
+                    current = " ← \033[32mcurrent\033[0m" if info["id"] == chat_model else ""
+                    reasoning_badge = " 🧠" if info.get("reasoning") else ""
+                    print(f"    \033[1;33m{alias:15s}\033[0m {info['label']:22s} {info['cost']}{reasoning_badge}{current}")
+                    if info.get("notes"):
+                        print(f"                    \033[2m{info['notes']}\033[0m")
+                print(f"\n  Usage: /model <name>  (e.g. /model gemini-flash)\n")
+            elif len(parts) == 2:
+                target = parts[1].lower()
+                if target in AVAILABLE_CHAT_MODELS:
+                    info = AVAILABLE_CHAT_MODELS[target]
+                    chat_model = info["id"]
+                    # Auto-enable reasoning if model supports it
+                    if info.get("reasoning") and not chat_reasoning:
+                        chat_reasoning = "high"
+                    print(f"  \033[32m✓\033[0m Switched to \033[1m{info['label']}\033[0m ({info['cost']})")
+                    if chat_reasoning:
+                        print(f"    Reasoning: {chat_reasoning}")
+                    print()
+                else:
+                    available = ", ".join(AVAILABLE_CHAT_MODELS.keys())
+                    print(f"  \033[31m✗\033[0m Unknown model '{target}'. Available: {available}\n")
+            else:
+                print("  Usage: /model [name]  — list models or switch\n")
             continue
         
         # Add user message

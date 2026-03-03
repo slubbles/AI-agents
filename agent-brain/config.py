@@ -36,12 +36,53 @@ FAST_MODEL = (
 
 PREMIUM_MODEL = "claude-sonnet-4-20250514"  # Sacred — never cut corners
 
+# Tier 4 (CHAT): Google Gemini 2.0 Flash — cheap, fast, reasoning support
+# Human chat interface: 40x cheaper than Sonnet, good quality, tool use.
+# Claude stays as orchestrator voice (orchestrator tools route through Sonnet).
+CHAT_MODEL = (
+    "google/gemini-2.0-flash-001"  # $0.075/M input, $0.30/M output
+    if OPENROUTER_API_KEY
+    else _FALLBACK
+)
+
+# Available models for /model switching (chat interface only)
+AVAILABLE_CHAT_MODELS = {
+    "gemini-flash": {
+        "id": "google/gemini-2.0-flash-001",
+        "label": "Gemini 2.0 Flash",
+        "cost": "$0.075/$0.30 per 1M",
+        "reasoning": True,
+        "notes": "Default. Cheapest + fast + reasoning.",
+    },
+    "grok": {
+        "id": "x-ai/grok-4.1-fast",
+        "label": "Grok 4.1 Fast",
+        "cost": "$0.50/$2.00 per 1M",
+        "reasoning": True,
+        "notes": "Powerful reasoning, higher cost.",
+    },
+    "deepseek": {
+        "id": "deepseek/deepseek-chat",
+        "label": "DeepSeek V3.2",
+        "cost": "$0.27/$1.10 per 1M",
+        "reasoning": True,
+        "notes": "Strong reasoning, cheap.",
+    },
+    "sonnet": {
+        "id": "claude-sonnet-4-20250514",
+        "label": "Claude Sonnet 4",
+        "cost": "$3.00/$15.00 per 1M",
+        "reasoning": False,
+        "notes": "Best quality. Expensive — use sparingly.",
+    },
+}
+
 # Backward compat alias (some tests/modules reference CHEAP_MODEL)
 CHEAP_MODEL = FAST_MODEL
 
 # Model assignments per agent role
 # Tier 1 = cheapest (synthesis/routing), Tier 2 = fast (interactive/tools),
-# Tier 3 = premium (quality-critical judgment)
+# Tier 3 = premium (quality-critical judgment), Tier 4 = chat (cheap + capable)
 MODELS = {
     # Tier 1 — DeepSeek V3.2 (cheapest, high volume)
     "question_generator": CHEAPEST_MODEL,          # synthesis task — cheapest wins
@@ -49,9 +90,9 @@ MODELS = {
     "progress_tracker": CHEAPEST_MODEL,             # periodic assessment
     # Tier 2 — Grok 4.1 Fast (low latency, tool-use loops)
     "researcher": FAST_MODEL,                       # many tool-use round trips, speed matters
-    # Chat is the human interface — the "waiter" in the restaurant.
-    # It must speak with orchestrator-level intelligence. Sonnet is worth the cost.
-    "chat": PREMIUM_MODEL,                          # human interface — quality is sacred
+    # Tier 4 — Gemini Flash (chat interface — cheap but capable)
+    # Claude stays as orchestrator voice via orchestrator tools.
+    "chat": CHAT_MODEL,                             # human interface — cheap + reasoning
     # Tier 3 — Claude Sonnet (sacred quality tasks)
     "critic": PREMIUM_MODEL,                        # quality signal — NEVER cut corners
     "meta_analyst": PREMIUM_MODEL,                  # pattern extraction needs reasoning
@@ -89,6 +130,8 @@ COST_PER_1K = {
     "x-ai/grok-4.1-fast": {"input": 0.0005, "output": 0.002},
     # DeepSeek V3.2 via OpenRouter (cheapest)
     "deepseek/deepseek-chat": {"input": 0.00027, "output": 0.0011},
+    # Gemini 2.0 Flash via OpenRouter
+    "google/gemini-2.0-flash-001": {"input": 0.000075, "output": 0.0003},
 }
 DAILY_BUDGET_USD = 7.00  # Combined daily budget (sum of per-provider limits)
 
@@ -108,6 +151,7 @@ MODEL_PROVIDER = {
     "claude-sonnet-4-20250514": "claude",
     "x-ai/grok-4.1-fast": "openrouter",
     "deepseek/deepseek-chat": "openrouter",
+    "google/gemini-2.0-flash-001": "openrouter",
 }
 
 # --- Loop ---
@@ -132,8 +176,8 @@ REASONING_EFFORT = {
     "critic_ensemble_b": True,     # ENABLE reasoning for DeepSeek critic (quality matters)
     # Tier 2 — Grok (reasoning.effort: low/medium/high)
     "researcher": None,            # keep fast — tool-use loops, reasoning slows down
-    # Chat is now Claude Sonnet — reasoning is native, no toggle needed
-    "chat": None,                  # Claude Sonnet — reasoning is native
+    # Chat uses Gemini Flash — enable reasoning for better quality
+    "chat": "high",               # Gemini Flash reasoning (thinking tokens)
     # Tier 3 — Claude (N/A — reasoning is native)
     "critic": None,
     "meta_analyst": None,

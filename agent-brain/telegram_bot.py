@@ -36,7 +36,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 # Load .env before anything else
 from config import (
-    DEFAULT_DOMAIN, DAILY_BUDGET_USD, MODELS, REASONING_EFFORT, LOG_DIR
+    DEFAULT_DOMAIN, DAILY_BUDGET_USD, MODELS, REASONING_EFFORT, LOG_DIR,
+    AVAILABLE_CHAT_MODELS, CHAT_MODEL
 )
 from llm_router import call_llm
 from cost_tracker import log_cost
@@ -121,11 +122,12 @@ def _send_typing(chat_id: int | str):
 # ── Conversation State ─────────────────────────────────────────────────
 
 class ConversationManager:
-    """Manages per-chat conversation history and domain state."""
+    """Manages per-chat conversation history, domain state, and model preference."""
     
     def __init__(self):
         self.conversations: dict[str, list[dict]] = {}  # chat_id → messages
         self.domains: dict[str, str] = {}  # chat_id → active domain
+        self.models: dict[str, str] = {}   # chat_id → active chat model
         self._lock = threading.Lock()
     
     def get_messages(self, chat_id: str) -> list[dict]:
@@ -150,6 +152,12 @@ class ConversationManager:
     
     def set_domain(self, chat_id: str, domain: str):
         self.domains[chat_id] = domain
+    
+    def get_model(self, chat_id: str) -> str:
+        return self.models.get(chat_id, CHAT_MODEL)
+    
+    def set_model(self, chat_id: str, model: str):
+        self.models[chat_id] = model
 
 
 _conversations = ConversationManager()
@@ -224,7 +232,7 @@ def _process_message(chat_id: str, text: str) -> str:
     _conversations.add_message(chat_id, "user", text)
     conversation = _conversations.get_messages(chat_id)
     
-    chat_model = MODELS.get("chat", "claude-sonnet-4-20250514")
+    chat_model = _conversations.get_model(chat_id)
     chat_reasoning = REASONING_EFFORT.get("chat")
     
     # Call LLM
@@ -398,11 +406,12 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "/kitchen — What's cooking right now (live daemon view)\n"
             "/domains — List all research domains\n"
             "/domain &lt;name&gt; — Switch active domain\n"
+            "/model — Switch chat model (gemini-flash/grok/deepseek/sonnet)\n"
             "/clear — Clear conversation history\n"
             "/daemon — Full daemon status\n"
             "/help — Show this message\n\n"
             "Or just type naturally — I understand plain English.\n"
-            "I'm powered by Claude Sonnet for quality conversations."
+            "Chat: Gemini Flash (cheap + reasoning). Orchestrator: Claude Sonnet."
         )
     
     if cmd_name == "/help":
@@ -419,6 +428,35 @@ def _handle_command(chat_id: str, command: str) -> str | None:
         else:
             domain = _conversations.get_domain(chat_id)
             return f"📂 Active domain: <b>{domain}</b>\nUse /domain &lt;name&gt; to switch."
+    
+    if cmd_name == "/model":
+        if cmd_arg:
+            target = cmd_arg.strip().lower()
+            if target in AVAILABLE_CHAT_MODELS:
+                info = AVAILABLE_CHAT_MODELS[target]
+                _conversations.set_model(chat_id, info["id"])
+                reasoning_badge = " 🧠" if info.get("reasoning") else ""
+                return (
+                    f"✅ Switched to <b>{info['label']}</b>{reasoning_badge}\n"
+                    f"Cost: {info['cost']}\n"
+                    f"{info.get('notes', '')}"
+                )
+            else:
+                available = ", ".join(AVAILABLE_CHAT_MODELS.keys())
+                return f"❌ Unknown model '{cmd_arg}'. Available: {available}"
+        else:
+            current_model = _conversations.get_model(chat_id)
+            lines = ["🤖 <b>Available chat models:</b>\n"]
+            for alias, info in AVAILABLE_CHAT_MODELS.items():
+                current = " ← current" if info["id"] == current_model else ""
+                reasoning_badge = " 🧠" if info.get("reasoning") else ""
+                lines.append(
+                    f"<b>{alias}</b> — {info['label']}{reasoning_badge}\n"
+                    f"  {info['cost']}{current}\n"
+                    f"  {info.get('notes', '')}"
+                )
+            lines.append("\nUse /model &lt;name&gt; to switch.")
+            return "\n".join(lines)
     
     if cmd_name == "/domains":
         # Route through LLM for nice formatting
@@ -545,7 +583,13 @@ def run_telegram_bot():
     
     print(f"  📱 Listening for messages from chat_id {allowed_chat_id}...")
     print(f"  Active domain: {DEFAULT_DOMAIN}")
-    print(f"  Model: {MODELS.get('chat', 'unknown')}")
+    # Find display name for current model
+    _chat_display = MODELS.get('chat', 'unknown')
+    for alias, info in AVAILABLE_CHAT_MODELS.items():
+        if info['id'] == _chat_display:
+            _chat_display = f"{info['label']} ({alias})"
+            break
+    print(f"  Model: {_chat_display} / Sonnet (orchestrator)")
     print(f"  Press Ctrl+C to stop.\n")
     
     # Notify on Telegram
