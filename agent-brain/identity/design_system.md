@@ -241,3 +241,168 @@ A Cortex-built page should:
 7. Feel like a $5,000 custom build, not a $50 template
 
 If the output doesn't meet this bar, it needs another iteration.
+
+## Application State Patterns
+
+### Loading States
+Every data-fetching region needs a skeleton or spinner. NEVER show a blank screen.
+
+```tsx
+// Route-level loading (src/app/dashboard/loading.tsx)
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function Loading() {
+  return (
+    <div className="space-y-6 p-6">
+      <Skeleton className="h-8 w-48" />
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-32 rounded-xl" />
+        ))}
+      </div>
+      <Skeleton className="h-64 rounded-xl" />
+    </div>
+  );
+}
+
+// Inline data loading (inside components)
+{isLoading ? (
+  <div className="flex items-center justify-center py-12">
+    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+  </div>
+) : (
+  <DataTable data={data} />
+)}
+```
+
+### Empty States
+Every list/table/feed needs a designed empty state. It should guide the user to take action.
+
+```tsx
+// Empty state pattern
+<div className="flex flex-col items-center justify-center py-16 text-center">
+  <div className="rounded-full bg-muted p-4 mb-4">
+    <InboxIcon className="h-8 w-8 text-muted-foreground" />
+  </div>
+  <h3 className="text-lg font-semibold">No projects yet</h3>
+  <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+    Get started by creating your first project. It only takes a minute.
+  </p>
+  <Button className="mt-4" size="sm">
+    <PlusIcon className="h-4 w-4 mr-2" />
+    Create Project
+  </Button>
+</div>
+```
+
+### Error States
+Route-level errors use Next.js error.tsx. Inline errors use Alert component.
+
+```tsx
+// Route-level error (src/app/dashboard/error.tsx)
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <AlertCircle className="h-10 w-10 text-destructive mb-4" />
+      <h2 className="text-xl font-semibold">Something went wrong</h2>
+      <p className="text-sm text-muted-foreground mt-1 max-w-md">
+        {error.message || "An unexpected error occurred. Please try again."}
+      </p>
+      <Button onClick={reset} variant="outline" className="mt-4">
+        Try Again
+      </Button>
+    </div>
+  );
+}
+
+// Inline form/API error
+<Alert variant="destructive">
+  <AlertCircle className="h-4 w-4" />
+  <AlertTitle>Error</AlertTitle>
+  <AlertDescription>{errorMessage}</AlertDescription>
+</Alert>
+```
+
+### Success/Confirmation States
+```tsx
+// Toast notification (use shadcn toast)
+import { toast } from "sonner";
+toast.success("Project created successfully");
+
+// Inline success
+<Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+  <CheckCircle2 className="h-4 w-4" />
+  <AlertTitle>Success</AlertTitle>
+  <AlertDescription>Your changes have been saved.</AlertDescription>
+</Alert>
+```
+
+## Dark Mode
+
+### Implementation
+Use `next-themes` with Tailwind's `darkMode: "class"` strategy.
+
+```tsx
+// Theme provider (wrap in layout.tsx)
+import { ThemeProvider } from "next-themes";
+
+<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+  {children}
+</ThemeProvider>
+
+// Theme toggle button
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+
+function ThemeToggle() {
+  const { setTheme, theme } = useTheme();
+  return (
+    <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+    </Button>
+  );
+}
+```
+
+### Rules
+- ALWAYS test both light and dark mode. Both must look intentional.
+- Use semantic color tokens (`bg-background`, `text-foreground`, `border`) not raw colors.
+- Dark mode is NOT just "invert colors." Reduce contrast slightly, darken backgrounds, soften borders.
+- Card surfaces: `bg-card` should be slightly lighter than `bg-background` in dark mode.
+
+## Focus & Accessibility States
+
+### Focus Rings
+```css
+/* All interactive elements must have visible focus rings */
+focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+```
+
+### Keyboard Navigation
+- All interactive elements must be reachable via Tab key
+- Modals trap focus (shadcn Dialog does this automatically)
+- Dropdown menus support arrow key navigation
+- Escape key closes modals, dropdowns, drawers
+
+### Screen Reader Support
+- All images have descriptive `alt` text (not "image" or "photo")
+- Icon-only buttons have `aria-label`
+- Form inputs are associated with `<Label>` via `htmlFor`
+- Status messages use `role="status"` or `aria-live="polite"`
+
+## Version History
+
+- **v1.0** (2026-03-03): Initial design system — tech stack, colors, typography, spacing, layout patterns, components, animations, responsive, anti-patterns, quality bar.
+- **v1.1** (2026-03-03): Added application state patterns (loading/empty/error/success), dark mode, focus/accessibility states.

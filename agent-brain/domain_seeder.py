@@ -93,6 +93,13 @@ SEED_QUESTIONS = {
         "What are the most important React 19 features and patterns, including use() hook, Actions, useOptimistic, and how they change component architecture?",
         "What are the current best practices for styling and design systems in Next.js applications, including Tailwind CSS patterns, CSS Modules vs styled-components tradeoffs, and responsive design approaches?",
     ],
+    "web-design": [
+        "What makes a web application look production-ready in 2025-2026? What specific visual patterns separate professional SaaS products from amateur projects? Include shadcn/ui, Tailwind CSS, and Framer Motion best practices.",
+        "What are the current best practices for SaaS landing page design that converts? Include hero section structure, social proof placement, CTA design, pricing table patterns, and above-the-fold content rules.",
+        "What are the specific Tailwind CSS 4 patterns, spacing systems, and responsive design techniques used by top-tier SaaS products? Include typography scales, color system strategies, and dark mode implementation.",
+        "What are the current best practices for micro-interactions, loading states, empty states, error states, and skeleton screens in modern web applications? Include Framer Motion animation patterns with specific code examples.",
+        "What are the anti-patterns in modern web design — things that immediately make a site look cheap or unprofessional? Include typography mistakes, spacing errors, color system failures, and mobile responsiveness problems.",
+    ],
 }
 
 # Generic seed questions for any domain not in the list above

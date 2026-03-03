@@ -26,6 +26,7 @@ from hands.visual_evaluator import (
     evaluate_screenshot,
     generate_fix_instructions,
     save_screenshot_log,
+    store_visual_score,
 )
 
 # File extensions that indicate a frontend project
@@ -189,6 +190,17 @@ class VisualGate:
                 base64_image=base64_image,
                 evaluation=eval_result,
                 iteration=iteration,
+            )
+        except Exception:
+            pass
+        
+        # Store visual score for strategy evolution (meta-analyst reads these)
+        try:
+            store_visual_score(
+                domain=self.domain,
+                task_id=task_id,
+                evaluation=eval_result,
+                page_type=self.page_type,
             )
         except Exception:
             pass

@@ -36,43 +36,55 @@ MAX_VISUAL_FIX_ROUNDS = 2        # Max fix iterations per component group
 SCREENSHOT_LOG_DIR = os.path.join(LOG_DIR, "screenshots")
 
 
-def _get_design_system() -> str:
-    """Load the design system prompt for visual evaluation context."""
-    design_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "identity", "design_system.md")
-    if os.path.exists(design_path):
+def _get_identity_file(filename: str, max_chars: int = 4000) -> str:
+    """Load an identity file by name, truncated to max_chars."""
+    path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "identity", filename)
+    if os.path.exists(path):
         try:
-            with open(design_path) as f:
-                content = f.read()
-            # Truncate to keep within reasonable prompt size
-            return content[:4000]
+            with open(path) as f:
+                return f.read()[:max_chars]
         except OSError:
             pass
     return ""
+
+
+def _get_design_system() -> str:
+    """Load the design system prompt for visual evaluation context."""
+    return _get_identity_file("design_system.md")
 
 
 def _get_marketing_design() -> str:
     """Load the marketing page design standard."""
-    path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "identity", "marketing_design.md")
-    if os.path.exists(path):
-        try:
-            with open(path) as f:
-                return f.read()[:4000]
-        except OSError:
-            pass
-    return ""
+    return _get_identity_file("marketing_design.md")
+
+
+def _get_scoring_rubric() -> str:
+    """Load the visual scoring calibration rubric."""
+    return _get_identity_file("visual_scoring_rubric.md", max_chars=3000)
 
 
 def _build_eval_system(page_type: str = "app") -> str:
     """Build the system prompt for visual evaluation."""
     design = _get_marketing_design() if page_type == "marketing" else _get_design_system()
+    rubric = _get_scoring_rubric()
     
     design_block = ""
     if design:
+        label = "MARKETING DESIGN STANDARD" if page_type == "marketing" else "DESIGN STANDARD"
         design_block = f"""
 
-=== DESIGN STANDARD ===
+=== {label} ===
 {design}
-=== END DESIGN STANDARD ===
+=== END {label} ===
+"""
+
+    rubric_block = ""
+    if rubric:
+        rubric_block = f"""
+
+=== SCORING CALIBRATION ===
+{rubric}
+=== END SCORING CALIBRATION ===
 """
     
     return f"""\
@@ -81,7 +93,7 @@ You evaluate visual quality, design consistency, and production-readiness.
 
 Your evaluation is structured and specific — not vague praise or generic criticism.
 Every issue you identify must be actionable (a developer can fix it in one step).
-{design_block}
+{design_block}{rubric_block}
 SCORING RUBRIC (1-10):
   10: Exceptional — could ship to paying customers today. Looks designed by a top agency.
   8-9: Production-ready — clean, consistent, professional. Minor polish items only.
@@ -378,6 +390,157 @@ def save_screenshot_log(
         pass
     
     return img_path
+
+
+def store_visual_score(
+    domain: str,
+    task_id: str,
+    evaluation: dict,
+    page_type: str = "app",
+) -> str | None:
+    """
+    Store a visual evaluation score for strategy evolution.
+
+    Visual scores are stored per-domain in a JSONL log that the meta-analyst
+    can read to identify patterns and propose design system improvements.
+
+    Args:
+        domain: The project domain (e.g., "logistics-saas")
+        task_id: Unique task/build identifier
+        evaluation: Result dict from evaluate_screenshot() or evaluate_with_reference()
+        page_type: "app" or "marketing"
+
+    Returns:
+        Path to the scores file, or None on error.
+    """
+    from datetime import datetime, timezone
+    from utils.atomic_write import atomic_json_write
+
+    scores_dir = os.path.join(LOG_DIR, "visual_scores")
+    os.makedirs(scores_dir, exist_ok=True)
+    scores_path = os.path.join(scores_dir, f"{domain}.jsonl")
+
+    record = {
+        "task_id": task_id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "page_type": page_type,
+        "score": evaluation.get("score", 0),
+        "dimensions": evaluation.get("dimensions", {}),
+        "issue_count": len(evaluation.get("issues", [])),
+        "critical_issues": sum(
+            1 for i in evaluation.get("issues", [])
+            if i.get("severity") == "critical"
+        ),
+        "major_issues": sum(
+            1 for i in evaluation.get("issues", [])
+            if i.get("severity") == "major"
+        ),
+    }
+
+    try:
+        with open(scores_path, "a") as f:
+            f.write(json.dumps(record) + "\n")
+        return scores_path
+    except OSError:
+        return None
+
+
+def load_visual_scores(domain: str, last_n: int = 20) -> list[dict]:
+    """
+    Load recent visual scores for a domain.
+
+    Used by the meta-analyst to track visual quality trends and decide
+    whether the design system prompts need evolution.
+
+    Args:
+        domain: The project domain
+        last_n: How many recent scores to return
+
+    Returns:
+        List of score records (most recent last).
+    """
+    scores_path = os.path.join(LOG_DIR, "visual_scores", f"{domain}.jsonl")
+    if not os.path.exists(scores_path):
+        return []
+
+    records = []
+    try:
+        with open(scores_path) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        records.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+    except OSError:
+        return []
+
+    return records[-last_n:]
+
+
+def get_visual_score_summary(domain: str) -> dict:
+    """
+    Compute summary statistics for visual scores in a domain.
+
+    Used by the meta-analyst / strategy evolution to decide if
+    design system prompts need updating.
+
+    Returns:
+        {
+            "count": int,
+            "avg_score": float,
+            "min_score": int,
+            "max_score": int,
+            "avg_dimensions": {"layout": float, ...},
+            "trend": "improving" | "stable" | "declining",
+            "common_issues": int (total critical+major across recent builds),
+        }
+    """
+    scores = load_visual_scores(domain, last_n=20)
+    if not scores:
+        return {"count": 0, "avg_score": 0.0, "trend": "no_data"}
+
+    overall_scores = [s["score"] for s in scores if s.get("score")]
+    if not overall_scores:
+        return {"count": len(scores), "avg_score": 0.0, "trend": "no_data"}
+
+    # Compute dimension averages
+    dim_sums: dict[str, list[float]] = {}
+    for s in scores:
+        for dim, val in s.get("dimensions", {}).items():
+            if dim not in dim_sums:
+                dim_sums[dim] = []
+            dim_sums[dim].append(float(val))
+
+    avg_dims = {dim: round(sum(vals) / len(vals), 1) for dim, vals in dim_sums.items()}
+
+    # Trend: compare first half vs second half
+    mid = len(overall_scores) // 2
+    if mid >= 2:
+        first_half = sum(overall_scores[:mid]) / mid
+        second_half = sum(overall_scores[mid:]) / (len(overall_scores) - mid)
+        if second_half > first_half + 0.3:
+            trend = "improving"
+        elif second_half < first_half - 0.3:
+            trend = "declining"
+        else:
+            trend = "stable"
+    else:
+        trend = "insufficient_data"
+
+    total_critical = sum(s.get("critical_issues", 0) for s in scores)
+    total_major = sum(s.get("major_issues", 0) for s in scores)
+
+    return {
+        "count": len(scores),
+        "avg_score": round(sum(overall_scores) / len(overall_scores), 1),
+        "min_score": min(overall_scores),
+        "max_score": max(overall_scores),
+        "avg_dimensions": avg_dims,
+        "trend": trend,
+        "common_issues": total_critical + total_major,
+    }
 
 
 # ── Internal helpers ─────────────────────────────────────────────────────

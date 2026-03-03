@@ -320,17 +320,30 @@ class DependencyResolver:
         return True
 
 
-def _build_system_prompt(tools_description: str, execution_strategy: str = "") -> str:
-    """Build the executor's system prompt. Lean — tool definitions handled by Claude tools API."""
+def _build_system_prompt(tools_description: str, execution_strategy: str = "", page_type: str = "app") -> str:
+    """Build the executor's system prompt. Lean — tool definitions handled by Claude tools API.
+
+    Args:
+        tools_description: Tool descriptions for context.
+        execution_strategy: Optional execution strategy text.
+        page_type: 'app' or 'marketing' — determines which design standard is loaded.
+    """
     today = date.today().isoformat()
 
-    # Load design system if available
+    # Load the appropriate design system based on page_type
     design_block = ""
-    design_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "identity", "design_system.md")
-    if os.path.exists(design_path):
+    identity_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "identity")
+    if page_type == "marketing":
+        design_file = os.path.join(identity_dir, "marketing_design.md")
+        label = "MARKETING DESIGN SYSTEM"
+    else:
+        design_file = os.path.join(identity_dir, "design_system.md")
+        label = "DESIGN SYSTEM"
+
+    if os.path.exists(design_file):
         try:
-            with open(design_path, "r") as f:
-                design_block = f"\n=== DESIGN SYSTEM ===\n{f.read()[:2000]}\n=== END DESIGN SYSTEM ===\n"
+            with open(design_file, "r") as f:
+                design_block = f"\n=== {label} ===\n{f.read()}\n=== END {label} ===\n"
         except OSError:
             pass
 
@@ -419,7 +432,7 @@ def execute_plan(
         Execution report dict with step results, artifacts, and summary
     """
     tools_desc = registry.get_tool_descriptions()
-    system = _build_system_prompt(tools_desc, execution_strategy)
+    system = _build_system_prompt(tools_desc, execution_strategy, page_type=page_type)
 
     # Get native Claude tool definitions (includes _complete and _abort)
     claude_tools = registry.get_execution_tools()
