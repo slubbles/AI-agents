@@ -42,7 +42,7 @@ if _prev_limit < 10000:
 import chromadb
 from chromadb.config import Settings
 
-from rag.embeddings import get_embedding_fn, embed_texts
+from rag.embeddings import embed_texts
 
 
 # ── Configuration ─────────────────────────────────────────────────────
@@ -64,7 +64,6 @@ RELEVANCE_THRESHOLD = 0.3  # Minimum similarity to include
 # ── Client Singleton ──────────────────────────────────────────────────
 
 _client: Optional[chromadb.ClientAPI] = None
-_embedding_fn = None
 
 
 def _get_client() -> chromadb.ClientAPI:
@@ -82,30 +81,26 @@ def _get_client() -> chromadb.ClientAPI:
     return _client
 
 
-def _get_embedding_fn():
-    """Lazy singleton for embedding function."""
-    global _embedding_fn
-    if _embedding_fn is None:
-        _embedding_fn = get_embedding_fn()
-    return _embedding_fn
-
-
 def _get_claims_collection():
-    """Get or create the claims collection."""
+    """Get or create the claims collection.
+    
+    No embedding_function is passed — we pre-compute all embeddings ourselves
+    via embed_texts() and pass them explicitly to upsert/query. This avoids
+    ChromaDB 1.5.x recursion bugs caused by its internal embedding callback
+    during collection operations.
+    """
     client = _get_client()
     return client.get_or_create_collection(
         name=CLAIMS_COLLECTION,
-        embedding_function=_get_embedding_fn(),
         metadata={"description": "Individual research findings at claim granularity"},
     )
 
 
 def _get_questions_collection():
-    """Get or create the questions collection."""
+    """Get or create the questions collection (no embedding_function)."""
     client = _get_client()
     return client.get_or_create_collection(
         name=QUESTIONS_COLLECTION,
-        embedding_function=_get_embedding_fn(),
         metadata={"description": "Past research questions for deduplication"},
     )
 
@@ -189,7 +184,8 @@ def index_output(domain: str, output: dict) -> int:
             })
         
         if ids:
-            claims_col.upsert(ids=ids, documents=documents, metadatas=metadatas)
+            embeddings = embed_texts(documents)
+            claims_col.upsert(ids=ids, documents=documents, embeddings=embeddings, metadatas=metadatas)
             indexed = len(ids)
     
     # Also index key insights
@@ -215,16 +211,19 @@ def index_output(domain: str, output: dict) -> int:
             })
         
         if insight_ids:
-            claims_col.upsert(ids=insight_ids, documents=insight_docs, metadatas=insight_metas)
+            embeddings = embed_texts(insight_docs)
+            claims_col.upsert(ids=insight_ids, documents=insight_docs, embeddings=embeddings, metadatas=insight_metas)
             indexed += len(insight_ids)
     
     # Index the question for dedup
     if question and len(question) > 5:
         questions_col = _get_questions_collection()
         qid = _question_id(domain, question)
+        q_embedding = embed_texts([question])
         questions_col.upsert(
             ids=[qid],
             documents=[question],
+            embeddings=q_embedding,
             metadatas=[{
                 "domain": domain,
                 "timestamp": timestamp,
@@ -280,7 +279,8 @@ def index_knowledge_base(domain: str, kb: dict) -> int:
         })
     
     if ids:
-        claims_col.upsert(ids=ids, documents=documents, metadatas=metadatas)
+        embeddings = embed_texts(documents)
+        claims_col.upsert(ids=ids, documents=documents, embeddings=embeddings, metadatas=metadatas)
     
     return len(ids)
 
