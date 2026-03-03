@@ -725,6 +725,14 @@ def main():
     parser.add_argument("--build-rounds", type=int, default=1, help="Number of auto-build rounds (default: 1)")
     parser.add_argument("--next-task", action="store_true", help="Show next AI-generated coding task for a domain")
     
+    # Cortex Pipeline — Full three-way communication
+    parser.add_argument("--pipeline", metavar="INSTRUCTION", help="Run Cortex pipeline: Brain researches → evaluates → Hands builds")
+    parser.add_argument("--skip-research", action="store_true", help="Skip Brain research, use existing KB for --pipeline")
+    parser.add_argument("--budget-cap", type=float, default=0.50, help="Budget cap for Hands build (default: $0.50)")
+    parser.add_argument("--journal", action="store_true", help="Show Cortex pipeline journal")
+    parser.add_argument("--journal-lines", type=int, default=20, help="Number of journal entries to show (default: 20)")
+    parser.add_argument("--build-ready", action="store_true", help="Check if domain has enough research for a build")
+    
     # Web Fetching — Scrapling integration
     parser.add_argument("--crawl", default="", help="Crawl a docs site URL and store content locally")
     parser.add_argument("--crawl-max", type=int, default=20, help="Max pages to crawl (default: 20)")
@@ -1064,6 +1072,33 @@ def main():
     if getattr(args, 'next_task', False):
         from cli.execution import show_next_task
         show_next_task(args.domain)
+        return
+    if getattr(args, 'pipeline', None):
+        from cli.execution import run_pipeline
+        run_pipeline(
+            args.domain,
+            args.pipeline,
+            skip_research=getattr(args, 'skip_research', False),
+            budget_cap=getattr(args, 'budget_cap', 0.50),
+        )
+        return
+    if getattr(args, 'journal', False):
+        from cli.execution import show_journal
+        show_journal(args.domain, last_n=getattr(args, 'journal_lines', 20))
+        return
+    if getattr(args, 'build_ready', False):
+        from agents.cortex import is_build_ready
+        readiness = is_build_ready(args.domain)
+        print(f"\n  Build Readiness: {args.domain}")
+        print(f"  {'─'*40}")
+        print(f"  Accepted outputs: {readiness['accepted_count']}")
+        print(f"  KB claims: {readiness['claim_count']}")
+        print(f"  User pain signals: {'Yes' if readiness['has_user_pain'] else 'No'}")
+        print(f"  Competitor data: {'Yes' if readiness['has_competitors'] else 'No'}")
+        print(f"  Status: {'✓ READY' if readiness['ready'] else '✗ ' + readiness['reason']}")
+        if readiness.get('domain_summary'):
+            print(f"  Summary: {readiness['domain_summary'][:100]}")
+        print()
         return
     if getattr(args, 'crawl', ''):
         from cli.tools_cmd import crawl

@@ -799,3 +799,99 @@ def show_exec_lessons(domain: str):
 
     stats = learner.stats()
     print(f"  Total: {stats['total_lessons']} lessons, {stats['high_evidence']} with strong evidence")
+
+
+# ── Cortex Pipeline Command ─────────────────────────────────────────────
+
+def run_pipeline(domain: str, instruction: str, skip_research: bool = False, budget_cap: float = 0.50):
+    """
+    Run the full Cortex pipeline: Brain researches → Cortex evaluates → Hands builds.
+    
+    This is the single-command entry point for the three-way communication system.
+    One sentence in → live URL out.
+    
+    Usage:
+        python -m cli.execution pipeline <domain> "<instruction>"
+        python -m cli.execution pipeline olj-employers "Build a landing page for OLJ employers"
+        python -m cli.execution pipeline olj-employers --skip-research "Build landing page"
+    """
+    from agents.cortex import research_and_build, is_build_ready
+    
+    print(f"\n{'='*60}")
+    print(f"  CORTEX PIPELINE — Research → Build → Deploy")
+    print(f"  Domain: {domain}")
+    print(f"  Instruction: {instruction}")
+    print(f"  Budget Cap: ${budget_cap:.2f}")
+    print(f"  Skip Research: {skip_research}")
+    print(f"{'='*60}\n")
+    
+    # Show build readiness first
+    readiness = is_build_ready(domain)
+    print(f"  Build Readiness:")
+    print(f"    Accepted outputs: {readiness['accepted_count']}")
+    print(f"    KB claims: {readiness['claim_count']}")
+    print(f"    User pain signals: {'Yes' if readiness['has_user_pain'] else 'No'}")
+    print(f"    Competitor data: {'Yes' if readiness['has_competitors'] else 'No'}")
+    print(f"    Status: {'READY' if readiness['ready'] else readiness['reason']}")
+    print()
+    
+    result = research_and_build(
+        domain=domain,
+        instruction=instruction,
+        skip_research=skip_research,
+        budget_cap=budget_cap,
+    )
+    
+    print(f"\n{'='*60}")
+    print(f"  PIPELINE RESULT")
+    print(f"  Success: {result['success']}")
+    print(f"  Stage reached: {result['stage']}")
+    
+    if result['task_id']:
+        print(f"  Task ID: {result['task_id']}")
+    
+    if result['error']:
+        print(f"  Error: {result['error']}")
+    
+    if result.get('research'):
+        critique = result['research'].get('critique', {})
+        print(f"  Research Score: {critique.get('overall_score', 'N/A')}/10")
+    
+    print(f"{'='*60}")
+    
+    return result
+
+
+def show_journal(domain: str = "", last_n: int = 20):
+    """Show recent Cortex journal entries."""
+    from agents.cortex import load_journal
+    
+    entries = load_journal(domain or None, last_n=last_n)
+    
+    if not entries:
+        print(f"\n  No journal entries found{f' for domain {domain}' if domain else ''}.")
+        return
+    
+    print(f"\n  CORTEX JOURNAL — Last {len(entries)} entries{f' ({domain})' if domain else ''}")
+    print(f"  {'─'*56}")
+    
+    for entry in entries:
+        ts = entry.get("timestamp", "?")[:19]
+        event = entry.get("event", "?")
+        d = entry.get("domain", "?")
+        task_id = entry.get("task_id", "")
+        cost = entry.get("cost_so_far", 0)
+        
+        line = f"  [{ts}] {event:<25} {d}"
+        if task_id:
+            line += f" | {task_id[:20]}"
+        if cost > 0:
+            line += f" | ${cost:.4f}"
+        print(line)
+        
+        details = entry.get("details", {})
+        if details:
+            for k, v in list(details.items())[:3]:
+                print(f"    {k}: {str(v)[:80]}")
+    
+    print()

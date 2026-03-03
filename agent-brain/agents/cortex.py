@@ -41,7 +41,7 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from config import MODELS, DAILY_BUDGET_USD
+from config import MODELS, DAILY_BUDGET_USD, LOG_DIR
 from llm_router import call_llm
 from cost_tracker import log_cost
 from utils.json_parser import extract_json
@@ -51,6 +51,9 @@ from utils.json_parser import extract_json
 
 ORCHESTRATOR_MODEL = MODELS.get("cortex_orchestrator", "claude-sonnet-4-20250514")
 MAX_CONTEXT_CHARS = 12000  # Cap context to avoid blowing up token costs
+CORTEX_JOURNAL_FILE = os.path.join(LOG_DIR, "cortex_journal.jsonl")
+BUILD_BUDGET_CAP = 0.50  # Max cost per build execution in USD
+MAX_BUILD_PHASE_FAILURES = 3  # Escalate after this many failures in same phase
 
 
 # ── System State Gathering ───────────────────────────────────────────────
@@ -657,3 +660,577 @@ def format_orchestrator_response(result: dict) -> str:
         lines.append(f"\n**Next to investigate:** {next_q}")
 
     return "\n".join(lines) if lines else "No orchestrator response."
+
+
+# ── Cortex Journal ───────────────────────────────────────────────────────
+
+def _journal(event: str, domain: str, task_id: str = "", details: dict | None = None, cost: float = 0.0):
+    """
+    Append an entry to cortex_journal.jsonl.
+    
+    Every significant pipeline event is logged here for observability.
+    This is the audit trail for the entire Brain → Cortex → Hands pipeline.
+    """
+    from protocol import JournalEntry
+    
+    entry = JournalEntry(
+        event=event,
+        domain=domain,
+        task_id=task_id,
+        details=details or {},
+        cost_so_far=cost,
+    )
+    
+    try:
+        os.makedirs(os.path.dirname(CORTEX_JOURNAL_FILE), exist_ok=True)
+        with open(CORTEX_JOURNAL_FILE, "a") as f:
+            f.write(entry.to_jsonl() + "\n")
+    except Exception:
+        pass  # Journal failure should never crash the pipeline
+
+
+def load_journal(domain: str | None = None, last_n: int = 50) -> list[dict]:
+    """
+    Load recent journal entries, optionally filtered by domain.
+    
+    Args:
+        domain: Filter to this domain (None = all)
+        last_n: Number of recent entries to return
+    
+    Returns:
+        List of journal entry dicts, most recent last.
+    """
+    if not os.path.exists(CORTEX_JOURNAL_FILE):
+        return []
+    
+    entries = []
+    try:
+        with open(CORTEX_JOURNAL_FILE) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                    if domain is None or entry.get("domain") == domain:
+                        entries.append(entry)
+                except json.JSONDecodeError:
+                    continue
+    except Exception:
+        return []
+    
+    return entries[-last_n:]
+
+
+# ── Knowledge Query (Brain → Hands Context Bridge) ──────────────────────
+
+def query_knowledge(domain: str, question: str, max_results: int = 5) -> str:
+    """
+    Query Brain's knowledge base for context relevant to a build task.
+    
+    This is the bridge that lets Hands access Brain's research mid-build.
+    Returns a formatted text block suitable for injecting into an LLM prompt.
+    
+    Used by:
+    - Hands executor (mid-build context requests)
+    - Cortex (to evaluate build-readiness)
+    
+    Args:
+        domain: Domain to query
+        question: What context is needed
+        max_results: Max number of relevant findings to return
+    
+    Returns:
+        Formatted context string (empty string if nothing found)
+    """
+    from memory_store import load_knowledge_base, retrieve_relevant
+    
+    context_parts = []
+    
+    # 1. Knowledge base claims (highest quality — synthesized + verified)
+    kb = load_knowledge_base(domain)
+    if kb:
+        active_claims = [c for c in kb.get("claims", []) if c.get("status") == "active"]
+        if active_claims:
+            # Filter claims relevant to the question (simple keyword match)
+            question_lower = question.lower()
+            question_words = set(question_lower.split())
+            
+            scored_claims = []
+            for claim in active_claims:
+                claim_text = claim.get("claim", "").lower()
+                # Count word overlap
+                claim_words = set(claim_text.split())
+                overlap = len(question_words & claim_words)
+                if overlap > 0:
+                    scored_claims.append((overlap, claim))
+            
+            scored_claims.sort(key=lambda x: x[0], reverse=True)
+            top_claims = [c for _, c in scored_claims[:10]]
+            
+            if top_claims:
+                kb_block = "KNOWLEDGE BASE (verified claims):\n"
+                for claim in top_claims:
+                    conf = claim.get("confidence", "?")
+                    kb_block += f"  [{conf}] {claim.get('claim', '')}\n"
+                context_parts.append(kb_block)
+        
+        # Domain summary is always useful
+        if kb.get("domain_summary"):
+            context_parts.insert(0, f"DOMAIN SUMMARY: {kb['domain_summary']}\n")
+    
+    # 2. Relevant past findings (raw research data)
+    relevant = retrieve_relevant(domain, question, max_results=max_results)
+    if relevant:
+        findings_block = "RELEVANT RESEARCH FINDINGS:\n"
+        for r in relevant:
+            findings_block += f"\n  Q: {r.get('question', '?')} (score: {r.get('score', 0)}/10)\n"
+            findings_block += f"  Summary: {r.get('summary', 'N/A')}\n"
+            insights = r.get("key_insights", [])
+            if insights:
+                for ins in insights[:3]:
+                    findings_block += f"    • {ins}\n"
+        context_parts.append(findings_block)
+    
+    return "\n".join(context_parts) if context_parts else ""
+
+
+def is_build_ready(domain: str) -> dict:
+    """
+    Evaluate whether a domain has enough research to support a build.
+    
+    Criteria:
+    - At least 5 accepted outputs (score ≥ 6)
+    - Knowledge base has active claims about user pain, competitors, opportunity
+    - A clear user persona can be articulated
+    
+    Returns:
+        {
+            "ready": bool,
+            "reason": str,
+            "accepted_count": int,
+            "claim_count": int,
+            "has_user_pain": bool,
+            "has_competitors": bool,
+            "domain_summary": str,
+        }
+    """
+    from memory_store import load_knowledge_base, get_stats
+    
+    stats = get_stats(domain)
+    accepted_count = stats.get("accepted", 0)
+    
+    kb = load_knowledge_base(domain)
+    claim_count = 0
+    has_user_pain = False
+    has_competitors = False
+    domain_summary = ""
+    
+    if kb:
+        active_claims = [c for c in kb.get("claims", []) if c.get("status") == "active"]
+        claim_count = len(active_claims)
+        domain_summary = kb.get("domain_summary", "")
+        
+        # Check claim topics for build-readiness signals
+        pain_keywords = {"pain", "problem", "frustrat", "complain", "issue", "struggle", "challenge"}
+        competitor_keywords = {"competitor", "alternative", "existing", "platform", "service", "pricing"}
+        
+        for claim in active_claims:
+            text = claim.get("claim", "").lower()
+            topic = claim.get("topic", "").lower()
+            
+            if any(k in text or k in topic for k in pain_keywords):
+                has_user_pain = True
+            if any(k in text or k in topic for k in competitor_keywords):
+                has_competitors = True
+    
+    # Build readiness decision
+    reasons = []
+    if accepted_count < 5:
+        reasons.append(f"Only {accepted_count}/5 accepted outputs")
+    if claim_count < 3:
+        reasons.append(f"Only {claim_count} active claims in knowledge base")
+    if not has_user_pain:
+        reasons.append("No claims about user pain/problems found")
+    if not has_competitors:
+        reasons.append("No claims about competitors/alternatives found")
+    
+    ready = accepted_count >= 5 and claim_count >= 3 and has_user_pain
+    
+    return {
+        "ready": ready,
+        "reason": "Build-ready" if ready else "; ".join(reasons),
+        "accepted_count": accepted_count,
+        "claim_count": claim_count,
+        "has_user_pain": has_user_pain,
+        "has_competitors": has_competitors,
+        "domain_summary": domain_summary,
+    }
+
+
+def extract_build_brief(domain: str, instruction: str = "") -> str:
+    """
+    Extract a build brief from Brain's knowledge base for a domain.
+    
+    Compiles user pain, competitors, and opportunity into a structured
+    brief that Hands can use to build a product.
+    
+    Args:
+        domain: Domain to extract brief from
+        instruction: Optional specific instruction ("Build a landing page for X")
+    
+    Returns:
+        Build brief text string
+    """
+    from memory_store import load_knowledge_base
+    
+    kb = load_knowledge_base(domain)
+    if not kb:
+        return f"No knowledge base found for domain '{domain}'. Research needed first."
+    
+    active_claims = [c for c in kb.get("claims", []) if c.get("status") == "active"]
+    if not active_claims:
+        return f"Knowledge base for '{domain}' has no active claims. More research needed."
+    
+    # Organize claims by topic
+    by_topic: dict[str, list[str]] = {}
+    for claim in active_claims:
+        topic = claim.get("topic", "General")
+        text = claim.get("claim", "")
+        conf = claim.get("confidence", "?")
+        if text:
+            by_topic.setdefault(topic, []).append(f"[{conf}] {text}")
+    
+    # Build the brief
+    brief_parts = []
+    
+    if instruction:
+        brief_parts.append(f"INSTRUCTION: {instruction}\n")
+    
+    brief_parts.append(f"DOMAIN: {domain}")
+    
+    if kb.get("domain_summary"):
+        brief_parts.append(f"DOMAIN SUMMARY: {kb['domain_summary']}\n")
+    
+    for topic, claims in by_topic.items():
+        brief_parts.append(f"\n{topic.upper()}:")
+        for claim in claims[:5]:  # Top 5 per topic
+            brief_parts.append(f"  {claim}")
+    
+    brief_parts.append(f"\nBased on this research, build a solution that addresses the core user pain points.")
+    brief_parts.append(f"Use specific language and data from the research in the copy.")
+    
+    return "\n".join(brief_parts)
+
+
+# ── Research and Build Pipeline ──────────────────────────────────────────
+
+def research_and_build(
+    domain: str,
+    instruction: str,
+    skip_research: bool = False,
+    budget_cap: float = BUILD_BUDGET_CAP,
+) -> dict:
+    """
+    Full pipeline: Cortex → Brain researches → Cortex evaluates → Hands builds.
+    
+    This is the core pipeline function that turns a domain + instruction into
+    a live deployed product.
+    
+    Args:
+        domain: Domain to research and build for
+        instruction: What to build ("Build a landing page for a logistics company")
+        skip_research: If True, skip Brain research and use existing KB
+        budget_cap: Max cost for the Hands build execution
+    
+    Returns:
+        {
+            "success": bool,
+            "stage": str,  # Where it got to: "research" | "brief" | "task_created" | "complete"
+            "research": dict | None,  # Research results
+            "build_task": dict | None,  # The BuildTask that was created
+            "task_id": str,  # Sync task ID
+            "error": str,  # Error message if failed
+        }
+    """
+    from protocol import BuildTask, ResearchComplete, JournalEntry
+    from sync import create_task
+    
+    result = {
+        "success": False,
+        "stage": "init",
+        "research": None,
+        "build_task": None,
+        "task_id": "",
+        "error": "",
+    }
+    
+    _journal("pipeline_start", domain, details={
+        "instruction": instruction,
+        "skip_research": skip_research,
+        "budget_cap": budget_cap,
+    })
+    
+    # Stage 1: Check build readiness or run research
+    if not skip_research:
+        readiness = is_build_ready(domain)
+        
+        if not readiness["ready"]:
+            print(f"[CORTEX] Domain '{domain}' not build-ready: {readiness['reason']}")
+            print(f"[CORTEX] Running Brain research first...")
+            
+            _journal("research_start", domain, details={
+                "reason": readiness["reason"],
+                "instruction": instruction,
+            })
+            
+            # Run Brain research loop
+            try:
+                from main import run_loop
+                
+                # Frame the research question for build intelligence
+                research_question = (
+                    f"Research for building: {instruction}. "
+                    f"Focus on: Who is the user? What's their #1 pain? "
+                    f"Who are the competitors? What do they charge? "
+                    f"What would make this product compelling?"
+                )
+                
+                loop_result = run_loop(research_question, domain=domain)
+                result["research"] = loop_result
+                
+                score = loop_result.get("critique", {}).get("overall_score", 0)
+                accepted = loop_result.get("critique", {}).get("verdict") == "accept"
+                
+                _journal("research_complete", domain, details={
+                    "score": score,
+                    "accepted": accepted,
+                    "stored_at": loop_result.get("stored_at", ""),
+                })
+                
+                if not accepted:
+                    result["stage"] = "research"
+                    result["error"] = f"Research rejected (score: {score}/10). Need better research before building."
+                    _journal("pipeline_blocked", domain, details={
+                        "reason": "research_rejected",
+                        "score": score,
+                    })
+                    return result
+                    
+            except SystemExit:
+                result["stage"] = "research"
+                result["error"] = "Budget exceeded — cannot run research"
+                _journal("pipeline_blocked", domain, details={"reason": "budget_exceeded"})
+                return result
+            except Exception as e:
+                result["stage"] = "research"
+                result["error"] = f"Research failed: {e}"
+                _journal("pipeline_error", domain, details={"error": str(e)})
+                return result
+        else:
+            print(f"[CORTEX] Domain '{domain}' is build-ready ({readiness['accepted_count']} outputs, {readiness['claim_count']} claims)")
+    else:
+        print(f"[CORTEX] Skipping research (skip_research=True)")
+    
+    # Stage 2: Extract build brief from knowledge base
+    result["stage"] = "brief"
+    brief = extract_build_brief(domain, instruction)
+    
+    if brief.startswith("No knowledge base") or brief.startswith("Knowledge base for"):
+        result["error"] = brief
+        _journal("pipeline_blocked", domain, details={"reason": "no_knowledge_base", "brief": brief})
+        return result
+    
+    print(f"[CORTEX] Build brief extracted ({len(brief)} chars)")
+    
+    # Stage 3: Create BuildTask and insert into sync queue
+    result["stage"] = "task_created"
+    
+    build_task = BuildTask(
+        domain=domain,
+        goal=instruction,
+        brief=brief,
+        constraints={
+            "tech_stack": ["nextjs", "tailwind", "shadcn-ui", "framer-motion"],
+            "deploy_to": "vercel",
+            "design_system": "identity/design_system.md",
+        },
+        budget_cap=budget_cap,
+        priority="high",
+    )
+    
+    # Insert into sync queue
+    sync_task = create_task(**build_task.to_sync_task())
+    task_id = sync_task["id"]
+    result["task_id"] = task_id
+    result["build_task"] = build_task.to_dict()
+    
+    _journal("build_task_created", domain, task_id=task_id, details={
+        "goal": instruction,
+        "brief_length": len(brief),
+        "budget_cap": budget_cap,
+    })
+    
+    print(f"[CORTEX] Build task created: {task_id}")
+    print(f"[CORTEX] Task queued for Hands execution (priority: high)")
+    print(f"[CORTEX] The daemon will pick this up, or run manually:")
+    print(f"  python -m cli.execution run {task_id}")
+    
+    result["success"] = True
+    return result
+
+
+# ── Build Monitor ────────────────────────────────────────────────────────
+
+def monitor_build(task_id: str, domain: str) -> dict:
+    """
+    Monitor an active build's progress. Called periodically during execution.
+    
+    Checks:
+    - Cost vs budget cap
+    - Phase progress
+    - Repeated failures in same phase
+    
+    Returns:
+        {
+            "status": "continue" | "warn" | "abort",
+            "reason": str,
+            "phase_failures": int,
+            "cost_so_far": float,
+        }
+    """
+    # Read journal entries for this task
+    entries = load_journal(domain)
+    task_entries = [e for e in entries if e.get("task_id") == task_id]
+    
+    if not task_entries:
+        return {"status": "continue", "reason": "No journal entries yet", "phase_failures": 0, "cost_so_far": 0}
+    
+    # Calculate cost
+    cost_so_far = max((e.get("cost_so_far", 0) for e in task_entries), default=0)
+    
+    # Count phase failures
+    phase_failures: dict[str, int] = {}
+    for entry in task_entries:
+        if entry.get("event") == "phase_failed":
+            phase = entry.get("details", {}).get("phase", "unknown")
+            phase_failures[phase] = phase_failures.get(phase, 0) + 1
+    
+    max_failures = max(phase_failures.values(), default=0)
+    
+    # Decision
+    if cost_so_far > BUILD_BUDGET_CAP:
+        _journal("cost_alert", domain, task_id=task_id, cost=cost_so_far, details={
+            "budget_cap": BUILD_BUDGET_CAP,
+        })
+        return {
+            "status": "abort",
+            "reason": f"Cost ${cost_so_far:.4f} exceeds budget cap ${BUILD_BUDGET_CAP}",
+            "phase_failures": max_failures,
+            "cost_so_far": cost_so_far,
+        }
+    
+    if max_failures >= MAX_BUILD_PHASE_FAILURES:
+        failed_phase = max(phase_failures, key=phase_failures.get)
+        _journal("intervention", domain, task_id=task_id, details={
+            "reason": "repeated_phase_failure",
+            "phase": failed_phase,
+            "failure_count": max_failures,
+        })
+        return {
+            "status": "abort",
+            "reason": f"Phase '{failed_phase}' failed {max_failures}x — escalating",
+            "phase_failures": max_failures,
+            "cost_so_far": cost_so_far,
+        }
+    
+    if cost_so_far > BUILD_BUDGET_CAP * 0.8:
+        return {
+            "status": "warn",
+            "reason": f"Cost ${cost_so_far:.4f} approaching budget cap ${BUILD_BUDGET_CAP}",
+            "phase_failures": max_failures,
+            "cost_so_far": cost_so_far,
+        }
+    
+    return {
+        "status": "continue",
+        "reason": "Within budget, no repeated failures",
+        "phase_failures": max_failures,
+        "cost_so_far": cost_so_far,
+    }
+
+
+def report_build_complete(
+    domain: str,
+    task_id: str,
+    success: bool,
+    url: str = "",
+    total_cost: float = 0.0,
+    total_steps: int = 0,
+    error: str = "",
+) -> dict:
+    """
+    Report a build completion through the pipeline.
+    
+    Logs to journal, updates sync task, and formats a Telegram notification.
+    
+    Returns:
+        TaskComplete message dict
+    """
+    from protocol import TaskComplete, BuildComplete, BuildFailed
+    from sync import update_task
+    
+    if success:
+        msg = BuildComplete(
+            domain=domain,
+            task_id=task_id,
+            url=url,
+            total_cost=total_cost,
+            total_steps=total_steps,
+        )
+        _journal("build_complete", domain, task_id=task_id, cost=total_cost, details={
+            "url": url,
+            "total_steps": total_steps,
+        })
+        update_task(task_id, "completed", {"url": url, "cost": total_cost})
+    else:
+        msg = BuildFailed(
+            domain=domain,
+            task_id=task_id,
+            phase="unknown",
+            reason=error,
+            cost_so_far=total_cost,
+        )
+        _journal("build_failed", domain, task_id=task_id, cost=total_cost, details={
+            "error": error,
+        })
+        update_task(task_id, "failed", {"error": error, "cost": total_cost})
+    
+    # Create summary for Telegram
+    task_complete = TaskComplete(
+        domain=domain,
+        task_id=task_id,
+        result="success" if success else "failed",
+        url=url,
+        cost=total_cost,
+        summary=f"{'Built and deployed' if success else 'Build failed'}: {domain}",
+    )
+    
+    # Try to send Telegram notification
+    try:
+        _send_telegram_notification(task_complete)
+    except Exception:
+        pass  # Don't crash on notification failure
+    
+    return task_complete.to_dict()
+
+
+def _send_telegram_notification(task_complete):
+    """Send a pipeline completion notification via Telegram."""
+    try:
+        from alerts import alert_custom
+        message = task_complete.to_telegram_message()
+        emoji = "✅" if task_complete.result == "success" else "❌"
+        alert_custom(f"Build {task_complete.result.upper()}", message, emoji=emoji)
+    except Exception:
+        pass

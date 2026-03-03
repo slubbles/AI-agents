@@ -393,6 +393,7 @@ def execute_plan(
     workspace_dir: str = "",
     resume_from: dict | None = None,
     enable_mid_gates: bool = True,
+    research_context: str = "",
 ) -> dict:
     """
     Execute a plan step-by-step using tools.
@@ -405,6 +406,7 @@ def execute_plan(
         workspace_dir: Base directory for file operations
         resume_from: Checkpoint data for partial re-execution (completed steps to skip)
         enable_mid_gates: Whether to run mid-execution quality gates
+        research_context: Research context from Brain's knowledge base (injected by Cortex)
 
     Returns:
         Execution report dict with step results, artifacts, and summary
@@ -455,6 +457,18 @@ def execute_plan(
 
     # Build initial context with the full plan
     plan_text = json.dumps(plan, indent=2)
+    
+    # Inject Brain research context if provided by Cortex pipeline
+    research_block = ""
+    if research_context:
+        research_block = (
+            f"\n=== BRAIN RESEARCH CONTEXT ===\n"
+            f"The following research was gathered by the Brain agent. Use this data to write\n"
+            f"accurate copy, pricing, competitor positioning, and user personas.\n\n"
+            f"{research_context[:4000]}\n"
+            f"=== END RESEARCH CONTEXT ===\n\n"
+        )
+    
     if resumed_steps:
         resume_context = "\n".join(
             f"Step {sr.get('step', '?')} [{sr.get('tool', '?')}]: ✓ Already completed"
@@ -466,6 +480,7 @@ def execute_plan(
                 "content": (
                     f"Execute this plan step by step. Some steps are already completed "
                     f"from a previous run — SKIP those and continue from where it left off.\n\n"
+                    f"{research_block}"
                     f"PLAN:\n{plan_text}\n\n"
                     f"ALREADY COMPLETED (DO NOT REDO):\n{resume_context}\n\n"
                     f"WORKSPACE: {workspace_dir or 'current directory'}\n\n"
@@ -480,6 +495,7 @@ def execute_plan(
                 "content": (
                     f"Execute this plan step by step. After each tool execution, "
                     f"I'll give you the result and you proceed to the next step.\n\n"
+                    f"{research_block}"
                     f"PLAN:\n{plan_text}\n\n"
                     f"WORKSPACE: {workspace_dir or 'current directory'}\n\n"
                     f"Begin with Step 1."

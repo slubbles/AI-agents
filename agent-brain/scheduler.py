@@ -1161,6 +1161,15 @@ def _execute_hands_tasks(cycle: int, budget_remaining: float) -> list[dict]:
                         strategy, _ = get_strategy("executor", domain)
                         
                         goal = f"{title}: {description}"
+                        
+                        # Fetch research context from Cortex (Brain→Hands bridge)
+                        _research_context = ""
+                        try:
+                            from agents.cortex import query_knowledge
+                            _research_context = query_knowledge(domain, goal)
+                        except Exception:
+                            pass  # Don't block execution if context fetch fails
+                        
                         exec_plan = create_plan_hands(
                             goal=goal,
                             tools_description=tools_desc,
@@ -1183,6 +1192,7 @@ def _execute_hands_tasks(cycle: int, budget_remaining: float) -> list[dict]:
                             domain=domain,
                             execution_strategy=strategy or "",
                             workspace_dir=workspace_dir,
+                            research_context=_research_context,
                         )
                         
                         # Store result
@@ -1223,10 +1233,37 @@ def _execute_hands_tasks(cycle: int, budget_remaining: float) -> list[dict]:
                 )
                 results.append({"task_id": task_id, "success": success, "title": title})
                 
+                # Report to Cortex pipeline
+                try:
+                    from agents.cortex import report_build_complete
+                    report_build_complete(
+                        domain=domain,
+                        task_id=task_id,
+                        success=success,
+                        url=result.get("url", ""),
+                        total_cost=result.get("total_cost", 0.0),
+                        total_steps=len(result.get("step_results", [])),
+                        error=result.get("error", ""),
+                    )
+                except Exception:
+                    pass  # Cortex reporting should never block execution
+                
             except Exception as e:
                 _log_daemon(f"Hands task {task_id} error: {e}", "error")
                 update_task(task_id, "failed", {"error": str(e)})
                 results.append({"task_id": task_id, "success": False, "error": str(e)})
+                
+                # Report failure to Cortex pipeline
+                try:
+                    from agents.cortex import report_build_complete
+                    report_build_complete(
+                        domain=domain,
+                        task_id=task_id,
+                        success=False,
+                        error=str(e),
+                    )
+                except Exception:
+                    pass
         
         return results
         
