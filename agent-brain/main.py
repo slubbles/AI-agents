@@ -74,6 +74,83 @@ from scheduler import create_plan, display_plan, get_recommendations, display_re
 from knowledge_graph import build_graph_from_kb, save_graph, get_graph_summary
 
 
+# ============================================================
+# Task creation from research findings (Brain → Hands bridge)
+# ============================================================
+
+# Keywords that suggest actionable tasks in research findings
+_ACTION_KEYWORDS = {
+    "build": "build",
+    "create": "build",
+    "implement": "build",
+    "develop": "build",
+    "deploy": "deploy",
+    "launch": "deploy",
+    "ship": "deploy",
+    "investigate": "investigate",
+    "analyze": "investigate",
+    "test": "investigate",
+    "fix": "action",
+    "optimize": "action",
+    "integrate": "action",
+    "automate": "action",
+    "set up": "action",
+    "configure": "action",
+}
+
+
+def _create_tasks_from_research(domain: str, research: dict, output_id: str) -> None:
+    """
+    Extract actionable items from accepted research and create sync tasks.
+
+    Scans key_insights and knowledge_gaps for action-oriented language.
+    No extra LLM call — uses keyword matching to stay free.
+    """
+    from sync import create_task, _load_tasks
+
+    # Don't create duplicate tasks — check existing titles
+    existing = _load_tasks()
+    existing_titles = {t["title"].lower() for t in existing if t["status"] in ("pending", "in_progress")}
+
+    created = 0
+
+    # Scan key_insights for actionable items
+    for insight in research.get("key_insights", [])[:5]:
+        insight_lower = insight.lower()
+        task_type = None
+        for keyword, ttype in _ACTION_KEYWORDS.items():
+            if keyword in insight_lower:
+                task_type = ttype
+                break
+        if task_type and insight.lower()[:60] not in existing_titles:
+            create_task(
+                title=insight[:80],
+                description=f"From research in '{domain}': {insight}",
+                source_domain=domain,
+                task_type=task_type,
+                priority="medium",
+                source_output_id=output_id,
+            )
+            created += 1
+
+    # Scan knowledge_gaps — these become "investigate" tasks
+    for gap in research.get("knowledge_gaps", [])[:3]:
+        gap_lower = gap.lower()
+        if gap_lower[:60] not in existing_titles:
+            create_task(
+                title=f"Research gap: {gap[:70]}",
+                description=f"Knowledge gap identified in '{domain}': {gap}",
+                source_domain=domain,
+                task_type="investigate",
+                priority="low",
+                source_output_id=output_id,
+            )
+            created += 1
+
+    if created:
+        print(f"[SYNC] Created {created} task(s) from research findings")
+
+
 def run_loop(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     """
     Execute the full research → critique → quality gate loop.
@@ -337,6 +414,14 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
 
     # Step 5: Log the full run
     log_run(domain, question, attempt, final_research, final_critique, strategy_version)
+
+    # Step 5.5: Create sync tasks from accepted research (Brain → Hands bridge)
+    final_verdict = final_critique.get("verdict", "unknown")
+    if final_verdict == "accept":
+        try:
+            _create_tasks_from_research(domain, final_research, filepath)
+        except Exception as e:
+            print(f"[SYNC] ⚠ Task creation failed: {e}")
 
     # Show domain stats
     stats = get_stats(domain)

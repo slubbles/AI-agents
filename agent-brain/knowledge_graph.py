@@ -476,6 +476,88 @@ def get_graph_summary(graph: dict) -> dict:
     }
 
 
+def format_graph_for_researcher(domain: str, max_claims: int = 12, max_gaps: int = 5) -> str | None:
+    """
+    Format the knowledge graph as a concise text block for the researcher prompt.
+
+    Returns a human-readable summary of:
+    - Key topics and claim counts
+    - Top high-confidence claims (avoids re-researching known facts)
+    - Contradictions (should be resolved)
+    - Knowledge gaps (should be filled)
+
+    Returns None if the graph doesn't exist or is empty.
+    """
+    graph = load_graph(domain)
+    if not graph:
+        return None
+
+    nodes = graph.get("nodes", [])
+    edges = graph.get("edges", [])
+    if not nodes:
+        return None
+
+    lines = []
+
+    # --- Topics overview ---
+    topics = [n for n in nodes if n["type"] == "topic"]
+    claims = [n for n in nodes if n["type"] == "claim" and n.get("status") == "active"]
+    gaps_nodes = [n for n in nodes if n["type"] == "gap"]
+
+    if not claims and not gaps_nodes:
+        return None
+
+    if topics:
+        topic_labels = [t["label"] for t in topics[:8]]
+        lines.append(f"Topics covered ({len(topics)}): {', '.join(topic_labels)}")
+
+    # --- Key claims (highest confidence, most sourced) ---
+    if claims:
+        # Sort by source_count desc, then confidence
+        conf_order = {"high": 0, "medium": 1, "low": 2}
+        ranked = sorted(claims,
+                        key=lambda c: (conf_order.get(c.get("confidence", "medium"), 2),
+                                       -c.get("source_count", 0)))
+        lines.append(f"\nEstablished facts ({len(claims)} total, showing top {min(max_claims, len(ranked))}):")
+        for c in ranked[:max_claims]:
+            conf = c.get("confidence", "?")
+            srcs = c.get("source_count", 0)
+            label = c["label"][:150]
+            lines.append(f"  [{conf}] {label} ({srcs} source{'s' if srcs != 1 else ''})")
+
+    # --- Contradictions ---
+    contradictions = get_contradictions(graph)
+    if contradictions:
+        lines.append(f"\nContradictions to resolve ({len(contradictions)}):")
+        for cont in contradictions[:4]:
+            a_label = cont["claim_a"]["label"][:80] if cont["claim_a"] else "?"
+            b_label = cont["claim_b"]["label"][:80] if cont["claim_b"] else "?"
+            lines.append(f"  • \"{a_label}\" vs \"{b_label}\"")
+
+    # --- Knowledge gaps ---
+    if gaps_nodes:
+        lines.append(f"\nKnowledge gaps to fill ({len(gaps_nodes)}):")
+        for g in gaps_nodes[:max_gaps]:
+            priority = g.get("metadata", {}).get("priority", "medium")
+            lines.append(f"  [{priority}] {g['label'][:150]}")
+
+    # --- Isolated claims (weak evidence) ---
+    gap_analysis = graph.get("gap_analysis", {})
+    isolated = gap_analysis.get("isolated_nodes", [])
+    if isolated:
+        isolated_labels = []
+        for iso_id in isolated[:3]:
+            node = get_node(graph, iso_id)
+            if node:
+                isolated_labels.append(node["label"][:60])
+        if isolated_labels:
+            lines.append(f"\nWeakly supported claims ({len(isolated)} total, need more evidence):")
+            for lbl in isolated_labels:
+                lines.append(f"  • {lbl}")
+
+    return "\n".join(lines) if lines else None
+
+
 def find_path(graph: dict, start_id: str, end_id: str, max_depth: int = 5) -> list[str] | None:
     """
     Find shortest path between two nodes using BFS.

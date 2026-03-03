@@ -185,6 +185,27 @@ academic knowledge (market size reports, industry frameworks, analyst forecasts)
         except Exception:
             pass
     
+    # Inject knowledge graph — what we already know, contradictions, gaps
+    graph_block = ""
+    if domain:
+        try:
+            from knowledge_graph import format_graph_for_researcher
+            graph_text = format_graph_for_researcher(domain)
+            if graph_text:
+                graph_block = f"""
+=== EXISTING KNOWLEDGE (what we already know) ===
+{graph_text}
+
+Use this to AVOID researching things we already have strong evidence for.
+Instead, focus on:
+1. Filling the knowledge gaps listed above
+2. Resolving contradictions with new evidence
+3. Finding NEW information not covered by existing claims
+4. Strengthening weakly supported claims with additional sources
+=== END EXISTING KNOWLEDGE ==="""
+        except Exception:
+            pass
+    
     parts = [baseline]
     
     if identity_block:
@@ -192,6 +213,9 @@ academic knowledge (market size reports, industry frameworks, analyst forecasts)
     
     if goal_block:
         parts.append(goal_block)
+    
+    if graph_block:
+        parts.append(graph_block)
     
     if lessons_block:
         parts.append(f"\n=== PAST FAILURE LESSONS ===\n{lessons_block}\n=== END LESSONS ===")
