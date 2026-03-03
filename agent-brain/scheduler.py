@@ -1354,6 +1354,14 @@ def run_daemon(
     if not require_approval:
         _auto_approve_pending_strategies()
 
+    # Initialize SQLite DB (safe to call multiple times)
+    try:
+        from db import init_db
+        init_db()
+        _log_daemon("Database initialized")
+    except Exception as e:
+        _log_daemon(f"DB init warning: {e}", "warning")
+
     # Rotate logs at daemon start to prevent unbounded growth
     _rotate_logs()
 
@@ -1455,11 +1463,10 @@ def run_daemon(
             _save_daemon_state(cycle_results)
 
             try:
-                # Run the orchestration (this does the actual research)
-                from agents.orchestrator import prioritize_domains, allocate_rounds
-                
-                priorities = prioritize_domains()
-                allocation = allocate_rounds(priorities, total_planned)
+                # Run the Cortex-modified plan directly.
+                # Previously this re-computed allocation from scratch,
+                # overriding Cortex's domain injections and round shifts.
+                allocation = plan["allocation"]
                 
                 completed = 0
                 domain_results = []
@@ -1597,13 +1604,19 @@ def run_daemon(
                            f"avg {cycle_avg:.1f}, ${cycle_cost:.4f}, "
                            f"{duration:.0f}s ===")
                 
-                # Record success with watchdog
-                watchdog.record_cycle_success(
-                    rounds_completed=completed,
-                    avg_score=cycle_avg,
-                    cost=cycle_cost,
-                    domain_results=domain_results,
-                )
+                # Record with watchdog — if zero rounds completed,
+                # treat as failure so circuit breaker can accumulate
+                if completed > 0:
+                    watchdog.record_cycle_success(
+                        rounds_completed=completed,
+                        avg_score=cycle_avg,
+                        cost=cycle_cost,
+                        domain_results=domain_results,
+                    )
+                else:
+                    watchdog.record_cycle_failure(
+                        "Cycle completed with 0 successful rounds"
+                    )
                 
                 _save_daemon_state({
                     "status": "idle",

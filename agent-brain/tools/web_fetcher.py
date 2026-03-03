@@ -26,8 +26,12 @@ def _get_fetcher():
         try:
             from scrapling.fetchers import Fetcher
             _fetcher = Fetcher
-        except ImportError:
-            logger.warning("Scrapling not installed. Run: pip install scrapling")
+        except (ImportError, Exception) as e:
+            # Only warn once, and be specific about what's missing
+            if isinstance(e, ImportError):
+                logger.warning(f"Scrapling not available: {e}. Run: pip install 'scrapling[all]'")
+            else:
+                logger.warning(f"Scrapling init error: {e}")
             _fetcher = False  # sentinel: tried and failed
     return _fetcher if _fetcher else None
 

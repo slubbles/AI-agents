@@ -28,10 +28,17 @@ from datetime import datetime, timezone
 from typing import Optional
 
 # Disable ChromaDB telemetry — prevents recursion in serialization
-os.environ.setdefault("ANONYMIZED_TELEMETRY", "false")
-os.environ.setdefault("CHROMA_TELEMETRY", "false")
+# Must be set BEFORE importing chromadb
+os.environ["ANONYMIZED_TELEMETRY"] = "false"
+os.environ["CHROMA_TELEMETRY"] = "false"
+
+import sys
+_prev_limit = sys.getrecursionlimit()
+if _prev_limit < 2000:
+    sys.setrecursionlimit(2000)  # Safety net for ChromaDB 1.5.x telemetry bug
 
 import chromadb
+from chromadb.config import Settings
 
 from rag.embeddings import get_embedding_fn, embed_texts
 
@@ -63,7 +70,13 @@ def _get_client() -> chromadb.ClientAPI:
     global _client
     if _client is None:
         os.makedirs(_VECTORDB_DIR, exist_ok=True)
-        _client = chromadb.PersistentClient(path=_VECTORDB_DIR)
+        _client = chromadb.PersistentClient(
+            path=_VECTORDB_DIR,
+            settings=Settings(
+                anonymized_telemetry=False,
+                allow_reset=True,
+            ),
+        )
     return _client
 
 

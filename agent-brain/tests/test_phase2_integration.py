@@ -356,8 +356,8 @@ class TestCircuitBreakerIntegration:
         record_cycle_failure() is called (doesn't reset critical counter),
         AND health checks return critical.
 
-        We make prioritize_domains() raise so the outer except catches it
-        and calls record_cycle_failure().
+        We make run_loop() raise so every round fails → completed=0 →
+        the daemon records it as a cycle failure.
         """
         from watchdog import CIRCUIT_BREAKER_THRESHOLD
 
@@ -366,12 +366,11 @@ class TestCircuitBreakerIntegration:
                     "domains_checked": 1}
 
         with contextlib.ExitStack() as stack:
-            _enter_standard_mocks(stack, integration_dirs,
-                                  health_side_effect=always_critical)
-            # Make cycle execution fail at the orchestrator level
-            stack.enter_context(
-                patch("agents.orchestrator.prioritize_domains",
-                      side_effect=RuntimeError("Simulated orchestrator failure")))
+            _enter_standard_mocks(
+                stack, integration_dirs,
+                health_side_effect=always_critical,
+                run_loop_side_effect=RuntimeError("Simulated round failure"),
+            )
             with _fresh_watchdog():
                 _run_daemon_threaded({
                     "interval_minutes": 0,
