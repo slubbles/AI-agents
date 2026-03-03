@@ -7,7 +7,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243804+00:00",
+      "last_updated": "2026-03-02T16:10:02.951799+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -25,7 +25,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243819+00:00",
+      "last_updated": "2026-03-02T16:10:02.951815+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -43,7 +43,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243828+00:00",
+      "last_updated": "2026-03-02T16:10:02.951824+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -61,7 +61,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243835+00:00",
+      "last_updated": "2026-03-02T16:10:02.951831+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -79,7 +79,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243841+00:00",
+      "last_updated": "2026-03-02T16:10:02.951837+00:00",
       "source_count": 0,
       "metadata": {
         "subtopics": [
@@ -114,7 +114,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243869+00:00",
+      "last_updated": "2026-03-02T16:10:02.951864+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nvd.nist.gov/vuln/detail/cve-2026-2441"
@@ -144,7 +144,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243894+00:00",
+      "last_updated": "2026-03-02T16:10:02.951890+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://cloud.google.com/blog/topics/threat-intelligence/unc6201-exploiting-dell-recoverpoint-zero-day"
@@ -174,7 +174,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243915+00:00",
+      "last_updated": "2026-03-02T16:10:02.951912+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-february-2026-patch-tuesday-fixes-6-zero-days-58-flaws/"
@@ -204,7 +204,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243936+00:00",
+      "last_updated": "2026-03-02T16:10:02.951945+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.malwarebytes.com/blog/news/2026/02/apple-patches-zero-day-flaw-that-could-let-attackers-take-control-of-devices"
@@ -234,7 +234,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243959+00:00",
+      "last_updated": "2026-03-02T16:10:02.951966+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.cybernewscentre.com/17th-february-2026-cyber-update-beyondtrust-flaw-under-active-attack-cisa-issues-urgent-patch-order/"
@@ -264,7 +264,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243980+00:00",
+      "last_updated": "2026-03-02T16:10:02.951985+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://federalnewsnetwork.com/cybersecurity/2026/02/cisa-tells-agencies-to-identify-upgrade-unsupported-edge-devices/"
@@ -294,7 +294,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.243999+00:00",
+      "last_updated": "2026-03-02T16:10:02.952004+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.infosecurity-magazine.com/news/zeroday-exploits-vulncheck/"
@@ -324,7 +324,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244017+00:00",
+      "last_updated": "2026-03-02T16:10:02.952022+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://axis-intelligence.com/zero-day-vulnerabilities-2026-protection/"
@@ -354,7 +354,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244035+00:00",
+      "last_updated": "2026-03-02T16:10:02.952040+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.cve.org/resourcessupport/allresources/cnarules"
@@ -384,7 +384,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244053+00:00",
+      "last_updated": "2026-03-02T16:10:02.952059+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.cisa.gov/resources-tools/programs/coordinated-vulnerability-disclosure-program"
@@ -414,7 +414,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244078+00:00",
+      "last_updated": "2026-03-02T16:10:02.952108+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html"
@@ -444,7 +444,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244096+00:00",
+      "last_updated": "2026-03-02T16:10:02.952129+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://sec.cloudapps.cisco.com/security/center/resources/vendor_vulnerability_policy.html"
@@ -474,7 +474,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244181+00:00",
+      "last_updated": "2026-03-02T16:10:02.952150+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.csoonline.com/article/4130446/february-2026-patch-tuesday-six-new-and-actively-exploited-microsoft-vulnerabilities-addressed.html"
@@ -521,7 +521,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244219+00:00",
+      "last_updated": "2026-03-02T16:10:02.952187+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://jerrygamblin.com/2026/01/01/2025-cve-data-review/"
@@ -551,7 +551,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244240+00:00",
+      "last_updated": "2026-03-02T16:10:02.952206+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://deepstrike.io/blog/vulnerability-statistics-2025"
@@ -581,7 +581,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244261+00:00",
+      "last_updated": "2026-03-02T16:10:02.952225+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.recordedfuture.com/research/h1-2025-malware-and-vulnerability-trends"
@@ -628,7 +628,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244315+00:00",
+      "last_updated": "2026-03-02T16:10:02.952260+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://nvd.nist.gov/vuln-metrics/cvss"
@@ -658,7 +658,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244338+00:00",
+      "last_updated": "2026-03-02T16:10:02.952277+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://www.first.org/cvss/specification-document"
@@ -688,7 +688,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244359+00:00",
+      "last_updated": "2026-03-02T16:10:02.952297+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://iotsecurityfoundation.org/wp-content/uploads/2026/01/The-State-of-Vulnerability-Disclosure-Usage-in-Global-Consumer-IoT-in-2025V8.pdf"
@@ -718,7 +718,7 @@
       "confidence": "medium",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244377+00:00",
+      "last_updated": "2026-03-02T16:10:02.952316+00:00",
       "source_count": 0,
       "metadata": {
         "url": "https://news.ycombinator.com/item?id=43700607"
@@ -731,7 +731,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244392+00:00",
+      "last_updated": "2026-03-02T16:10:02.952327+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -746,7 +746,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244401+00:00",
+      "last_updated": "2026-03-02T16:10:02.952336+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -761,7 +761,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244409+00:00",
+      "last_updated": "2026-03-02T16:10:02.952345+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -776,7 +776,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244415+00:00",
+      "last_updated": "2026-03-02T16:10:02.952353+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "medium",
@@ -791,7 +791,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244421+00:00",
+      "last_updated": "2026-03-02T16:10:02.952360+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "medium",
@@ -806,7 +806,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244427+00:00",
+      "last_updated": "2026-03-02T16:10:02.952367+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "medium",
@@ -821,7 +821,7 @@
       "confidence": "low",
       "status": "active",
       "first_seen": "",
-      "last_updated": "2026-03-01T15:59:15.244436+00:00",
+      "last_updated": "2026-03-02T16:10:02.952373+00:00",
       "source_count": 0,
       "metadata": {
         "priority": "high",
@@ -836,7 +836,7 @@
       "target": "topic_active_threats_and_zero_day_exploitation",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243854+00:00",
+      "created_at": "2026-03-02T16:10:02.951851+00:00",
       "metadata": {}
     },
     {
@@ -844,7 +844,7 @@
       "target": "source_https_nvd_nist_gov_vuln_detail_cve_2026_2441",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243873+00:00",
+      "created_at": "2026-03-02T16:10:02.951868+00:00",
       "metadata": {}
     },
     {
@@ -852,7 +852,7 @@
       "target": "topic_active_threats_and_zero_day_exploitation",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243883+00:00",
+      "created_at": "2026-03-02T16:10:02.951878+00:00",
       "metadata": {}
     },
     {
@@ -860,7 +860,7 @@
       "target": "source_https_cloud_google_com_blog_topics_threat_intelligence_unc62",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243898+00:00",
+      "created_at": "2026-03-02T16:10:02.951893+00:00",
       "metadata": {}
     },
     {
@@ -868,7 +868,7 @@
       "target": "topic_vendor_patching_and_emergency_response",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243905+00:00",
+      "created_at": "2026-03-02T16:10:02.951901+00:00",
       "metadata": {}
     },
     {
@@ -876,7 +876,7 @@
       "target": "source_https_www_bleepingcomputer_com_news_microsoft_microsoft_febr",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243918+00:00",
+      "created_at": "2026-03-02T16:10:02.951915+00:00",
       "metadata": {}
     },
     {
@@ -884,7 +884,7 @@
       "target": "topic_vendor_patching_and_emergency_response",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243926+00:00",
+      "created_at": "2026-03-02T16:10:02.951922+00:00",
       "metadata": {}
     },
     {
@@ -892,7 +892,7 @@
       "target": "source_https_www_malwarebytes_com_blog_news_2026_02_apple_patches_z",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243939+00:00",
+      "created_at": "2026-03-02T16:10:02.951949+00:00",
       "metadata": {}
     },
     {
@@ -900,7 +900,7 @@
       "target": "topic_vendor_patching_and_emergency_response",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243948+00:00",
+      "created_at": "2026-03-02T16:10:02.951956+00:00",
       "metadata": {}
     },
     {
@@ -908,7 +908,7 @@
       "target": "source_https_www_cybernewscentre_com_17th_february_2026_cyber_updat",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243962+00:00",
+      "created_at": "2026-03-02T16:10:02.951969+00:00",
       "metadata": {}
     },
     {
@@ -916,7 +916,7 @@
       "target": "topic_vendor_patching_and_emergency_response",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243971+00:00",
+      "created_at": "2026-03-02T16:10:02.951976+00:00",
       "metadata": {}
     },
     {
@@ -924,7 +924,7 @@
       "target": "source_https_federalnewsnetwork_com_cybersecurity_2026_02_cisa_tell",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243983+00:00",
+      "created_at": "2026-03-02T16:10:02.951988+00:00",
       "metadata": {}
     },
     {
@@ -932,7 +932,7 @@
       "target": "topic_active_threats_and_zero_day_exploitation",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.243991+00:00",
+      "created_at": "2026-03-02T16:10:02.951995+00:00",
       "metadata": {}
     },
     {
@@ -940,7 +940,7 @@
       "target": "source_https_www_infosecurity_magazine_com_news_zeroday_exploits_vu",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244002+00:00",
+      "created_at": "2026-03-02T16:10:02.952006+00:00",
       "metadata": {}
     },
     {
@@ -948,7 +948,7 @@
       "target": "topic_active_threats_and_zero_day_exploitation",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244009+00:00",
+      "created_at": "2026-03-02T16:10:02.952014+00:00",
       "metadata": {}
     },
     {
@@ -956,7 +956,7 @@
       "target": "source_https_axis_intelligence_com_zero_day_vulnerabilities_2026_pr",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244020+00:00",
+      "created_at": "2026-03-02T16:10:02.952025+00:00",
       "metadata": {}
     },
     {
@@ -964,7 +964,7 @@
       "target": "topic_cve_publication_and_disclosure_processes",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244026+00:00",
+      "created_at": "2026-03-02T16:10:02.952032+00:00",
       "metadata": {}
     },
     {
@@ -972,7 +972,7 @@
       "target": "source_https_www_cve_org_resourcessupport_allresources_cnarules",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244038+00:00",
+      "created_at": "2026-03-02T16:10:02.952043+00:00",
       "metadata": {}
     },
     {
@@ -980,7 +980,7 @@
       "target": "topic_cve_publication_and_disclosure_processes",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244044+00:00",
+      "created_at": "2026-03-02T16:10:02.952050+00:00",
       "metadata": {}
     },
     {
@@ -988,7 +988,7 @@
       "target": "source_https_www_cisa_gov_resources_tools_programs_coordinated_vuln",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244056+00:00",
+      "created_at": "2026-03-02T16:10:02.952062+00:00",
       "metadata": {}
     },
     {
@@ -996,7 +996,7 @@
       "target": "topic_vulnerability_research_methodology",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244068+00:00",
+      "created_at": "2026-03-02T16:10:02.952092+00:00",
       "metadata": {}
     },
     {
@@ -1004,7 +1004,7 @@
       "target": "source_https_cheatsheetseries_owasp_org_cheatsheets_vulnerability_d",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244080+00:00",
+      "created_at": "2026-03-02T16:10:02.952111+00:00",
       "metadata": {}
     },
     {
@@ -1012,7 +1012,7 @@
       "target": "topic_vulnerability_research_methodology",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244087+00:00",
+      "created_at": "2026-03-02T16:10:02.952119+00:00",
       "metadata": {}
     },
     {
@@ -1020,7 +1020,7 @@
       "target": "source_https_sec_cloudapps_cisco_com_security_center_resources_vend",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244099+00:00",
+      "created_at": "2026-03-02T16:10:02.952132+00:00",
       "metadata": {}
     },
     {
@@ -1028,7 +1028,7 @@
       "target": "topic_vulnerability_research_methodology",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244105+00:00",
+      "created_at": "2026-03-02T16:10:02.952139+00:00",
       "metadata": {}
     },
     {
@@ -1036,7 +1036,7 @@
       "target": "source_https_www_csoonline_com_article_4130446_february_2026_patch_",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244185+00:00",
+      "created_at": "2026-03-02T16:10:02.952153+00:00",
       "metadata": {}
     },
     {
@@ -1044,7 +1044,7 @@
       "target": "topic_cve_publication_and_disclosure_processes",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244192+00:00",
+      "created_at": "2026-03-02T16:10:02.952160+00:00",
       "metadata": {}
     },
     {
@@ -1052,7 +1052,7 @@
       "target": "source_https_www_cve_org_resourcessupport_allresources_cnarules",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244202+00:00",
+      "created_at": "2026-03-02T16:10:02.952170+00:00",
       "metadata": {}
     },
     {
@@ -1060,7 +1060,7 @@
       "target": "topic_quantitative_vulnerability_trends",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244209+00:00",
+      "created_at": "2026-03-02T16:10:02.952177+00:00",
       "metadata": {}
     },
     {
@@ -1068,7 +1068,7 @@
       "target": "source_https_jerrygamblin_com_2026_01_01_2025_cve_data_review",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244222+00:00",
+      "created_at": "2026-03-02T16:10:02.952190+00:00",
       "metadata": {}
     },
     {
@@ -1076,7 +1076,7 @@
       "target": "topic_quantitative_vulnerability_trends",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244231+00:00",
+      "created_at": "2026-03-02T16:10:02.952197+00:00",
       "metadata": {}
     },
     {
@@ -1084,7 +1084,7 @@
       "target": "source_https_deepstrike_io_blog_vulnerability_statistics_2025",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244243+00:00",
+      "created_at": "2026-03-02T16:10:02.952209+00:00",
       "metadata": {}
     },
     {
@@ -1092,7 +1092,7 @@
       "target": "topic_quantitative_vulnerability_trends",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244251+00:00",
+      "created_at": "2026-03-02T16:10:02.952216+00:00",
       "metadata": {}
     },
     {
@@ -1100,7 +1100,7 @@
       "target": "source_https_www_recordedfuture_com_research_h1_2025_malware_and_vu",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244263+00:00",
+      "created_at": "2026-03-02T16:10:02.952228+00:00",
       "metadata": {}
     },
     {
@@ -1108,7 +1108,7 @@
       "target": "topic_cve_publication_and_disclosure_processes",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244270+00:00",
+      "created_at": "2026-03-02T16:10:02.952235+00:00",
       "metadata": {}
     },
     {
@@ -1116,7 +1116,7 @@
       "target": "source_https_www_cisa_gov_resources_tools_programs_coordinated_vuln",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244279+00:00",
+      "created_at": "2026-03-02T16:10:02.952244+00:00",
       "metadata": {}
     },
     {
@@ -1124,7 +1124,7 @@
       "target": "topic_cve_publication_and_disclosure_processes",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244305+00:00",
+      "created_at": "2026-03-02T16:10:02.952251+00:00",
       "metadata": {}
     },
     {
@@ -1132,7 +1132,7 @@
       "target": "source_https_nvd_nist_gov_vuln_metrics_cvss",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244321+00:00",
+      "created_at": "2026-03-02T16:10:02.952263+00:00",
       "metadata": {}
     },
     {
@@ -1140,7 +1140,7 @@
       "target": "topic_quantitative_vulnerability_trends",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244328+00:00",
+      "created_at": "2026-03-02T16:10:02.952269+00:00",
       "metadata": {}
     },
     {
@@ -1148,7 +1148,7 @@
       "target": "source_https_www_first_org_cvss_specification_document",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244340+00:00",
+      "created_at": "2026-03-02T16:10:02.952280+00:00",
       "metadata": {}
     },
     {
@@ -1156,7 +1156,7 @@
       "target": "topic_cve_publication_and_disclosure_processes",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244347+00:00",
+      "created_at": "2026-03-02T16:10:02.952287+00:00",
       "metadata": {}
     },
     {
@@ -1164,7 +1164,7 @@
       "target": "source_https_iotsecurityfoundation_org_wp_content_uploads_2026_01_t",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244362+00:00",
+      "created_at": "2026-03-02T16:10:02.952300+00:00",
       "metadata": {}
     },
     {
@@ -1172,7 +1172,7 @@
       "target": "topic_cve_publication_and_disclosure_processes",
       "type": "belongs_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244369+00:00",
+      "created_at": "2026-03-02T16:10:02.952307+00:00",
       "metadata": {}
     },
     {
@@ -1180,7 +1180,7 @@
       "target": "source_https_news_ycombinator_com_item_id_43700607",
       "type": "sourced_from",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244380+00:00",
+      "created_at": "2026-03-02T16:10:02.952318+00:00",
       "metadata": {}
     },
     {
@@ -1188,7 +1188,7 @@
       "target": "topic_active_threats_and_zero_day_exploitation",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244396+00:00",
+      "created_at": "2026-03-02T16:10:02.952331+00:00",
       "metadata": {}
     },
     {
@@ -1196,7 +1196,7 @@
       "target": "topic_active_threats_and_zero_day_exploitation",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244405+00:00",
+      "created_at": "2026-03-02T16:10:02.952340+00:00",
       "metadata": {}
     },
     {
@@ -1204,7 +1204,7 @@
       "target": "topic_cve_publication_and_disclosure_processes",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244412+00:00",
+      "created_at": "2026-03-02T16:10:02.952349+00:00",
       "metadata": {}
     },
     {
@@ -1212,7 +1212,7 @@
       "target": "topic_quantitative_vulnerability_trends",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244418+00:00",
+      "created_at": "2026-03-02T16:10:02.952356+00:00",
       "metadata": {}
     },
     {
@@ -1220,7 +1220,7 @@
       "target": "topic_cve_publication_and_disclosure_processes",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244424+00:00",
+      "created_at": "2026-03-02T16:10:02.952363+00:00",
       "metadata": {}
     },
     {
@@ -1228,7 +1228,7 @@
       "target": "topic_active_threats_and_zero_day_exploitation",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244432+00:00",
+      "created_at": "2026-03-02T16:10:02.952370+00:00",
       "metadata": {}
     },
     {
@@ -1236,7 +1236,7 @@
       "target": "topic_vulnerability_research_methodology",
       "type": "relates_to",
       "weight": 1.0,
-      "created_at": "2026-03-01T15:59:15.244439+00:00",
+      "created_at": "2026-03-02T16:10:02.952376+00:00",
       "metadata": {}
     },
     {
@@ -1244,7 +1244,7 @@
       "target": "claim_002",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244460+00:00",
+      "created_at": "2026-03-02T16:10:02.952396+00:00",
       "metadata": {}
     },
     {
@@ -1252,7 +1252,7 @@
       "target": "claim_007",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244466+00:00",
+      "created_at": "2026-03-02T16:10:02.952402+00:00",
       "metadata": {}
     },
     {
@@ -1260,7 +1260,7 @@
       "target": "claim_008",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244472+00:00",
+      "created_at": "2026-03-02T16:10:02.952408+00:00",
       "metadata": {}
     },
     {
@@ -1268,7 +1268,7 @@
       "target": "claim_007",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244478+00:00",
+      "created_at": "2026-03-02T16:10:02.952414+00:00",
       "metadata": {}
     },
     {
@@ -1276,7 +1276,7 @@
       "target": "claim_008",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244482+00:00",
+      "created_at": "2026-03-02T16:10:02.952419+00:00",
       "metadata": {}
     },
     {
@@ -1284,7 +1284,7 @@
       "target": "claim_008",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244487+00:00",
+      "created_at": "2026-03-02T16:10:02.952424+00:00",
       "metadata": {}
     },
     {
@@ -1292,7 +1292,7 @@
       "target": "claim_004",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244500+00:00",
+      "created_at": "2026-03-02T16:10:02.952437+00:00",
       "metadata": {}
     },
     {
@@ -1300,7 +1300,7 @@
       "target": "claim_005",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244505+00:00",
+      "created_at": "2026-03-02T16:10:02.952442+00:00",
       "metadata": {}
     },
     {
@@ -1308,7 +1308,7 @@
       "target": "claim_006",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244510+00:00",
+      "created_at": "2026-03-02T16:10:02.952447+00:00",
       "metadata": {}
     },
     {
@@ -1316,7 +1316,7 @@
       "target": "claim_005",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244517+00:00",
+      "created_at": "2026-03-02T16:10:02.952452+00:00",
       "metadata": {}
     },
     {
@@ -1324,7 +1324,7 @@
       "target": "claim_006",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244522+00:00",
+      "created_at": "2026-03-02T16:10:02.952456+00:00",
       "metadata": {}
     },
     {
@@ -1332,7 +1332,7 @@
       "target": "claim_006",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244527+00:00",
+      "created_at": "2026-03-02T16:10:02.952461+00:00",
       "metadata": {}
     },
     {
@@ -1340,7 +1340,7 @@
       "target": "claim_010",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244551+00:00",
+      "created_at": "2026-03-02T16:10:02.952485+00:00",
       "metadata": {}
     },
     {
@@ -1348,7 +1348,7 @@
       "target": "claim_014",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244556+00:00",
+      "created_at": "2026-03-02T16:10:02.952490+00:00",
       "metadata": {}
     },
     {
@@ -1356,7 +1356,7 @@
       "target": "claim_018",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244561+00:00",
+      "created_at": "2026-03-02T16:10:02.952495+00:00",
       "metadata": {}
     },
     {
@@ -1364,7 +1364,7 @@
       "target": "claim_019",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244566+00:00",
+      "created_at": "2026-03-02T16:10:02.952500+00:00",
       "metadata": {}
     },
     {
@@ -1372,7 +1372,7 @@
       "target": "claim_021",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244571+00:00",
+      "created_at": "2026-03-02T16:10:02.952505+00:00",
       "metadata": {}
     },
     {
@@ -1380,7 +1380,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244576+00:00",
+      "created_at": "2026-03-02T16:10:02.952510+00:00",
       "metadata": {}
     },
     {
@@ -1388,7 +1388,7 @@
       "target": "claim_014",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244581+00:00",
+      "created_at": "2026-03-02T16:10:02.952515+00:00",
       "metadata": {}
     },
     {
@@ -1396,7 +1396,7 @@
       "target": "claim_018",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244586+00:00",
+      "created_at": "2026-03-02T16:10:02.952520+00:00",
       "metadata": {}
     },
     {
@@ -1404,7 +1404,7 @@
       "target": "claim_019",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244593+00:00",
+      "created_at": "2026-03-02T16:10:02.952525+00:00",
       "metadata": {}
     },
     {
@@ -1412,7 +1412,7 @@
       "target": "claim_021",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244598+00:00",
+      "created_at": "2026-03-02T16:10:02.952529+00:00",
       "metadata": {}
     },
     {
@@ -1420,7 +1420,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244603+00:00",
+      "created_at": "2026-03-02T16:10:02.952534+00:00",
       "metadata": {}
     },
     {
@@ -1428,7 +1428,7 @@
       "target": "claim_018",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244609+00:00",
+      "created_at": "2026-03-02T16:10:02.952540+00:00",
       "metadata": {}
     },
     {
@@ -1436,7 +1436,7 @@
       "target": "claim_019",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244614+00:00",
+      "created_at": "2026-03-02T16:10:02.952545+00:00",
       "metadata": {}
     },
     {
@@ -1444,7 +1444,7 @@
       "target": "claim_021",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244619+00:00",
+      "created_at": "2026-03-02T16:10:02.952550+00:00",
       "metadata": {}
     },
     {
@@ -1452,7 +1452,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244624+00:00",
+      "created_at": "2026-03-02T16:10:02.952556+00:00",
       "metadata": {}
     },
     {
@@ -1460,7 +1460,7 @@
       "target": "claim_019",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244630+00:00",
+      "created_at": "2026-03-02T16:10:02.952562+00:00",
       "metadata": {}
     },
     {
@@ -1468,7 +1468,7 @@
       "target": "claim_021",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244635+00:00",
+      "created_at": "2026-03-02T16:10:02.952567+00:00",
       "metadata": {}
     },
     {
@@ -1476,7 +1476,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244640+00:00",
+      "created_at": "2026-03-02T16:10:02.952573+00:00",
       "metadata": {}
     },
     {
@@ -1484,7 +1484,7 @@
       "target": "claim_021",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244646+00:00",
+      "created_at": "2026-03-02T16:10:02.952578+00:00",
       "metadata": {}
     },
     {
@@ -1492,7 +1492,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244651+00:00",
+      "created_at": "2026-03-02T16:10:02.952583+00:00",
       "metadata": {}
     },
     {
@@ -1500,7 +1500,7 @@
       "target": "claim_022",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244657+00:00",
+      "created_at": "2026-03-02T16:10:02.952589+00:00",
       "metadata": {}
     },
     {
@@ -1508,7 +1508,7 @@
       "target": "claim_012",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244673+00:00",
+      "created_at": "2026-03-02T16:10:02.952604+00:00",
       "metadata": {}
     },
     {
@@ -1516,7 +1516,7 @@
       "target": "claim_013",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244679+00:00",
+      "created_at": "2026-03-02T16:10:02.952615+00:00",
       "metadata": {}
     },
     {
@@ -1524,7 +1524,7 @@
       "target": "claim_013",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244684+00:00",
+      "created_at": "2026-03-02T16:10:02.952628+00:00",
       "metadata": {}
     },
     {
@@ -1532,7 +1532,7 @@
       "target": "claim_016",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244701+00:00",
+      "created_at": "2026-03-02T16:10:02.952661+00:00",
       "metadata": {}
     },
     {
@@ -1540,7 +1540,7 @@
       "target": "claim_017",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244707+00:00",
+      "created_at": "2026-03-02T16:10:02.952672+00:00",
       "metadata": {}
     },
     {
@@ -1548,7 +1548,7 @@
       "target": "claim_020",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244713+00:00",
+      "created_at": "2026-03-02T16:10:02.952682+00:00",
       "metadata": {}
     },
     {
@@ -1556,7 +1556,7 @@
       "target": "claim_017",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244720+00:00",
+      "created_at": "2026-03-02T16:10:02.952692+00:00",
       "metadata": {}
     },
     {
@@ -1564,7 +1564,7 @@
       "target": "claim_020",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244726+00:00",
+      "created_at": "2026-03-02T16:10:02.952703+00:00",
       "metadata": {}
     },
     {
@@ -1572,32 +1572,32 @@
       "target": "claim_020",
       "type": "relates_to",
       "weight": 0.5,
-      "created_at": "2026-03-01T15:59:15.244734+00:00",
+      "created_at": "2026-03-02T16:10:02.952715+00:00",
       "metadata": {}
     }
   ],
   "metadata": {
     "domain": "cybersecurity",
-    "created_at": "2026-03-01T15:59:15.243683+00:00",
-    "updated_at": "2026-03-01T15:59:15.243683+00:00",
+    "created_at": "2026-03-02T16:10:02.951674+00:00",
+    "updated_at": "2026-03-02T16:10:02.951674+00:00",
     "node_count": 54,
     "edge_count": 93,
     "cluster_count": 5
   },
   "clusters": [
     {
-      "id": "cluster_2",
+      "id": "cluster_3",
       "topics": [
         "topic_cve_publication_and_disclosure_processes"
       ],
       "claims": [
-        "claim_010",
         "claim_021",
+        "claim_010",
         "claim_018",
         "claim_009",
         "claim_014",
-        "claim_019",
-        "claim_022"
+        "claim_022",
+        "claim_019"
       ],
       "size": 8,
       "density": 1.0
@@ -1608,38 +1608,24 @@
         "topic_vendor_patching_and_emergency_response"
       ],
       "claims": [
-        "claim_004",
-        "claim_003",
         "claim_005",
-        "claim_006"
+        "claim_006",
+        "claim_003",
+        "claim_004"
       ],
       "size": 5,
       "density": 1.0
     },
     {
-      "id": "cluster_1",
+      "id": "cluster_2",
       "topics": [
         "topic_quantitative_vulnerability_trends"
       ],
       "claims": [
         "claim_020",
         "claim_016",
-        "claim_015",
-        "claim_017"
-      ],
-      "size": 5,
-      "density": 1.0
-    },
-    {
-      "id": "cluster_3",
-      "topics": [
-        "topic_active_threats_and_zero_day_exploitation"
-      ],
-      "claims": [
-        "claim_001",
-        "claim_007",
-        "claim_002",
-        "claim_008"
+        "claim_017",
+        "claim_015"
       ],
       "size": 5,
       "density": 1.0
@@ -1647,12 +1633,26 @@
     {
       "id": "cluster_4",
       "topics": [
+        "topic_active_threats_and_zero_day_exploitation"
+      ],
+      "claims": [
+        "claim_008",
+        "claim_007",
+        "claim_001",
+        "claim_002"
+      ],
+      "size": 5,
+      "density": 1.0
+    },
+    {
+      "id": "cluster_1",
+      "topics": [
         "topic_vulnerability_research_methodology"
       ],
       "claims": [
-        "claim_013",
         "claim_011",
-        "claim_012"
+        "claim_012",
+        "claim_013"
       ],
       "size": 4,
       "density": 1.0

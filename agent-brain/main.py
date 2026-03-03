@@ -685,6 +685,7 @@ def main():
     parser.add_argument("--daemon-report", action="store_true", help="Full daemon health report (cycles, budget, watchdog, domains, sync)")
     parser.add_argument("--interval", type=int, default=60, help="Daemon interval in minutes (default: 60)")
     parser.add_argument("--max-cycles", type=int, default=0, help="Max daemon cycles (0=unlimited)")
+    parser.add_argument("--autonomous", action="store_true", help="Fully autonomous: auto-approve strategies, auto-execute Hands tasks")
     parser.add_argument("--migrate", action="store_true", help="Migrate JSON/JSONL data to SQLite database")
     parser.add_argument("--alerts", action="store_true", help="Show monitoring alerts")
     parser.add_argument("--check-health", action="store_true", help="Run health checks and monitoring")

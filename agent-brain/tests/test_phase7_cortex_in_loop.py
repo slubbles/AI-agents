@@ -244,8 +244,8 @@ class TestApplyCortexPriorities:
         assert alloc["ai"] == 1
         assert alloc["seo"] == 1
 
-    def test_no_boost_for_unknown_domain(self):
-        """Focus domain not in plan is ignored."""
+    def test_unknown_focus_domain_gets_injected(self):
+        """Focus domain not in plan is INJECTED by stealing a round."""
         from scheduler import _apply_cortex_priorities
         plan = {
             "executable": True,
@@ -258,8 +258,11 @@ class TestApplyCortexPriorities:
         _apply_cortex_priorities(plan, cortex_plan)
         
         alloc = {a["domain"]: a["rounds"] for a in plan["allocation"]}
-        assert alloc["ai"] == 3
-        assert alloc["seo"] == 2
+        # blockchain should be injected with 1 round, stolen from ai (highest)
+        assert "blockchain" in alloc, "Focus domain should be injected"
+        assert alloc["blockchain"] >= 1
+        # Total rounds should be preserved
+        assert sum(alloc.values()) == 5
 
     def test_empty_focus_domains_noop(self):
         """Empty focus_domains is a no-op."""

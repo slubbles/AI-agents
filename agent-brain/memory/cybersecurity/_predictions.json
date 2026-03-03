@@ -1,0 +1,12 @@
+[
+  {
+    "prediction": "CISA issued binding operational directive (February 2026) requiring federal agencies to identify and upgrade end-of-support edge devices within 12-18 months due to substantial security risk",
+    "deadline": "2027-08-16",
+    "source_claim_id": "claim_006",
+    "verification_query": "CISA federal agencies end-of-support edge devices upgrade completion 2027",
+    "category": "policy",
+    "status": "pending",
+    "extracted_at": "2026-03-02T16:10:05.678177+00:00",
+    "domain": "cybersecurity"
+  }
+]

@@ -442,6 +442,30 @@ CORTEX_JOURNAL_FILE = os.path.join(LOG_DIR, "cortex_journal.jsonl")
 # Track last daily assessment date to avoid repeating
 _last_daily_assessment_date: str | None = None
 
+# Persistent cycle counter file
+CYCLE_COUNTER_FILE = os.path.join(LOG_DIR, "cycle_counter.json")
+
+
+def _load_cycle_counter() -> int:
+    """Load the last cycle number from disk for persistence across restarts."""
+    if not os.path.exists(CYCLE_COUNTER_FILE):
+        return 0
+    try:
+        with open(CYCLE_COUNTER_FILE) as f:
+            data = json.load(f)
+        return data.get("cycle", 0)
+    except (json.JSONDecodeError, IOError):
+        return 0
+
+
+def _save_cycle_counter(cycle: int):
+    """Persist the current cycle number."""
+    os.makedirs(LOG_DIR, exist_ok=True)
+    atomic_json_write(CYCLE_COUNTER_FILE, {
+        "cycle": cycle,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    })
+
 
 def _log_daemon(message: str, level: str = "info"):
     """Log a daemon message with timestamp."""
@@ -551,9 +575,12 @@ def _apply_cortex_priorities(plan: dict, cortex_plan: dict):
     """
     Adjust plan allocation based on Cortex recommendations.
     
-    Strategy: if Cortex recommends focus domains, boost their allocation 
-    by shifting 1 round from lower-priority domains. This is advisory —
-    never removes a domain entirely.
+    Strategy: Cortex focus domains get STRONG priority:
+      1. Focus domains that are already in the plan get boosted (steal rounds)
+      2. Focus domains NOT in the plan get INJECTED with at least 1 round
+      3. Non-focus domains with only 1 round may be removed to make room
+    
+    This is binding, not advisory. Cortex is the strategic brain.
     """
     focus = cortex_plan.get("focus_domains", [])
     if not focus or not plan.get("allocation"):
@@ -562,27 +589,59 @@ def _apply_cortex_priorities(plan: dict, cortex_plan: dict):
     alloc = plan["allocation"]
     alloc_by_domain = {a["domain"]: a for a in alloc}
     
-    # Find focus domains that are already in the plan
-    boosted = []
+    # Phase 1: Inject focus domains that aren't in the plan yet
     for d in focus:
-        if d in alloc_by_domain:
-            boosted.append(d)
+        if d not in alloc_by_domain:
+            # Steal a round from the lowest-priority non-focus domain
+            donors = [a for a in alloc if a["domain"] not in focus and a["rounds"] > 0]
+            donors.sort(key=lambda a: a["rounds"], reverse=True)
+            if donors:
+                donors[0]["rounds"] -= 1
+                new_entry = {
+                    "domain": d,
+                    "rounds": 1,
+                    "estimated_cost": 0.05,
+                    "current_outputs": 0,
+                    "current_accepted": 0,
+                    "strategy": "v001",
+                    "strategy_status": "cortex_injected",
+                    "reasons": ["Cortex priority: focus domain"],
+                }
+                alloc.append(new_entry)
+                alloc_by_domain[d] = new_entry
+                _log_daemon(f"Cortex injected domain '{d}' (stole round from '{donors[0]['domain']}')")
+            # Remove zero-round allocations
+            plan["allocation"] = [a for a in alloc if a["rounds"] > 0]
+            alloc = plan["allocation"]
+            alloc_by_domain = {a["domain"]: a for a in alloc}
     
-    if not boosted:
-        return
+    # Phase 2: Boost focus domains already in the plan
+    boosted = [d for d in focus if d in alloc_by_domain]
+    donors = sorted(
+        [a for a in alloc if a["domain"] not in focus and a["rounds"] > 1],
+        key=lambda a: a["rounds"], reverse=True
+    )
     
-    # Find domains to borrow from (non-focus, rounds > 1)
-    donors = [a for a in alloc if a["domain"] not in focus and a["rounds"] > 1]
-    
-    rounds_to_shift = min(len(boosted), len(donors))  # max 1 round per boost
+    rounds_to_shift = min(len(boosted), len(donors))
     for i in range(rounds_to_shift):
         donors[i]["rounds"] -= 1
         alloc_by_domain[boosted[i]]["rounds"] += 1
     
-    if rounds_to_shift > 0:
+    # Phase 3: If critical priority actions exist, give even more weight
+    for action in cortex_plan.get("action_types", []):
+        if action == "hands_build":
+            # Flag that post-cycle should try Hands execution
+            plan["_cortex_wants_hands"] = True
+    
+    # Clean up zero-round allocations
+    plan["allocation"] = [a for a in plan["allocation"] if a["rounds"] > 0]
+    plan["total_rounds"] = sum(a["rounds"] for a in plan["allocation"])
+    
+    shifted = [d for d in boosted if alloc_by_domain[d]["rounds"] > 0]
+    if shifted or rounds_to_shift > 0:
         _log_daemon(
-            f"Cortex boosted: {boosted[:rounds_to_shift]} "
-            f"(+1 round each from donors)"
+            f"Cortex priorities applied: focus={focus}, "
+            f"boosted={shifted}, shifted={rounds_to_shift} rounds"
         )
 
 
@@ -989,6 +1048,169 @@ def _auto_approve_pending_strategies():
 
 
 # ============================================================
+# Hands Auto-Execution — Daemon dispatches sync tasks to Hands
+# ============================================================
+
+# Max hands tasks to execute per daemon cycle
+MAX_HANDS_TASKS_PER_CYCLE = 2
+# Max seconds for a single hands task
+HANDS_TASK_TIMEOUT = 300
+
+
+def _execute_hands_tasks(cycle: int, budget_remaining: float) -> list[dict]:
+    """
+    Pick up pending sync tasks and execute them via Hands.
+    
+    Budget-gated: skips if remaining budget < $0.30.
+    Only executes critical/high priority tasks automatically.
+    
+    Args:
+        cycle: Current cycle number
+        budget_remaining: Remaining daily budget
+        
+    Returns:
+        List of execution result dicts
+    """
+    if budget_remaining < 0.30:
+        _log_daemon("Hands auto-exec skipped: budget too low", "info")
+        return []
+    
+    try:
+        from sync import get_pending_tasks, update_task
+        
+        # Only execute critical and high priority tasks autonomously
+        tasks = get_pending_tasks(limit=MAX_HANDS_TASKS_PER_CYCLE)
+        actionable = [t for t in tasks if t.get("priority") in ("critical", "high")]
+        
+        if not actionable:
+            return []
+        
+        _log_daemon(f"Hands auto-exec: {len(actionable)} task(s) to execute")
+        results = []
+        
+        for task in actionable:
+            task_id = task["id"]
+            title = task.get("title", "unknown")
+            description = task.get("description", "")
+            domain = task.get("source_domain", "general")
+            task_type = task.get("task_type", "action")
+            
+            # Only auto-execute "build" and "action" types
+            if task_type not in ("build", "action"):
+                _log_daemon(f"Hands skipping task {task_id}: type={task_type}", "info")
+                continue
+            
+            _log_daemon(f"Hands executing: {title[:80]}...")
+            update_task(task_id, "in_progress")
+            
+            try:
+                # Run Hands execution in a thread with timeout
+                _exec_result = [None]
+                _exec_error = [None]
+                
+                def _run_hands_task():
+                    try:
+                        from hands.planner import plan as create_plan_hands
+                        from hands.executor import execute_plan
+                        from hands.tools.registry import create_default_registry
+                        from hands.exec_memory import save_exec_output
+                        from strategy_store import get_strategy
+                        import config as _cfg
+                        
+                        # Set up workspace
+                        workspace_dir = os.path.join(
+                            os.path.dirname(__file__), "output", domain
+                        )
+                        os.makedirs(workspace_dir, exist_ok=True)
+                        
+                        # Allow workspace dir for file operations
+                        if _cfg.EXEC_ALLOWED_DIRS is None:
+                            _cfg.EXEC_ALLOWED_DIRS = [workspace_dir]
+                        elif workspace_dir not in _cfg.EXEC_ALLOWED_DIRS:
+                            _cfg.EXEC_ALLOWED_DIRS = list(_cfg.EXEC_ALLOWED_DIRS) + [workspace_dir]
+                        
+                        # Create tool registry + plan
+                        registry = create_default_registry()
+                        tools_desc = registry.get_tool_descriptions()
+                        
+                        strategy, _ = get_strategy("executor", domain)
+                        
+                        goal = f"{title}: {description}"
+                        exec_plan = create_plan_hands(
+                            goal=goal,
+                            tools_description=tools_desc,
+                            domain=domain,
+                            execution_strategy=strategy or "",
+                            workspace_dir=workspace_dir,
+                        )
+                        
+                        if not exec_plan:
+                            _exec_result[0] = {
+                                "success": False,
+                                "error": "Planning failed",
+                            }
+                            return
+                        
+                        # Execute
+                        result = execute_plan(
+                            plan=exec_plan,
+                            registry=registry,
+                            domain=domain,
+                            execution_strategy=strategy or "",
+                            workspace_dir=workspace_dir,
+                        )
+                        
+                        # Store result
+                        save_exec_output(
+                            domain=domain,
+                            task=goal,
+                            plan=exec_plan,
+                            result=result,
+                        )
+                        
+                        _exec_result[0] = result
+                        
+                    except Exception as exc:
+                        _exec_error[0] = exc
+                
+                hands_thread = threading.Thread(
+                    target=_run_hands_task, daemon=True
+                )
+                hands_thread.start()
+                hands_thread.join(timeout=HANDS_TASK_TIMEOUT)
+                
+                if hands_thread.is_alive():
+                    _log_daemon(f"Hands task {task_id}: TIMEOUT after {HANDS_TASK_TIMEOUT}s", "error")
+                    update_task(task_id, "failed", {"error": "timeout"})
+                    results.append({"task_id": task_id, "success": False, "error": "timeout"})
+                    continue
+                
+                if _exec_error[0]:
+                    raise _exec_error[0]
+                
+                result = _exec_result[0] or {"success": False, "error": "no result"}
+                success = result.get("success", False)
+                
+                update_task(task_id, "completed" if success else "failed", result)
+                _log_daemon(
+                    f"Hands task {task_id}: {'SUCCESS' if success else 'FAILED'} — {title[:60]}",
+                    "info" if success else "warning"
+                )
+                results.append({"task_id": task_id, "success": success, "title": title})
+                
+            except Exception as e:
+                _log_daemon(f"Hands task {task_id} error: {e}", "error")
+                update_task(task_id, "failed", {"error": str(e)})
+                results.append({"task_id": task_id, "success": False, "error": str(e)})
+        
+        return results
+        
+    except Exception as e:
+        _log_daemon(f"Hands auto-exec error: {e}", "warning")
+        return []
+
+
+# ============================================================
 # Log Rotation — Prevent unbounded growth during 24/7 operation
 # ============================================================
 
@@ -1112,10 +1334,12 @@ def run_daemon(
     signal.signal(signal.SIGINT, _shutdown)
     signal.signal(signal.SIGTERM, _shutdown)
 
-    cycle = 0
+    cycle = _load_cycle_counter()
+    cycles_run = 0  # Track how many cycles THIS session has run (for max_cycles)
     _log_daemon(f"Daemon started: interval={interval_minutes}m, rounds={rounds_per_cycle}, "
                 f"max_cycles={'∞' if max_cycles == 0 else max_cycles}, "
-                f"require_approval={require_approval}")
+                f"require_approval={require_approval}, "
+                f"resuming from cycle {cycle}")
 
     # Telegram alert: daemon started
     try:
@@ -1136,8 +1360,10 @@ def run_daemon(
     try:
         while not _daemon_stop_event.is_set():
             cycle += 1
+            cycles_run += 1
+            _save_cycle_counter(cycle)
             
-            if max_cycles > 0 and cycle > max_cycles:
+            if max_cycles > 0 and cycles_run > max_cycles:
                 _log_daemon(f"Reached max cycles ({max_cycles}). Stopping.", "info")
                 break
 
@@ -1413,6 +1639,18 @@ def run_daemon(
                                          cycle_cost, duration, domain_results)
                 except Exception:
                     pass
+
+                # === Hands auto-execution (build from research) ===
+                if not require_approval:
+                    hands_budget = check_budget()
+                    hands_results = _execute_hands_tasks(
+                        cycle, hands_budget.get("remaining", 0)
+                    )
+                    if hands_results:
+                        successes = sum(1 for r in hands_results if r.get("success"))
+                        _log_daemon(
+                            f"Hands auto-exec: {successes}/{len(hands_results)} tasks succeeded"
+                        )
 
                 # === Cortex post-cycle interpretation (strategic layer) ===
                 cortex_interpret_cycle(

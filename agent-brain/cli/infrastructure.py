@@ -352,14 +352,27 @@ def run_daemon_mode(args):
     interval = getattr(args, 'interval', 60) or 60
     max_cycles = getattr(args, 'max_cycles', None)
     aggressive = getattr(args, 'aggressive', False)
+    autonomous = getattr(args, 'autonomous', False)
+    require_approval = not autonomous
+
+    # Initialize SQLite DB on daemon startup (safe to call multiple times)
+    try:
+        from db import init_db
+        init_db()
+    except Exception as e:
+        print(f"  ⚠ SQLite init warning: {e}")
 
     print(f"\n{'='*60}")
-    print(f"  DAEMON MODE — Autonomous Operation")
+    print(f"  DAEMON MODE — {'Fully Autonomous' if autonomous else 'Supervised'} Operation")
     print(f"{'='*60}")
     print(f"\n  Interval: {interval} minutes")
     print(f"  Max cycles: {max_cycles or 'unlimited'}")
     print(f"  Aggressive: {aggressive}")
-    print(f"\n  ⚠ Human approval still required for strategy changes.")
+    if autonomous:
+        print(f"  ✓ Auto-approve strategies: ON")
+        print(f"  ✓ Auto-execute Hands tasks: ON")
+    else:
+        print(f"  ⚠ Human approval still required for strategy changes.")
     print(f"  Press Ctrl+C to stop gracefully.\n")
 
     run_daemon(
@@ -367,7 +380,7 @@ def run_daemon_mode(args):
         rounds_per_cycle=getattr(args, 'rounds', 3) or 3,
         max_cycles=max_cycles,
         aggressive=aggressive,
-        require_approval=True,
+        require_approval=require_approval,
     )
 
 

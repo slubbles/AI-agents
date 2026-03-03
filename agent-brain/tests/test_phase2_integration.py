@@ -140,6 +140,12 @@ def _enter_standard_mocks(
               os.path.join(dirs["log_dir"], "watchdog_state.json"))
     )
 
+    # Cycle counter file → tmp dir (prevent cross-test contamination)
+    stack.enter_context(
+        patch("scheduler.CYCLE_COUNTER_FILE",
+              os.path.join(dirs["log_dir"], "cycle_counter.json"))
+    )
+
     # run_loop
     if run_loop_side_effect is not None:
         stack.enter_context(patch("main.run_loop", side_effect=run_loop_side_effect))
