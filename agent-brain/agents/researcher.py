@@ -136,7 +136,7 @@ RESPOND WITH ONLY THIS JSON STRUCTURE:
     return baseline
 
 
-def _build_system_prompt(domain_strategy: str | None = None, domain: str = "") -> str:
+def _build_system_prompt(domain_strategy: str | None = None, domain: str = "", build_mode: bool = False) -> str:
     """
     Build the full system prompt. ALWAYS includes baseline (date awareness, JSON
     format, core rules). If a domain strategy exists, it's layered ON TOP — it
@@ -144,6 +144,12 @@ def _build_system_prompt(domain_strategy: str | None = None, domain: str = "") -
     override the output format or temporal verification rules.
     Lessons from past failures are injected if available.
     Domain goal is injected if set — tells the researcher WHY this matters.
+    
+    Args:
+        domain_strategy: Domain-specific research strategy text
+        domain: Domain name for context injection
+        build_mode: When True, adds build-focused research guidance (user personas,
+                    competitor UI, pricing, copy) for pre-build intelligence gathering
     """
     baseline = _build_baseline()
     
@@ -213,6 +219,35 @@ Instead, focus on:
     
     if goal_block:
         parts.append(goal_block)
+    
+    # Build-mode: when researching in preparation for Hands to build something
+    if build_mode:
+        parts.append("""
+=== BUILD-CONTEXT MODE ===
+This research is being conducted to prepare for BUILDING a product (website, SaaS, landing page).
+Your findings will be handed to the execution agent to write actual code.
+
+FOCUS YOUR RESEARCH ON ACTIONABLE BUILD INTELLIGENCE:
+1. USER PERSONA — Who exactly is the user? What's their #1 pain? What words do they use?
+   Search: forums, Reddit, community complaints, job postings, review sites
+2. COMPETITOR ANALYSIS — What do existing solutions look like? What do they charge?
+   Search: competitor sites, pricing pages, feature comparisons, G2/Capterra reviews
+3. COPY AND MESSAGING — What headlines, CTAs, and value props would resonate?
+   Search: competitor landing pages, successful SaaS copy patterns
+4. UI/UX PATTERNS — What design patterns work in this niche? What's the expected UX?
+   Search: competitor screenshots, Dribbble, landing page examples
+5. TECHNICAL REQUIREMENTS — What APIs, integrations, or data sources are needed?
+   Search: relevant APIs, documentation, technical implementation guides
+
+DO NOT waste time on:
+- Market size estimates or TAM/SAM calculations
+- Industry analyst frameworks or theoretical models
+- Historical background beyond what's needed for credibility copy
+- Academic papers or research studies
+
+The output should give Hands everything needed to build a targeted, compelling product.
+=== END BUILD CONTEXT ===
+""")
     
     if graph_block:
         parts.append(graph_block)
@@ -291,15 +326,22 @@ def _compress_messages(messages: list) -> None:
         msg["content"] = compressed_content
 
 
-def research(question: str, strategy: str | None = None, critique: str | None = None, domain: str = "general") -> dict:
+def research(question: str, strategy: str | None = None, critique: str | None = None, domain: str = "general", build_mode: bool = False) -> dict:
     """
     Run the researcher agent on a question with web search tool use.
     
     Now memory-informed: retrieves relevant past findings + synthesized knowledge
     before searching, so the researcher builds on existing knowledge instead of
     starting from zero.
+    
+    Args:
+        question: The research question
+        strategy: Domain-specific strategy text
+        critique: Previous critique feedback for retry
+        domain: Domain name
+        build_mode: When True, focuses research on actionable build intelligence
     """
-    system_prompt = _build_system_prompt(strategy, domain=domain)
+    system_prompt = _build_system_prompt(strategy, domain=domain, build_mode=build_mode)
 
     # --- Memory recall: inject prior knowledge ---
     prior_knowledge_block = ""

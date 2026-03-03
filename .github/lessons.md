@@ -15,3 +15,5 @@ Rules extracted from corrections. Reviewed at session start. Updated after every
 - **Don't oversell features**: If code exists but hasn't been run in production, say "code exists, not battle-tested." Don't claim it "works."
 - **Check the actual implementation before claiming behavior**: Don't describe what you think a function does. Read it. Then describe it.
 - **Conversation window sizes affect cost**: Larger windows = more tokens per call. 40 messages is the current balance — don't increase without thinking about cost.
+- **Watch for circular imports / recursive calls between modules**: The `memory_store.retrieve_relevant` → `rag.retrieval.retrieve_relevant_rag` → `memory_store.retrieve_relevant` infinite recursion was caused by fallback paths calling the dispatch function instead of the implementation function. When module A dispatches to module B, module B's fallback must call A's implementation directly (e.g., `retrieve_relevant_tfidf`), NOT A's dispatch function (e.g., `retrieve_relevant`).
+- **Run full test suite after every change session**: The recursion bug was pre-existing but only caught when running tests. Always verify before declaring done.

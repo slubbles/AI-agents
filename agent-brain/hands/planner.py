@@ -121,29 +121,68 @@ def _build_system_prompt(
     """Build the planner's system prompt with tool awareness and domain context."""
     today = date.today().isoformat()
 
+    # Load design system if available
+    design_system = ""
+    design_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "identity", "design_system.md")
+    if os.path.exists(design_path):
+        try:
+            with open(design_path, "r") as f:
+                design_system = f.read()[:3000]
+        except OSError:
+            pass
+
     base = f"""\
-You are an execution planner. Your job is to decompose a task into concrete, 
-ordered steps that can be executed by tools.
+You are an execution planner for an autonomous AI system that builds production-ready web applications.
+Your job: decompose a task into concrete, ordered steps executable by tools.
 
 TODAY'S DATE: {today}
 
 AVAILABLE TOOLS:
 {tools_description}
 
-PLANNING RULES:
+=== BUILD ARCHITECTURE ===
+When building a web application, follow this phase structure:
+
+Phase 0 — Context Intake: Read the research brief/PRD. Understand the user, their pain, and the core feature.
+Phase 1 — Scaffold: Create the project (`npx create-next-app@latest --ts --tailwind --app --src-dir --eslint`).
+           Install dependencies: shadcn/ui (`npx shadcn@latest init`), framer-motion, @supabase/supabase-js.
+Phase 2 — Backend: API routes, auth, database schema, Supabase client setup.
+Phase 3 — Frontend: Layout → pages → components. Mobile-first. Design system applied.
+Phase 4 — Integration: Connect frontend to backend. Wire up auth flow. Test data flow.
+Phase 5 — Validation: `npm run build` must pass clean. Fix any TypeScript/lint errors.
+Phase 6 — Deploy: Push to GitHub, deploy to Vercel via CLI (`npx vercel --yes --prod`).
+
+=== TECH STACK (always use unless task specifies otherwise) ===
+- Framework: Next.js 15+ (App Router, TypeScript, src/ directory)
+- Styling: Tailwind CSS + shadcn/ui components
+- Animations: Framer Motion (subtle, purposeful)
+- Database: Supabase (PostgreSQL + Auth + Realtime)
+- Deploy: Vercel (automatic from GitHub or via CLI)
+- Package manager: npm (not yarn, not pnpm)
+
+=== CODE QUALITY RULES ===
+- Every file must contain COMPLETE, working code. NEVER use placeholders like `// TODO`, `// rest of code`, `...`, or `/* implement */`.
+- Every component must be properly typed with TypeScript. No `any` types.
+- Every page must handle: loading state, empty state, error state.
+- Use `"use client"` directive only on components that need interactivity.
+- Server components by default. Client components only when needed (hooks, event handlers).
+- All imports must be correct. Verify import paths match actual file locations.
+- Include proper meta tags, viewport settings, and favicon in layout.
+- Responsive: works on mobile (375px), tablet (768px), and desktop (1280px+).
+
+=== PLANNING RULES ===
 1. Each step must use exactly one tool with specific parameters.
 2. Steps execute sequentially — later steps can reference earlier results.
-3. Keep plans minimal — fewest steps that correctly complete the task.
-4. Never plan more than {EXEC_MAX_STEPS} steps.
-5. Include validation steps (run tests, check output) after creation steps.
+3. Keep plans focused — fewest steps that correctly complete the task.
+4. Never plan more than {EXEC_MAX_STEPS} steps. Batch related files into fewer steps when possible.
+5. Include a `npm run build` validation step after all code is written.
 6. If a task is ambiguous, plan for the most reasonable interpretation.
-7. For code tasks: always include a test/verification step at the end.
-8. For content tasks: plan a review step to check quality.
-9. Be specific — "write file X with content Y", not "create the project".
-10. Each file must be written with complete content — never partial stubs.
-11. Mark each step as "required" or "optional" — optional steps (like linting, formatting)
-    should not block execution if they fail.
-12. Only reference tools that are listed in AVAILABLE TOOLS above.
+7. Be specific — "write file src/app/page.tsx with content Y", not "create the homepage".
+8. Each file write must include the FULL file content — never partial.
+9. Mark each step as "required" or "optional" — optional steps (like formatting) don't block.
+10. Only reference tools listed in AVAILABLE TOOLS above.
+11. For multi-page apps: write layout first, then shared components, then pages. Dependencies before dependents.
+12. Always create `.env.local` with all required environment variables (use placeholder values).
 
 RESPOND WITH ONLY THIS JSON STRUCTURE:
 {{
@@ -193,6 +232,15 @@ Follow this strategy for planning. It was evolved based on past execution perfor
 
 {execution_strategy[:3000]}
 === END EXECUTION STRATEGY ===
+"""
+
+    if design_system:
+        base += f"""
+=== DESIGN SYSTEM ===
+Apply these visual standards to all frontend code. This is the system's taste — what makes outputs look production-ready.
+
+{design_system}
+=== END DESIGN SYSTEM ===
 """
 
     return base

@@ -286,7 +286,7 @@ RATE_LIMIT_FETCHES_PER_MINUTE = 20    # max page fetches per minute
 # Model assignments for execution agents
 MODELS.update({
     "planner": PREMIUM_MODEL,                    # strong — plan decomposition needs reasoning
-    "executor": CHEAPEST_MODEL,                  # cheapest — follows plans, uses tools
+    "executor": FAST_MODEL,                      # fast — builds full apps, needs tool-use capability
     "exec_validator": PREMIUM_MODEL,             # strong — quality judgment is sacred
     "exec_meta_analyst": PREMIUM_MODEL,          # strong — pattern extraction
 })
@@ -312,6 +312,8 @@ EXEC_ALLOWED_COMMANDS = [       # whitelist of allowed shell commands
     "git", "curl", "wget", "cat", "ls", "mkdir", "cp", "mv", "rm",
     "echo", "touch", "head", "tail", "grep", "find", "wc",
     "pytest", "eslint", "prettier", "tsc", "docker",
+    "cd", "pwd", "vercel", "chmod", "sed", "awk", "sort", "uniq",
+    "tar", "zip", "unzip", "env", "which", "tree",
 ]
 EXEC_BLOCKED_PATTERNS = [       # patterns that are NEVER allowed in commands
     "rm -rf /", "rm -rf /*", ":(){ :|:& };:",  # fork bomb

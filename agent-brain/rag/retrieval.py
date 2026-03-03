@@ -56,8 +56,8 @@ def retrieve_relevant_rag(
     knowledge_gaps, score, timestamp, _relevance
     """
     if not RAG_ENABLED:
-        from memory_store import retrieve_relevant
-        return retrieve_relevant(domain, question, max_results, min_score)
+        from memory_store import retrieve_relevant_tfidf
+        return retrieve_relevant_tfidf(domain, question, max_results, min_score)
     
     from rag.vector_store import search_claims
     from memory_store import load_outputs
@@ -74,8 +74,8 @@ def retrieve_relevant_rag(
     
     if not claims:
         # Fall back to TF-IDF if vector store is empty
-        from memory_store import retrieve_relevant
-        return retrieve_relevant(domain, question, max_results, min_score)
+        from memory_store import retrieve_relevant_tfidf
+        return retrieve_relevant_tfidf(domain, question, max_results, min_score)
     
     # Group claims by source question (reconstruct output-level results)
     # This preserves the same return format as the original

@@ -337,6 +337,17 @@ def retrieve_relevant(domain: str, question: str, max_results: int = 5, min_scor
     except Exception:
         pass  # Fall through to TF-IDF
     
+    # Fallback to TF-IDF retrieval
+    return retrieve_relevant_tfidf(domain, question, max_results, min_score)
+
+def retrieve_relevant_tfidf(domain: str, question: str, max_results: int = 5, min_score: float = 4.0) -> list[dict]:
+    """
+    TF-IDF based retrieval — the non-RAG fallback path.
+    
+    Exposed as a separate function so rag/retrieval.py can call it directly
+    without triggering the RAG dispatch in retrieve_relevant() (which would
+    cause infinite recursion).
+    """
     # Fallback: TF-IDF retrieval (original implementation)
     outputs = load_outputs(domain, min_score=min_score)
     if not outputs:
