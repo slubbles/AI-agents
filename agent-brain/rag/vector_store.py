@@ -34,8 +34,10 @@ os.environ["CHROMA_TELEMETRY"] = "false"
 
 import sys
 _prev_limit = sys.getrecursionlimit()
-if _prev_limit < 2000:
-    sys.setrecursionlimit(2000)  # Safety net for ChromaDB 1.5.x telemetry bug
+if _prev_limit < 10000:
+    sys.setrecursionlimit(10000)  # Safety net for ChromaDB 1.5.x telemetry bug
+    # Daemon call stack is ~50 frames deep when reaching RAG, so 2000 was
+    # insufficient. 10000 is safe and covers ChromaDB's internal recursion.
 
 import chromadb
 from chromadb.config import Settings

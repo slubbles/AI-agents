@@ -637,6 +637,12 @@ def _apply_cortex_priorities(plan: dict, cortex_plan: dict):
     plan["allocation"] = [a for a in plan["allocation"] if a["rounds"] > 0]
     plan["total_rounds"] = sum(a["rounds"] for a in plan["allocation"])
     
+    # Phase 4: Reorder so Cortex focus domains run FIRST.
+    # Without this, focus domains appended at the end get starved
+    # when rounds_per_cycle caps execution before reaching them.
+    focus_set = set(focus)
+    plan["allocation"].sort(key=lambda a: (0 if a["domain"] in focus_set else 1))
+    
     shifted = [d for d in boosted if alloc_by_domain[d]["rounds"] > 0]
     if shifted or rounds_to_shift > 0:
         _log_daemon(
@@ -1467,6 +1473,19 @@ def run_daemon(
                 # Previously this re-computed allocation from scratch,
                 # overriding Cortex's domain injections and round shifts.
                 allocation = plan["allocation"]
+                
+                # Enforce rounds_per_cycle cap on the allocation.
+                # Trim domains from the end so Cortex-prioritized domains
+                # (sorted first by _apply_cortex_priorities) get served first.
+                trimmed_alloc = []
+                rounds_budget = total_planned
+                for alloc_entry in allocation:
+                    if rounds_budget <= 0:
+                        break
+                    entry_rounds = min(alloc_entry["rounds"], rounds_budget)
+                    trimmed_alloc.append({**alloc_entry, "rounds": entry_rounds})
+                    rounds_budget -= entry_rounds
+                allocation = trimmed_alloc
                 
                 completed = 0
                 domain_results = []

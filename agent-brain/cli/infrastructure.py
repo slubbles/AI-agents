@@ -377,7 +377,7 @@ def run_daemon_mode(args):
 
     run_daemon(
         interval_minutes=interval,
-        rounds_per_cycle=getattr(args, 'rounds', 3) or 3,
+        rounds_per_cycle=getattr(args, 'rounds', None) or 5,
         max_cycles=max_cycles,
         aggressive=aggressive,
         require_approval=require_approval,

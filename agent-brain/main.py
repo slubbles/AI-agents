@@ -47,6 +47,11 @@ import sys
 import os
 from datetime import datetime, timezone
 
+# Raise recursion limit early — ChromaDB 1.5.x triggers deep recursion
+# during collection operations, and the daemon's call stack is already deep
+# from threading + nested function calls.
+sys.setrecursionlimit(10000)
+
 # Add project root to path
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -660,7 +665,7 @@ def main():
     parser.add_argument("--hint", default="", help="Example question to tailor transfer strategy (use with --transfer)")
     parser.add_argument("--next", action="store_true", help="Show next self-generated questions for a domain")
     parser.add_argument("--auto", action="store_true", help="Self-directed mode: generate question and research it")
-    parser.add_argument("--rounds", type=int, default=1, help="Number of auto rounds to run (default: 1)")
+    parser.add_argument("--rounds", type=int, default=None, help="Number of rounds (default: 1 for auto, 5 for daemon)")
     parser.add_argument("--set-goal", action="store_true", help="Set the goal/intent for a domain (interactive prompt)")
     parser.add_argument("--show-goal", action="store_true", help="Show the current goal for a domain")
     parser.add_argument("--progress", action="store_true", help="Show progress toward domain goal")
@@ -869,7 +874,7 @@ def main():
         return
     if args.auto:
         from cli.research import run_auto
-        run_auto(args.domain, args.rounds)
+        run_auto(args.domain, args.rounds or 1)
         return
     if args.synthesize:
         from cli.knowledge import run_synthesize
@@ -910,7 +915,7 @@ def main():
     if args.orchestrate:
         from cli.research import run_orchestrate
         targets = [d.strip() for d in args.target_domains.split(",") if d.strip()] or None
-        run_orchestrate(targets, args.rounds)
+        run_orchestrate(targets, args.rounds or 5)
         return
     if args.export or getattr(args, 'export_md', False):
         from cli.infrastructure import run_export
