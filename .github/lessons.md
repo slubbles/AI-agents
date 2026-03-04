@@ -16,7 +16,7 @@ Rules extracted from corrections. Reviewed at session start. Updated after every
 - **API provider fallback**: When Anthropic direct balance is $0, route PREMIUM_MODEL through OpenRouter using `anthropic/claude-sonnet-4` (not the dated version string). The `create_message` function checks `model.startswith("claude-")` — OpenRouter model IDs like `anthropic/claude-sonnet-4` bypass this check and route correctly through `call_llm`.
 - **get_daily_spend() returns dict not float**: The cost tracker returns `{"total_usd": ..., "by_provider": ...}`. Don't format it directly with `:.4f` — extract `total_usd` first.
 
-## General Patterns
+- **Patch local imports at source module**: When a function uses local imports (e.g., `from hands.planner import plan` inside `pipeline()`), patch the source module (`hands.planner.plan`) not the consuming module (`agents.cortex.plan`). Local imports don't create module-level attributes, so patching the consumer fails silently.
 
 - **Don't oversell features**: If code exists but hasn't been run in production, say "code exists, not battle-tested." Don't claim it "works."
 - **Check the actual implementation before claiming behavior**: Don't describe what you think a function does. Read it. Then describe it.

@@ -4,8 +4,8 @@
 
 **Created:** March 3, 2026  
 **Last Updated:** March 4, 2026  
-**Status:** Active — Objectives 1-5 Complete, Phase 2 Beginning  
-**Codebase:** 44,483 lines production, 1,737 tests passing
+**Status:** Active — Objectives 1-8 Complete, Phase 2 In Progress  
+**Codebase:** 44,483+ lines production, 1,764 tests passing
 
 ---
 
@@ -238,48 +238,45 @@ Artifacts: index.html (2,658 bytes, complete production HTML)
 
 ---
 
-## OBJECTIVE 8: Wire Cortex Pipeline Method
+## OBJECTIVE 8: Wire Cortex Pipeline Method ✅ COMPLETE
 
-> **Purpose:** Full Brain → Cortex → Hands flow, not just Hands alone.
+> **Purpose:** Full Brain → Cortex → Hands flow with approval gate, not just Hands alone.
+> **Completed:** March 4, 2026
 
-### Task 8.1: Complete cortex.py pipeline() method
-- [ ] Implement research phase:
-  ```python
-  research_req = ResearchRequest(domain=niche, question=f"Find opportunity in {niche}")
-  brain_result = self._send_to_brain(research_req)
-  ```
-- [ ] Implement approval gate:
-  ```python
-  self._send_telegram(f"Brain found: {summary}. Approve? /yes /no")
-  approval = self._wait_for_approval(timeout=3600)
-  ```
-- [ ] Implement build phase:
-  ```python
-  build_task = BuildTask(spec=product_brief, budget=budget_cap)
-  build_result = self._send_to_hands(build_task)
-  ```
-- [ ] Implement completion:
-  ```python
-  self._send_telegram(f"Build complete: {url}")
-  ```
+### Implemented:
+- [x] `pipeline()` in `agents/cortex.py` — full Brain→Approve→Build flow
+  - Research phase: calls `run_loop()` if domain not build-ready
+  - Approval gate: `request_approval()` sends Telegram notification, blocks on `threading.Event`
+  - Build phase: `_execute_build()` runs plan→execute→validate→retry→store
+  - Completion: Telegram notification with score, artifacts, cost
+  - Status tracking: `get_pipeline_status()` for live monitoring
+- [x] Thread-safe approval mechanism (`request_approval` / `resolve_approval`)
+  - `_pending_approvals` dict with `threading.Event` per domain
+  - 1-hour timeout, auto-reject on timeout
+- [x] Telegram commands: `/build`, `/approve`, `/reject`, `/pipeline`
+  - `/build <instruction>` — starts pipeline in background thread
+  - `/approve [domain]` — approves pending build
+  - `/reject [domain]` — rejects pending build  
+  - `/pipeline` — shows active pipelines and pending approvals
+- [x] CLI entry point updated: `run_pipeline()` calls `pipeline(require_approval=False)`
+- [x] `_execute_build()` — simplified Hands execution for programmatic use
+  - plan → execute → validate → retry → save_exec_output
+  - Auto-detects page_type from goal keywords
+  - Injects build brief into strategy context
+- [x] 27 new tests (1,764 total), all passing
+- [x] Updated `/start` help text with pipeline commands
 
-### Task 8.2: Add Telegram /build command
-- [ ] In `telegram_bot.py`, add handler for `/build <niche>`
-- [ ] Triggers `cortex.pipeline(niche)`
-- [ ] Shows progress updates per phase
-- [ ] Final message: live URL
-
-### Task 8.3: Test end-to-end via Telegram
-- [ ] Send: `/build contact form`
-- [ ] Watch: Brain researches (or uses existing KB)
-- [ ] Watch: Cortex asks for approval
-- [ ] Reply: `/yes`
-- [ ] Watch: Hands builds
-- [ ] Receive: live URL
-
-**Done when:** `/build <niche>` in Telegram produces a live URL.
-
-**Estimated time:** 2-3 days
+### Architecture:
+```
+/build <instruction>
+  → pipeline() in background thread
+    → Brain research (or skip if build-ready)
+    → Extract build brief from KB
+    → Telegram: "Approve?" → blocks on Event
+    → /approve → resolve_approval(True) → Event.set()
+    → _execute_build(plan→execute→validate→store)
+    → Telegram: "Complete! Score X/10"
+```
 
 ---
 

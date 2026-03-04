@@ -838,20 +838,22 @@ def show_exec_lessons(domain: str):
 
 def run_pipeline(domain: str, instruction: str, skip_research: bool = False, budget_cap: float = 0.50):
     """
-    Run the full Cortex pipeline: Brain researches → Cortex evaluates → Hands builds.
+    Run the full Cortex pipeline: Brain researches → Cortex approves → Hands builds.
     
-    This is the single-command entry point for the three-way communication system.
-    One sentence in → live URL out.
+    This is the single-command entry point. One sentence in → built product out.
+    
+    When run from CLI, approval is auto-granted (no Telegram gate).
+    When run via /build in Telegram, approval is required.
     
     Usage:
         python -m cli.execution pipeline <domain> "<instruction>"
         python -m cli.execution pipeline olj-employers "Build a landing page for OLJ employers"
         python -m cli.execution pipeline olj-employers --skip-research "Build landing page"
     """
-    from agents.cortex import research_and_build, is_build_ready
+    from agents.cortex import pipeline, is_build_ready
     
     print(f"\n{'='*60}")
-    print(f"  CORTEX PIPELINE — Research → Build → Deploy")
+    print(f"  CORTEX PIPELINE — Research → Approve → Build")
     print(f"  Domain: {domain}")
     print(f"  Instruction: {instruction}")
     print(f"  Budget Cap: ${budget_cap:.2f}")
@@ -868,27 +870,36 @@ def run_pipeline(domain: str, instruction: str, skip_research: bool = False, bud
     print(f"    Status: {'READY' if readiness['ready'] else readiness['reason']}")
     print()
     
-    result = research_and_build(
+    result = pipeline(
         domain=domain,
         instruction=instruction,
         skip_research=skip_research,
+        require_approval=False,  # CLI = auto-approve (no Telegram gate)
         budget_cap=budget_cap,
     )
     
     print(f"\n{'='*60}")
     print(f"  PIPELINE RESULT")
     print(f"  Success: {result['success']}")
-    print(f"  Stage reached: {result['stage']}")
+    print(f"  Stage: {result['stage']}")
     
     if result['task_id']:
         print(f"  Task ID: {result['task_id']}")
     
+    if result.get('research_score'):
+        print(f"  Research Score: {result['research_score']}/10")
+    
+    if result.get('build_score'):
+        print(f"  Build Score: {result['build_score']}/10")
+    
+    if result.get('artifacts'):
+        print(f"  Artifacts: {len(result['artifacts'])}")
+    
+    if result.get('workspace_dir'):
+        print(f"  Workspace: {result['workspace_dir']}")
+    
     if result['error']:
         print(f"  Error: {result['error']}")
-    
-    if result.get('research'):
-        critique = result['research'].get('critique', {})
-        print(f"  Research Score: {critique.get('overall_score', 'N/A')}/10")
     
     print(f"{'='*60}")
     

@@ -356,3 +356,108 @@ class TestModuleStructure:
     def test_max_msg_len(self):
         from telegram_bot import MAX_MSG_LEN
         assert MAX_MSG_LEN == 4096
+
+
+# ── Pipeline Commands ────────────────────────────────────────────────────
+
+class TestBuildCommand:
+    def test_build_no_arg(self):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/build")
+        assert "Build Pipeline" in resp
+        assert "Usage" in resp
+
+    @patch("agents.cortex.get_pipeline_status", return_value=[])
+    @patch("agents.cortex.pipeline")
+    def test_build_starts_pipeline(self, mock_pipeline, mock_status):
+        from telegram_bot import _handle_command, _conversations
+        _conversations.set_domain("123", "test-domain")
+        resp = _handle_command("123", "/build Build a landing page")
+        assert "Pipeline Started" in resp
+        assert "test-domain" in resp
+
+    @patch("agents.cortex.get_pipeline_status", return_value=[
+        {"domain": "test-domain", "stage": "research"}
+    ])
+    def test_build_already_running(self, mock_status):
+        from telegram_bot import _handle_command, _conversations
+        _conversations.set_domain("123", "test-domain")
+        resp = _handle_command("123", "/build Build something")
+        assert "already running" in resp.lower()
+
+
+class TestApproveCommand:
+    @patch("agents.cortex.get_pending_approvals", return_value=[])
+    def test_approve_none_pending(self, _):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/approve")
+        assert "No pending" in resp
+
+    @patch("agents.cortex.resolve_approval", return_value=True)
+    @patch("agents.cortex.get_pending_approvals", return_value=[
+        {"domain": "test-domain", "summary": "Test"}
+    ])
+    def test_approve_resolves(self, mock_pending, mock_resolve):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/approve")
+        assert "Approved" in resp
+        mock_resolve.assert_called_once_with("test-domain", approved=True)
+
+    @patch("agents.cortex.resolve_approval", return_value=True)
+    @patch("agents.cortex.get_pending_approvals", return_value=[
+        {"domain": "a", "summary": "A"}, {"domain": "b", "summary": "B"}
+    ])
+    def test_approve_specific_domain(self, mock_pending, mock_resolve):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/approve b")
+        mock_resolve.assert_called_once_with("b", approved=True)
+
+
+class TestRejectCommand:
+    @patch("agents.cortex.get_pending_approvals", return_value=[])
+    def test_reject_none_pending(self, _):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/reject")
+        assert "No pending" in resp
+
+    @patch("agents.cortex.resolve_approval", return_value=True)
+    @patch("agents.cortex.get_pending_approvals", return_value=[
+        {"domain": "test-domain", "summary": "Test"}
+    ])
+    def test_reject_resolves(self, mock_pending, mock_resolve):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/reject")
+        assert "Rejected" in resp
+        mock_resolve.assert_called_once_with("test-domain", approved=False)
+
+
+class TestPipelineCommand:
+    @patch("agents.cortex.get_pending_approvals", return_value=[])
+    @patch("agents.cortex.get_pipeline_status", return_value=[])
+    def test_pipeline_empty(self, mock_status, mock_pending):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/pipeline")
+        assert "No active" in resp
+
+    @patch("agents.cortex.get_pending_approvals", return_value=[
+        {"domain": "d1", "summary": "Needs approval"}
+    ])
+    @patch("agents.cortex.get_pipeline_status", return_value=[
+        {"domain": "d1", "stage": "approval", "instruction": "Build something"}
+    ])
+    def test_pipeline_shows_active(self, mock_status, mock_pending):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/pipeline")
+        assert "Pipeline Status" in resp
+        assert "d1" in resp
+        assert "approval" in resp.lower() or "Approval" in resp
+
+
+class TestStartCommand:
+    def test_start_includes_pipeline_commands(self):
+        from telegram_bot import _handle_command
+        resp = _handle_command("123", "/start")
+        assert "/build" in resp
+        assert "/approve" in resp
+        assert "/reject" in resp
+        assert "/pipeline" in resp

@@ -689,3 +689,403 @@ class TestChatToolExecution:
             )
 
         assert "failed" in result.lower()
+
+
+# ── Approval Gate Tests ──────────────────────────────────────────────────
+
+class TestApprovalGate:
+    """Tests for the thread-safe approval gate mechanism."""
+
+    def test_resolve_approval_no_pending(self):
+        """resolve_approval returns False when nothing is pending."""
+        from agents.cortex import resolve_approval, _pending_approvals, _approval_lock
+        # Clear any state
+        with _approval_lock:
+            _pending_approvals.clear()
+        assert resolve_approval("test-domain", True) is False
+
+    def test_get_pending_approvals_empty(self):
+        """Returns empty list when no approvals pending."""
+        from agents.cortex import get_pending_approvals, _pending_approvals, _approval_lock
+        with _approval_lock:
+            _pending_approvals.clear()
+        assert get_pending_approvals() == []
+
+    def test_approval_approve_flow(self):
+        """request_approval returns True when resolve_approval(approved=True) is called."""
+        import threading
+        from agents.cortex import (
+            request_approval, resolve_approval,
+            _pending_approvals, _approval_lock, get_pending_approvals,
+        )
+
+        with _approval_lock:
+            _pending_approvals.clear()
+
+        result_holder = {}
+
+        def _request():
+            with patch("alerts.alert_custom", return_value=True):
+                result_holder["approved"] = request_approval(
+                    "test-domain", "Test summary", brief="Test brief",
+                )
+
+        t = threading.Thread(target=_request)
+        t.start()
+
+        # Give thread time to register approval
+        import time
+        time.sleep(0.1)
+
+        # Should be pending
+        pending = get_pending_approvals()
+        assert len(pending) == 1
+        assert pending[0]["domain"] == "test-domain"
+
+        # Approve it
+        assert resolve_approval("test-domain", True) is True
+
+        t.join(timeout=5)
+        assert result_holder.get("approved") is True
+
+    def test_approval_reject_flow(self):
+        """request_approval returns False when resolve_approval(approved=False) is called."""
+        import threading
+        from agents.cortex import (
+            request_approval, resolve_approval,
+            _pending_approvals, _approval_lock,
+        )
+
+        with _approval_lock:
+            _pending_approvals.clear()
+
+        result_holder = {}
+
+        def _request():
+            with patch("alerts.alert_custom", return_value=True):
+                result_holder["approved"] = request_approval(
+                    "test-domain", "Test summary",
+                )
+
+        t = threading.Thread(target=_request)
+        t.start()
+
+        import time
+        time.sleep(0.1)
+
+        assert resolve_approval("test-domain", False) is True
+
+        t.join(timeout=5)
+        assert result_holder.get("approved") is False
+
+    def test_approval_timeout(self):
+        """request_approval returns False on timeout."""
+        from agents.cortex import (
+            request_approval, _pending_approvals, _approval_lock,
+            APPROVAL_TIMEOUT,
+        )
+        import agents.cortex as cortex_mod
+
+        with _approval_lock:
+            _pending_approvals.clear()
+
+        # Temporarily set a very short timeout
+        original_timeout = cortex_mod.APPROVAL_TIMEOUT
+        cortex_mod.APPROVAL_TIMEOUT = 0.1  # 100ms
+
+        try:
+            with patch("alerts.alert_custom"), \
+                 patch("agents.cortex._journal"):
+                result = request_approval("timeout-domain", "Will timeout")
+            assert result is False
+        finally:
+            cortex_mod.APPROVAL_TIMEOUT = original_timeout
+
+    def test_cleanup_after_approval(self):
+        """Pending approval is cleaned up after resolution."""
+        import threading
+        from agents.cortex import (
+            request_approval, resolve_approval,
+            _pending_approvals, _approval_lock, get_pending_approvals,
+        )
+
+        with _approval_lock:
+            _pending_approvals.clear()
+
+        def _request():
+            with patch("alerts.alert_custom"):
+                request_approval("cleanup-domain", "Test")
+
+        t = threading.Thread(target=_request)
+        t.start()
+
+        import time
+        time.sleep(0.1)
+        resolve_approval("cleanup-domain", True)
+        t.join(timeout=5)
+
+        # Should be cleaned up
+        assert get_pending_approvals() == []
+
+
+# ── Pipeline Function Tests ──────────────────────────────────────────────
+
+class TestPipeline:
+    """Tests for the full pipeline() function."""
+
+    def test_pipeline_budget_block(self, tmp_memory):
+        """Pipeline fails early when budget is exceeded."""
+        from agents.cortex import pipeline
+
+        mock_budget = {
+            "within_budget": False,
+            "spent": 7.50,
+            "limit": 7.00,
+            "remaining": -0.50,
+        }
+        with patch("cost_tracker.check_budget", return_value=mock_budget), \
+             patch("agents.cortex._notify"), \
+             patch("agents.cortex._journal"):
+            result = pipeline("test-domain", "Build something")
+
+        assert result["success"] is False
+        assert result["stage"] == "blocked"
+        assert "budget" in result["error"].lower()
+
+    def test_pipeline_skip_research_no_kb(self, tmp_memory):
+        """Pipeline fails gracefully when no KB exists and research is skipped."""
+        from agents.cortex import pipeline
+
+        mock_budget = {"within_budget": True, "spent": 1.0, "limit": 7.0, "remaining": 6.0}
+
+        with patch("cost_tracker.check_budget", return_value=mock_budget), \
+             patch("agents.cortex._notify"), \
+             patch("agents.cortex._journal"), \
+             patch("agents.cortex.extract_build_brief", return_value="No knowledge base found for domain 'test'"):
+            result = pipeline("test-domain", "Build something", skip_research=True)
+
+        assert result["success"] is False
+        assert "knowledge base" in result["error"].lower()
+
+    def test_pipeline_approval_rejected(self, tmp_memory):
+        """Pipeline stops when approval is rejected."""
+        from agents.cortex import pipeline
+
+        mock_budget = {"within_budget": True, "spent": 1.0, "limit": 7.0, "remaining": 6.0}
+
+        with patch("cost_tracker.check_budget", return_value=mock_budget), \
+             patch("agents.cortex._notify"), \
+             patch("agents.cortex._journal"), \
+             patch("agents.cortex.is_build_ready", return_value={"ready": True, "accepted_count": 10, "claim_count": 5}), \
+             patch("agents.cortex.extract_build_brief", return_value="DOMAIN: test\nBuild brief content..."), \
+             patch("agents.cortex.request_approval", return_value=False):
+            result = pipeline("test-domain", "Build something", require_approval=True)
+
+        assert result["success"] is False
+        assert result["stage"] == "approval"
+        assert "rejected" in result["error"].lower() or "timed out" in result["error"].lower()
+
+    def test_pipeline_auto_approve(self, tmp_memory):
+        """Pipeline skips approval gate when require_approval=False."""
+        from agents.cortex import pipeline
+
+        mock_budget = {"within_budget": True, "spent": 1.0, "limit": 7.0, "remaining": 6.0}
+        mock_build_result = {
+            "success": True,
+            "score": 7.5,
+            "verdict": "accept",
+            "artifacts": ["index.tsx", "styles.css"],
+            "workspace_dir": "/tmp/test",
+            "cost": 0.15,
+            "task_id": "test_task_001",
+            "error": "",
+        }
+
+        with patch("cost_tracker.check_budget", return_value=mock_budget), \
+             patch("agents.cortex._notify"), \
+             patch("agents.cortex._journal"), \
+             patch("agents.cortex.is_build_ready", return_value={"ready": True, "accepted_count": 10, "claim_count": 5}), \
+             patch("agents.cortex.extract_build_brief", return_value="DOMAIN: test\nBuild brief..."), \
+             patch("agents.cortex._execute_build", return_value=mock_build_result):
+            result = pipeline(
+                "test-domain", "Build something",
+                skip_research=True, require_approval=False,
+            )
+
+        assert result["success"] is True
+        assert result["stage"] == "complete"
+        assert result["build_score"] == 7.5
+        assert len(result["artifacts"]) == 2
+
+    def test_pipeline_build_failure(self, tmp_memory):
+        """Pipeline handles build failure gracefully."""
+        from agents.cortex import pipeline
+
+        mock_budget = {"within_budget": True, "spent": 1.0, "limit": 7.0, "remaining": 6.0}
+        mock_build_result = {
+            "success": False,
+            "score": 3.2,
+            "verdict": "reject",
+            "artifacts": [],
+            "workspace_dir": "/tmp/test",
+            "cost": 0.25,
+            "task_id": "",
+            "error": "Quality too low after retries",
+        }
+
+        with patch("cost_tracker.check_budget", return_value=mock_budget), \
+             patch("agents.cortex._notify"), \
+             patch("agents.cortex._journal"), \
+             patch("agents.cortex.is_build_ready", return_value={"ready": True, "accepted_count": 10, "claim_count": 5}), \
+             patch("agents.cortex.extract_build_brief", return_value="DOMAIN: test\nBrief..."), \
+             patch("agents.cortex._execute_build", return_value=mock_build_result):
+            result = pipeline(
+                "test-domain", "Build something",
+                skip_research=True, require_approval=False,
+            )
+
+        assert result["success"] is False
+        assert result["build_score"] == 3.2
+
+    def test_pipeline_build_exception(self, tmp_memory):
+        """Pipeline handles build crash gracefully."""
+        from agents.cortex import pipeline
+
+        mock_budget = {"within_budget": True, "spent": 1.0, "limit": 7.0, "remaining": 6.0}
+
+        with patch("cost_tracker.check_budget", return_value=mock_budget), \
+             patch("agents.cortex._notify"), \
+             patch("agents.cortex._journal"), \
+             patch("agents.cortex.is_build_ready", return_value={"ready": True, "accepted_count": 10, "claim_count": 5}), \
+             patch("agents.cortex.extract_build_brief", return_value="DOMAIN: test\nBrief..."), \
+             patch("agents.cortex._execute_build", side_effect=RuntimeError("Executor crashed")):
+            result = pipeline(
+                "test-domain", "Build something",
+                skip_research=True, require_approval=False,
+            )
+
+        assert result["success"] is False
+        assert "crashed" in result["error"].lower() or "error" in result["error"].lower()
+
+    def test_pipeline_status_tracking(self, tmp_memory):
+        """get_pipeline_status reports active pipeline."""
+        from agents.cortex import (
+            pipeline, get_pipeline_status, _active_pipelines, _pipeline_lock,
+        )
+
+        # Clear
+        with _pipeline_lock:
+            _active_pipelines.clear()
+
+        mock_budget = {"within_budget": True, "spent": 1.0, "limit": 7.0, "remaining": 6.0}
+        mock_build = {
+            "success": True, "score": 7.0, "verdict": "accept",
+            "artifacts": [], "workspace_dir": "/tmp", "cost": 0.1,
+            "task_id": "", "error": "",
+        }
+
+        with patch("cost_tracker.check_budget", return_value=mock_budget), \
+             patch("agents.cortex._notify"), \
+             patch("agents.cortex._journal"), \
+             patch("agents.cortex.is_build_ready", return_value={"ready": True, "accepted_count": 10, "claim_count": 5}), \
+             patch("agents.cortex.extract_build_brief", return_value="Brief..."), \
+             patch("agents.cortex._execute_build", return_value=mock_build):
+            result = pipeline("test-domain", "Build", skip_research=True, require_approval=False)
+
+        # After pipeline finishes, should be cleaned up
+        assert get_pipeline_status() == []
+        assert result["success"] is True
+
+
+# ── Execute Build Tests ──────────────────────────────────────────────────
+
+class TestExecuteBuild:
+    """Tests for the _execute_build() helper function."""
+
+    def test_execute_build_success(self, tmp_memory):
+        """Successful build returns correct structure."""
+        from agents.cortex import _execute_build
+
+        mock_plan = {"steps": [{"step_number": 1, "tool": "code", "description": "test"}]}
+        mock_report = {
+            "completed_steps": 1, "failed_steps": 0,
+            "artifacts": ["index.tsx"], "step_results": [],
+        }
+        mock_validation = {
+            "overall_score": 8.0, "verdict": "accept",
+            "strengths": ["Good"], "weaknesses": [], "critical_issues": [],
+            "actionable_feedback": "",
+        }
+
+        with patch("hands.planner.plan", return_value=mock_plan), \
+             patch("hands.executor.execute_plan", return_value=mock_report), \
+             patch("hands.validator.validate_execution", return_value=mock_validation), \
+             patch("hands.exec_memory.save_exec_output", return_value="/tmp/out.json"), \
+             patch("strategy_store.get_strategy", return_value=("strategy text", "v1")), \
+             patch("memory_store.load_knowledge_base", return_value=None), \
+             patch("cost_tracker.get_daily_spend", return_value={"total_usd": 0.5}), \
+             patch("agents.cortex._notify"):
+            result = _execute_build(
+                domain="test-domain",
+                goal="Build a test app",
+                brief="Test brief",
+                workspace_dir=str(tmp_memory / "output"),
+            )
+
+        assert result["success"] is True
+        assert result["score"] == 8.0
+        assert result["artifacts"] == ["index.tsx"]
+
+    def test_execute_build_plan_failure(self, tmp_memory):
+        """Build fails gracefully when planning fails."""
+        from agents.cortex import _execute_build
+
+        with patch("hands.planner.plan", return_value=None), \
+             patch("strategy_store.get_strategy", return_value=("", "none")), \
+             patch("memory_store.load_knowledge_base", return_value=None), \
+             patch("cost_tracker.get_daily_spend", return_value={"total_usd": 0.1}), \
+             patch("agents.cortex._notify"):
+            result = _execute_build(
+                domain="test-domain",
+                goal="Build test",
+                brief="Brief",
+                workspace_dir=str(tmp_memory / "output"),
+            )
+
+        assert result["success"] is False
+        assert "plan" in result["error"].lower()
+
+    def test_execute_build_page_type_detection(self, tmp_memory):
+        """Marketing keywords trigger page_type='marketing'."""
+        from agents.cortex import _execute_build
+
+        detected_page_type = {}
+
+        def _mock_execute(plan, registry, domain, execution_strategy,
+                          workspace_dir, page_type="app", **kw):
+            detected_page_type["value"] = page_type
+            return {
+                "completed_steps": 1, "failed_steps": 0,
+                "artifacts": [], "step_results": [],
+            }
+
+        mock_plan = {"steps": [{"step_number": 1}]}
+        mock_val = {"overall_score": 7.0, "verdict": "accept"}
+
+        with patch("hands.planner.plan", return_value=mock_plan), \
+             patch("hands.executor.execute_plan", side_effect=_mock_execute), \
+             patch("hands.validator.validate_execution", return_value=mock_val), \
+             patch("hands.exec_memory.save_exec_output", return_value="/tmp/out.json"), \
+             patch("strategy_store.get_strategy", return_value=("", "none")), \
+             patch("memory_store.load_knowledge_base", return_value=None), \
+             patch("cost_tracker.get_daily_spend", return_value={"total_usd": 0.1}), \
+             patch("agents.cortex._notify"):
+            _execute_build(
+                domain="test",
+                goal="Build a landing page for agencies",
+                brief="Brief",
+                workspace_dir=str(tmp_memory / "output"),
+            )
+
+        assert detected_page_type.get("value") == "marketing"
+

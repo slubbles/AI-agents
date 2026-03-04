@@ -37,6 +37,7 @@ Usage:
 import json
 import os
 import sys
+import threading
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -54,6 +55,80 @@ MAX_CONTEXT_CHARS = 12000  # Cap context to avoid blowing up token costs
 CORTEX_JOURNAL_FILE = os.path.join(LOG_DIR, "cortex_journal.jsonl")
 BUILD_BUDGET_CAP = 0.50  # Max cost per build execution in USD
 MAX_BUILD_PHASE_FAILURES = 3  # Escalate after this many failures in same phase
+APPROVAL_TIMEOUT = 3600  # 1 hour to approve/reject before auto-reject
+
+
+# ── Approval Gate (Thread-Safe) ──────────────────────────────────────────
+
+_approval_lock = threading.Lock()
+_pending_approvals: dict[str, dict] = {}  # domain → {event, approved, summary, brief}
+
+
+def request_approval(domain: str, summary: str, brief: str = "") -> bool:
+    """
+    Block until approval/rejection received or timeout.
+    
+    Called by pipeline() after research is complete.
+    Sends a Telegram notification and waits for /approve or /reject.
+    
+    Returns True if approved, False if rejected or timed out.
+    """
+    event = threading.Event()
+    with _approval_lock:
+        _pending_approvals[domain] = {
+            "event": event,
+            "approved": False,
+            "summary": summary,
+            "brief": brief,
+            "requested_at": datetime.now(timezone.utc).isoformat(),
+        }
+    
+    # Send Telegram notification
+    try:
+        from alerts import alert_custom
+        msg = (
+            f"Domain: {domain}\n\n"
+            f"{summary}\n\n"
+            f"Reply /approve or /reject"
+        )
+        alert_custom("Build Approval Needed", msg, emoji="🔔")
+    except Exception:
+        pass  # Pipeline continues even if Telegram fails
+    
+    # Block until approved/rejected/timeout
+    got_response = event.wait(timeout=APPROVAL_TIMEOUT)
+    
+    with _approval_lock:
+        result = _pending_approvals.pop(domain, {})
+    
+    if not got_response:
+        _journal("approval_timeout", domain, details={"summary": summary})
+        return False
+    
+    return result.get("approved", False)
+
+
+def resolve_approval(domain: str, approved: bool) -> bool:
+    """
+    Called from Telegram handler to approve/reject a pending build.
+    
+    Returns True if there was a pending approval to resolve, False otherwise.
+    """
+    with _approval_lock:
+        if domain not in _pending_approvals:
+            return False
+        _pending_approvals[domain]["approved"] = approved
+        _pending_approvals[domain]["event"].set()
+        return True
+
+
+def get_pending_approvals() -> list[dict]:
+    """Get list of domains waiting for approval."""
+    with _approval_lock:
+        return [
+            {"domain": d, "summary": info["summary"], "requested_at": info.get("requested_at", "")}
+            for d, info in _pending_approvals.items()
+        ]
 
 
 # ── System State Gathering ───────────────────────────────────────────────
@@ -1234,3 +1309,506 @@ def _send_telegram_notification(task_complete):
         alert_custom(f"Build {task_complete.result.upper()}", message, emoji=emoji)
     except Exception:
         pass
+
+
+def _notify(title: str, message: str, emoji: str = "📢"):
+    """Send a Telegram notification. Silent failure — never crashes the pipeline."""
+    try:
+        from alerts import alert_custom
+        alert_custom(title, message, emoji=emoji)
+    except Exception:
+        pass
+
+
+# ── Full Pipeline: Research → Approve → Build → Deploy ───────────────────
+
+_active_pipelines: dict[str, dict] = {}  # domain → {status, stage, ...}
+_pipeline_lock = threading.Lock()
+
+
+def pipeline(
+    domain: str,
+    instruction: str,
+    skip_research: bool = False,
+    require_approval: bool = True,
+    budget_cap: float = BUILD_BUDGET_CAP,
+    workspace_dir: str = "",
+) -> dict:
+    """
+    Full Brain → Cortex → Hands pipeline with Telegram approval gate.
+    
+    This is THE function. One instruction in → live URL out.
+    
+    Flow:
+      1. Research (Brain) — or skip if domain is build-ready
+      2. Extract build brief from knowledge base
+      3. Approval gate — Telegram notification, wait for /approve or /reject
+      4. Build (Hands) — plan → execute → validate → retry
+      5. Completion — Telegram notification with result
+    
+    Args:
+        domain: Target domain (e.g. "productized-services")
+        instruction: What to build ("Build a landing page for OLJ employers")
+        skip_research: Skip Brain research, use existing KB
+        require_approval: If True, wait for Telegram /approve before building
+        budget_cap: Max cost for Hands build execution
+        workspace_dir: Where to write build artifacts (auto-generated if empty)
+    
+    Returns:
+        {
+            "success": bool,
+            "stage": str,  # Where it finished: "research" | "approval" | "build" | "complete"
+            "research_score": float,
+            "build_score": float,
+            "task_id": str,
+            "artifacts": list[str],
+            "workspace_dir": str,
+            "cost": float,
+            "error": str,
+        }
+    """
+    from cost_tracker import check_budget, get_daily_spend
+    
+    result = {
+        "success": False,
+        "stage": "init",
+        "research_score": 0.0,
+        "build_score": 0.0,
+        "task_id": "",
+        "artifacts": [],
+        "workspace_dir": "",
+        "cost": 0.0,
+        "error": "",
+    }
+    
+    # Track active pipeline
+    with _pipeline_lock:
+        _active_pipelines[domain] = {
+            "status": "running",
+            "stage": "init",
+            "instruction": instruction,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+        }
+    
+    def _update_stage(stage: str, details: str = ""):
+        result["stage"] = stage
+        with _pipeline_lock:
+            if domain in _active_pipelines:
+                _active_pipelines[domain]["stage"] = stage
+                if details:
+                    _active_pipelines[domain]["details"] = details
+    
+    _journal("pipeline_start", domain, details={
+        "instruction": instruction,
+        "skip_research": skip_research,
+        "require_approval": require_approval,
+        "budget_cap": budget_cap,
+    })
+    
+    _notify("Pipeline Started", f"Domain: {domain}\nGoal: {instruction}", emoji="🚀")
+    
+    # ── Budget check ─────────────────────────────────────────────────
+    budget = check_budget()
+    if not budget["within_budget"]:
+        result["error"] = f"Daily budget exceeded (${budget['spent']:.2f}/${budget['limit']:.2f})"
+        _update_stage("blocked")
+        _notify("Pipeline Blocked", result["error"], emoji="💰")
+        _cleanup_pipeline(domain, result)
+        return result
+    
+    # ── Stage 1: Research ────────────────────────────────────────────
+    _update_stage("research")
+    
+    if not skip_research:
+        readiness = is_build_ready(domain)
+        
+        if not readiness["ready"]:
+            _notify("Research Phase", 
+                    f"Domain '{domain}' not build-ready: {readiness['reason']}\nRunning Brain research...", 
+                    emoji="🔬")
+            
+            _journal("research_start", domain, details={
+                "reason": readiness["reason"],
+                "instruction": instruction,
+            })
+            
+            try:
+                from main import run_loop
+                
+                research_question = (
+                    f"Research for building: {instruction}. "
+                    f"Focus on: Who is the user? What's their #1 pain? "
+                    f"Who are the competitors? What do they charge? "
+                    f"What would make this product compelling?"
+                )
+                
+                loop_result = run_loop(research_question, domain=domain)
+                
+                score = loop_result.get("critique", {}).get("overall_score", 0)
+                accepted = loop_result.get("critique", {}).get("verdict") == "accept"
+                result["research_score"] = score
+                
+                _journal("research_complete", domain, details={
+                    "score": score,
+                    "accepted": accepted,
+                })
+                
+                if not accepted:
+                    result["error"] = f"Research rejected (score: {score}/10). Need better research before building."
+                    _update_stage("research")
+                    _notify("Pipeline Blocked", 
+                            f"Research rejected (score: {score}/10)\n{result['error']}", 
+                            emoji="🔬")
+                    _cleanup_pipeline(domain, result)
+                    return result
+                
+                _notify("Research Complete", 
+                        f"Domain: {domain}\nScore: {score}/10 ✅\nExtracting build brief...", 
+                        emoji="🔬")
+                    
+            except SystemExit:
+                result["error"] = "Budget exceeded during research"
+                _update_stage("research")
+                _cleanup_pipeline(domain, result)
+                return result
+            except Exception as e:
+                result["error"] = f"Research failed: {e}"
+                _update_stage("research")
+                _notify("Pipeline Error", f"Research failed: {e}", emoji="❌")
+                _cleanup_pipeline(domain, result)
+                return result
+        else:
+            _notify("Research Skipped", 
+                    f"Domain '{domain}' already build-ready ({readiness['accepted_count']} outputs, {readiness['claim_count']} claims)",
+                    emoji="✅")
+    else:
+        _notify("Research Skipped", "skip_research=True, using existing KB", emoji="⏭")
+    
+    # ── Stage 2: Extract Build Brief ─────────────────────────────────
+    _update_stage("brief")
+    brief = extract_build_brief(domain, instruction)
+    
+    if brief.startswith("No knowledge base") or brief.startswith("Knowledge base for"):
+        result["error"] = brief
+        _notify("Pipeline Blocked", f"No KB data: {brief}", emoji="❌")
+        _cleanup_pipeline(domain, result)
+        return result
+    
+    # Summarize brief for approval message
+    brief_summary = brief[:500] + "..." if len(brief) > 500 else brief
+    
+    # ── Stage 3: Approval Gate ───────────────────────────────────────
+    _update_stage("approval")
+    
+    if require_approval:
+        approval_summary = (
+            f"Research score: {result['research_score']}/10\n\n"
+            f"Build brief ({len(brief)} chars):\n{brief_summary}"
+        )
+        
+        _journal("approval_requested", domain, details={
+            "summary": approval_summary[:500],
+            "brief_length": len(brief),
+        })
+        
+        print(f"[CORTEX] Waiting for approval (timeout: {APPROVAL_TIMEOUT}s)...")
+        approved = request_approval(domain, approval_summary, brief)
+        
+        if not approved:
+            result["error"] = "Build rejected or approval timed out"
+            _update_stage("approval")
+            _journal("approval_rejected", domain)
+            _notify("Pipeline Stopped", "Build was rejected or approval timed out.", emoji="🛑")
+            _cleanup_pipeline(domain, result)
+            return result
+        
+        _journal("approval_granted", domain)
+        _notify("Build Approved", f"Starting Hands build for '{domain}'...", emoji="✅")
+    else:
+        print(f"[CORTEX] Auto-approved (require_approval=False)")
+    
+    # ── Stage 4: Build (Hands Execution) ────────────────────────────
+    _update_stage("build")
+    
+    try:
+        build_result = _execute_build(
+            domain=domain,
+            goal=instruction,
+            brief=brief,
+            budget_cap=budget_cap,
+            workspace_dir=workspace_dir,
+        )
+        
+        result["build_score"] = build_result.get("score", 0)
+        result["artifacts"] = build_result.get("artifacts", [])
+        result["workspace_dir"] = build_result.get("workspace_dir", "")
+        result["cost"] = build_result.get("cost", 0)
+        result["task_id"] = build_result.get("task_id", "")
+        
+        if build_result.get("success"):
+            result["success"] = True
+            _update_stage("complete")
+            
+            _journal("pipeline_complete", domain, cost=result["cost"], details={
+                "score": result["build_score"],
+                "artifacts": len(result["artifacts"]),
+                "workspace_dir": result["workspace_dir"],
+            })
+            
+            _notify("Build Complete", 
+                    f"Domain: {domain}\n"
+                    f"Score: {result['build_score']}/10\n"
+                    f"Artifacts: {len(result['artifacts'])}\n"
+                    f"Cost: ${result['cost']:.4f}\n"
+                    f"Workspace: {result['workspace_dir']}",
+                    emoji="✅")
+        else:
+            result["error"] = build_result.get("error", "Build failed")
+            _update_stage("build")
+            
+            _journal("build_failed", domain, cost=result["cost"], details={
+                "error": result["error"],
+                "score": result["build_score"],
+            })
+            
+            _notify("Build Failed",
+                    f"Domain: {domain}\n"
+                    f"Score: {result['build_score']}/10\n"
+                    f"Error: {result['error']}\n"
+                    f"Cost: ${result['cost']:.4f}",
+                    emoji="❌")
+            
+    except Exception as e:
+        result["error"] = f"Build execution error: {e}"
+        _update_stage("build")
+        _journal("pipeline_error", domain, details={"error": str(e)})
+        _notify("Pipeline Error", f"Build crashed: {e}", emoji="💥")
+    
+    _cleanup_pipeline(domain, result)
+    return result
+
+
+def _execute_build(
+    domain: str,
+    goal: str,
+    brief: str,
+    budget_cap: float = BUILD_BUDGET_CAP,
+    workspace_dir: str = "",
+) -> dict:
+    """
+    Execute a build using Hands: plan → execute → validate → store.
+    
+    This is a simplified version of cli/execution.py's run_execute(),
+    designed for programmatic pipeline use (no interactive prints).
+    
+    Returns:
+        {
+            "success": bool,
+            "score": float,
+            "verdict": str,
+            "artifacts": list[str],
+            "workspace_dir": str,
+            "cost": float,
+            "task_id": str,
+            "error": str,
+        }
+    """
+    from hands.planner import plan as create_plan
+    from hands.executor import execute_plan
+    from hands.validator import validate_execution
+    from hands.exec_memory import save_exec_output
+    from hands.tools.registry import create_default_registry
+    from strategy_store import get_strategy
+    from cost_tracker import get_daily_spend
+    from memory_store import load_knowledge_base
+    import config as _cfg
+    
+    result = {
+        "success": False,
+        "score": 0,
+        "verdict": "unknown",
+        "artifacts": [],
+        "workspace_dir": "",
+        "cost": 0.0,
+        "task_id": "",
+        "error": "",
+    }
+    
+    # Set up workspace
+    if not workspace_dir:
+        base = os.path.dirname(os.path.dirname(__file__))
+        workspace_dir = os.path.join(base, "output", domain)
+    workspace_dir = os.path.realpath(workspace_dir)
+    os.makedirs(workspace_dir, exist_ok=True)
+    result["workspace_dir"] = workspace_dir
+    
+    # Allow file operations in workspace
+    if _cfg.EXEC_ALLOWED_DIRS is None:
+        _cfg.EXEC_ALLOWED_DIRS = [workspace_dir]
+    elif workspace_dir not in _cfg.EXEC_ALLOWED_DIRS:
+        _cfg.EXEC_ALLOWED_DIRS = list(_cfg.EXEC_ALLOWED_DIRS) + [workspace_dir]
+    
+    # Tool registry
+    registry = create_default_registry()
+    tools_desc = registry.get_tool_descriptions()
+    
+    # Load strategy
+    strategy, strategy_version = get_strategy("executor", domain)
+    if not strategy:
+        try:
+            from hands.exec_templates import get_template
+            strategy = get_template(domain)
+            strategy_version = "template"
+        except Exception:
+            strategy = ""
+            strategy_version = "none"
+    
+    # Load domain knowledge
+    domain_knowledge = ""
+    try:
+        kb = load_knowledge_base(domain)
+        if kb and kb.get("claims"):
+            claims = [f"- {c.get('claim', '')}" for c in kb["claims"][:15]]
+            domain_knowledge = "\n".join(claims)
+    except Exception:
+        pass
+    
+    # Auto-detect page type
+    page_type = "app"
+    goal_lower = goal.lower()
+    if any(w in goal_lower for w in ["landing", "marketing", "homepage", "pitch"]):
+        page_type = "marketing"
+    
+    # Inject build brief into the strategy
+    strategy_with_brief = f"{strategy}\n\nBUILD BRIEF FROM RESEARCH:\n{brief}" if brief else strategy
+    
+    from config import EXEC_MAX_RETRIES, EXEC_QUALITY_THRESHOLD
+    
+    attempt = 0
+    previous_feedback = None
+    final_plan = None
+    final_report = None
+    final_validation = None
+    
+    while attempt <= EXEC_MAX_RETRIES:
+        attempt += 1
+        print(f"[PIPELINE-BUILD] Attempt {attempt}/{EXEC_MAX_RETRIES + 1}")
+        
+        _notify("Build Progress", 
+                f"Attempt {attempt}/{EXEC_MAX_RETRIES + 1}\nPlanning...", 
+                emoji="🔨") if attempt == 1 else None
+        
+        # Step 1: Plan
+        context = ""
+        if previous_feedback:
+            context = f"PREVIOUS ATTEMPT FEEDBACK (fix these issues):\n{previous_feedback}"
+        
+        plan_data = create_plan(
+            goal=goal,
+            tools_description=tools_desc,
+            domain=domain,
+            domain_knowledge=domain_knowledge,
+            execution_strategy=strategy_with_brief,
+            context=context,
+            workspace_dir=workspace_dir,
+            available_tools=registry.list_tools(),
+        )
+        
+        if not plan_data:
+            if attempt <= EXEC_MAX_RETRIES:
+                previous_feedback = "Planning failed. Simplify the approach."
+                continue
+            result["error"] = "Planning failed after all retries"
+            return result
+        
+        steps_count = len(plan_data.get("steps", []))
+        print(f"[PIPELINE-BUILD] Plan: {steps_count} steps")
+        final_plan = plan_data
+        
+        # Step 2: Execute
+        report = execute_plan(
+            plan=plan_data,
+            registry=registry,
+            domain=domain,
+            execution_strategy=strategy_with_brief,
+            workspace_dir=workspace_dir,
+            page_type=page_type,
+            research_context=domain_knowledge,
+            visual_context=goal,
+        )
+        
+        final_report = report
+        completed = report.get("completed_steps", 0)
+        failed = report.get("failed_steps", 0)
+        artifacts = report.get("artifacts", [])
+        result["artifacts"] = artifacts
+        print(f"[PIPELINE-BUILD] Executed: {completed} completed, {failed} failed, {len(artifacts)} artifacts")
+        
+        # Step 3: Validate
+        validation = validate_execution(
+            goal=goal,
+            plan=plan_data,
+            execution_report=report,
+            domain=domain,
+            domain_knowledge=domain_knowledge,
+        )
+        
+        final_validation = validation
+        score = validation.get("overall_score", 0)
+        verdict = validation.get("verdict", "unknown")
+        result["score"] = score
+        result["verdict"] = verdict
+        print(f"[PIPELINE-BUILD] Score: {score}/10 — {verdict}")
+        
+        if score >= EXEC_QUALITY_THRESHOLD:
+            result["success"] = True
+            break
+        else:
+            if attempt <= EXEC_MAX_RETRIES:
+                previous_feedback = validation.get("actionable_feedback", "Improve quality.")
+                if validation.get("critical_issues"):
+                    previous_feedback += " CRITICAL: " + "; ".join(validation["critical_issues"])
+                print(f"[PIPELINE-BUILD] Rejected — retrying with feedback")
+            else:
+                result["error"] = f"Build quality too low ({score}/10) after {attempt} attempts"
+    
+    # Step 4: Store result
+    if final_plan and final_report and final_validation:
+        try:
+            filepath = save_exec_output(
+                domain=domain,
+                goal=goal,
+                plan=final_plan,
+                execution_report=final_report,
+                validation=final_validation,
+                attempt=attempt,
+                strategy_version=strategy_version,
+            )
+            result["task_id"] = os.path.basename(filepath) if filepath else ""
+            print(f"[PIPELINE-BUILD] Saved: {filepath}")
+        except Exception as e:
+            print(f"[PIPELINE-BUILD] Save failed: {e}")
+    
+    # Calculate cost estimate
+    try:
+        daily = get_daily_spend()
+        result["cost"] = daily.get("total_usd", 0) if isinstance(daily, dict) else daily
+    except Exception:
+        pass
+    
+    return result
+
+
+def _cleanup_pipeline(domain: str, result: dict):
+    """Remove from active pipelines tracker."""
+    with _pipeline_lock:
+        _active_pipelines.pop(domain, None)
+
+
+def get_pipeline_status() -> list[dict]:
+    """Get list of active pipelines for Telegram /pipeline command."""
+    with _pipeline_lock:
+        return [
+            {"domain": d, **info}
+            for d, info in _active_pipelines.items()
+        ]

@@ -397,11 +397,15 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "I'm the chat interface for Cortex — a self-learning research agent.\n\n"
             "<b>What I can do:</b>\n"
             "• Research any topic (web search + critic scoring)\n"
+            "• Build products from research (Brain → Hands pipeline)\n"
             "• Show what the system knows (knowledge base)\n"
-            "• Check budget, status, domain stats\n"
-            "• Run research cycles autonomously\n"
-            "• Strategic planning via Cortex Orchestrator\n\n"
-            "<b>Commands:</b>\n"
+            "• Check budget, status, domain stats\n\n"
+            "<b>Pipeline Commands:</b>\n"
+            "/build &lt;instruction&gt; — Full pipeline: research → approve → build\n"
+            "/approve — Approve a pending build\n"
+            "/reject — Reject a pending build\n"
+            "/pipeline — Show active pipelines\n\n"
+            "<b>System Commands:</b>\n"
             "/status — System status + budget\n"
             "/kitchen — What's cooking right now (live daemon view)\n"
             "/domains — List all research domains\n"
@@ -535,6 +539,125 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             f"{live}\n\n"
             f"<b>Recent cycles:</b>\n{history_text}"
         )
+    
+    if cmd_name == "/build":
+        if not cmd_arg:
+            return (
+                "🔨 <b>Build Pipeline</b>\n\n"
+                "Usage: /build &lt;instruction&gt;\n\n"
+                "Examples:\n"
+                "  /build Build a landing page for OLJ employers\n"
+                "  /build Create a client portal for web agencies\n\n"
+                "The pipeline will:\n"
+                "1. Research the niche (Brain)\n"
+                "2. Ask for your approval\n"
+                "3. Build it (Hands)\n"
+                "4. Report the result"
+            )
+        
+        domain = _conversations.get_domain(chat_id)
+        instruction = cmd_arg
+        
+        # Check if pipeline already running for this domain
+        from agents.cortex import get_pipeline_status
+        active = get_pipeline_status()
+        for p in active:
+            if p["domain"] == domain:
+                return f"⚠️ Pipeline already running for '{domain}' (stage: {p.get('stage', '?')})"
+        
+        # Start pipeline in background thread
+        def _run_pipeline():
+            try:
+                from agents.cortex import pipeline
+                result = pipeline(
+                    domain=domain,
+                    instruction=instruction,
+                    require_approval=True,
+                )
+                # Final summary already sent via Telegram notifications in pipeline()
+                print(f"[TELEGRAM] Pipeline finished: {result.get('stage', '?')} — "
+                      f"success={result.get('success')} score={result.get('build_score', 0)}")
+            except Exception as e:
+                _send_message(int(chat_id), f"❌ Pipeline crashed: {e}")
+                print(f"[TELEGRAM] Pipeline error: {e}")
+        
+        t = threading.Thread(target=_run_pipeline, daemon=True, name=f"pipeline-{domain}")
+        t.start()
+        
+        return (
+            f"🚀 <b>Pipeline Started</b>\n\n"
+            f"Domain: {domain}\n"
+            f"Goal: {instruction}\n\n"
+            f"I'll notify you when research is done and ask for approval."
+        )
+    
+    if cmd_name == "/approve":
+        from agents.cortex import resolve_approval, get_pending_approvals
+        
+        pending = get_pending_approvals()
+        if not pending:
+            return "✅ No pending approvals."
+        
+        # If cmd_arg specifies a domain, approve that one
+        if cmd_arg:
+            target_domain = cmd_arg.strip()
+        else:
+            # Approve the first (and usually only) pending
+            target_domain = pending[0]["domain"]
+        
+        resolved = resolve_approval(target_domain, approved=True)
+        if resolved:
+            return f"✅ Approved build for <b>{target_domain}</b>. Hands will start building now."
+        else:
+            return f"❌ No pending approval for '{target_domain}'."
+    
+    if cmd_name == "/reject":
+        from agents.cortex import resolve_approval, get_pending_approvals
+        
+        pending = get_pending_approvals()
+        if not pending:
+            return "🛑 No pending approvals."
+        
+        if cmd_arg:
+            target_domain = cmd_arg.strip()
+        else:
+            target_domain = pending[0]["domain"]
+        
+        resolved = resolve_approval(target_domain, approved=False)
+        if resolved:
+            return f"🛑 Rejected build for <b>{target_domain}</b>. Pipeline stopped."
+        else:
+            return f"❌ No pending approval for '{target_domain}'."
+    
+    if cmd_name == "/pipeline":
+        from agents.cortex import get_pipeline_status, get_pending_approvals
+        
+        active = get_pipeline_status()
+        pending = get_pending_approvals()
+        
+        if not active and not pending:
+            return "📋 No active pipelines or pending approvals."
+        
+        lines = ["📋 <b>Pipeline Status</b>\n"]
+        
+        if active:
+            lines.append("<b>Active Pipelines:</b>")
+            for p in active:
+                lines.append(
+                    f"  • <b>{p['domain']}</b>: {p.get('stage', '?')} "
+                    f"({p.get('instruction', '')[:50]})"
+                )
+        
+        if pending:
+            lines.append("\n<b>Awaiting Approval:</b>")
+            for p in pending:
+                lines.append(
+                    f"  • <b>{p['domain']}</b>\n"
+                    f"    {p['summary'][:200]}\n"
+                    f"    → /approve or /reject"
+                )
+        
+        return "\n".join(lines)
     
     return None  # Not a recognized command
 
