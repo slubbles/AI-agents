@@ -126,15 +126,23 @@ class VisualGate:
         self,
         task_id: str = "build",
         iteration: int = 0,
+        step_num: int = 0,
     ) -> str:
         """
         Run a visual check: screenshot → evaluate → return fix instructions.
+        
+        Args:
+            task_id: Identifier for this build task (for logging)
+            iteration: Visual correction iteration count
+            step_num: The step number that triggered this check (updates _last_check_step)
         
         Returns:
             Empty string if passed or evaluation failed.
             Fix instruction string if issues were found.
         """
         self._check_count += 1
+        if step_num > 0:
+            self._last_check_step = step_num
         
         # Find or start a dev server
         url = self._find_dev_server()

@@ -195,16 +195,23 @@ def decompose_project(
         existing_files=existing_files,
     )
 
+    _model = MODELS.get("planner", "claude-sonnet-4-20250514")
     response = create_message(
         client=client,
-        model=MODELS.get("planner", "claude-sonnet-4-20250514"),
+        model=_model,
         max_tokens=4096,
         system=system,
         messages=[{"role": "user", "content": user}],
     )
 
     text = response.content[0].text
-    log_cost(response, "project_orchestrator", "decompose")
+    log_cost(
+        model=_model,
+        input_tokens=response.usage.input_tokens,
+        output_tokens=response.usage.output_tokens,
+        agent_role="project_orchestrator",
+        domain="system",
+    )
 
     plan = extract_json(text)
     if not plan:
@@ -305,11 +312,10 @@ def create_project(description: str, workspace_dir: str = ".") -> dict:
     # Scan existing files
     existing = "Empty project"
     if os.path.isdir(workspace_dir):
+        from hands.constants import SKIP_DIRS as _SKIP_DIRS
         files = []
         for root, dirs, fnames in os.walk(workspace_dir):
-            dirs[:] = [d for d in dirs if d not in {
-                "node_modules", ".git", "__pycache__", ".next", "venv",
-            }]
+            dirs[:] = [d for d in dirs if d not in _SKIP_DIRS]
             for fname in fnames[:50]:
                 rel = os.path.relpath(os.path.join(root, fname), workspace_dir)
                 files.append(rel)
@@ -442,32 +448,67 @@ def execute_phase(
                 continue
 
             if task["type"] == "validate":
-                # Run validation
+                # Run validation — needs a plan + execution report.
+                # For standalone validate tasks, build a minimal report
+                # from the workspace state.
+                from hands.tools.registry import create_default_registry
+                _registry = create_default_registry()
+                _artifacts = []
+                for _root, _dirs, _files in os.walk(ws):
+                    _dirs[:] = [d for d in _dirs if d not in {
+                        "node_modules", ".git", "__pycache__", ".next", "venv",
+                    }]
+                    for _f in _files:
+                        _artifacts.append(os.path.join(_root, _f))
+                _dummy_report = {
+                    "step_results": [],
+                    "artifacts": _artifacts[:50],
+                    "completed_steps": 0,
+                    "failed_steps": 0,
+                    "total_steps": 0,
+                }
+                _dummy_plan = {
+                    "task_summary": task["description"],
+                    "steps": [],
+                    "success_criteria": task["description"],
+                }
                 result = _get_validate()(
                     goal=task["description"],
-                    workspace_dir=ws,
+                    plan=_dummy_plan,
+                    execution_report=_dummy_report,
+                    domain=project.get("project_name", "general"),
                 )
                 task["result"] = result
                 task["status"] = (
                     PhaseStatus.COMPLETED
-                    if result.get("passed", False)
+                    if result.get("verdict") == "accept"
                     else PhaseStatus.FAILED
                 )
             else:
                 # Plan + execute
+                from hands.tools.registry import create_default_registry
+                _registry = create_default_registry()
+                _tools_desc = _registry.get_tool_descriptions()
                 task_plan = _get_plan_task()(
                     goal=task["description"],
+                    tools_description=_tools_desc,
+                    domain=project.get("project_name", "general"),
                     workspace_dir=ws,
+                    available_tools=_registry.list_tools(),
                 )
+                if not task_plan:
+                    raise ValueError(f"Planning failed for task: {task['description']}")
                 exec_result = _get_execute_task()(
                     plan=task_plan,
+                    registry=_registry,
+                    domain=project.get("project_name", "general"),
                     workspace_dir=ws,
                 )
                 task["result"] = {
                     "plan_steps": len(task_plan.get("steps", [])),
                     "executed": True,
                     "success": exec_result.get("success", False),
-                    "summary": exec_result.get("summary", ""),
+                    "summary": exec_result.get("task_summary", ""),
                 }
                 task["status"] = (
                     PhaseStatus.COMPLETED

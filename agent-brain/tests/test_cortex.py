@@ -196,20 +196,22 @@ class TestGatherHandsState:
     def test_hands_state_with_projects(self, tmp_memory):
         from agents.cortex import _gather_hands_state
 
-        # Create project data
+        # Create project data — stored as projects/<id>/project.json
         proj_dir = tmp_memory / "projects"
         proj_dir.mkdir(exist_ok=True)
         (tmp_memory / "exec_memory").mkdir(exist_ok=True)
+        proj_subdir = proj_dir / "proj_001"
+        proj_subdir.mkdir(exist_ok=True)
         project = {
-            "id": "proj_001",
-            "name": "Landing page project",
+            "project_id": "proj_001",
+            "project_name": "Landing page project",
             "status": "in_progress",
             "phases": [
                 {"name": "setup", "status": "completed"},
                 {"name": "build", "status": "in_progress"},
             ],
         }
-        with open(str(proj_dir / "proj_001.json"), "w") as f:
+        with open(str(proj_subdir / "project.json"), "w") as f:
             json.dump(project, f)
 
         real_join = os.path.join

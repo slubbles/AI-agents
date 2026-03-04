@@ -854,10 +854,10 @@ def execute_plan(
         # Visual quality gate (screenshots + Claude Vision)
         visual_correction = ""
         if visual_gate and result.success and visual_gate.should_check(step_num, all_artifacts):
-            visual_gate._last_check_step = step_num
             visual_correction = visual_gate.run_check(
                 task_id=plan.get("task_summary", "build")[:30],
                 iteration=visual_corrections,
+                step_num=step_num,
             )
             if visual_correction:
                 visual_corrections += 1

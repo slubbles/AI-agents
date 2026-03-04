@@ -276,21 +276,22 @@ def _gather_hands_state() -> dict:
                 "recent_tasks": tasks[-5:],
             })
 
-    # Projects
+    # Projects — stored as projects/<project_id>/project.json subdirectories
     projects_dir = os.path.join(
         os.path.dirname(os.path.dirname(__file__)), "projects"
     )
     if os.path.exists(projects_dir):
-        for f in sorted(os.listdir(projects_dir)):
-            if not f.endswith(".json"):
+        for dirname in sorted(os.listdir(projects_dir)):
+            pfile = os.path.join(projects_dir, dirname, "project.json")
+            if not os.path.isfile(pfile):
                 continue
             try:
-                with open(os.path.join(projects_dir, f)) as fh:
+                with open(pfile) as fh:
                     proj = json.load(fh)
                 phases = proj.get("phases", [])
                 state["projects"].append({
-                    "id": proj.get("id", f.replace(".json", "")),
-                    "name": proj.get("name", "?")[:100],
+                    "id": proj.get("project_id", dirname),
+                    "name": proj.get("project_name", "?")[:100],
                     "status": proj.get("status", "?"),
                     "total_phases": len(phases),
                     "completed_phases": sum(

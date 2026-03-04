@@ -298,12 +298,16 @@ class TestPhaseOperations:
             
             # Mock planner + executor to succeed
             mock_plan = {"steps": [{"description": "do thing"}]}
-            mock_exec = {"success": True, "summary": "done"}
-            mock_validate = {"passed": True}
+            mock_exec = {"success": True, "task_summary": "done"}
+            mock_validate = {"verdict": "accept"}
+            mock_registry = MagicMock()
+            mock_registry.get_tool_descriptions.return_value = "mock tools"
+            mock_registry.list_tools.return_value = ["mock_tool"]
             
             with patch("hands.project_orchestrator._get_plan_task", return_value=lambda **kw: mock_plan), \
                  patch("hands.project_orchestrator._get_execute_task", return_value=lambda **kw: mock_exec), \
-                 patch("hands.project_orchestrator._get_validate", return_value=lambda **kw: mock_validate):
+                 patch("hands.project_orchestrator._get_validate", return_value=lambda **kw: mock_validate), \
+                 patch("hands.tools.registry.create_default_registry", return_value=mock_registry):
                 result = retry_phase(project, 0)
             
             # Tasks should be reset
@@ -355,12 +359,16 @@ class TestExecutePhase:
             save_project(project)
             
             mock_plan = {"steps": [{"description": "step"}]}
-            mock_exec = {"success": True, "summary": "done"}
-            mock_validate = {"passed": True}
+            mock_exec = {"success": True, "task_summary": "done"}
+            mock_validate = {"verdict": "accept"}
+            mock_registry = MagicMock()
+            mock_registry.get_tool_descriptions.return_value = "mock tools"
+            mock_registry.list_tools.return_value = ["mock_tool"]
             
             with patch("hands.project_orchestrator._get_plan_task", return_value=lambda **kw: mock_plan), \
                  patch("hands.project_orchestrator._get_execute_task", return_value=lambda **kw: mock_exec), \
-                 patch("hands.project_orchestrator._get_validate", return_value=lambda **kw: mock_validate):
+                 patch("hands.project_orchestrator._get_validate", return_value=lambda **kw: mock_validate), \
+                 patch("hands.tools.registry.create_default_registry", return_value=mock_registry):
                 result = execute_phase(project, 0)
             
             assert result["status"] == PhaseStatus.COMPLETED
@@ -413,12 +421,16 @@ class TestExecuteProject:
             save_project(project)
             
             mock_plan = {"steps": [{"description": "step"}]}
-            mock_exec = {"success": True, "summary": "done"}
-            mock_validate = {"passed": True}
+            mock_exec = {"success": True, "task_summary": "done"}
+            mock_validate = {"verdict": "accept"}
+            mock_registry = MagicMock()
+            mock_registry.get_tool_descriptions.return_value = "mock tools"
+            mock_registry.list_tools.return_value = ["mock_tool"]
             
             with patch("hands.project_orchestrator._get_plan_task", return_value=lambda **kw: mock_plan), \
                  patch("hands.project_orchestrator._get_execute_task", return_value=lambda **kw: mock_exec), \
-                 patch("hands.project_orchestrator._get_validate", return_value=lambda **kw: mock_validate):
+                 patch("hands.project_orchestrator._get_validate", return_value=lambda **kw: mock_validate), \
+                 patch("hands.tools.registry.create_default_registry", return_value=mock_registry):
                 result = execute_project(project)
             
             assert project["status"] == ProjectStatus.PAUSED
