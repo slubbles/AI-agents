@@ -8,6 +8,7 @@ All tests use mocks — no real browser launches or API calls.
 import base64
 import json
 import os
+import subprocess
 import sys
 import pytest
 from unittest.mock import MagicMock, patch, PropertyMock
@@ -41,7 +42,7 @@ class TestBrowserToolConfig:
         from hands.tools.browser import BrowserTool
         tool = BrowserTool()
         actions = tool.input_schema["properties"]["action"]["enum"]
-        expected = {"screenshot", "navigate", "click", "fill", "wait_for", "evaluate", "get_text"}
+        expected = {"screenshot", "snapshot", "navigate", "click", "fill", "wait_for", "evaluate", "get_text"}
         assert set(actions) == expected
 
     def test_url_safety_blocks_file_protocol(self):
@@ -122,64 +123,51 @@ class TestBrowserToolExecution:
         assert isinstance(result.success, bool)
 
     def test_navigate_success(self):
-        """Test navigate action with mocked Playwright."""
-        from hands.tools.browser import BrowserTool, BrowserSession
-        BrowserSession.reset()
-        
-        # Mock the Playwright chain
-        mock_page = MagicMock()
-        mock_page.title.return_value = "Test Page"
-        mock_page.url = "https://example.com"
-        
-        mock_response = MagicMock()
-        mock_response.status = 200
-        mock_page.goto.return_value = mock_response
-        
-        # Patch BrowserSession singleton to return our mock page
-        session = BrowserSession.get()
-        session._page = mock_page
-        session._browser = MagicMock()
-        session._playwright = MagicMock()
-        
-        with patch.object(session, "_ensure_started"):
+        """Test navigate action with mocked agent-browser CLI."""
+        from hands.tools.browser import BrowserTool
+
+        with patch("hands.tools.browser._run_cli") as mock_cli:
+            mock_cli.return_value = (True, "✓ Example Domain, https://example.com/", "")
             tool = BrowserTool()
             result = tool.execute(action="navigate", url="https://example.com")
-            
+
             assert result.success
-            assert "200" in result.output or "Test Page" in result.output
-        
-        BrowserSession.reset()
+            assert "example" in result.output.lower() or "Navigated" in result.output
+            mock_cli.assert_called_once_with("open", "https://example.com")
 
     def test_screenshot_returns_base64(self):
         """Test screenshot action returns base64 image in metadata."""
-        from hands.tools.browser import BrowserTool, BrowserSession
-        BrowserSession.reset()
-        
+        from hands.tools.browser import BrowserTool
+        import tempfile
+
         fake_image = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
-        
-        mock_page = MagicMock()
-        mock_page.title.return_value = "Test"
-        mock_page.url = "http://localhost:3000"
-        mock_page.screenshot.return_value = fake_image
-        
-        mock_response = MagicMock()
-        mock_response.status = 200
-        mock_page.goto.return_value = mock_response
-        
-        session = BrowserSession.get()
-        session._page = mock_page
-        session._browser = MagicMock()
-        session._playwright = MagicMock()
-        
-        with patch.object(session, "_ensure_started"):
+
+        def mock_run_cli(*args, timeout=30):
+            # Handle viewport command
+            if args[0] == "viewport":
+                return (True, "", "")
+            # Handle open command
+            if args[0] == "open":
+                return (True, "✓ Test, http://localhost:3000/", "")
+            # Handle screenshot command — write fake image to the path
+            if args[0] == "screenshot":
+                path = args[1]
+                os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+                with open(path, "wb") as f:
+                    f.write(fake_image)
+                return (True, "✓ Screenshot saved", "")
+            return (False, "", "unknown command")
+
+        with patch("hands.tools.browser._run_cli", side_effect=mock_run_cli):
             tool = BrowserTool()
             result = tool.execute(action="screenshot", url="http://localhost:3000")
-            
+
             assert result.success
             assert "base64_image" in result.metadata
             assert len(result.metadata["base64_image"]) > 0
-        
-        BrowserSession.reset()
+            # Verify it's valid base64 that decodes to our fake image
+            decoded = base64.b64decode(result.metadata["base64_image"])
+            assert decoded == fake_image
 
     def test_evaluate_blocks_dangerous_scripts(self):
         """JS evaluation should block dangerous patterns."""
@@ -205,6 +193,104 @@ class TestBrowserToolExecution:
 # ============================================================
 # Visual Evaluator Tests (hands/visual_evaluator.py)
 # ============================================================
+
+class TestBrowserToolAgentBrowser:
+    """Tests for agent-browser specific features (snapshot, ref-based click/fill)."""
+
+    def test_snapshot_returns_accessibility_tree(self):
+        """Snapshot should return accessibility tree with @ref identifiers."""
+        from hands.tools.browser import BrowserTool
+
+        fake_snapshot = (
+            'heading "Example Domain" [ref=e1]\n'
+            'paragraph "This domain is for use in examples." [ref=e2]\n'
+            'link "More information..." [ref=e3]'
+        )
+        with patch("hands.tools.browser._run_cli") as mock_cli:
+            mock_cli.return_value = (True, fake_snapshot, "")
+            tool = BrowserTool()
+            result = tool.execute(action="snapshot")
+
+            assert result.success
+            assert "ref=e1" in result.output
+            assert result.metadata["ref_count"] == 3
+
+    def test_snapshot_empty_page_fails(self):
+        """Snapshot with no page loaded should fail gracefully."""
+        from hands.tools.browser import BrowserTool
+
+        with patch("hands.tools.browser._run_cli") as mock_cli:
+            mock_cli.return_value = (True, "", "")
+            tool = BrowserTool()
+            result = tool.execute(action="snapshot")
+            assert not result.success
+
+    def test_click_by_ref(self):
+        """Click should work with @ref from snapshot."""
+        from hands.tools.browser import BrowserTool
+
+        with patch("hands.tools.browser._run_cli") as mock_cli:
+            mock_cli.return_value = (True, "✓ Clicked", "")
+            tool = BrowserTool()
+            result = tool.execute(action="click", ref="e5")
+
+            assert result.success
+            assert "@e5" in result.output
+            mock_cli.assert_called_once_with("click", "e5")
+
+    def test_click_by_selector_fallback(self):
+        """Click should fall back to CSS selector if no ref."""
+        from hands.tools.browser import BrowserTool
+
+        with patch("hands.tools.browser._run_cli") as mock_cli:
+            mock_cli.return_value = (True, "✓ Clicked", "")
+            tool = BrowserTool()
+            result = tool.execute(action="click", selector="#submit-btn")
+
+            assert result.success
+            mock_cli.assert_called_once_with("click", "#submit-btn")
+
+    def test_click_no_ref_no_selector_fails(self):
+        """Click without ref or selector should fail."""
+        from hands.tools.browser import BrowserTool
+        tool = BrowserTool()
+        result = tool.execute(action="click")
+        assert not result.success
+        assert "ref" in result.error.lower() or "selector" in result.error.lower()
+
+    def test_fill_by_ref(self):
+        """Fill should work with @ref from snapshot."""
+        from hands.tools.browser import BrowserTool
+
+        with patch("hands.tools.browser._run_cli") as mock_cli:
+            mock_cli.return_value = (True, "✓ Filled", "")
+            tool = BrowserTool()
+            result = tool.execute(action="fill", ref="e3", text="hello@test.com")
+
+            assert result.success
+            mock_cli.assert_called_once_with("fill", "e3", "hello@test.com")
+
+    def test_cli_not_found_fails_gracefully(self):
+        """If agent-browser CLI is not installed, should fail with helpful message."""
+        from hands.tools.browser import BrowserTool
+
+        with patch("hands.tools.browser._find_agent_browser", return_value=None):
+            tool = BrowserTool()
+            result = tool.execute(action="navigate", url="https://example.com")
+            assert not result.success
+            assert "agent-browser" in result.error.lower() or "not found" in result.error.lower()
+
+    def test_cli_timeout_handled(self):
+        """CLI timeout should produce a clear error."""
+        from hands.tools.browser import BrowserTool
+
+        with patch("hands.tools.browser._find_agent_browser", return_value="/usr/bin/agent-browser"):
+            with patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="agent-browser", timeout=30)):
+                tool = BrowserTool()
+                result = tool.execute(action="navigate", url="https://example.com")
+                assert not result.success
+                assert "timed out" in result.error.lower() or "timeout" in result.error.lower()
+
 
 class TestVisualEvaluatorHelpers:
     """Visual evaluator utility functions."""
@@ -696,34 +782,31 @@ class TestVisualFlowEndToEnd:
     @patch("hands.visual_evaluator.log_cost")
     def test_screenshot_to_evaluation_flow(self, mock_log_cost, mock_anthropic_class):
         """Full flow: browser screenshot → visual evaluation → fix instructions."""
-        from hands.tools.browser import BrowserTool, BrowserSession
+        from hands.tools.browser import BrowserTool
         from hands.visual_evaluator import evaluate_screenshot, generate_fix_instructions
         
-        # 1. Mock browser screenshot
-        BrowserSession.reset()
+        # 1. Mock browser screenshot via agent-browser CLI
         fake_image = b"\x89PNG" + b"\x00" * 50
         fake_b64 = base64.b64encode(fake_image).decode()
-        
-        mock_page = MagicMock()
-        mock_page.screenshot.return_value = fake_image
-        mock_page.title.return_value = "Test"
-        mock_page.url = "http://localhost:3000"
-        mock_response = MagicMock()
-        mock_response.status = 200
-        mock_page.goto.return_value = mock_response
-        
-        session = BrowserSession.get()
-        session._page = mock_page
-        session._browser = MagicMock()
-        session._playwright = MagicMock()
-        
-        with patch.object(session, "_ensure_started"):
+
+        def mock_run_cli(*args, timeout=30):
+            if args[0] == "viewport":
+                return (True, "", "")
+            if args[0] == "open":
+                return (True, "✓ Test, http://localhost:3000/", "")
+            if args[0] == "screenshot":
+                path = args[1]
+                os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+                with open(path, "wb") as f:
+                    f.write(fake_image)
+                return (True, "✓ Screenshot saved", "")
+            return (False, "", "unknown command")
+
+        with patch("hands.tools.browser._run_cli", side_effect=mock_run_cli):
             tool = BrowserTool()
             screenshot_result = tool.execute(action="screenshot", url="http://localhost:3000")
             assert screenshot_result.success
             b64 = screenshot_result.metadata["base64_image"]
-        
-        BrowserSession.reset()
         
         # 2. Mock Claude Vision evaluation
         mock_eval_response = MagicMock()
