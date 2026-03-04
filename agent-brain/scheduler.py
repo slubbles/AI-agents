@@ -1137,6 +1137,7 @@ def _execute_hands_tasks(cycle: int, budget_remaining: float) -> list[dict]:
                     try:
                         from hands.planner import plan as create_plan_hands
                         from hands.executor import execute_plan
+                        from hands.validator import validate_execution
                         from hands.tools.registry import create_default_registry
                         from hands.exec_memory import save_exec_output
                         from strategy_store import get_strategy
@@ -1158,7 +1159,7 @@ def _execute_hands_tasks(cycle: int, budget_remaining: float) -> list[dict]:
                         registry = create_default_registry()
                         tools_desc = registry.get_tool_descriptions()
                         
-                        strategy, _ = get_strategy("executor", domain)
+                        strategy, strategy_version = get_strategy("executor", domain)
                         
                         goal = f"{title}: {description}"
                         
@@ -1197,14 +1198,39 @@ def _execute_hands_tasks(cycle: int, budget_remaining: float) -> list[dict]:
                             visual_context=goal,  # Use task goal as visual context
                         )
                         
-                        # Store result
-                        save_exec_output(
-                            domain=domain,
-                            task=goal,
+                        # Validate execution quality
+                        from memory_store import load_knowledge_base
+                        domain_knowledge = ""
+                        try:
+                            kb = load_knowledge_base(domain)
+                            if kb and kb.get("claims"):
+                                domain_knowledge = "\n".join(
+                                    f"- {c.get('claim', '')}" for c in kb["claims"][:15]
+                                )
+                        except Exception:
+                            pass
+                        
+                        validation = validate_execution(
+                            goal=goal,
                             plan=exec_plan,
-                            result=result,
+                            execution_report=result,
+                            domain=domain,
+                            domain_knowledge=domain_knowledge,
                         )
                         
+                        # Store result with proper params
+                        save_exec_output(
+                            domain=domain,
+                            goal=goal,
+                            plan=exec_plan,
+                            execution_report=result,
+                            validation=validation,
+                            attempt=1,
+                            strategy_version=strategy_version or "none",
+                        )
+                        
+                        # Attach validation to result for upstream consumers
+                        result["validation"] = validation
                         _exec_result[0] = result
                         
                     except Exception as exc:
