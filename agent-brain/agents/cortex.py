@@ -1726,6 +1726,26 @@ def _execute_build(
         print(f"[PIPELINE-BUILD] Plan: {steps_count} steps")
         final_plan = plan_data
         
+        # Step 1.5: Write .cortex/plan.md into workspace (project roadmap)
+        try:
+            from hands.project_instructions import generate_project_instructions
+            instructions_path = generate_project_instructions(
+                plan=plan_data,
+                goal=goal,
+                workspace_dir=workspace_dir,
+                brief=brief,
+                domain=domain,
+                constraints={
+                    "tech_stack": ["nextjs", "tailwind", "shadcn-ui", "framer-motion"],
+                    "deploy_to": "vercel",
+                },
+                research_context=domain_knowledge,
+            )
+            if instructions_path:
+                print(f"[PIPELINE-BUILD] Project instructions: {instructions_path}")
+        except Exception as e:
+            print(f"[PIPELINE-BUILD] Instructions generation failed (non-fatal): {e}")
+        
         # Step 2: Execute
         report = execute_plan(
             plan=plan_data,

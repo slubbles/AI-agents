@@ -38,6 +38,7 @@ from hands.tool_health import ToolHealthMonitor
 from hands.timeout_adapter import TimeoutAdapter
 from hands.mid_validator import MidExecutionValidator
 from hands.visual_gate import VisualGate
+from hands.consultant import consult_architect, reset_consultations, get_consultation_count, get_consultation_log, MAX_CONSULTATIONS_PER_RUN
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -329,6 +330,7 @@ def _build_system_prompt(tools_description: str, execution_strategy: str = "", p
         page_type: 'app' or 'marketing' — determines which design standard is loaded.
     """
     today = date.today().isoformat()
+    max_consults = MAX_CONSULTATIONS_PER_RUN
 
     # Load the appropriate design system based on page_type
     design_block = ""
@@ -402,6 +404,13 @@ AUTH (use simplest option for the task):
 - No auth for landing pages / marketing sites.
 - MVP: NextAuth.js v5 — `npm install next-auth@beta`. Credential provider + adapter.
 - Full: Supabase Auth or Clerk free tier.
+
+CONSULTATION:
+- You have a `_consult` tool — a direct line to the senior architect (Claude).
+- Use it when: architectural decisions not in the plan, persistent errors after retry,
+  need to deviate from plan, unsure about patterns/libraries.
+- You get {max_consults} consultations per run. Use them wisely. Don't waste them on trivial questions.
+- The architect sees your plan, progress, and workspace. Ask specific questions.
 {design_block}"""
 
     if execution_strategy:
@@ -449,8 +458,11 @@ def execute_plan(
     tools_desc = registry.get_tool_descriptions()
     system = _build_system_prompt(tools_desc, execution_strategy, page_type=page_type)
 
-    # Get native Claude tool definitions (includes _complete and _abort)
+    # Get native Claude tool definitions (includes _complete, _abort, _consult)
     claude_tools = registry.get_execution_tools()
+
+    # Reset consultation counter for this run
+    reset_consultations()
 
     steps = plan.get("steps", [])
     if not steps:
@@ -699,6 +711,45 @@ def execute_plan(
                 "total_steps": len(steps),
             }
 
+        elif tool_name == "_consult":
+            # Mid-execution consultation: DeepSeek asks Claude for guidance
+            consult_question = tool_input.get("question", "")
+            consult_context = tool_input.get("context", "")
+            consult_category = tool_input.get("category", "other")
+            
+            print(f"  [EXECUTOR] Consulting architect [{consult_category}]: {consult_question[:80]}...")
+            
+            consult_result = consult_architect(
+                question=consult_question,
+                context=consult_context,
+                category=consult_category,
+                plan=plan,
+                step_results=step_results,
+                workspace_dir=workspace_dir,
+                domain=domain,
+            )
+            
+            remaining = consult_result.get("remaining", 0)
+            if consult_result["success"]:
+                print(f"  [EXECUTOR] Architect responded ({remaining} consultations left)")
+            else:
+                print(f"  [EXECUTOR] Consultation failed: {consult_result.get('error', '')[:80]}")
+            
+            # Feed architect's response back to the executor
+            response_text = (
+                f"ARCHITECT RESPONSE:\n{consult_result['answer']}\n\n"
+                f"DIRECTIVE: {consult_result['directive']}\n\n"
+                f"Consultations remaining: {remaining}. Now continue with the next step."
+            )
+            
+            conversation.append({"role": "assistant", "content": response.content})
+            conversation.append({
+                "role": "user",
+                "content": [{"type": "tool_result", "tool_use_id": tool_use_id,
+                             "content": response_text}],
+            })
+            continue
+
         # --- Handle real tool execution ---
         params = dict(tool_input) if isinstance(tool_input, dict) else {}
         reasoning = text_content[:200] if text_content else ""
@@ -942,6 +993,8 @@ def execute_plan(
         "timeout_stats": timeout_adapter.stats(),
         "resumed_steps": len(resumed_steps),
         "is_repair": plan.get("is_repair", False),
+        "consultations": get_consultation_log(),
+        "consultation_count": get_consultation_count(),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 

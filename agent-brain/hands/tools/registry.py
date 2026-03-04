@@ -279,6 +279,35 @@ class ToolRegistry:
             },
         })
 
+        tools.append({
+            "name": "_consult",
+            "description": (
+                "Consult the senior architect (Claude) for guidance before making a decision. "
+                "Use this when you face architectural choices, are unsure about implementation "
+                "approach, hit an unexpected error you can't resolve, or need design feedback. "
+                "The architect sees the full project context and will give a concrete answer."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string",
+                        "description": "Specific question for the architect. Be precise about what you need: a decision, a code pattern, an error diagnosis, etc.",
+                    },
+                    "context": {
+                        "type": "string",
+                        "description": "Relevant context: what you've built so far, what step you're on, what options you see.",
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": ["architecture", "code_pattern", "error_diagnosis", "design", "dependency", "other"],
+                        "description": "Category of consultation for routing.",
+                    },
+                },
+                "required": ["question", "context"],
+            },
+        })
+
         return tools
 
     def get_tool_descriptions(self) -> str:

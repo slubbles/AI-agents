@@ -4721,16 +4721,17 @@ class TestNativeToolUse:
         return resp
 
     def test_execution_tools_have_control_tools(self):
-        """get_execution_tools() returns _complete and _abort alongside real tools."""
+        """get_execution_tools() returns _complete, _abort, _consult alongside real tools."""
         from hands.tools.registry import create_default_registry
         registry = create_default_registry()
         tools = registry.get_execution_tools()
         names = [t["name"] for t in tools]
         assert "_complete" in names
         assert "_abort" in names
+        assert "_consult" in names
         assert "code" in names
         assert "terminal" in names
-        assert len(tools) == 8  # 6 real + 2 synthetic
+        assert len(tools) == 9  # 6 real + 3 synthetic (_complete, _abort, _consult)
 
     def test_control_tool_schemas(self):
         """Synthetic control tools have valid input schemas."""
@@ -6126,3 +6127,166 @@ class TestAlwaysOnFileValidation:
                         if isinstance(c, dict):
                             assert "STATIC CHECK" not in c.get("content", ""), \
                                 "Valid file should not trigger STATIC CHECK warning"
+
+
+# ============================================================
+# _consult Tool + Consultation System Tests
+# ============================================================
+
+class TestConsultTool:
+    """Tests for the _consult control tool and consultation system."""
+
+    def test_consult_tool_in_registry(self):
+        """_consult is registered as a control tool."""
+        from hands.tools.registry import create_default_registry
+        registry = create_default_registry()
+        tools = {t["name"]: t for t in registry.get_execution_tools()}
+        assert "_consult" in tools
+
+    def test_consult_tool_schema(self):
+        """_consult has required fields: question, context."""
+        from hands.tools.registry import create_default_registry
+        registry = create_default_registry()
+        tools = {t["name"]: t for t in registry.get_execution_tools()}
+        schema = tools["_consult"]["input_schema"]
+        assert "question" in schema["properties"]
+        assert "context" in schema["properties"]
+        assert "category" in schema["properties"]
+        assert "question" in schema["required"]
+        assert "context" in schema["required"]
+
+    def test_consult_category_enum(self):
+        """_consult category has correct enum values."""
+        from hands.tools.registry import create_default_registry
+        registry = create_default_registry()
+        tools = {t["name"]: t for t in registry.get_execution_tools()}
+        categories = tools["_consult"]["input_schema"]["properties"]["category"]["enum"]
+        assert "architecture" in categories
+        assert "code_pattern" in categories
+        assert "error_diagnosis" in categories
+        assert "design" in categories
+
+    def test_consultation_reset(self):
+        """reset_consultations() clears the counter."""
+        from hands.consultant import reset_consultations, get_consultation_count
+        reset_consultations()
+        assert get_consultation_count() == 0
+
+    def test_consultation_cap(self):
+        """Consultations are capped at MAX_CONSULTATIONS_PER_RUN."""
+        from hands.consultant import (
+            reset_consultations, get_consultation_count, 
+            MAX_CONSULTATIONS_PER_RUN, _run_consultations
+        )
+        reset_consultations()
+        # Manually fill up consultations
+        for i in range(MAX_CONSULTATIONS_PER_RUN):
+            _run_consultations.append({"num": i + 1, "question": f"test {i}"})
+        assert get_consultation_count() == MAX_CONSULTATIONS_PER_RUN
+        # The next call should be refused
+        from hands.consultant import consult_architect
+        result = consult_architect(
+            question="one more?",
+            context="testing cap",
+        )
+        assert not result["success"] or "limit reached" in result.get("error", "")
+        reset_consultations()  # cleanup
+
+    def test_consultation_log(self):
+        """get_consultation_log() returns all consultations."""
+        from hands.consultant import reset_consultations, get_consultation_log, _run_consultations
+        reset_consultations()
+        _run_consultations.append({"num": 1, "question": "test"})
+        log = get_consultation_log()
+        assert len(log) == 1
+        assert log[0]["question"] == "test"
+        reset_consultations()
+
+
+class TestProjectInstructions:
+    """Tests for .cortex/plan.md generation."""
+
+    def test_generates_file(self, tmp_path):
+        """generate_project_instructions creates .cortex/plan.md."""
+        from hands.project_instructions import generate_project_instructions
+        plan = {
+            "task_summary": "Build a landing page",
+            "success_criteria": "Page loads, looks good, deploys",
+            "steps": [
+                {"step": 1, "tool": "terminal", "description": "npm create next-app"},
+                {"step": 2, "tool": "code", "description": "Create hero section"},
+            ],
+        }
+        path = generate_project_instructions(
+            plan=plan,
+            goal="Build a test landing page",
+            workspace_dir=str(tmp_path),
+            domain="test",
+        )
+        assert os.path.exists(path)
+        assert path.endswith("plan.md")
+        content = open(path).read()
+        assert "Build a test landing page" in content
+        assert "hero section" in content
+
+    def test_includes_steps_table(self, tmp_path):
+        """Generated instructions include step roadmap table."""
+        from hands.project_instructions import generate_project_instructions
+        plan = {
+            "task_summary": "Test",
+            "steps": [
+                {"step": 1, "tool": "terminal", "description": "install deps", "criticality": "required"},
+                {"step": 2, "tool": "code", "description": "write code", "criticality": "optional"},
+            ],
+        }
+        path = generate_project_instructions(
+            plan=plan, goal="test", workspace_dir=str(tmp_path), domain="test",
+        )
+        content = open(path).read()
+        assert "| Step |" in content
+        assert "install deps" in content
+        assert "write code" in content
+
+    def test_includes_consultation_protocol(self, tmp_path):
+        """Generated instructions mention _consult tool."""
+        from hands.project_instructions import generate_project_instructions
+        plan = {"task_summary": "Test", "steps": []}
+        path = generate_project_instructions(
+            plan=plan, goal="test", workspace_dir=str(tmp_path), domain="test",
+        )
+        content = open(path).read()
+        assert "_consult" in content
+        assert "Communication Protocol" in content
+
+    def test_includes_brief(self, tmp_path):
+        """Build brief from research is included when provided."""
+        from hands.project_instructions import generate_project_instructions
+        plan = {"task_summary": "Test", "steps": []}
+        path = generate_project_instructions(
+            plan=plan, goal="test", workspace_dir=str(tmp_path),
+            brief="Target audience: small business owners who need landing pages",
+            domain="test",
+        )
+        content = open(path).read()
+        assert "small business owners" in content
+        assert "Build Brief" in content
+
+    def test_empty_workspace_returns_empty(self):
+        """Returns empty string if workspace_dir is empty."""
+        from hands.project_instructions import generate_project_instructions
+        path = generate_project_instructions(
+            plan={"task_summary": "Test", "steps": []},
+            goal="test", workspace_dir="", domain="test",
+        )
+        assert path == ""
+
+    def test_constraints_in_output(self, tmp_path):
+        """Constraints section includes anti-patterns."""
+        from hands.project_instructions import generate_project_instructions
+        plan = {"task_summary": "Test", "steps": []}
+        path = generate_project_instructions(
+            plan=plan, goal="test", workspace_dir=str(tmp_path), domain="test",
+        )
+        content = open(path).read()
+        assert "Do NOT use placeholder" in content
+        assert "Do NOT change the tech stack" in content
