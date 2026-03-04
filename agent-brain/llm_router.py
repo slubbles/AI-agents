@@ -200,7 +200,12 @@ def _convert_tools_to_openai_format(tools: list[dict]) -> list[dict]:
 
 
 def _convert_messages_to_openai_format(messages: list[dict], system: str = None) -> list[dict]:
-    """Convert Anthropic message format to OpenAI format."""
+    """Convert Anthropic message format to OpenAI format.
+    
+    Handles both Anthropic native content blocks (dicts with 'type' key)
+    and our NormalizedResponse dataclasses (TextBlock, ToolUseBlock) that
+    get appended to conversation during multi-turn tool_use loops.
+    """
     openai_messages = []
     
     # Add system message first
@@ -211,22 +216,52 @@ def _convert_messages_to_openai_format(messages: list[dict], system: str = None)
         role = msg.get("role", "user")
         content = msg.get("content", "")
         
-        # Handle content that's a list (Anthropic format)
+        # Handle content that's a list (Anthropic format or our dataclasses)
         if isinstance(content, list):
-            # Convert content blocks to text
             text_parts = []
             tool_results = []
+            tool_calls = []
             
             for block in content:
+                # Dict blocks (Anthropic native format)
                 if isinstance(block, dict):
                     if block.get("type") == "text":
                         text_parts.append(block.get("text", ""))
                     elif block.get("type") == "tool_result":
                         tool_results.append(block)
+                    elif block.get("type") == "tool_use":
+                        tool_calls.append({
+                            "id": block.get("id", "unknown"),
+                            "type": "function",
+                            "function": {
+                                "name": block.get("name", ""),
+                                "arguments": json.dumps(block.get("input", {})),
+                            },
+                        })
                 elif isinstance(block, str):
                     text_parts.append(block)
+                # Dataclass blocks (our NormalizedResponse types: TextBlock, ToolUseBlock)
+                elif hasattr(block, "type"):
+                    if getattr(block, "type", None) == "text":
+                        text_parts.append(getattr(block, "text", ""))
+                    elif getattr(block, "type", None) == "tool_use":
+                        tool_calls.append({
+                            "id": getattr(block, "id", "unknown"),
+                            "type": "function",
+                            "function": {
+                                "name": getattr(block, "name", ""),
+                                "arguments": json.dumps(getattr(block, "input", {})),
+                            },
+                        })
             
-            if text_parts:
+            # For assistant messages with tool_calls, emit proper OpenAI format
+            if role == "assistant" and tool_calls:
+                openai_messages.append({
+                    "role": "assistant",
+                    "content": "\n".join(text_parts) if text_parts else None,
+                    "tool_calls": tool_calls,
+                })
+            elif text_parts:
                 openai_messages.append({
                     "role": role,
                     "content": "\n".join(text_parts),
@@ -237,7 +272,7 @@ def _convert_messages_to_openai_format(messages: list[dict], system: str = None)
                 openai_messages.append({
                     "role": "tool",
                     "tool_call_id": tr.get("tool_use_id", ""),
-                    "content": tr.get("content", ""),
+                    "content": tr.get("content", "") if isinstance(tr.get("content"), str) else json.dumps(tr.get("content", "")),
                 })
         else:
             openai_messages.append({

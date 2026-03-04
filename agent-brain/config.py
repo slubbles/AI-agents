@@ -34,7 +34,11 @@ FAST_MODEL = (
     else _FALLBACK
 )
 
-PREMIUM_MODEL = "claude-sonnet-4-20250514"  # Sacred — never cut corners
+PREMIUM_MODEL = (
+    "anthropic/claude-sonnet-4"  # Sacred — never cut corners. Via OpenRouter when direct balance empty.
+    if OPENROUTER_API_KEY
+    else "claude-sonnet-4-20250514"
+)
 
 # Tier 4 (CHAT): Google Gemini 2.0 Flash — cheap, fast, reasoning support
 # Human chat interface: 40x cheaper than Sonnet, good quality, tool use.
@@ -126,6 +130,8 @@ COST_PER_1K = {
     # Claude models (Anthropic direct)
     "claude-haiku-4-5-20251001": {"input": 0.001, "output": 0.005},
     "claude-sonnet-4-20250514": {"input": 0.003, "output": 0.015},
+    # Claude via OpenRouter (same pricing, different route)
+    "anthropic/claude-sonnet-4": {"input": 0.003, "output": 0.015},
     # Grok via OpenRouter
     "x-ai/grok-4.1-fast": {"input": 0.0005, "output": 0.002},
     # DeepSeek V3.2 via OpenRouter (cheapest)
@@ -149,6 +155,7 @@ BALANCE_OPENROUTER = float(os.environ.get("BALANCE_OPENROUTER", "9.41"))
 MODEL_PROVIDER = {
     "claude-haiku-4-5-20251001": "claude",
     "claude-sonnet-4-20250514": "claude",
+    "anthropic/claude-sonnet-4": "openrouter",
     "x-ai/grok-4.1-fast": "openrouter",
     "deepseek/deepseek-chat": "openrouter",
     "google/gemini-2.0-flash-001": "openrouter",

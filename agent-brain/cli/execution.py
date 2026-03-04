@@ -627,12 +627,13 @@ def run_execute(domain: str, goal: str, workspace_dir: str = "", page_type: str 
 
     # Summary
     daily = get_daily_spend()
+    daily_total = daily.get("total_usd", 0) if isinstance(daily, dict) else daily
     print(f"\n{'='*60}")
     print(f"  EXECUTION COMPLETE")
     print(f"  Score: {final_validation.get('overall_score', 0) if final_validation else 0}/10")
     print(f"  Artifacts: {len(final_report.get('artifacts', [])) if final_report else 0}")
     print(f"  Domain '{domain}': {stats['count']} total executions, avg {stats['avg_score']:.1f}")
-    print(f"  Daily spend: ${daily:.4f}")
+    print(f"  Daily spend: ${daily_total:.4f}")
     print(f"{'='*60}\n")
 
 

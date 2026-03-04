@@ -11,6 +11,10 @@ Rules extracted from corrections. Reviewed at session start. Updated after every
 - **System prompt honesty**: When describing what the system can do, distinguish "proven and tested" from "code exists but unproven." The user corrected this pattern — don't regress.
 - **Resource cleanup on all exit paths**: When a function creates resources (subprocesses, browser sessions), verify cleanup runs on ALL exit paths: normal return, early return (_abort), exceptions. The executor `_abort` handler returned without calling `visual_gate.cleanup()`, leaking dev servers. Always audit every `return` statement in functions that own resources.
 - **New features must be wired to all callers**: When adding params to a function (e.g., `page_type` to `execute_plan`), grep ALL call sites and update them. The CLI's `execute_plan()` call was missing `page_type`, `research_context`, `visual_context` — making Obj 4/5 features unreachable from CLI.
+- **Code tool paths must be workspace-relative**: The executor auto-injects `cwd` for terminal but NOT for code tool. Relative paths in code tool resolve against the process cwd (agent-brain/), not workspace_dir. Always prepend workspace_dir for relative code paths in executor.
+- **OpenRouter message converter must handle dataclass blocks**: When the executor appends `response.content` (list of ToolUseBlock/TextBlock dataclasses) to the conversation, the OpenRouter message converter must recognize these alongside plain dicts. Without this, assistant tool_calls are silently dropped and the next tool_result becomes orphaned, breaking the multi-turn loop.
+- **API provider fallback**: When Anthropic direct balance is $0, route PREMIUM_MODEL through OpenRouter using `anthropic/claude-sonnet-4` (not the dated version string). The `create_message` function checks `model.startswith("claude-")` — OpenRouter model IDs like `anthropic/claude-sonnet-4` bypass this check and route correctly through `call_llm`.
+- **get_daily_spend() returns dict not float**: The cost tracker returns `{"total_usd": ..., "by_provider": ...}`. Don't format it directly with `:.4f` — extract `total_usd` first.
 
 ## General Patterns
 

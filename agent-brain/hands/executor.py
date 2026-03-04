@@ -740,6 +740,11 @@ def execute_plan(
             # Auto-inject workspace_dir as cwd if not specified
             if workspace_dir and not params.get("cwd"):
                 params["cwd"] = workspace_dir
+        # Auto-resolve relative paths for code tool to workspace_dir
+        if tool_name == "code" and workspace_dir and params.get("path"):
+            p = params["path"]
+            if not os.path.isabs(p):
+                params["path"] = os.path.join(workspace_dir, p)
         result = registry.execute(tool_name, **params)
 
         # Record duration in timeout adapter for future improvement
