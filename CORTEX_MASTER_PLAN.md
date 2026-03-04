@@ -4,8 +4,8 @@
 
 **Created:** March 3, 2026  
 **Last Updated:** March 4, 2026  
-**Status:** Active — Objectives 1-9 Complete, Phase 2 In Progress  
-**Codebase:** 44,483+ lines production, 1,805 tests passing
+**Status:** Active — Objectives 1-9 Complete + 2 Audit Passes, Phase 2 In Progress  
+**Codebase:** 46,482 lines production (126 files), 1,805 tests passing
 
 ---
 
@@ -84,25 +84,25 @@ Internal:           JournalEntry (audit trail)
 
 | Metric | Value |
 |--------|-------|
-| Production Python | 44,483 lines |
-| Test Python | 24,998 lines |
-| Tests Passing | 1,737 |
-| Agent Brain Files | ~25 files |
-| Agent Hands Files | ~30 files |
-| Git Commits (Phase 1) | 6 objectives completed |
+| Production Python | 46,482 lines |
+| Test Python | 26,066 lines |
+| Tests Passing | 1,805 |
+| Production Files | 126 |
+| Git Commits | 12 (Obj 1-9 + 2 audit passes) |
 
 ### VPS State
 
 | Property | Value |
 |----------|-------|
 | IP | 207.180.219.27 |
-| Git Version | d9800ca (5 commits behind main) |
+| Git Version | 949adf7 (synced with main) |
 | Services | Active (budget_halt state) |
 | Daily Budget | $7.00 ($2 Claude + $5 OpenRouter) |
 
 ### Known Issues
 
-None — all stale imports fixed in Obj 6, pipeline bugs fixed in Obj 7.
+- 13 test-ordering flakes in test_hands.py (all pass when run in isolation)
+- Everything else clean — stale imports fixed in Obj 6, pipeline bugs in Obj 7, orchestrator/cortex bugs in Audit Pass 2
 
 ---
 
@@ -175,6 +175,20 @@ None — all stale imports fixed in Obj 6, pipeline bugs fixed in Obj 7.
 - ✅ No `__del__` safety — added to VisualGate class
 
 **Result:** 27 new tests, 1,737 total passing
+
+---
+
+### ✅ AUDIT PASS 2 (Commit: 949adf7)
+
+**Fixed 5 bugs + 3 improvements:**
+1. ✅ `project_orchestrator.decompose_project` — wrong `log_cost` signature (raw response vs model/tokens)
+2. ✅ `project_orchestrator.execute_phase` — wrong call signatures for planner, executor, validator
+3. ✅ `cortex._gather_hands_state` — projects scan looked for .json files instead of subdirectory/project.json
+4. ✅ `visual_gate.run_check` — step_num set internally instead of fragile external assignment
+5. ✅ `project_orchestrator.create_project` — uses shared SKIP_DIRS constant
+6. ✅ `project_orchestrator.execute_phase` — checks `verdict=="accept"` not `"passed"` key
+
+**Result:** 1,805 tests passing, VPS synced and restarted
 
 ---
 
