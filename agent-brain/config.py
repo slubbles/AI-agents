@@ -35,9 +35,9 @@ FAST_MODEL = (
 )
 
 PREMIUM_MODEL = (
-    "anthropic/claude-sonnet-4"  # Sacred — never cut corners. Via OpenRouter when direct balance empty.
+    "anthropic/claude-sonnet-4"  # Sacred — never cut corners. All LLM via OpenRouter (single billing).
     if OPENROUTER_API_KEY
-    else "claude-sonnet-4-20250514"
+    else "claude-sonnet-4-20250514"  # fallback if OpenRouter key missing
 )
 
 # Tier 4 (CHAT): Google Gemini 2.0 Flash — cheap, fast, reasoning support
