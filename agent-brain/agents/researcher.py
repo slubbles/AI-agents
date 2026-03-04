@@ -426,6 +426,16 @@ Research question: {question}"""
             tools.append(BROWSER_FETCH_TOOL)
             tools.append(BROWSER_SEARCH_TOOL)
     
+    # Add Threads tools when API is configured
+    _threads_available = False
+    try:
+        from tools.threads_client import is_configured as threads_configured, THREADS_SEARCH_TOOL
+        if threads_configured():
+            tools.append(THREADS_SEARCH_TOOL)
+            _threads_available = True
+    except ImportError:
+        pass
+    
     search_count = 0
     fetch_count = 0
     empty_search_count = 0  # Track searches that returned 0 results
@@ -586,6 +596,42 @@ Research question: {question}"""
                             "type": "tool_result",
                             "tool_use_id": block.id,
                             "content": content[:12000],
+                        })
+                        continue
+
+                    # Handle threads_search tool (Threads API)
+                    if tool_name == "threads_search" and _threads_available:
+                        search_count += 1
+                        if search_count > MAX_SEARCHES:
+                            tool_results.append({
+                                "type": "tool_result",
+                                "tool_use_id": block.id,
+                                "content": '{"error": "Search limit reached. Compile findings now."}',
+                            })
+                            continue
+                        query = block.input.get("query", "")
+                        limit = min(block.input.get("limit", 10), 25)
+                        print(f"  [THREADS SEARCH] \"{query}\" (limit={limit})")
+                        try:
+                            from tools.threads_client import search_threads
+                            results = search_threads(query, limit=limit)
+                            content_parts = [f"Threads search results for: {query}"]
+                            for r in results:
+                                user = r.get("username", "?")
+                                text = r.get("text", "")[:300]
+                                ts = r.get("timestamp", "")
+                                content_parts.append(f"@{user} ({ts}): {text}")
+                            content = "\n\n".join(content_parts)
+                            print(f"  [THREADS SEARCH] Got {len(results)} posts")
+                            tool_log.append({"tool": "threads_search", "query": query, "success": True, "results": len(results)})
+                        except Exception as e:
+                            content = f'{{"error": "Threads search failed: {e}"}}'
+                            print(f"  [THREADS SEARCH] FAILED: {e}")
+                            tool_log.append({"tool": "threads_search", "query": query, "success": False, "error": str(e)})
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": content[:10000],
                         })
                         continue
 

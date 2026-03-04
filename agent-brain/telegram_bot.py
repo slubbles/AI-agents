@@ -405,6 +405,12 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "/approve — Approve a pending build\n"
             "/reject — Reject a pending build\n"
             "/pipeline — Show active pipelines\n\n"
+            "<b>Threads Commands:</b>\n"
+            "/threads search &lt;query&gt; — Search Threads posts\n"
+            "/threads post &lt;text&gt; — Publish to Threads\n"
+            "/threads draft &lt;topic&gt; — AI-generated post draft\n"
+            "/threads analyze &lt;query&gt; — Pain point analysis\n"
+            "/threads insights — Engagement stats\n\n"
             "<b>System Commands:</b>\n"
             "/status — System status + budget\n"
             "/kitchen — What's cooking right now (live daemon view)\n"
@@ -658,6 +664,154 @@ def _handle_command(chat_id: str, command: str) -> str | None:
                 )
         
         return "\n".join(lines)
+    
+    # ── Threads Commands ────────────────────────────────────────────────
+    
+    if cmd_name == "/threads":
+        from tools.threads_client import is_configured as threads_configured
+        
+        if not threads_configured():
+            return (
+                "⚠️ <b>Threads API not configured</b>\n\n"
+                "Set in .env:\n"
+                "  THREADS_ACCESS_TOKEN=...\n"
+                "  THREADS_USER_ID=...\n\n"
+                "Get these from the Meta Developer Dashboard."
+            )
+        
+        # Sub-commands: /threads search|post|insights|draft|analytics
+        sub_parts = cmd_arg.split(None, 1) if cmd_arg else []
+        sub_cmd = sub_parts[0] if sub_parts else "help"
+        sub_arg = sub_parts[1] if len(sub_parts) > 1 else ""
+        
+        if sub_cmd == "help" or not cmd_arg:
+            return (
+                "🧵 <b>Threads Commands</b>\n\n"
+                "/threads search &lt;query&gt; — Search for posts\n"
+                "/threads post &lt;text&gt; — Publish a post\n"
+                "/threads draft &lt;topic&gt; — Generate a post draft\n"
+                "/threads insights — Recent engagement stats\n"
+                "/threads analytics — Profile-level analytics\n"
+                "/threads analyze &lt;query&gt; — Pain point analysis\n"
+            )
+        
+        if sub_cmd == "search":
+            if not sub_arg:
+                return "Usage: /threads search &lt;query&gt;"
+            from tools.threads_client import search_threads, ThreadsAPIError
+            try:
+                results = search_threads(sub_arg, limit=10)
+                if not results:
+                    return f"🔍 No Threads posts found for: <b>{sub_arg}</b>"
+                lines = [f"🔍 <b>Threads Search: {sub_arg}</b>\n"]
+                for i, post in enumerate(results[:10], 1):
+                    text = (post.get("text") or "")[:150]
+                    user = post.get("username", "?")
+                    lines.append(f"{i}. @{user}: {text}")
+                return "\n".join(lines)
+            except ThreadsAPIError as e:
+                return f"❌ Search failed: {e}"
+        
+        if sub_cmd == "post":
+            if not sub_arg:
+                return "Usage: /threads post &lt;text&gt;\n(max 500 chars)"
+            from tools.threads_client import publish_post, ThreadsAPIError
+            try:
+                result = publish_post(text=sub_arg)
+                return f"✅ <b>Posted to Threads!</b>\n\nID: {result.get('id', '?')}"
+            except ThreadsAPIError as e:
+                return f"❌ Post failed: {e}"
+        
+        if sub_cmd == "draft":
+            if not sub_arg:
+                return "Usage: /threads draft &lt;topic&gt;\nExample: /threads draft freelance invoicing pain"
+            domain = _conversations.get_domain(chat_id)
+            from agents.threads_analyst import generate_post
+            from memory_store import load_knowledge_base
+            kb = load_knowledge_base(domain)
+            kb_text = kb.get("summary", "") if kb else ""
+            result = generate_post(
+                domain=domain,
+                topic=sub_arg,
+                knowledge_context=kb_text,
+            )
+            post_text = result.get("text", "")
+            hook = result.get("hook_type", "?")
+            eng = result.get("estimated_engagement", "?")
+            tags = " ".join(f"#{t}" for t in result.get("hashtags", []))
+            return (
+                f"📝 <b>Draft Post</b> ({hook} hook, est. {eng} engagement)\n\n"
+                f"{post_text}\n\n"
+                f"{tags}\n\n"
+                f"To publish: /threads post {post_text[:100]}..."
+            )
+        
+        if sub_cmd == "insights":
+            from tools.threads_client import get_recent_engagement, ThreadsAPIError
+            try:
+                data = get_recent_engagement(limit=10)
+                top = data.get("top_post")
+                top_text = f"\n\n🏆 Top post: {top['text'][:100]}..." if top else ""
+                return (
+                    f"📊 <b>Recent Threads Engagement</b>\n\n"
+                    f"Posts analyzed: {len(data.get('posts', []))}\n"
+                    f"Total views: {data['total_views']:,}\n"
+                    f"Total likes: {data['total_likes']:,}\n"
+                    f"Total replies: {data['total_replies']:,}\n"
+                    f"Avg engagement rate: {data['avg_engagement_rate']:.1f}%"
+                    f"{top_text}"
+                )
+            except ThreadsAPIError as e:
+                return f"❌ Insights failed: {e}"
+        
+        if sub_cmd == "analytics":
+            from tools.threads_client import get_profile_insights, ThreadsAPIError
+            try:
+                data = get_profile_insights()
+                lines = ["📈 <b>Profile Analytics</b>\n"]
+                for metric, value in data.items():
+                    lines.append(f"  {metric}: {value:,}" if isinstance(value, int) else f"  {metric}: {value}")
+                return "\n".join(lines)
+            except ThreadsAPIError as e:
+                return f"❌ Analytics failed: {e}"
+        
+        if sub_cmd == "analyze":
+            if not sub_arg:
+                return "Usage: /threads analyze &lt;query&gt;\nSearches Threads and analyzes pain points."
+            domain = _conversations.get_domain(chat_id)
+            _send_message(int(chat_id), f"🔍 Searching Threads for '{sub_arg}' and analyzing...")
+            
+            from tools.threads_client import search_threads, ThreadsAPIError
+            from agents.threads_analyst import analyze_pain_points
+            from domain_goals import get_goal
+            
+            try:
+                posts = search_threads(sub_arg, limit=25)
+                if not posts:
+                    return f"No Threads posts found for: {sub_arg}"
+                
+                goal = get_goal(domain)
+                goal_text = goal.get("description") if goal else None
+                analysis = analyze_pain_points(domain, sub_arg, posts, goal=goal_text)
+                
+                lines = [f"🧵 <b>Pain Point Analysis: {sub_arg}</b>\n"]
+                lines.append(f"Posts analyzed: {len(posts)}\n")
+                
+                for pp in analysis.get("pain_points", [])[:5]:
+                    lines.append(
+                        f"• <b>{pp.get('pain', '?')}</b> (score: {pp.get('score', 0):.1f})\n"
+                        f"  User says: \"{pp.get('user_language', '')}\"" 
+                    )
+                
+                if analysis.get("market_signals"):
+                    lines.append(f"\n📡 Signals: {', '.join(analysis['market_signals'][:3])}")
+                
+                lines.append(f"\n{analysis.get('summary', '')[:300]}")
+                return "\n".join(lines)
+            except ThreadsAPIError as e:
+                return f"❌ Analysis failed: {e}"
+        
+        return f"Unknown sub-command: {sub_cmd}. Use /threads for help."
     
     return None  # Not a recognized command
 

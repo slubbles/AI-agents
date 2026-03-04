@@ -4,8 +4,8 @@
 
 **Created:** March 3, 2026  
 **Last Updated:** March 4, 2026  
-**Status:** Active — Objectives 1-8 Complete, Phase 2 In Progress  
-**Codebase:** 44,483+ lines production, 1,764 tests passing
+**Status:** Active — Objectives 1-9 Complete, Phase 2 In Progress  
+**Codebase:** 44,483+ lines production, 1,805 tests passing
 
 ---
 
@@ -280,40 +280,77 @@ Artifacts: index.html (2,658 bytes, complete production HTML)
 
 ---
 
-## OBJECTIVE 9: Reddit Research Pipeline
+## OBJECTIVE 9: Threads Pipeline ✅ COMPLETE
 
-> **Purpose:** Brain finds real pain points from Reddit, not just web search.
+> **Purpose:** Brain + Growth use Threads API for research (pain points) and distribution (posting).
+> **Completed:** March 4, 2026
+> **Pivoted from Reddit:** Reddit API access too complicated. Will scrape Reddit separately for learning human posting style.
 
-### Task 9.1: Add PRAW client
-- [ ] Add `praw` to requirements.txt
-- [ ] Create `tools/reddit_client.py`:
-  - `search_posts(subreddit, query, limit, time_filter)`
-  - `get_top_posts(subreddit, limit)`
-  - `get_comments(post_id, limit)`
-- [ ] Test: can fetch posts from r/freelance
+### Implemented:
 
-### Task 9.2: Create Reddit Analyst Agent
-- [ ] Create `agents/reddit_analyst.py`:
-  - Takes raw Reddit posts
-  - Extracts pain points with user's exact language
-  - Scores each: specificity, frequency, buildability
-  - Returns top 3 opportunities with evidence
-- [ ] Test with real subreddit data
+**tools/threads_client.py — Full Meta Graph API client (pure stdlib, no deps):**
+- [x] `publish_post(text, image_url, reply_to_id, link_attachment)` — two-step container→publish
+- [x] `reply_to_thread(thread_id, text)` — reply wrapper
+- [x] `search_threads(query, limit, fields)` — keyword search across Threads
+- [x] `get_user_threads(limit)` — own posts
+- [x] `get_thread(thread_id)` / `get_thread_replies()` / `get_conversation()` — reading
+- [x] `get_thread_insights(thread_id)` — per-post views, likes, replies, reposts, shares
+- [x] `get_profile_insights()` — profile-level analytics
+- [x] `get_recent_engagement(limit)` — quick engagement summary with top post
+- [x] Rate limiting (250 calls/hour), publish cooldown (90s anti-spam)
+- [x] LLM tool definitions: `THREADS_SEARCH_TOOL`, `THREADS_POST_TOOL`, `THREADS_INSIGHTS_TOOL`
+- [x] `execute_threads_tool()` — tool_use executor for all 3 tools
 
-### Task 9.3: Wire into Brain's research loop
-- [ ] In `question_generator.py`, add `reddit_research` question type
-- [ ] Route opportunity-finding questions to Reddit analyst
-- [ ] Combine with web search for fuller picture
+**agents/threads_analyst.py — Content analysis agent:**
+- [x] `analyze_pain_points(domain, query, threads_data, goal)` — extract pain points, user language, market signals
+- [x] `analyze_content_strategy(domain, threads_data)` — extract patterns, hooks, formats, write drafts
+- [x] `generate_post(domain, topic, style, knowledge_context)` — AI-written post using Brain KB
 
-### Task 9.4: Dual output format
-- [ ] Reddit research produces two outputs:
-  1. `product_brief.md` — what to build
-  2. `marketing_brief.md` — user language for copy
-- [ ] Both passed to Cortex for downstream use
+**Brain integration (researcher.py):**
+- [x] `threads_search` tool auto-loaded when `THREADS_ACCESS_TOKEN` configured
+- [x] Researcher can search Threads alongside web search during research loops
+- [x] Handler in tool-use loop formats results as numbered posts for LLM
 
-**Done when:** Brain can research a domain using Reddit + web, producing actionable briefs.
+**Telegram commands:**
+- [x] `/threads search <query>` — search Threads posts
+- [x] `/threads post <text>` — publish to Threads
+- [x] `/threads draft <topic>` — AI-generated post draft using Brain KB
+- [x] `/threads analyze <query>` — search + pain point analysis
+- [x] `/threads insights` — recent engagement stats
+- [x] `/threads analytics` — profile-level metrics
+- [x] Updated `/start` help with Threads section
 
-**Estimated time:** 3-5 days
+**Config:**
+- [x] `THREADS_ENABLED` flag in config.py
+- [x] `threads_analyst` model assignment (CHEAPEST_MODEL — synthesis task)
+- [x] 41 new tests (1,805 total), all passing
+
+### Architecture:
+```
+/threads search "invoicing frustrated"
+  → threads_client.search_threads() → Meta Graph API
+  → Returns posts with text, username, timestamp
+
+/threads analyze "freelance invoicing"  
+  → search_threads(query, limit=25)
+  → threads_analyst.analyze_pain_points(posts)
+  → Structured: pain_points[], user_language[], market_signals[]
+
+/threads draft "invoicing tool launch"
+  → threads_analyst.generate_post(topic, KB context)
+  → Draft post with hook type, hashtags, engagement estimate
+
+Brain research loop:
+  → researcher.py auto-adds threads_search tool when API configured
+  → LLM can search Threads alongside web/browser during research
+```
+
+### Setup Required (user action):
+```
+# In agent-brain/.env:
+THREADS_ACCESS_TOKEN=<long-lived-token>
+THREADS_USER_ID=<your-threads-user-id>
+```
 
 ---
 
@@ -367,7 +404,7 @@ These are valid but come AFTER Objective 10 proves the system works:
 
 | Feature | Why Defer |
 |---------|-----------|
-| Threads API | Marketing comes after product ships |
+| Reddit Scraping | Scrape for human posting style (not API) |
 | Content Agent | Blog/SEO after first revenue |
 | Economics Agent | Need economics to track first |
 | Multi-VPS scaling | Prove one instance first |
@@ -392,7 +429,7 @@ OBJECTIVE 7 (Prove Pipeline)
 OBJECTIVE 8 (Cortex Pipeline)
        │
        ▼
-OBJECTIVE 9 (Reddit Research)
+OBJECTIVE 9 (Threads Pipeline)
        │
        ▼
 OBJECTIVE 10 (Full SaaS Build)
@@ -412,7 +449,7 @@ OBJECTIVE 10 (Full SaaS Build)
 | 6. Fix Foundation | 2-4 hours | Day 1 |
 | 7. Prove Pipeline | 1-2 days | Day 3 |
 | 8. Cortex Pipeline | 2-3 days | Day 6 |
-| 9. Reddit Pipeline | 3-5 days | Day 11 |
+| 9. Threads Pipeline | 1 day | Day 7 |
 | 10. Full SaaS Build | 1-2 weeks | Day 25 |
 
 **Total remaining: 3-4 weeks of focused work.**

@@ -104,6 +104,7 @@ MODELS = {
     "cross_domain": PREMIUM_MODEL,                  # principle abstraction
     "verifier": PREMIUM_MODEL,                      # reality checking is sacred
     "cortex_orchestrator": PREMIUM_MODEL,           # strategic reasoning above Brain+Hands
+    "threads_analyst": CHEAPEST_MODEL,               # synthesis task — cheapest wins
 }
 
 # --- Quality Gate ---
@@ -206,6 +207,10 @@ BROWSER_MAX_FETCHES = 3           # max browser fetches per research run (browse
 
 # --- Credential Vault ---
 VAULT_PASSPHRASE_ENV = "VAULT_PASSPHRASE"  # env var name for vault master passphrase
+
+# --- Threads API (Meta) ---
+THREADS_ENABLED = bool(os.environ.get("THREADS_ACCESS_TOKEN", ""))
+THREADS_MAX_SEARCHES_PER_RUN = 3          # max Threads searches per research run
 
 # --- VPS Deploy ---
 DEPLOY_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "deploy", "vps_config.json")
