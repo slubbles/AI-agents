@@ -1,10 +1,11 @@
-# CORTEX MASTER PLAN
+# CORTEX MASTER PLAN v2.0
 
 > **Goal:** Tell Cortex a niche → get back a live, beautiful, production-ready full-stack web application — with zero human code written in between.
 
-**Created:** March 3, 2026
-**Status:** Active
-**Estimated timeline:** 4–8 weeks of focused work
+**Created:** March 3, 2026  
+**Last Updated:** March 4, 2026  
+**Status:** Active — Objectives 1-5 Complete, Phase 2 Beginning  
+**Codebase:** 44,483 lines production, 1,737 tests passing
 
 ---
 
@@ -26,7 +27,7 @@ No code written by you. Brain and Hands fully integrated. Cortex supervising end
 
 ---
 
-## Architecture (what we're building toward)
+## Architecture (Current Implementation)
 
 ```
 YOU
@@ -44,459 +45,430 @@ CORTEX ORCHESTRATOR (agents/cortex.py + scheduler.py)
  │                copy, design direction, success criteria
  │
  └──→ AGENT HANDS (self-coordinating)
-        Phase 0: Context Intake (brief → PRD)
-        Phase 1: Architecture (spec → blueprint)
-        Phase 2: Workspace (scaffold + Supabase setup)
-        Phase 3: Backend (API + auth + DB)
-        Phase 4: Frontend (UI + visual feedback loop)
-        Phase 5: Integration (Playwright end-to-end testing)
-        Phase 6: DevOps (deploy to Vercel, live URL)
-        Phase 7: Critic (score output, extract lessons)
+        Planner → Executor → Validator → Visual Gate
+        Project Orchestrator coordinates phases
+        Visual Evaluator scores screenshots via Claude Vision
+        7 tool categories (code, terminal, git, search, http, browser)
 ```
 
-**Communication protocol:**
-- Cortex → Brain: `research_request`, `query_knowledge`, `store_lessons`
-- Cortex → Hands: `build_task`, `inject_context`, `pause_build`, `abort_build`
-- Brain → Cortex: `research_complete`, `knowledge_query_result`
-- Hands → Cortex: `phase_complete`, `context_needed`, `build_complete`, `build_failed`
-- Cortex → You: `task_complete`, `decision_needed` (rare), `status_update`
+**Communication Protocol (protocol.py — 10 message types):**
+```
+Brain → Cortex:     ResearchComplete
+Cortex → Brain:     ResearchRequest
+Cortex → Hands:     BuildTask
+Hands → Cortex:     PhaseComplete, ContextNeeded, BuildComplete, BuildFailed
+Cortex → Brain:     ContextResponse (KB query)
+Cortex → You:       TaskComplete (Telegram summary)
+Internal:           JournalEntry (audit trail)
+```
 
 ---
 
-## Current State (March 3, 2026)
+## Current State (March 4, 2026)
 
-**What works:**
-- Agent Brain 5-layer self-learning loop (research → critique → strategy evolution)
-- 4,053 outputs in DB, 1,538 tests passing, 41,600 lines of code
-- Daemon running on VPS (207.180.219.27), Telegram bot active
-- 4-tier model routing, pre-screener saving ~40% Claude costs
-- Identity layer (5 files), RAG memory (ChromaDB), knowledge graphs
-- Cortex strategic planning (recommends focus domains each cycle)
+### What's Built & Working ✅
 
-**What's broken (3 critical bugs):**
-1. **Budget desync** — `check_budget()` reads JSONL ($0.60) while DB has $25.46
-2. **Brain→Hands pipeline dead** — 37 tasks pending, 0 ever executed (type mismatch)
-3. **Watchdog stuck in cooldown** — "all" meta-domain triggers phantom cooldowns
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Agent Brain 5-layer self-learning | ✅ Complete | All layers proven |
+| Communication Protocol | ✅ Complete | 10 typed dataclass messages |
+| Playwright Visual System | ✅ Complete | Browser tool, evaluator, gate |
+| Design Standards | ✅ Complete | design_system.md, marketing_design.md, visual_rubric |
+| Identity Layer | ✅ Complete | 8 files (boundaries, ethics, goals, design, etc.) |
+| Hands Pipeline | ✅ Built | Planner, Executor, Validator, Visual Gate |
+| 4-Tier Model Routing | ✅ Working | DeepSeek → Grok → Claude → Gemini |
+| Daemon + Watchdog | ✅ Running | VPS active (budget_halt state) |
+| Telegram Bot | ✅ Active | Alerts + chat interface |
 
-**What's partial:**
-- Strategy evolution stalled (domains stuck in trial, need volume)
-- productized-services quality regression (8.25 → 2.9)
-- Hands has never completed a single execution
-- No visual feedback loop (no Playwright)
-- No Supabase MCP, no Vercel MCP
-- Dashboard built but not deployed
+### Statistics
+
+| Metric | Value |
+|--------|-------|
+| Production Python | 44,483 lines |
+| Test Python | 24,998 lines |
+| Tests Passing | 1,737 |
+| Agent Brain Files | ~25 files |
+| Agent Hands Files | ~30 files |
+| Git Commits (Phase 1) | 6 objectives completed |
+
+### VPS State
+
+| Property | Value |
+|----------|-------|
+| IP | 207.180.219.27 |
+| Git Version | d9800ca (5 commits behind main) |
+| Services | Active (budget_halt state) |
+| Daily Budget | $7.00 ($2 Claude + $5 OpenRouter) |
+
+### Known Issues (Low Severity)
+
+4 stale imports that will cause runtime failures if those code paths execute:
+1. `sync.py`: imports `execute` (should be `execute_plan`)
+2. `sync.py`: imports `validate` (should be `validate_execution`)
+3. `project_orchestrator.py`: same stale import
+4. `scheduler.py`: `execute_plan()` call missing `page_type` param
 
 ---
 
-## OBJECTIVE 1: Stop the Bleeding
+## COMPLETED OBJECTIVES (Phase 1)
 
-> **Purpose:** Unblock the entire system. Three bugs prevent everything downstream.
+### ✅ OBJECTIVE 1: Stop the Bleeding (Commit: d9800ca)
 
-### Task 1.1: Fix budget tracking desync
-- [ ] Make `get_daily_spend()` in `cost_tracker.py` read from SQLite DB instead of JSONL
-- [ ] Keep JSONL write for backward compat, but DB is source of truth for reads
-- [ ] Make `get_all_time_spend()` also read from DB
-- [ ] Update `check_budget()` — it calls `get_daily_spend()` so it auto-fixes
-- [ ] Update `check_balance()` — it calls `get_all_time_spend()` so it auto-fixes
-- [ ] Verify: `check_budget()` returns numbers matching DB, not JSONL
-- [ ] Run existing cost_tracker tests, ensure all pass
+**Fixed 3 critical bugs:**
+1. ✅ Budget desync — now reads from SQLite as source of truth
+2. ✅ Brain→Hands task type mismatch — keywords mapped correctly
+3. ✅ Watchdog cooldown stall — filters invalid domains
 
-**Where the bug is:** [cost_tracker.py](agent-brain/cost_tracker.py#L57-L107) — `get_daily_spend()` and `get_all_time_spend()` both parse `costs.jsonl` line-by-line. Should query `db.py` instead.
+**Result:** Deployed to VPS, daemon running, 1,538 tests passing
 
-**Why it matters:** The daemon thinks it has $6.40 remaining when it actually has $0. It will keep spending past budget because it's reading the wrong file.
+---
 
-### Task 1.2: Fix Brain→Hands task type mismatch
-- [ ] In `main.py` `_ACTION_KEYWORDS`, change keywords that map to `"investigate"` to either `"action"` or remove them from task creation
-- [ ] OR: In `scheduler.py` line 1105, expand the filter to also accept `"investigate"` and `"deploy"` task types
-- [ ] Better fix: In `main.py` `_create_tasks_from_research()`, map `knowledge_gaps` to `task_type="action"` with `priority="low"` instead of `"investigate"`
-- [ ] Clean up 37 stale `"investigate"` tasks in VPS sync_tasks.json (mark as dropped or convert type)
-- [ ] Verify: create a test task with type `"build"` → confirm Hands picks it up in daemon
-- [ ] Run sync tests, ensure all pass
+### ✅ OBJECTIVE 2: Prompt Upgrades (Commit: f89f0e0)
 
-**Where the bug is:**
-- [main.py](agent-brain/main.py#L85-L100) creates tasks with `task_type="investigate"` and `"deploy"`
-- [scheduler.py](agent-brain/scheduler.py#L1105) only executes `"build"` and `"action"` types
-- Result: 36 `"investigate"` tasks + 1 `"deploy"` task sitting forever in pending
+**Completed:**
+- ✅ `identity/boundaries.md` — operational limits defined
+- ✅ `hands/planner.py` — structured plan generation prompt
+- ✅ `hands/executor.py` — anti-patterns, tool constraints
+- ✅ `agents/cortex.py` — strategic reasoning prompt
+- ✅ `identity/design_system.md` v1.0 — app UI standard
 
-**Why it matters:** Brain has been creating tasks for Hands for weeks. Hands has never seen a single one. This is the #1 blocker for the entire Brain→Hands pipeline.
+---
 
-### Task 1.3: Fix watchdog cooldown stall
-- [ ] Investigate what domain value is causing phantom cooldowns on VPS
-- [ ] In `scheduler.py`, filter out meta-domains like `"all"` from Cortex focus_domains before applying priorities
-- [ ] In `_apply_cortex_priorities()`, skip any domain that doesn't exist in the actual memory directory
-- [ ] Reset watchdog state on VPS: clear `watchdog_state.json` cooldown_until and set state to "running"
-- [ ] Verify: daemon runs multiple consecutive cycles without entering cooldown spuriously
-- [ ] Run watchdog tests, ensure all pass
+### ✅ OBJECTIVE 3: Full Three-Way Communication (Commit: 62afba9)
 
-**Where the bug is:** [scheduler.py](agent-brain/scheduler.py#L570-L610) — `_apply_cortex_priorities()` injects focus_domains into the plan. If Cortex recommends `"all"` as a domain (from its LLM response), the scheduler tries to allocate rounds to a domain called `"all"` which doesn't exist, causing downstream failures → watchdog trips → 30min cooldown.
+**Created `protocol.py` with 10 typed message dataclasses:**
+- ResearchRequest, ResearchComplete
+- BuildTask, PhaseComplete, ContextNeeded, ContextResponse
+- BuildComplete, BuildFailed
+- TaskComplete, JournalEntry
 
-**Why it matters:** The daemon stalls every cycle. It runs one cycle, hits cooldown, waits 30 minutes, runs one cycle, hits cooldown again. Should be running continuously.
+**Result:** 43 new tests, 1,581 total passing
 
-### Task 1.4: Deploy fixes to VPS
-- [ ] Commit all Objective 1 fixes
+---
+
+### ✅ OBJECTIVE 4: Give Hands Eyes (Commit: 47b2522)
+
+**Built Playwright visual feedback system:**
+- ✅ `hands/tools/browser.py` — screenshot, navigate, click, fill, wait_for
+- ✅ `hands/visual_evaluator.py` — Claude Vision scoring
+- ✅ `hands/visual_gate.py` — mid-build visual checks
+- ✅ Executor integration with visual feedback loop
+
+**Result:** 62 new tests, 1,643 total passing
+
+---
+
+### ✅ OBJECTIVE 5: Train the Visual Standard (Commit: 497490b)
+
+**Created comprehensive design standards:**
+- ✅ `identity/design_system.md` v1.1 — app UI (420+ lines)
+- ✅ `identity/marketing_design.md` — marketing pages (325+ lines)
+- ✅ `identity/visual_scoring_rubric.md` — calibration guide (143+ lines)
+- ✅ Page-type aware loading (app vs marketing)
+- ✅ Score persistence for strategy evolution
+
+**Result:** 67 new tests, 1,710 total passing
+
+---
+
+### ✅ AUDIT PASS (Commit: f0e85fd)
+
+**Fixed 3 additional bugs:**
+- ✅ CLI page_type wiring — `_detect_page_type()` now passes correctly
+- ✅ Abort cleanup leak — `visual_gate.cleanup()` called on abort
+- ✅ No `__del__` safety — added to VisualGate class
+
+**Result:** 27 new tests, 1,737 total passing
+
+---
+
+## PHASE 2: PROVE THE PIPELINE
+
+> **Purpose:** Test what we built. One instruction → one live URL. Fix what breaks.
+
+---
+
+## OBJECTIVE 6: Fix Remaining Foundation
+
+> **Purpose:** Clean up 4 stale imports that will cause runtime failures.
+
+### Task 6.1: Fix sync.py stale imports
+- [ ] Change `from hands.executor import execute` → `from hands.executor import execute_plan`
+- [ ] Change `from hands.validator import validate` → `from hands.validator import validate_execution`
+- [ ] Run tests to verify imports work
+
+### Task 6.2: Fix project_orchestrator.py stale import
+- [ ] Same `execute` → `execute_plan` fix
+- [ ] Run tests to verify
+
+### Task 6.3: Fix scheduler.py execute_plan call
+- [ ] Add `page_type` parameter to `execute_plan()` call
+- [ ] Add `visual_context` parameter if needed
+- [ ] Run tests to verify
+
+### Task 6.4: Update VPS
+- [ ] Commit all fixes
 - [ ] Push to GitHub
-- [ ] SSH to VPS, `git pull`, restart `cortex-daemon.service`
-- [ ] Monitor via Telegram: budget numbers correct, cycles running, no phantom cooldowns
-- [ ] Verify at least one research cycle completes end-to-end without issues
+- [ ] SSH to VPS: `git pull`
+- [ ] Restart services: `systemctl restart cortex-daemon cortex-telegram`
+- [ ] Verify services start clean
 
-**Done when:** Daemon runs full cycles without cooldown. Budget numbers match reality. Sync queue has at least one `"build"` or `"action"` task.
+### Task 6.5: Verify tests pass
+- [ ] Run full test suite: `pytest tests/ -v`
+- [ ] Confirm 1,737+ tests still passing
+- [ ] Fix any regressions
 
----
+**Done when:** All imports correct, VPS updated, tests green.
 
-## OBJECTIVE 2: First Hands Execution
-
-> **Purpose:** Prove the pipeline works. One task in → one live URL out.
-
-### Task 2.1: Hardcode one test task
-- [ ] Create a manual sync task: `task_type="build"`, `priority="high"`
-- [ ] Task description: "Build a Next.js landing page for [one OLJ company Brain already researched]"
-- [ ] Pull company info from Brain's existing knowledge base for the domain
-- [ ] Insert task into sync_tasks.json
-
-### Task 2.2: Verify Hands planner works
-- [ ] Run `hands/planner.py` with the test task's goal and description
-- [ ] Confirm it produces a valid step-by-step plan
-- [ ] Confirm the plan uses tools that exist in the registry (code, terminal, git, search, http)
-- [ ] Debug any import errors, model config issues, or missing dependencies
-
-### Task 2.3: Verify Hands executor works
-- [ ] Run `hands/executor.py` with the planner's output
-- [ ] Confirm it writes actual files to the workspace
-- [ ] Confirm terminal commands execute (npx create-next-app, npm install, etc.)
-- [ ] Debug any tool execution failures, timeout issues, or workspace path problems
-
-### Task 2.4: Verify build passes
-- [ ] After executor completes, run `npm run build` in the generated project
-- [ ] If build fails: feed error back to executor for one retry
-- [ ] Confirm: a clean Next.js build with zero errors
-
-### Task 2.5: Deploy to Vercel
-- [ ] Install Vercel CLI in the workspace/VPS if not present
-- [ ] Configure Vercel project (or use --yes flag for auto-setup)
-- [ ] Run `vercel --prod` from the generated project directory
-- [ ] Capture the live URL from Vercel's output
-- [ ] Verify: URL loads a real page in the browser
-
-### Task 2.6: Report result back through the pipeline
-- [ ] Hands stores execution result in exec_memory
-- [ ] Sync task updated to `"completed"` with result URL
-- [ ] Telegram notification sent with the live URL
-- [ ] Confirm the full pipeline: task created → Hands executes → URL returned → Telegram notified
-
-### Task 2.7: Run in daemon mode
-- [ ] Once manual test works, let the daemon pick up a `"build"` task autonomously
-- [ ] Confirm: daemon finds task → Hands executes → URL returned → no human intervention
-- [ ] Monitor cost: how much did one Hands execution cost?
-
-**Done when:** You receive a Telegram message with a live Vercel URL that you can open in your browser. You wrote zero code for that page.
+**Estimated time:** 2-4 hours
 
 ---
 
-## OBJECTIVE 3: Full Three-Way Communication
+## OBJECTIVE 7: Prove End-to-End Pipeline
 
-> **Purpose:** Brain feeds Hands through Cortex. Cortex supervises. You talk only to Cortex.
+> **Purpose:** One manual build test to prove everything works together.
 
-### Task 3.1: Define message protocol as Python dataclasses
-- [ ] Create `agent-brain/protocol.py` with typed message classes:
-  - `ResearchRequest(domain, question, depth, urgency)`
-  - `ResearchComplete(findings, confidence, cost)`
-  - `BuildTask(spec, brief, constraints, budget_cap)`
-  - `PhaseComplete(phase, artifact_path, cost)`
-  - `ContextNeeded(phase, question)`
-  - `BuildComplete(url, test_results, total_cost)`
-  - `BuildFailed(phase, reason, retry_count)`
-  - `TaskComplete(result, cost, confidence, summary)` → for Telegram
-- [ ] All messages are JSON-serializable dicts (simple, no over-engineering)
+### Task 7.1: Create test task manually
+- [ ] Create a `BuildTask` with minimal scope:
+  ```python
+  BuildTask(
+    spec="Build a simple contact form landing page",
+    brief="Single page with name, email, message fields",
+    constraints=["Next.js", "Tailwind", "No backend needed"],
+    budget_cap=1.50
+  )
+  ```
+- [ ] Save to sync queue
 
-### Task 3.2: Cortex → Brain → Cortex → Hands flow
-- [ ] In `agents/cortex.py`, add `research_and_build(domain, instruction)`:
-  1. Calls Brain's research loop (existing `run_loop()`)
-  2. If research accepted (score ≥ 6): extract brief
-  3. Create a `BuildTask` with the brief
-  4. Insert into sync queue with `task_type="build"`, `priority="high"`
-- [ ] Test: call `research_and_build("productized-services", "Build a landing page for a logistics company")`
-- [ ] Verify: Brain researches → task created → Hands picks it up → URL returned
+### Task 7.2: Test Planner
+- [ ] Run planner with the task
+- [ ] Verify: produces valid step-by-step plan
+- [ ] Verify: uses tools that exist in registry
+- [ ] Fix any failures
 
-### Task 3.3: Hands → Cortex mid-build context requests
-- [ ] In Hands executor, add ability to query Brain's knowledge base mid-execution
-- [ ] When Hands hits a "need more context" situation (e.g., writing copy), it:
-  1. Sends `ContextNeeded(phase="frontend", question="What words do users use to describe their pain?")`
-  2. Cortex routes to Brain's RAG/knowledge base
-  3. Brain returns specific context
-  4. Hands injects context into the current prompt
-- [ ] Start simple: Hands can call `query_knowledge(domain, question)` directly
-- [ ] Later: route through Cortex for supervision
+### Task 7.3: Test Executor
+- [ ] Run executor with planner's output
+- [ ] Verify: writes files to workspace
+- [ ] Verify: terminal commands execute
+- [ ] Verify: dev server starts
+- [ ] Fix any failures
 
-### Task 3.4: Cortex status monitoring during builds
-- [ ] Cortex tracks which build phase Hands is in
-- [ ] After each phase, Cortex evaluates: continue or intervene?
-- [ ] If cost exceeds budget_cap → Cortex aborts
-- [ ] If same phase fails 3x → Cortex escalates (Telegram alert + pause)
-- [ ] Progress updates logged to cortex_journal.jsonl
+### Task 7.4: Test Visual Gate
+- [ ] Trigger visual gate mid-build
+- [ ] Verify: screenshot captured
+- [ ] Verify: Claude Vision scores it
+- [ ] Verify: fix instructions generated if score < 8
+- [ ] Fix any failures
 
-### Task 3.5: End-to-end integration test
-- [ ] You send one message to Cortex (via Telegram or CLI): "Research web agencies and build a landing page"
-- [ ] Cortex → Brain researches → Cortex evaluates → Cortex → Hands builds → Hands deploys
-- [ ] You receive: Telegram message with URL, cost summary, confidence score
-- [ ] No human intervention between instruction and result
+### Task 7.5: Test Validator
+- [ ] Run validator on executor output
+- [ ] Verify: produces structured score
+- [ ] Verify: score stored correctly
+- [ ] Fix any failures
 
-**Done when:** You type one sentence to Cortex and receive a live URL without touching anything in between. Brain's research is visibly reflected in the output (correct industry, correct copy, correct pain points).
+### Task 7.6: Test Full Pipeline via CLI
+- [ ] Run: `python main.py execute --task "Build simple contact form landing page"`
+- [ ] Watch the full flow: Planner → Executor → Visual Gate → Validator
+- [ ] Note what breaks, fix it
+- [ ] Repeat until clean execution
 
----
+### Task 7.7: Deploy to Vercel Manually
+- [ ] Run `vercel --prod` in generated project
+- [ ] Capture live URL
+- [ ] Screenshot live URL
+- [ ] Verify: page loads correctly
 
-## OBJECTIVE 4: Give Hands Eyes (Playwright Visual Feedback)
+### Task 7.8: Wire Telegram Notification
+- [ ] After successful deploy, send Telegram message with URL
+- [ ] Test: URL + score + cost summary arrives
 
-> **Purpose:** Hands can see what it built. Fixes visual problems autonomously.
+**Done when:** You run one CLI command and receive a Telegram message with a live URL.
 
-### Task 4.1: Add Playwright to the stack
-- [ ] Add `playwright` to requirements.txt
-- [ ] Install browser binaries (`playwright install chromium`)
-- [ ] Create `hands/tools/browser_tool.py`:
-  - `screenshot(url, viewport?)` → returns base64 image
-  - `navigate(url)` → loads page
-  - `click(selector)` → clicks element
-  - `fill(selector, text)` → fills input
-  - `wait_for(selector)` → waits for element
-- [ ] Register browser tool in `hands/tools/registry.py`
-- [ ] Test: screenshot a known URL, verify image is captured
-
-### Task 4.2: Visual evaluation after build
-- [ ] After Hands deploys (Phase 6), take screenshot of live URL
-- [ ] Pass screenshot to Claude with prompt: "Evaluate this web page. Does it look production-ready? What specific visual issues do you see?"
-- [ ] Claude returns structured feedback: `{score: 7, issues: ["navbar too cramped", "no mobile responsiveness"]}`
-- [ ] If score ≥ 8: accept
-- [ ] If score < 8: one fix pass with specific issues, redeploy, screenshot again
-- [ ] Max 2 visual iteration rounds (prevent infinite loop)
-
-### Task 4.3: Mid-build visual checks (Frontend Phase)
-- [ ] During Phase 4 (Frontend), after each major component group:
-  - Start dev server (`npm run dev`)
-  - Screenshot localhost
-  - Claude evaluates component-by-component
-  - Fix issues before moving to next component group
-- [ ] This catches problems early — don't wait until deploy to see the UI is broken
-
-### Task 4.4: Reference image comparison
-- [ ] Brain's research can include reference screenshots (from competitor sites)
-- [ ] During visual evaluation, inject reference: "The target aesthetic is similar to [reference]. Compare."
-- [ ] Claude vision compares: current output vs reference → specific gap analysis
-- [ ] Hands fixes gaps
-
-**Done when:** Hands autonomously fixes something it saw was wrong in a screenshot, without you telling it what to fix. The fix is visible in the next screenshot.
+**Estimated time:** 1-2 days
 
 ---
 
-## OBJECTIVE 5: Train the Visual Standard
+## OBJECTIVE 8: Wire Cortex Pipeline Method
 
-> **Purpose:** Every app Cortex builds looks intentional, consistent, and beautiful.
+> **Purpose:** Full Brain → Cortex → Hands flow, not just Hands alone.
 
-### Task 5.1: Brain researches design quality
-- [ ] Run Brain research on: "What makes a web app look production-ready?"
-- [ ] Topics: shadcn/ui best practices, Tailwind patterns, Framer Motion, modern SaaS aesthetics
-- [ ] Brain scores and synthesizes into structured knowledge
-- [ ] Extract: specific rules, patterns, anti-patterns
+### Task 8.1: Complete cortex.py pipeline() method
+- [ ] Implement research phase:
+  ```python
+  research_req = ResearchRequest(domain=niche, question=f"Find opportunity in {niche}")
+  brain_result = self._send_to_brain(research_req)
+  ```
+- [ ] Implement approval gate:
+  ```python
+  self._send_telegram(f"Brain found: {summary}. Approve? /yes /no")
+  approval = self._wait_for_approval(timeout=3600)
+  ```
+- [ ] Implement build phase:
+  ```python
+  build_task = BuildTask(spec=product_brief, budget=budget_cap)
+  build_result = self._send_to_hands(build_task)
+  ```
+- [ ] Implement completion:
+  ```python
+  self._send_telegram(f"Build complete: {url}")
+  ```
 
-### Task 5.2: Write the design system prompt
-- [ ] Create `identity/design_system.md` — the visual standard Brain researched
-- [ ] Include:
-  - Component library: shadcn/ui
-  - Animation library: Framer Motion (specific animation patterns)
-  - Typography: font families, sizes, weights, line heights
-  - Color system: palette structure, dark mode, accent usage
-  - Spacing: 4px/8px grid, padding/margin rules
-  - Shadows, borders, hover states, focus rings
-  - Empty states, loading states, error states (all must be designed)
-  - Mobile-first responsive breakpoints
-  - What "good" looks like (with descriptions)
-  - What "bad" looks like (anti-patterns)
-- [ ] Version it in strategy store so it can evolve
+### Task 8.2: Add Telegram /build command
+- [ ] In `telegram_bot.py`, add handler for `/build <niche>`
+- [ ] Triggers `cortex.pipeline(niche)`
+- [ ] Shows progress updates per phase
+- [ ] Final message: live URL
 
-### Task 5.3: Write the marketing page prompt
-- [ ] Create `identity/marketing_design.md` — separate standard for landing/marketing pages
-- [ ] Include:
-  - Hero section structure
-  - Social proof patterns
-  - CTA design and placement
-  - Above-the-fold content rules
-  - Testimonial formatting
-  - Pricing table design
-  - Footer structure
-- [ ] These are conversion-optimized, not app-UX-optimized (different aesthetic)
+### Task 8.3: Test end-to-end via Telegram
+- [ ] Send: `/build contact form`
+- [ ] Watch: Brain researches (or uses existing KB)
+- [ ] Watch: Cortex asks for approval
+- [ ] Reply: `/yes`
+- [ ] Watch: Hands builds
+- [ ] Receive: live URL
 
-### Task 5.4: Inject into Hands pipeline
-- [ ] Hands frontend phase loads `identity/design_system.md` as system prompt prefix
-- [ ] Hands marketing builds load `identity/marketing_design.md` instead
-- [ ] The prompt is injected at the API call level — Hands doesn't think about design, it just executes Brain's standard
-- [ ] Test: build two different apps → both should look like they came from the same design team
+**Done when:** `/build <niche>` in Telegram produces a live URL.
 
-### Task 5.5: Visual scoring calibration
-- [ ] Define the visual scoring rubric (what 5/10 looks like vs 8/10 vs 10/10)
-- [ ] Critic uses this rubric when evaluating screenshots
-- [ ] Store visual scores alongside execution scores
-- [ ] Strategy evolution can now improve the design prompt based on visual scores
-
-**Done when:** Two different apps built by Hands look like they came from the same design team. A human looking at them would assume one designer made both.
+**Estimated time:** 2-3 days
 
 ---
 
-## OBJECTIVE 6: Full Production-Ready SaaS Build
+## OBJECTIVE 9: Reddit Research Pipeline
 
-> **Purpose:** The end goal. One niche → one complete, beautiful, working web application.
+> **Purpose:** Brain finds real pain points from Reddit, not just web search.
 
-### Task 6.1: Pick one specific niche and lock it in
-- [ ] Choose a niche with enough Brain research data (e.g., productized-services or a new targeted one)
-- [ ] Define precisely: who is the user, what is their pain, what is the core feature
-- [ ] Example: "Client portal for web agencies — freelancers share project status with clients"
-- [ ] Brain researches this niche deeply (at least 5 accepted outputs, score ≥ 7 average)
+### Task 9.1: Add PRAW client
+- [ ] Add `praw` to requirements.txt
+- [ ] Create `tools/reddit_client.py`:
+  - `search_posts(subreddit, query, limit, time_filter)`
+  - `get_top_posts(subreddit, limit)`
+  - `get_comments(post_id, limit)`
+- [ ] Test: can fetch posts from r/freelance
 
-### Task 6.2: Phase 0 — Context Intake
-- [ ] Brain's research → PRD (Product Requirements Document)
-- [ ] PRD includes: user persona, core feature, success criteria, tech stack, UI direction
-- [ ] One Claude Sonnet call with full research context
-- [ ] Output stored as `projects/{niche}/prd.md`
+### Task 9.2: Create Reddit Analyst Agent
+- [ ] Create `agents/reddit_analyst.py`:
+  - Takes raw Reddit posts
+  - Extracts pain points with user's exact language
+  - Scores each: specificity, frequency, buildability
+  - Returns top 3 opportunities with evidence
+- [ ] Test with real subreddit data
 
-### Task 6.3: Phase 1 — Architecture Agent
-- [ ] Takes PRD → produces blueprint
-- [ ] Outputs:
-  - File/folder structure
-  - API contract (endpoints, request/response shapes)
-  - Supabase schema (tables, relationships, RLS)
-  - Component hierarchy
-  - Environment variables list
-- [ ] **HUMAN REVIEW GATE** — you approve the blueprint before any code is written
-- [ ] Stored as `projects/{niche}/architecture.md`
+### Task 9.3: Wire into Brain's research loop
+- [ ] In `question_generator.py`, add `reddit_research` question type
+- [ ] Route opportunity-finding questions to Reddit analyst
+- [ ] Combine with web search for fuller picture
 
-### Task 6.4: Phase 2 — Workspace Setup
-- [ ] Scaffold Next.js project with App Router
-- [ ] Install dependencies: Tailwind, shadcn/ui, Framer Motion, Supabase client
-- [ ] Set up Supabase project (via MCP or manual for now)
-- [ ] Create database schema via SQL migration
-- [ ] Initialize Git repo
-- [ ] Verify: `npm run dev` starts without errors
-- [ ] Screenshot: blank slate confirmed
+### Task 9.4: Dual output format
+- [ ] Reddit research produces two outputs:
+  1. `product_brief.md` — what to build
+  2. `marketing_brief.md` — user language for copy
+- [ ] Both passed to Cortex for downstream use
 
-### Task 6.5: Phase 3 — Backend Agent
-- [ ] Build API routes one feature at a time
-- [ ] Auth flow: sign up, login, session management, logout
-- [ ] Core feature CRUD operations
-- [ ] Supabase RLS policies
-- [ ] Test each endpoint via HTTP tool before moving on
-- [ ] Verify: all endpoints return correct response shapes
-- [ ] Verify: auth works (can sign up, login, get session)
-- [ ] Verify: data persists correctly in Supabase
+**Done when:** Brain can research a domain using Reddit + web, producing actionable briefs.
 
-### Task 6.6: Phase 4 — Frontend Agent
-- [ ] Design system prompt injected from `identity/design_system.md`
-- [ ] Build order: layout shell → auth pages → core feature pages → settings → empty/loading/error states
-- [ ] For each component group:
-  - Write components
-  - Screenshot via Playwright
-  - Claude vision evaluates against design standard
-  - Fix visual issues
-  - Screenshot again (max 2 iterations per group)
-- [ ] Mobile responsive verification (viewport 375px screenshot)
+**Estimated time:** 3-5 days
 
-### Task 6.7: Phase 5 — Integration Agent
-- [ ] Playwright acts as a real user:
-  - Navigate to /signup
-  - Fill form, submit
-  - Verify redirect to dashboard
-  - Use the core feature (create/read/update/delete)
-  - Check Supabase: data persisted correctly
-  - Logout, login again — session restored
-  - Test error states (bad input, empty states)
-- [ ] `npm run build` passes clean
-- [ ] Fix anything that breaks
+---
 
-### Task 6.8: Phase 6 — DevOps Agent
-- [ ] Push to GitHub
-- [ ] Deploy to Vercel via CLI
-- [ ] Set production environment variables
-- [ ] Screenshot live URL (not localhost)
-- [ ] Run integration test suite against live URL
-- [ ] Verify: app works in production exactly as it did locally
+## OBJECTIVE 10: Full SaaS Build (The Transistor Test)
 
-### Task 6.9: Phase 7 — Critic + Learning
-- [ ] Score the full output against the PRD
-- [ ] Visual quality score from screenshot evaluation
-- [ ] Integration test pass rate
-- [ ] Total cost and time per phase
-- [ ] What failed and was retried
-- [ ] Store all lessons in exec_memory and Brain's knowledge base
-- [ ] Feed back to strategy store for next build
+> **Purpose:** The real test. One niche → one complete, working web application.
 
-### Task 6.10: Final delivery
-- [ ] Live URL sent to you via Telegram
-- [ ] Summary: what was built, for whom, cost, time, confidence score
-- [ ] GitHub repo link
-- [ ] Screenshot gallery of the live app
-- [ ] You open the URL and see a production-ready, beautiful web application
+### Task 10.1: Pick target niche
+- [ ] Choose niche with existing Brain research OR run new research
+- [ ] Example: "Simple invoicing for freelancers"
+- [ ] Define: user persona, core pain, MVP feature
 
-**Done when:** Cortex returns a live SaaS URL with working auth and one core feature. Playwright tested end-to-end. Looks beautiful. You didn't write a single line of code for it.
+### Task 10.2: Brain researches deeply
+- [ ] Reddit + web search
+- [ ] At least 5 accepted outputs
+- [ ] Competitive analysis
+- [ ] User language extraction
+
+### Task 10.3: Cortex approves build
+- [ ] Evaluates research confidence
+- [ ] Telegram prompt for human approval
+- [ ] Creates BuildTask with full brief
+
+### Task 10.4: Hands executes 7 phases
+- [ ] Phase 0: Context Intake → PRD.md
+- [ ] Phase 1: Architecture → ARCHITECTURE.md (human review gate)
+- [ ] Phase 2: Workspace → scaffold + Supabase
+- [ ] Phase 3: Backend → API routes + auth
+- [ ] Phase 4: Frontend → UI + visual iteration
+- [ ] Phase 5: Integration → Playwright tests
+- [ ] Phase 6: Deploy → Vercel live URL
+- [ ] Phase 7: Critic → score + lessons
+
+### Task 10.5: Verify success criteria
+- [ ] Live URL works
+- [ ] Auth flow works (signup, login, logout)
+- [ ] Core feature works (data persists)
+- [ ] Visual score ≥ 8/10
+- [ ] Playwright tests pass
+- [ ] You wrote zero code
+
+**Done when:** You type one sentence to Cortex, receive a live SaaS URL with working auth and core feature.
+
+**Estimated time:** 1-2 weeks
+
+---
+
+## DEFERRED (After Transistor Works)
+
+These are valid but come AFTER Objective 10 proves the system works:
+
+| Feature | Why Defer |
+|---------|-----------|
+| Threads API | Marketing comes after product ships |
+| Content Agent | Blog/SEO after first revenue |
+| Economics Agent | Need economics to track first |
+| Multi-VPS scaling | Prove one instance first |
+| Docker sandbox | Overkill until builds are frequent |
+| Supabase MCP | CLI/API sufficient for now |
+| Dashboard deploy | CLI monitoring is fine |
 
 ---
 
 ## Dependency Map
 
 ```
-OBJECTIVE 1 (Fix Bugs)
-    │
-    ▼
-OBJECTIVE 2 (First Hands Execution)
-    │
-    ├──────────────────┐
-    ▼                  ▼
-OBJECTIVE 3         OBJECTIVE 4
-(Three-Way Comm)    (Playwright Eyes)
-    │                  │
-    ▼                  ▼
-    └────────┬─────────┘
-             │
-             ▼
-      OBJECTIVE 5
-      (Visual Standard)
-             │
-             ▼
-      OBJECTIVE 6
-      (Full SaaS Build)
+✅ OBJECTIVE 1-5 (COMPLETE)
+       │
+       ▼
+OBJECTIVE 6 (Fix Foundation)
+       │
+       ▼
+OBJECTIVE 7 (Prove Pipeline)
+       │
+       ▼
+OBJECTIVE 8 (Cortex Pipeline)
+       │
+       ▼
+OBJECTIVE 9 (Reddit Research)
+       │
+       ▼
+OBJECTIVE 10 (Full SaaS Build)
+       │
+       ▼
+    SUCCESS
+    (Working Transistor)
 ```
-
-Objectives 3 and 4 can be worked in parallel after Objective 2 is complete.
-Objective 5 requires both 3 (Brain researches design) and 4 (Playwright to verify visual output).
-Objective 6 requires everything above it.
 
 ---
 
 ## Timeline (Honest)
 
-| Objective | Estimated Time | Cumulative |
-|-----------|---------------|------------|
-| 1. Fix Bugs | 1–2 days | Day 2 |
-| 2. First Hands Execution | 1–2 weeks | Week 2 |
-| 3. Three-Way Communication | 1–2 weeks | Week 3 |
-| 4. Playwright Visual Loop | 1 week | Week 3 (parallel with 3) |
-| 5. Visual Standard | 1 week | Week 4 |
-| 6. Full SaaS Build | 2–4 weeks | Week 6–8 |
+| Objective | Estimated | Cumulative |
+|-----------|-----------|------------|
+| ✅ 1-5 Complete | Done | Done |
+| 6. Fix Foundation | 2-4 hours | Day 1 |
+| 7. Prove Pipeline | 1-2 days | Day 3 |
+| 8. Cortex Pipeline | 2-3 days | Day 6 |
+| 9. Reddit Pipeline | 3-5 days | Day 11 |
+| 10. Full SaaS Build | 1-2 weeks | Day 25 |
 
-**Total: 6–8 weeks of focused work.**
-
----
-
-## What This Plan Does NOT Include (Deferred)
-
-These are all real and valid — but they come AFTER Objective 6 is proven:
-
-- **Growth Capability** (content, SEO, outreach, Reddit marketing)
-- **Reddit research pipeline** (PRAW integration, subreddit scraping)
-- **Outreach Agent** (posting to Reddit/Twitter)
-- **Analytics Agent** (monitoring signups, churn, activation)
-- **Economics Agent** (kill/pivot/double-down decisions)
-- **Multi-instance scaling** (new VPS per new Cortex)
-- **Docker sandbox isolation** (each build in its own container)
-- **Supabase MCP** (using CLI/API directly for now)
-- **Dashboard deployment** (CLI is fine for now)
-
-Each of these becomes its own Objective after the first beautiful webapp ships.
+**Total remaining: 3-4 weeks of focused work.**
 
 ---
 

@@ -332,7 +332,7 @@ def check_hands_health() -> dict:
 
     # Executor importable
     try:
-        from hands.executor import execute  # noqa: F401
+        from hands.executor import execute_plan  # noqa: F401
         checks["executor_importable"] = True
     except Exception as e:
         checks["executor_importable"] = False
@@ -348,7 +348,7 @@ def check_hands_health() -> dict:
 
     # Validator importable
     try:
-        from hands.validator import validate  # noqa: F401
+        from hands.validator import validate_execution  # noqa: F401
         checks["validator_importable"] = True
     except Exception as e:
         checks["validator_importable"] = False

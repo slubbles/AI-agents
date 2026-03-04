@@ -1193,6 +1193,8 @@ def _execute_hands_tasks(cycle: int, budget_remaining: float) -> list[dict]:
                             execution_strategy=strategy or "",
                             workspace_dir=workspace_dir,
                             research_context=_research_context,
+                            page_type="app",  # Default to app; future: detect from task
+                            visual_context=goal,  # Use task goal as visual context
                         )
                         
                         # Store result

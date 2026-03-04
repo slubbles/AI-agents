@@ -57,15 +57,15 @@ def _get_plan_task():
 def _get_execute_task():
     global _execute_task
     if _execute_task is None:
-        from hands.executor import execute
-        _execute_task = execute
+        from hands.executor import execute_plan
+        _execute_task = execute_plan
     return _execute_task
 
 def _get_validate():
     global _validate
     if _validate is None:
-        from hands.validator import validate
-        _validate = validate
+        from hands.validator import validate_execution
+        _validate = validate_execution
     return _validate
 
 # Directories
