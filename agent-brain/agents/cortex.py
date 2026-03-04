@@ -53,7 +53,7 @@ from utils.json_parser import extract_json
 ORCHESTRATOR_MODEL = MODELS.get("cortex_orchestrator", "claude-sonnet-4-20250514")
 MAX_CONTEXT_CHARS = 12000  # Cap context to avoid blowing up token costs
 CORTEX_JOURNAL_FILE = os.path.join(LOG_DIR, "cortex_journal.jsonl")
-BUILD_BUDGET_CAP = 0.50  # Max cost per build execution in USD
+BUILD_BUDGET_CAP = 5.00  # Max cost per build execution in USD
 MAX_BUILD_PHASE_FAILURES = 3  # Escalate after this many failures in same phase
 APPROVAL_TIMEOUT = 3600  # 1 hour to approve/reject before auto-reject
 

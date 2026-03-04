@@ -1849,12 +1849,12 @@ class TestExecutionCostCeiling:
         """MAX_EXECUTION_COST constant is defined."""
         from hands.executor import MAX_EXECUTION_COST
         assert MAX_EXECUTION_COST > 0
-        assert MAX_EXECUTION_COST <= 1.0  # Reasonable ceiling
+        assert MAX_EXECUTION_COST <= 5.0  # Reasonable ceiling
 
     def test_cost_ceiling_value(self):
-        """Cost ceiling is $0.50 by default."""
+        """Cost ceiling is $2.00 by default."""
         from hands.executor import MAX_EXECUTION_COST
-        assert MAX_EXECUTION_COST == 0.50
+        assert MAX_EXECUTION_COST == 2.00
 
 
 class TestTaskGeneratorCleanup:

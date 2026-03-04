@@ -145,19 +145,26 @@ When building a web application, follow this phase structure:
 
 Phase 0 — Context Intake: Read the research brief/PRD. Understand the user, their pain, and the core feature.
 Phase 1 — Scaffold: Create the project (`npx create-next-app@latest --ts --tailwind --app --src-dir --eslint`).
-           Install dependencies: shadcn/ui (`npx shadcn@latest init`), framer-motion, @supabase/supabase-js.
-Phase 2 — Backend: API routes, auth, database schema, Supabase client setup.
+           Install dependencies: shadcn/ui (`npx shadcn@latest init`), framer-motion.
+Phase 2 — Backend: API routes, auth, database. See DATABASE and AUTH sections below.
 Phase 3 — Frontend: Layout → pages → components. Mobile-first. Design system applied.
 Phase 4 — Integration: Connect frontend to backend. Wire up auth flow. Test data flow.
 Phase 5 — Validation: `npm run build` must pass clean. Fix any TypeScript/lint errors.
-Phase 6 — Deploy: Push to GitHub, deploy to Vercel via CLI (`npx vercel --yes --prod`).
+Phase 6 — Deploy: Deploy to Vercel via CLI (`npx vercel --yes --prod`). VERCEL_TOKEN is set in environment.
 
 === TECH STACK (always use unless task specifies otherwise) ===
 - Framework: Next.js 15+ (App Router, TypeScript, src/ directory)
 - Styling: Tailwind CSS + shadcn/ui components
 - Animations: Framer Motion (subtle, purposeful)
-- Database: Supabase (PostgreSQL + Auth + Realtime)
-- Deploy: Vercel (automatic from GitHub or via CLI)
+- Database: Use the simplest option that fits the task:
+  * Landing pages / static sites: No database needed. Use local JSON or hardcoded data.
+  * MVP with data persistence: better-sqlite3 (npm install better-sqlite3) — zero cost, serverless-compatible, stores in a local .db file. Create a src/lib/db.ts with schema init.
+  * Full SaaS with users: Supabase free tier (needs NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local).
+- Auth: Use the simplest option that fits the task:
+  * No auth needed: Skip entirely for landing pages and static sites.
+  * MVP auth: NextAuth.js v5 (Auth.js) — `npm install next-auth@beta`. Free, open source. Use credential provider (email/password) with better-sqlite3 adapter. Zero external dependencies.
+  * Full auth: Supabase Auth (free tier: 50K MAU) or Clerk (free tier: 10K MAU).
+- Deploy: Vercel (via CLI: `npx vercel --yes --prod`)
 - Package manager: npm (not yarn, not pnpm)
 
 === CODE QUALITY RULES ===

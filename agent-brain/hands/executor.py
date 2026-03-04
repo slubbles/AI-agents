@@ -47,7 +47,7 @@ MAX_CONVERSATION_TOKENS_ESTIMATE = 150_000  # Stay well under limit
 CHARS_PER_TOKEN_ESTIMATE = 4
 MAX_CONVERSATION_CHARS = MAX_CONVERSATION_TOKENS_ESTIMATE * CHARS_PER_TOKEN_ESTIMATE
 STEP_RETRY_LIMIT = 2  # Retries per individual step
-MAX_EXECUTION_COST = 0.50  # Hard cost ceiling per execution ($0.50)
+MAX_EXECUTION_COST = 2.00  # Hard cost ceiling per single execution run ($2.00)
 
 
 def _estimate_conversation_size(conversation: list[dict]) -> int:
@@ -387,6 +387,21 @@ NEXT.JS PATTERNS:
 - Metadata: Export metadata object from layout.tsx and page.tsx for SEO.
 - Loading: Create loading.tsx for route-level loading states.
 - Error: Create error.tsx for route-level error boundaries.
+
+DEPLOYMENT:
+- VERCEL_TOKEN is set in the environment. Use `npx vercel --yes --prod` to deploy.
+- Do NOT run `npx vercel login`. The token handles auth automatically.
+- If there is no vercel.json, create one with: {{"version": 2, "framework": "nextjs"}}
+
+DATABASE (use simplest option for the task):
+- Landing pages: no database. Hardcode data or use local JSON.
+- MVP: better-sqlite3 — `npm install better-sqlite3`. Create src/lib/db.ts.
+- Full SaaS: Supabase (needs env vars in .env.local).
+
+AUTH (use simplest option for the task):
+- No auth for landing pages / marketing sites.
+- MVP: NextAuth.js v5 — `npm install next-auth@beta`. Credential provider + adapter.
+- Full: Supabase Auth or Clerk free tier.
 {design_block}"""
 
     if execution_strategy:

@@ -55,6 +55,10 @@ _SAFE_ENV_VARS = {
     "TMPDIR", "TEMP", "TMP",
     # XDG
     "XDG_RUNTIME_DIR", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME",
+    # Deploy — intentionally passed for automated deployment
+    "VERCEL_TOKEN",             # Vercel CLI auth (npx vercel --yes --prod)
+    "VERCEL_ORG_ID",            # Vercel project linking
+    "VERCEL_PROJECT_ID",        # Vercel project linking
 }
 
 # Patterns in env var NAMES that indicate secrets (case-insensitive)
