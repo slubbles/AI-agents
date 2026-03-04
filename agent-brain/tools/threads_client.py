@@ -317,7 +317,7 @@ def search_threads(
         List of matching thread objects
     """
     resp = _api_request(
-        f"/{THREADS_USER_ID}/threads_search",
+        "/keyword_search",
         params={
             "q": query,
             "fields": fields,
