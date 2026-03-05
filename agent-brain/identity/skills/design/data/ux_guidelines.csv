@@ -1,0 +1,52 @@
+category,guideline,description,industry
+navigation,Persistent Navigation,"Main navigation always visible or easily accessible. Never hide critical nav behind hamburger on desktop.",all
+navigation,Breadcrumb Trails,"Show user location in hierarchy. Essential for deep content sites (ecommerce, docs, legal).",ecommerce
+navigation,Search Prominence,"If site has >20 pages, search should be in header. Auto-suggest and recent searches.",saas
+navigation,Mobile Bottom Nav,"Primary actions in bottom nav bar for thumb reach. Max 5 items.",all
+forms,Progressive Disclosure,"Show only relevant fields. Use conditional logic to reveal sections as needed.",saas
+forms,Inline Validation,"Validate fields on blur, not just on submit. Show success states too.",all
+forms,Smart Defaults,"Pre-fill with likely values. Auto-detect country, currency, timezone.",ecommerce
+forms,Error Recovery,"Never clear the form on error. Highlight the specific field. Scroll to first error.",all
+forms,Single Column Layout,"One column forms have 15% higher completion. Reserve multi-column for related short fields only.",all
+loading,Skeleton Screens,"Show content shape during load, not spinners. Reduces perceived wait time by 50%.",saas
+loading,Optimistic Updates,"Show the result immediately, sync in background. Essential for chat, likes, toggles.",saas
+loading,Progress Indicators,"For operations >2 seconds, show determinate progress. For >10 seconds, show time estimate.",all
+loading,Above Fold Priority,"Load visible content first. Defer below-fold images and components.",all
+feedback,Toast Notifications,"Success/info messages via toasts (auto-dismiss 3-5s). Errors persist until dismissed.",saas
+feedback,Haptic & Motion,"Subtle animations on interactions. Button press scales, cards lift on hover, smooth transitions.",all
+feedback,Empty States,"Never show blank pages. Every empty state gets illustration, explanation, and primary action.",saas
+feedback,Confirmation Dialogs,"Only for destructive/irreversible actions. Never for routine operations.",all
+typography,Readable Line Length,"45-75 characters per line for body text. Use max-width: 65ch on text containers.",all
+typography,Vertical Rhythm,"Consistent spacing using a base unit (4px or 8px grid). Margins are multiples of base.",all
+typography,Heading Hierarchy,"Clear size steps: h1 (2.5rem), h2 (2rem), h3 (1.5rem), h4 (1.25rem). Never skip levels.",all
+typography,Body Text Minimum,"16px minimum for body text on all devices. 14px only for labels and captions.",all
+color,Contrast Ratios,"4.5:1 minimum for normal text, 3:1 for large text (18px+). Test with WebAIM checker.",all
+color,Meaningful Color,"Color should never be the ONLY indicator. Add icons, text, or patterns alongside.",healthcare
+color,Dark Mode Support,"System-preference detection. CSS variables for easy theme switching. Test both modes.",saas
+color,Consistent Semantics,"Red=destructive, Green=success, Yellow=warning, Blue=info. Never violate conventions.",all
+layout,F-Pattern for Text,"Place key info top-left. Users scan in F-pattern on text-heavy pages.",all
+layout,Z-Pattern for Landing,"Hero (top-left to right), diagonal scan, CTA (bottom-left to right) for marketing pages.",ecommerce
+layout,Card Grid Consistency,"Same card height per row. Use aspect-ratio or min-height. Never jagged grids.",all
+layout,Whitespace Generosity,"When in doubt, add more space. Cramped layouts feel untrustworthy.",all
+layout,Responsive Breakpoints,"320px (small phone), 375px (phone), 768px (tablet), 1024px (laptop), 1280px (desktop).",all
+interaction,Touch Target Size,"Minimum 44x44px for all tappable elements. 8px minimum gap between targets.",all
+interaction,Hover States,"Every clickable element needs distinct hover state. Cursor change alone insufficient.",all
+interaction,Focus Indicators,"Visible focus rings for keyboard nav. Never remove :focus-visible outlines.",all
+interaction,Scroll Behavior,"Smooth scroll for anchor links. Preserve scroll position on back navigation.",all
+interaction,Drag Affordances,"Draggable items need visual grip handles. Show drop zones on drag start.",saas
+performance,Image Optimization,"WebP/AVIF formats. Responsive srcset. Lazy load below-fold images.",all
+performance,Font Loading,"font-display: swap to prevent FOIT. Preload critical fonts. Max 3 font files.",all
+performance,Bundle Size,"Code-split by route. Dynamic import heavy components. Tree-shake unused code.",saas
+performance,Core Web Vitals,"LCP < 2.5s, FID < 100ms, CLS < 0.1. Measure with Lighthouse.",all
+accessibility,Semantic HTML,"Use nav, main, article, section, aside. Screen readers depend on structure.",all
+accessibility,Alt Text,"Descriptive alt text for informational images. Empty alt for decorative images.",all
+accessibility,Keyboard Navigation,"All functionality accessible via keyboard. Tab order follows visual flow.",all
+accessibility,ARIA Labels,"Label all interactive elements. aria-label for icon buttons. aria-live for dynamic content.",all
+accessibility,Skip Links,"Skip to main content link as first focusable element. Hidden until focused.",all
+mobile,Thumb Zone Design,"Primary actions in bottom third of screen. Secondary in middle. Tertiary at top.",all
+mobile,Swipe Gestures,"Support swipe for carousels, dismissing modals, navigating tabs. Add visual hints.",all
+mobile,Viewport Meta,"Always set viewport meta tag. Never disable zoom (accessibility violation).",all
+mobile,Tap Delay Removal,"Use touch-action: manipulation to remove 300ms tap delay on mobile.",all
+trust,Social Proof Placement,"Reviews, testimonials, user counts near conversion points. Not buried in footer.",ecommerce
+trust,Security Indicators,"SSL badge, payment security logos near forms. Privacy policy link in footer.",ecommerce
+trust,Professional Footer,"Contact info, legal links, social media, company info. Sparse footers feel untrustworthy.",all

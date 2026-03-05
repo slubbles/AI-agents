@@ -241,39 +241,44 @@ class TestExecutorDesignInjection:
 # ============================================================
 
 class TestExecutorVercelSkillsInjection:
-    """Executor loads react best practices and web interface guidelines."""
+    """Executor loads skills dynamically via skills_loader."""
 
     def test_executor_prompt_contains_react_best_practices(self):
         from hands.executor import _build_system_prompt
-        prompt = _build_system_prompt("tools desc", page_type="app")
-        assert "REACT BEST PRACTICES" in prompt
+        prompt = _build_system_prompt("tools desc", page_type="app", task_summary="build a React app")
+        assert "React Best Practices" in prompt
         assert "Promise.all" in prompt or "Waterfalls" in prompt
 
     def test_executor_prompt_contains_web_guidelines(self):
         from hands.executor import _build_system_prompt
-        prompt = _build_system_prompt("tools desc", page_type="app")
-        assert "WEB INTERFACE GUIDELINES" in prompt
+        prompt = _build_system_prompt("tools desc", page_type="app", task_summary="build a web interface")
+        assert "Web Interface Guidelines" in prompt
         assert "Accessibility" in prompt
 
     def test_executor_marketing_also_gets_skills(self):
         from hands.executor import _build_system_prompt
-        prompt = _build_system_prompt("tools desc", page_type="marketing")
-        assert "REACT BEST PRACTICES" in prompt
-        assert "WEB INTERFACE GUIDELINES" in prompt
+        prompt = _build_system_prompt("tools desc", page_type="marketing", task_summary="build a marketing landing page with React")
+        assert "LOADED SKILLS" in prompt
+
+    def test_executor_loads_skills_section(self):
+        from hands.executor import _build_system_prompt
+        prompt = _build_system_prompt("tools desc", page_type="app", task_summary="build a web app")
+        assert "=== LOADED SKILLS ===" in prompt
+        assert "=== END LOADED SKILLS ===" in prompt
 
 
 class TestPlannerVercelSkillsInjection:
-    """Planner loads react best practices and web interface guidelines."""
+    """Planner loads skills dynamically via skills_loader."""
 
     def test_planner_prompt_contains_react_best_practices(self):
         from hands.planner import _build_system_prompt
-        prompt = _build_system_prompt("tools desc")
-        assert "REACT BEST PRACTICES" in prompt
+        prompt = _build_system_prompt("tools desc", goal="build a React web app")
+        assert "React Best Practices" in prompt
 
     def test_planner_prompt_contains_web_guidelines(self):
         from hands.planner import _build_system_prompt
-        prompt = _build_system_prompt("tools desc")
-        assert "WEB INTERFACE GUIDELINES" in prompt
+        prompt = _build_system_prompt("tools desc", goal="build a web interface")
+        assert "Web Interface Guidelines" in prompt
 
     def test_planner_prompt_still_contains_design_system(self):
         from hands.planner import _build_system_prompt

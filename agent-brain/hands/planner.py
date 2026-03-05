@@ -27,6 +27,7 @@ from config import ANTHROPIC_API_KEY, MODELS, EXEC_MAX_STEPS
 from cost_tracker import log_cost
 from utils.retry import create_message
 from utils.json_parser import extract_json
+from skills_loader import load_skills, detect_categories, lookup_design_data
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
@@ -117,11 +118,12 @@ def _build_system_prompt(
     domain_knowledge: str = "",
     execution_strategy: str = "",
     workspace_context: str = "",
+    goal: str = "",
 ) -> str:
     """Build the planner's system prompt with tool awareness and domain context."""
     today = date.today().isoformat()
 
-    # Load design system if available
+    # Load design system if available (large file, always loaded for frontend tasks)
     design_system = ""
     identity_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "identity")
     design_path = os.path.join(identity_dir, "design_system.md")
@@ -132,25 +134,13 @@ def _build_system_prompt(
         except OSError:
             pass
 
-    # Load React best practices
-    react_best_practices = ""
-    react_bp_path = os.path.join(identity_dir, "react_best_practices.md")
-    if os.path.exists(react_bp_path):
-        try:
-            with open(react_bp_path, "r") as f:
-                react_best_practices = f.read()[:3000]
-        except OSError:
-            pass
-
-    # Load web interface guidelines
-    web_guidelines = ""
-    web_guidelines_path = os.path.join(identity_dir, "web_interface_guidelines.md")
-    if os.path.exists(web_guidelines_path):
-        try:
-            with open(web_guidelines_path, "r") as f:
-                web_guidelines = f.read()[:3000]
-        except OSError:
-            pass
+    # Dynamic skill loading based on task context
+    task_text = f"{goal} {domain_knowledge} {execution_strategy}"
+    categories = detect_categories(task_text)
+    # Always include coding for web builds
+    if "coding" not in categories:
+        categories.append("coding")
+    skills_block = load_skills(categories, max_chars=8000)
 
     base = f"""\
 You are an execution planner for an autonomous AI system that builds production-ready web applications.
@@ -271,22 +261,24 @@ Apply these visual standards to all frontend code. This is the system's taste â€
 === END DESIGN SYSTEM ===
 """
 
-    if react_best_practices:
+    # Inject dynamically loaded skills
+    if skills_block:
         base += f"""
-=== REACT BEST PRACTICES ===
-Apply these patterns when planning React/Next.js code. Prioritize eliminating waterfalls and optimizing bundle size.
+=== LOADED SKILLS ===
+Apply these skills and best practices to your planning.
 
-{react_best_practices}
-=== END REACT BEST PRACTICES ===
+{skills_block}
+=== END LOADED SKILLS ===
 """
 
-    if web_guidelines:
-        base += f"""
-=== WEB INTERFACE GUIDELINES ===
-Apply these quality standards to all web interfaces. These are non-negotiable.
-
-{web_guidelines}
-=== END WEB INTERFACE GUIDELINES ===
+    # Design data lookup for industry-specific recommendations
+    if goal:
+        design_data = lookup_design_data(goal)
+        if design_data:
+            base += f"""
+=== INDUSTRY DESIGN DATA ===
+{design_data[:2000]}
+=== END INDUSTRY DESIGN DATA ===
 """
 
     return base
@@ -332,7 +324,7 @@ def plan(
                 workspace_parts.append(f"\n--- {path} ---\n{content}")
         workspace_context = "\n".join(workspace_parts)
 
-    system = _build_system_prompt(tools_description, domain_knowledge, execution_strategy, workspace_context)
+    system = _build_system_prompt(tools_description, domain_knowledge, execution_strategy, workspace_context, goal)
 
     user_message = f"TASK: {goal}"
     if context:

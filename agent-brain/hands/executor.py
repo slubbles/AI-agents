@@ -39,6 +39,7 @@ from hands.timeout_adapter import TimeoutAdapter
 from hands.mid_validator import MidExecutionValidator
 from hands.visual_gate import VisualGate
 from hands.consultant import consult_architect, reset_consultations, get_consultation_count, get_consultation_log, MAX_CONSULTATIONS_PER_RUN
+from skills_loader import load_skills, detect_categories
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -321,13 +322,14 @@ class DependencyResolver:
         return True
 
 
-def _build_system_prompt(tools_description: str, execution_strategy: str = "", page_type: str = "app") -> str:
+def _build_system_prompt(tools_description: str, execution_strategy: str = "", page_type: str = "app", task_summary: str = "") -> str:
     """Build the executor's system prompt. Lean — tool definitions handled by Claude tools API.
 
     Args:
         tools_description: Tool descriptions for context.
         execution_strategy: Optional execution strategy text.
         page_type: 'app' or 'marketing' — determines which design standard is loaded.
+        task_summary: Task description for dynamic skill loading.
     """
     today = date.today().isoformat()
     max_consults = MAX_CONSULTATIONS_PER_RUN
@@ -349,22 +351,14 @@ def _build_system_prompt(tools_description: str, execution_strategy: str = "", p
         except OSError:
             pass
 
-    # Load React best practices and web interface guidelines
-    react_bp_file = os.path.join(identity_dir, "react_best_practices.md")
-    if os.path.exists(react_bp_file):
-        try:
-            with open(react_bp_file, "r") as f:
-                design_block += f"\n=== REACT BEST PRACTICES ===\n{f.read()[:3000]}\n=== END REACT BEST PRACTICES ===\n"
-        except OSError:
-            pass
-
-    web_guidelines_file = os.path.join(identity_dir, "web_interface_guidelines.md")
-    if os.path.exists(web_guidelines_file):
-        try:
-            with open(web_guidelines_file, "r") as f:
-                design_block += f"\n=== WEB INTERFACE GUIDELINES ===\n{f.read()[:3000]}\n=== END WEB INTERFACE GUIDELINES ===\n"
-        except OSError:
-            pass
+    # Dynamic skill loading based on task context
+    task_text = f"{task_summary} {execution_strategy}"
+    categories = detect_categories(task_text)
+    if "coding" not in categories:
+        categories.append("coding")
+    skills_block = load_skills(categories, max_chars=8000)
+    if skills_block:
+        design_block += f"\n=== LOADED SKILLS ===\n{skills_block}\n=== END LOADED SKILLS ===\n"
 
     base = f"""\
 You are an execution agent that builds production-ready web applications.
@@ -473,7 +467,7 @@ def execute_plan(
         Execution report dict with step results, artifacts, and summary
     """
     tools_desc = registry.get_tool_descriptions()
-    system = _build_system_prompt(tools_desc, execution_strategy, page_type=page_type)
+    system = _build_system_prompt(tools_desc, execution_strategy, page_type=page_type, task_summary=plan.get("task_summary", ""))
 
     # Get native Claude tool definitions (includes _complete, _abort, _consult)
     claude_tools = registry.get_execution_tools()
