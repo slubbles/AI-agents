@@ -243,6 +243,13 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     print(f"  AGENT BRAIN — Research Loop")
     print(f"  Domain: {domain}")
     print(f"  Question: {question}")
+
+    # Goal check — warn if research is undirected
+    from domain_goals import get_goal
+    domain_goal = get_goal(domain)
+    if not domain_goal:
+        print(f"  Goal: ⚠ NOT SET — research will be unfocused")
+        print(f"         Set with: python main.py --set-goal --domain {domain}")
     balance = check_balance()
     print(f"  Budget: ${budget['remaining']:.4f} remaining today | Balance: ${balance['remaining_balance']:.4f} of ${balance['starting_balance']:.2f}")
     print(f"{'='*60}\n")
@@ -433,6 +440,21 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
 
     # Step 5: Log the full run
     log_run(domain, question, attempt, final_research, final_critique, strategy_version)
+
+    # Step 5.1: Record source quality (learn which sources produce good research)
+    try:
+        from source_quality import record_source_quality
+        sources_used = final_research.get("sources_used", [])
+        tool_log = final_research.get("_tool_log", [])
+        record_source_quality(
+            domain=domain,
+            sources_used=sources_used,
+            score=final_critique.get("overall_score", 0),
+            verdict=final_critique.get("verdict", "unknown"),
+            tool_log=tool_log,
+        )
+    except Exception:
+        pass  # Non-blocking
 
     # Step 5.5: Create sync tasks from accepted research (Brain → Hands bridge)
     final_verdict = final_critique.get("verdict", "unknown")
@@ -847,7 +869,7 @@ def main():
         show_next(args.domain)
         return
     if getattr(args, 'set_goal', False):
-        from domain_goals import set_goal, get_goal
+        from domain_goals import set_goal, get_goal, validate_goal
         current = get_goal(args.domain)
         if current:
             print(f"Current goal for '{args.domain}': {current}")
@@ -856,8 +878,19 @@ def main():
         if not goal_text:
             print("No goal entered. Aborting.")
             return
+        quality = validate_goal(goal_text)
+        if quality["issues"]:
+            print(f"\n⚠ Goal quality issues:")
+            for issue in quality["issues"]:
+                print(f"  - {issue}")
+            for suggestion in quality["suggestions"]:
+                print(f"  → {suggestion}")
+            confirm = input("\nSave anyway? (y/n): ").strip().lower()
+            if confirm != "y":
+                print("Goal not saved. Try a more specific goal.")
+                return
         set_goal(args.domain, goal_text)
-        print(f"\n✓ Goal set for '{args.domain}'")
+        print(f"\n✓ Goal set for '{args.domain}' (quality: {quality['score']})")
         return
     if getattr(args, 'show_goal', False):
         from domain_goals import get_goal, get_goal_record

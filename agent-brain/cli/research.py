@@ -152,7 +152,7 @@ def run_auto(domain: str, rounds: int = 1):
     Questions are directed by the domain goal (if set) to keep research actionable.
     """
     from main import run_loop  # lazy import — avoids circular dependency
-    from domain_goals import get_goal
+    from domain_goals import get_goal, validate_goal
     from loop_guard import LoopGuard, LoopGuardError
     from progress_tracker import should_assess, assess_progress, display_progress
 
@@ -163,10 +163,18 @@ def run_auto(domain: str, rounds: int = 1):
     print(f"  Domain: {domain}")
     print(f"  Rounds: {rounds}")
     if goal:
+        quality = validate_goal(goal)
         print(f"  Goal: {goal[:80]}{'...' if len(goal) > 80 else ''}")
+        if quality["score"] < 0.5:
+            print(f"  Goal Quality: ⚠ LOW ({quality['score']}) — research may drift")
+            for s in quality["suggestions"][:2]:
+                print(f"    → {s}")
     else:
-        print(f"  Goal: NOT SET — research may not be actionable")
+        print(f"  Goal: ⚠ NOT SET — research will be unfocused and academic")
         print(f"         Set with: python main.py --set-goal --domain {domain}")
+        if rounds > 2:
+            print(f"  ⚠ Running {rounds} rounds without a goal wastes budget on undirected research.")
+            print(f"    Strongly recommend setting a goal first.")
     print(f"{'='*60}\n")
 
     # Initialize loop guard

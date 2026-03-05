@@ -105,6 +105,63 @@ def update_evolution_outcome(domain: str, version: str, outcome: str, score_afte
     atomic_json_write(path, log)
 
 
+def get_proven_patterns(domain: str) -> dict:
+    """
+    Extract change attribution data: which specific changes improved scores vs hurt them.
+    
+    Returns:
+        {"effective": [{"change": str, "score_delta": float}...],
+         "harmful": [...], "inconclusive": [...]}
+    """
+    log = load_evolution_log(domain)
+    effective = []
+    harmful = []
+    inconclusive = []
+    
+    for entry in log:
+        outcome = entry.get("outcome", "pending")
+        score_before = entry.get("score_before")
+        score_after = entry.get("score_after")
+        changes = entry.get("changes", [])
+        primary = entry.get("primary_change", changes[0] if changes else "")
+        
+        if score_before is None or score_after is None:
+            for change in changes:
+                inconclusive.append({"change": change, "score_delta": 0, "outcome": outcome})
+            continue
+        
+        delta = score_after - score_before
+        
+        if outcome == "confirmed" and delta > 0:
+            effective.append({"change": primary, "score_delta": round(delta, 1), "version": entry.get("version", "?")})
+        elif outcome == "rollback" and delta < 0:
+            harmful.append({"change": primary, "score_delta": round(delta, 1), "version": entry.get("version", "?")})
+        else:
+            inconclusive.append({"change": primary, "score_delta": round(delta, 1), "outcome": outcome})
+    
+    return {"effective": effective, "harmful": harmful, "inconclusive": inconclusive}
+
+
+def _format_proven_patterns(domain: str) -> str:
+    """Format proven patterns for injection into meta-analyst prompt."""
+    patterns = get_proven_patterns(domain)
+    
+    if not any(patterns.values()):
+        return ""
+    
+    parts = []
+    if patterns["effective"]:
+        parts.append("PROVEN EFFECTIVE (keep these in the strategy):")
+        for p in patterns["effective"]:
+            parts.append(f"  ✓ \"{p['change']}\" → +{p['score_delta']} points ({p['version']})")
+    if patterns["harmful"]:
+        parts.append("PROVEN HARMFUL (do NOT repeat):")
+        for p in patterns["harmful"]:
+            parts.append(f"  ✗ \"{p['change']}\" → {p['score_delta']} points ({p['version']})")
+    
+    return "\n".join(parts)
+
+
 def _build_meta_prompt() -> str:
     today = date.today().isoformat()
     return f"""\
@@ -118,6 +175,8 @@ You receive:
 2. The current strategy document the researcher is using
 3. EVOLUTION HISTORY: past decisions you made and their outcomes (did scores improve?)
 4. TOOL USAGE DATA: actual search queries, page fetch success rates, and content volumes per output
+5. PROVEN PATTERNS: specific changes that improved or hurt scores (carry forward the effective ones)
+6. SOURCE QUALITY: which website domains produce high vs low quality content
 
 CRITICAL: Use the evolution history to avoid repeating changes that failed. Double down on
 changes that worked. If the history shows a pattern (e.g., "adding source verification improved
@@ -286,9 +345,37 @@ def analyze_and_evolve(domain: str) -> dict | None:
     except Exception:
         pass
 
+    # Inject proven patterns: what worked and what didn't in past evolutions
+    proven_block = ""
+    proven_text = _format_proven_patterns(domain)
+    if proven_text:
+        proven_block = f"\n\nPROVEN PATTERNS (from past strategy evolutions):\n{proven_text}"
+        print(f"[META-ANALYST] Injecting proven patterns data")
+
+    # Inject source quality rankings
+    source_block = ""
+    try:
+        from source_quality import get_source_rankings
+        rankings = get_source_rankings(domain)
+        if any(rankings.values()):
+            parts = []
+            if rankings["high_quality"]:
+                parts.append("High-quality sources: " + ", ".join(
+                    f"{s['domain']} (avg {s['avg_score']}, {s['count']} uses)" for s in rankings["high_quality"][:5]))
+            if rankings["low_quality"]:
+                parts.append("Low-quality sources: " + ", ".join(
+                    f"{s['domain']} (avg {s['avg_score']}, {s['count']} uses)" for s in rankings["low_quality"][:5]))
+            if rankings["unreliable_fetch"]:
+                parts.append("Hard-to-fetch sources: " + ", ".join(
+                    f"{s['domain']} ({s['fetch_success_rate']*100:.0f}% fetch rate)" for s in rankings["unreliable_fetch"][:3]))
+            source_block = "\n\nSOURCE QUALITY DATA:\n" + "\n".join(parts)
+            print(f"[META-ANALYST] Injecting source quality data")
+    except Exception:
+        pass
+
     user_message = (
         f"Analyze these scored research outputs and generate an improved strategy.\n\n"
-        f"DATA:\n{analysis_data}{analytics_block}"
+        f"DATA:\n{analysis_data}{analytics_block}{proven_block}{source_block}"
     )
 
     # Call the meta-analyst model
@@ -379,11 +466,13 @@ def analyze_and_evolve(domain: str) -> dict | None:
 
     # Log this evolution decision
     current_perf = get_strategy_performance(domain, current_version)
+    primary_change = result.get("primary_change", changes[0] if changes else "")
     save_evolution_entry(domain, {
         "version": new_version,
         "previous_version": current_version,
         "date": date.today().isoformat(),
         "changes": changes,
+        "primary_change": primary_change,
         "reasoning": reasoning,
         "weakest_dimension": analysis.get("weakest_dimension", ""),
         "score_before": round(current_perf.get("avg_score", 0), 1) if current_perf.get("count", 0) > 0 else None,

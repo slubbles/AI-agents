@@ -13,7 +13,7 @@ from datetime import date
 from anthropic import Anthropic
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config import ANTHROPIC_API_KEY, MODELS, MAX_TOOL_ROUNDS, MAX_SEARCHES, MAX_FETCHES, BROWSER_ENABLED
+from config import ANTHROPIC_API_KEY, MODELS, MAX_TOOL_ROUNDS, MAX_SEARCHES, MAX_FETCHES, BROWSER_ENABLED, BROWSER_MAX_FETCHES
 from tools.web_search import web_search, SEARCH_TOOL_DEFINITION
 from tools.web_fetcher import fetch_page, search_and_fetch, FETCH_TOOL_DEFINITION, SEARCH_AND_FETCH_TOOL_DEFINITION
 from cost_tracker import log_cost
@@ -255,6 +255,25 @@ The output should give Hands everything needed to build a targeted, compelling p
     if lessons_block:
         parts.append(f"\n=== PAST FAILURE LESSONS ===\n{lessons_block}\n=== END LESSONS ===")
     
+    # Inject source quality hints — learned from past research
+    source_block = ""
+    if domain:
+        try:
+            from source_quality import format_source_hints_for_prompt
+            source_hints = format_source_hints_for_prompt(domain)
+            if source_hints:
+                source_block = f"""
+=== SOURCE QUALITY (learned from past research) ===
+{source_hints}
+Use this to prioritize which URLs to fetch. Prefer high-quality sources.
+For hard-to-fetch sites, use browser_fetch instead of fetch_page.
+=== END SOURCE QUALITY ==="""
+        except Exception:
+            pass
+    
+    if source_block:
+        parts.append(source_block)
+    
     if domain_strategy:
         parts.append(f"""\n=== DOMAIN-SPECIFIC STRATEGY ===
 The following strategy provides domain-specific guidance for your research.
@@ -488,9 +507,29 @@ Research question: {question}"""
                             print(f"  [FETCH #{fetch_count}] Got {result['content_length']} chars")
                             tool_log.append({"tool": "fetch_page", "url": url, "success": True, "chars": result['content_length'], "title": result['title'][:80]})
                         else:
-                            content = '{"error": "Failed to fetch page. Try a different URL."}'
-                            print(f"  [FETCH #{fetch_count}] FAILED")
-                            tool_log.append({"tool": "fetch_page", "url": url, "success": False, "chars": 0})
+                            # Auto-escalate: try browser_fetch when regular fetch fails
+                            if BROWSER_ENABLED and _browser_tools_loaded and _execute_browser_tool and browser_fetch_count < BROWSER_MAX_FETCHES:
+                                print(f"  [FETCH #{fetch_count}] Regular fetch failed — auto-escalating to browser")
+                                browser_fetch_count += 1
+                                import asyncio
+                                try:
+                                    browser_content = asyncio.run(_execute_browser_tool("browser_fetch", {"url": url, "extract_mode": "text"}))
+                                    if browser_content and len(browser_content) > 100:
+                                        content = browser_content[:6000]
+                                        print(f"  [FETCH #{fetch_count}] Browser fallback got {len(browser_content)} chars")
+                                        tool_log.append({"tool": "fetch_page", "url": url, "success": True, "chars": len(browser_content), "escalated": True})
+                                    else:
+                                        content = '{"error": "Failed to fetch page (both regular and browser). Try a different URL."}'
+                                        print(f"  [FETCH #{fetch_count}] Browser fallback also failed")
+                                        tool_log.append({"tool": "fetch_page", "url": url, "success": False, "chars": 0, "escalated": True})
+                                except Exception as e:
+                                    content = f'{{"error": "Failed to fetch page. Browser error: {e}. Try a different URL."}}'
+                                    print(f"  [FETCH #{fetch_count}] Browser fallback error: {e}")
+                                    tool_log.append({"tool": "fetch_page", "url": url, "success": False, "chars": 0, "escalated": True})
+                            else:
+                                content = '{"error": "Failed to fetch page. Try a different URL or use browser_fetch for JS-heavy sites."}'
+                                print(f"  [FETCH #{fetch_count}] FAILED")
+                                tool_log.append({"tool": "fetch_page", "url": url, "success": False, "chars": 0})
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
@@ -661,6 +700,18 @@ Research question: {question}"""
                         print(f"  [SEARCH #{search_count}] FAILED: {results[0].get('snippet', 'unknown error')}")
                         empty_search_count += 1
                         tool_log.append({"tool": "web_search", "query": query, "success": False, "results": 0})
+                        
+                        # Auto-reformulate: try a simplified version of the query
+                        if search_count <= MAX_SEARCHES - 1 and word_count > 4:
+                            simplified = " ".join(query.split()[:4])
+                            print(f"  [SEARCH #{search_count}] Auto-retry with simplified: \"{simplified}\"")
+                            retry_results = web_search(simplified, max_results=max_res)
+                            retry_failed = len(retry_results) == 1 and retry_results[0].get("error", False)
+                            if not retry_failed and len(retry_results) > 0:
+                                results = retry_results
+                                search_failed = False
+                                tool_log.append({"tool": "web_search", "query": simplified, "success": True, "results": len(retry_results), "reformulated": True})
+                                print(f"  [SEARCH #{search_count}] Retry got {len(retry_results)} results")
                     else:
                         print(f"  [SEARCH #{search_count}] Got {len(results)} results")
                         tool_log.append({"tool": "web_search", "query": query, "success": True, "results": len(results)})

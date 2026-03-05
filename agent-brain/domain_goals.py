@@ -139,6 +139,77 @@ def list_goals() -> dict[str, str]:
     return goals
 
 
+MIN_GOAL_LENGTH = 20  # Minimum chars for a meaningful goal
+GOAL_QUALITY_KEYWORDS = [
+    # Action-oriented words that indicate a clear goal
+    "build", "sell", "launch", "create", "deploy", "find", "validate",
+    "understand", "compare", "analyze", "improve", "automate", "generate",
+    "acquire", "convert", "optimize", "identify", "research", "test",
+]
+
+
+def validate_goal(goal: str) -> dict:
+    """
+    Check if a goal is specific enough to direct research effectively.
+    
+    Returns:
+        {"valid": bool, "score": float 0-1, "issues": [str], "suggestions": [str]}
+    """
+    issues = []
+    suggestions = []
+
+    text = goal.strip()
+    if len(text) < MIN_GOAL_LENGTH:
+        issues.append(f"Too short ({len(text)} chars) — needs at least {MIN_GOAL_LENGTH}")
+        suggestions.append("Describe WHAT you want to achieve and WHY")
+
+    # Check for action words
+    lower = text.lower()
+    has_action = any(kw in lower for kw in GOAL_QUALITY_KEYWORDS)
+    if not has_action:
+        issues.append("No actionable intent detected")
+        suggestions.append("Start with what you want to DO: build, sell, find, validate, etc.")
+
+    # Check for specificity signals
+    has_specifics = any(marker in lower for marker in [
+        "$", "%", "customer", "user", "product", "service", "market",
+        "revenue", "landing page", "saas", "api", "tool", "audience",
+    ])
+    if not has_specifics and len(text) < 80:
+        suggestions.append("Add specifics: who is the audience? what's the output? what metric matters?")
+
+    # Score: 0-1
+    score = 1.0
+    if issues:
+        score -= 0.3 * len(issues)
+    if not has_action:
+        score -= 0.2
+    if not has_specifics:
+        score -= 0.1
+    score = max(0.0, min(1.0, score))
+
+    return {
+        "valid": len(issues) == 0,
+        "score": round(score, 2),
+        "issues": issues,
+        "suggestions": suggestions,
+    }
+
+
+def require_goal(domain: str) -> str | None:
+    """
+    Get goal or return None with a printed warning for auto modes.
+    Used by run_auto/orchestrate to enforce goal-directed research.
+    """
+    goal = get_goal(domain)
+    if not goal:
+        print(f"\n[GOAL] ⚠ No goal set for domain '{domain}'")
+        print(f"  Research without a goal produces unfocused, academic results.")
+        print(f"  Set one: python main.py --set-goal --domain {domain}")
+        return None
+    return goal
+
+
 def clear_goal(domain: str) -> bool:
     """Remove a domain's goal. Returns True if a goal was removed."""
     path = _goal_path(domain)
