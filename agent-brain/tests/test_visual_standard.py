@@ -237,6 +237,51 @@ class TestExecutorDesignInjection:
 
 
 # ============================================================
+# Vercel Agent Skills Integration
+# ============================================================
+
+class TestExecutorVercelSkillsInjection:
+    """Executor loads react best practices and web interface guidelines."""
+
+    def test_executor_prompt_contains_react_best_practices(self):
+        from hands.executor import _build_system_prompt
+        prompt = _build_system_prompt("tools desc", page_type="app")
+        assert "REACT BEST PRACTICES" in prompt
+        assert "Promise.all" in prompt or "Waterfalls" in prompt
+
+    def test_executor_prompt_contains_web_guidelines(self):
+        from hands.executor import _build_system_prompt
+        prompt = _build_system_prompt("tools desc", page_type="app")
+        assert "WEB INTERFACE GUIDELINES" in prompt
+        assert "Accessibility" in prompt
+
+    def test_executor_marketing_also_gets_skills(self):
+        from hands.executor import _build_system_prompt
+        prompt = _build_system_prompt("tools desc", page_type="marketing")
+        assert "REACT BEST PRACTICES" in prompt
+        assert "WEB INTERFACE GUIDELINES" in prompt
+
+
+class TestPlannerVercelSkillsInjection:
+    """Planner loads react best practices and web interface guidelines."""
+
+    def test_planner_prompt_contains_react_best_practices(self):
+        from hands.planner import _build_system_prompt
+        prompt = _build_system_prompt("tools desc")
+        assert "REACT BEST PRACTICES" in prompt
+
+    def test_planner_prompt_contains_web_guidelines(self):
+        from hands.planner import _build_system_prompt
+        prompt = _build_system_prompt("tools desc")
+        assert "WEB INTERFACE GUIDELINES" in prompt
+
+    def test_planner_prompt_still_contains_design_system(self):
+        from hands.planner import _build_system_prompt
+        prompt = _build_system_prompt("tools desc")
+        assert "DESIGN SYSTEM" in prompt
+
+
+# ============================================================
 # Task 5.4: Visual Evaluator Page-Type Switching
 # ============================================================
 

@@ -123,11 +123,32 @@ def _build_system_prompt(
 
     # Load design system if available
     design_system = ""
-    design_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "identity", "design_system.md")
+    identity_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "identity")
+    design_path = os.path.join(identity_dir, "design_system.md")
     if os.path.exists(design_path):
         try:
             with open(design_path, "r") as f:
                 design_system = f.read()[:3000]
+        except OSError:
+            pass
+
+    # Load React best practices
+    react_best_practices = ""
+    react_bp_path = os.path.join(identity_dir, "react_best_practices.md")
+    if os.path.exists(react_bp_path):
+        try:
+            with open(react_bp_path, "r") as f:
+                react_best_practices = f.read()[:3000]
+        except OSError:
+            pass
+
+    # Load web interface guidelines
+    web_guidelines = ""
+    web_guidelines_path = os.path.join(identity_dir, "web_interface_guidelines.md")
+    if os.path.exists(web_guidelines_path):
+        try:
+            with open(web_guidelines_path, "r") as f:
+                web_guidelines = f.read()[:3000]
         except OSError:
             pass
 
@@ -248,6 +269,24 @@ Apply these visual standards to all frontend code. This is the system's taste â€
 
 {design_system}
 === END DESIGN SYSTEM ===
+"""
+
+    if react_best_practices:
+        base += f"""
+=== REACT BEST PRACTICES ===
+Apply these patterns when planning React/Next.js code. Prioritize eliminating waterfalls and optimizing bundle size.
+
+{react_best_practices}
+=== END REACT BEST PRACTICES ===
+"""
+
+    if web_guidelines:
+        base += f"""
+=== WEB INTERFACE GUIDELINES ===
+Apply these quality standards to all web interfaces. These are non-negotiable.
+
+{web_guidelines}
+=== END WEB INTERFACE GUIDELINES ===
 """
 
     return base

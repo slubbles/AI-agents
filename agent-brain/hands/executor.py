@@ -349,6 +349,23 @@ def _build_system_prompt(tools_description: str, execution_strategy: str = "", p
         except OSError:
             pass
 
+    # Load React best practices and web interface guidelines
+    react_bp_file = os.path.join(identity_dir, "react_best_practices.md")
+    if os.path.exists(react_bp_file):
+        try:
+            with open(react_bp_file, "r") as f:
+                design_block += f"\n=== REACT BEST PRACTICES ===\n{f.read()[:3000]}\n=== END REACT BEST PRACTICES ===\n"
+        except OSError:
+            pass
+
+    web_guidelines_file = os.path.join(identity_dir, "web_interface_guidelines.md")
+    if os.path.exists(web_guidelines_file):
+        try:
+            with open(web_guidelines_file, "r") as f:
+                design_block += f"\n=== WEB INTERFACE GUIDELINES ===\n{f.read()[:3000]}\n=== END WEB INTERFACE GUIDELINES ===\n"
+        except OSError:
+            pass
+
     base = f"""\
 You are an execution agent that builds production-ready web applications.
 You receive a plan with ordered steps and execute them using tools.
