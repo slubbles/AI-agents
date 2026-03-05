@@ -47,6 +47,7 @@ Key files and what they establish:
 7. **First 3 deliveries matter more than first 50 outreach messages.** Portfolio flywheel: deliver exceptionally → get testimonial → conversion rate compounds.
 8. **Cheap before smart.** Local models for 80% of tasks, Claude only where reasoning matters. The system must be affordable to run 24/7 before it can be smart 24/7. Comes AFTER autonomy is proven.
 9. **Validate before scale.** Prove the loop works on limited runs. Then go 24/7. Running a flawed loop at scale compounds mistakes. Comes AFTER cost is controlled.
+10. **Model what already works.** Before building anything, find who's already doing it successfully. The pattern that enables them to make money is the blueprint. Replicate the proven model, adapt it, improve it. This applies to products, niches, distribution strategies, and monetization. Don't invent from scratch when someone has already validated the path. Find them, study them, model them.
 
 ## What We're Building
 

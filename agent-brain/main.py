@@ -792,6 +792,14 @@ def main():
     parser.add_argument("--project-approve", metavar="PROJECT_ID", help="Approve current phase of a project", nargs="?", const="latest")
     parser.add_argument("--project-list", action="store_true", help="List all projects")
 
+    # Signal Intelligence — Reddit pain point collection
+    parser.add_argument("--collect-signals", action="store_true", help="Collect pain-point signals from Reddit")
+    parser.add_argument("--signal-subs", default="", help="Comma-separated subreddits (default: all targets)")
+    parser.add_argument("--signal-time", default="month", help="Time filter: hour, day, week, month, year, all")
+    parser.add_argument("--rank-opportunities", action="store_true", help="Score unanalyzed posts and rank opportunities")
+    parser.add_argument("--weekly-brief", action="store_true", help="Generate weekly opportunity brief (premium model)")
+    parser.add_argument("--signal-status", action="store_true", help="Show signal collection stats and top opportunities")
+
     # VPS Deploy
     parser.add_argument("--deploy", action="store_true", help="Deploy Agent Brain to VPS")
     parser.add_argument("--deploy-dry-run", action="store_true", help="Show what deploy would do (no changes)")
@@ -1210,6 +1218,24 @@ def main():
     if getattr(args, 'browser_test', False):
         from cli.browser_cmd import test_stealth
         test_stealth()
+        return
+
+    # Signal Intelligence commands
+    if getattr(args, 'collect_signals', False):
+        from cli.signals_cmd import run_collect_signals
+        run_collect_signals(subreddits=args.signal_subs, time_filter=args.signal_time)
+        return
+    if getattr(args, 'rank_opportunities', False):
+        from cli.signals_cmd import run_rank_opportunities
+        run_rank_opportunities()
+        return
+    if getattr(args, 'weekly_brief', False):
+        from cli.signals_cmd import run_weekly_brief
+        run_weekly_brief()
+        return
+    if getattr(args, 'signal_status', False):
+        from cli.signals_cmd import run_signal_status
+        run_signal_status()
         return
 
     # Project Orchestrator commands
