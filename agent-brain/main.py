@@ -813,9 +813,14 @@ def main():
 
     args = parser.parse_args()
 
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        print("ERROR: Set ANTHROPIC_API_KEY environment variable first.")
-        print("  export ANTHROPIC_API_KEY=sk-ant-...")
+    # Load .env before checking keys
+    from dotenv import load_dotenv
+    from pathlib import Path
+    load_dotenv(Path(__file__).parent / ".env")
+
+    if not os.environ.get("OPENROUTER_API_KEY"):
+        print("ERROR: Set OPENROUTER_API_KEY environment variable first.")
+        print("  export OPENROUTER_API_KEY=sk-or-...")
         sys.exit(1)
 
     # Apply consensus overrides
