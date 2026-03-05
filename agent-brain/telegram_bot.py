@@ -400,6 +400,9 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "• Build products from research (Brain → Hands pipeline)\n"
             "• Show what the system knows (knowledge base)\n"
             "• Check budget, status, domain stats\n\n"
+            "<b>Research Commands:</b>\n"
+            "/research [rounds] — Run a research cycle (default: 1 round)\n"
+            "/research 3 — Run 3 rounds of self-directed research\n\n"
             "<b>Pipeline Commands:</b>\n"
             "/build &lt;instruction&gt; — Full pipeline: research → approve → build\n"
             "/approve — Approve a pending build\n"
@@ -546,6 +549,35 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             f"<b>Recent cycles:</b>\n{history_text}"
         )
     
+    if cmd_name == "/research":
+        domain = _conversations.get_domain(chat_id)
+        rounds = 1
+        if cmd_arg:
+            try:
+                rounds = max(1, min(int(cmd_arg), 10))  # clamp 1-10
+            except ValueError:
+                return "Usage: /research [rounds]\nExample: /research 3"
+
+        # Run research cycle in background thread
+        def _run_research():
+            try:
+                from cli.research import run_auto
+                run_auto(domain, rounds)
+                _send_message(int(chat_id),
+                    f"\u2705 Research complete: {rounds} round(s) in <b>{domain}</b>.")
+            except Exception as e:
+                _send_message(int(chat_id), f"\u274c Research cycle failed: {e}")
+
+        t = threading.Thread(target=_run_research, daemon=True, name=f"research-{domain}")
+        t.start()
+
+        return (
+            f"\U0001f50d <b>Research Cycle Started</b>\n\n"
+            f"Domain: {domain}\n"
+            f"Rounds: {rounds}\n\n"
+            f"I'll notify you when it's done."
+        )
+
     if cmd_name == "/build":
         if not cmd_arg:
             return (
