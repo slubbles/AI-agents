@@ -1809,6 +1809,12 @@ def run_daemon(
                 _log_daemon(f"Health: {health_status} "
                            f"({health.get('alerts_generated', 0)} alerts)")
                 
+                # HEARTBEAT-style periodic checks (security, cleanup, memory)
+                hb = watchdog.run_heartbeat_checks()
+                hb_issues = sum(1 for v in hb.values() if v.get("issues"))
+                if hb_issues:
+                    _log_daemon(f"Heartbeat: {hb_issues} check(s) flagged issues", "warning")
+                
                 # Check if watchdog wants to stop
                 can_continue, reason = watchdog.check_before_cycle()
                 if not can_continue:

@@ -26,6 +26,7 @@ from watchdog import (
     HEARTBEAT_TIMEOUT_SECONDS, CIRCUIT_BREAKER_THRESHOLD,
     MAX_CONSECUTIVE_FAILURES, FAILURE_COOLDOWN_SECONDS,
     HARD_COST_CEILING_USD, WATCHDOG_STATE_FILE,
+    LOG_RETENTION_DAYS, STALE_CHECKPOINT_HOURS,
     get_watchdog, get_watchdog_status,
 )
 
@@ -431,3 +432,115 @@ class TestSingleton:
         with patch.object(Watchdog, "get_status", return_value={"state": "stopped"}):
             status = get_watchdog_status()
             assert isinstance(status, dict)
+
+
+# ── HEARTBEAT-style Periodic Checks (Obj 19) ────────────────────────
+
+class TestHeartbeatChecks:
+    """Test HEARTBEAT-style periodic self-checks."""
+
+    def test_security_integrity_first_run_creates_snapshot(self, watchdog, tmp_path, monkeypatch):
+        """First run creates a config snapshot file."""
+        monkeypatch.setattr("watchdog.LOG_DIR", str(tmp_path))
+        result = watchdog._check_security_integrity()
+        assert result["ok"] is True
+        assert result["issues"] == []
+        assert os.path.exists(str(tmp_path / "_config_snapshot.json"))
+
+    def test_security_integrity_detects_change(self, watchdog, tmp_path, monkeypatch):
+        """Detects when config values change between checks."""
+        monkeypatch.setattr("watchdog.LOG_DIR", str(tmp_path))
+        import config as cfg
+
+        # First run — create snapshot
+        watchdog._check_security_integrity()
+
+        # Simulate config change
+        original = cfg.DAILY_BUDGET_USD
+        monkeypatch.setattr(cfg, "DAILY_BUDGET_USD", original + 10)
+
+        result = watchdog._check_security_integrity()
+        assert "DAILY_BUDGET_USD" in result["issues"]
+        assert result["changes"]["DAILY_BUDGET_USD"]["was"] == original
+
+        monkeypatch.setattr(cfg, "DAILY_BUDGET_USD", original)
+
+    def test_security_integrity_no_change(self, watchdog, tmp_path, monkeypatch):
+        """No issues when config is stable."""
+        monkeypatch.setattr("watchdog.LOG_DIR", str(tmp_path))
+
+        watchdog._check_security_integrity()
+        result = watchdog._check_security_integrity()
+        assert result["issues"] == []
+
+    def test_cleanup_removes_old_logs(self, watchdog, tmp_path, monkeypatch):
+        """Old .jsonl log files are cleaned up."""
+        monkeypatch.setattr("watchdog.LOG_DIR", str(tmp_path))
+
+        # Create an old log file
+        old_log = tmp_path / "old_run.jsonl"
+        old_log.write_text("{}")
+        old_ts = time.time() - (LOG_RETENTION_DAYS + 1) * 86400
+        os.utime(str(old_log), (old_ts, old_ts))
+
+        # Create a fresh log file
+        fresh_log = tmp_path / "fresh_run.jsonl"
+        fresh_log.write_text("{}")
+
+        result = watchdog._cleanup_old_resources()
+        assert result["cleaned"] == 1
+        assert not old_log.exists()
+        assert fresh_log.exists()
+
+    def test_cleanup_ignores_non_jsonl(self, watchdog, tmp_path, monkeypatch):
+        """Non-.jsonl files are not cleaned."""
+        monkeypatch.setattr("watchdog.LOG_DIR", str(tmp_path))
+
+        state_file = tmp_path / "watchdog_state.json"
+        state_file.write_text("{}")
+        old_ts = time.time() - (LOG_RETENTION_DAYS + 1) * 86400
+        os.utime(str(state_file), (old_ts, old_ts))
+
+        result = watchdog._cleanup_old_resources()
+        assert result["cleaned"] == 0
+        assert state_file.exists()
+
+    def test_stale_memory_detects_old_checkpoints(self, watchdog, tmp_path, monkeypatch):
+        """Flags checkpoint files older than threshold."""
+        cp_dir = tmp_path / "checkpoints"
+        cp_dir.mkdir()
+        monkeypatch.setattr("watchdog.EXEC_MEMORY_DIR", str(tmp_path))
+
+        # The method looks for _checkpoints dir inside EXEC_MEMORY_DIR
+        real_cp_dir = tmp_path / "_checkpoints"
+        real_cp_dir.mkdir()
+
+        stale = real_cp_dir / "old_domain_checkpoint.json"
+        stale.write_text("{}")
+        old_ts = time.time() - (STALE_CHECKPOINT_HOURS + 1) * 3600
+        os.utime(str(stale), (old_ts, old_ts))
+
+        result = watchdog._check_stale_memory()
+        assert len(result["stale_checkpoints"]) == 1
+
+    def test_stale_memory_ignores_fresh(self, watchdog, tmp_path, monkeypatch):
+        """Fresh checkpoint files are not flagged."""
+        monkeypatch.setattr("watchdog.EXEC_MEMORY_DIR", str(tmp_path))
+        cp_dir = tmp_path / "_checkpoints"
+        cp_dir.mkdir()
+
+        fresh = cp_dir / "fresh_checkpoint.json"
+        fresh.write_text("{}")
+
+        result = watchdog._check_stale_memory()
+        assert result["stale_checkpoints"] == []
+
+    def test_run_heartbeat_checks_combines_all(self, watchdog, tmp_path, monkeypatch):
+        """run_heartbeat_checks calls all three sub-checks."""
+        monkeypatch.setattr("watchdog.LOG_DIR", str(tmp_path))
+        monkeypatch.setattr("watchdog.EXEC_MEMORY_DIR", str(tmp_path))
+
+        result = watchdog.run_heartbeat_checks()
+        assert "security" in result
+        assert "cleanup" in result
+        assert "memory" in result

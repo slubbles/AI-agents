@@ -8,10 +8,11 @@ Checkpoints are stored per-domain in the exec_memory directory.
 Only one active checkpoint per domain at a time.
 
 Checkpoint lifecycle:
-1. Created when execution starts
-2. Updated after each successful step
-3. Deleted on execution completion (success or final failure)
-4. Loaded on execution start to detect resumable work
+1. Created when execution starts (WAL: intent recorded before work)
+2. WAL entry written before each step (what we're about to do)
+3. Updated after each successful step (WAL cleared)
+4. Deleted on execution completion (success or final failure)
+5. Loaded on execution start to detect resumable work
 """
 
 import json
@@ -26,22 +27,29 @@ class ExecutionCheckpoint:
     """
     Manages execution progress persistence for crash recovery.
 
+    Includes WAL (Write-Ahead Log) style persistence: before starting
+    a step, we record intent to disk. If the process crashes mid-step,
+    recovery can see what was in-flight.
+
     Usage:
         cp = ExecutionCheckpoint("/path/to/checkpoints/")
         
         # Start new execution
         cp.create("nextjs-react", goal="Build REST API", plan=plan_dict)
         
+        # Before each step (WAL)
+        cp.write_ahead(domain, step_index=2, step_info={"tool": "write_file", ...})
+        
         # After each step
-        cp.update_step(step_result)
+        cp.update_step(domain, step_result)
         
         # Check for resumable work
         state = cp.load("nextjs-react")
-        if state:
-            # Resume from last checkpoint
+        if state and state.get("wal_pending"):
+            # Last step may have partially completed
             ...
         
-        # Execution complete — clean up
+        # Execution complete
         cp.clear("nextjs-react")
     """
 
@@ -68,7 +76,7 @@ class ExecutionCheckpoint:
         atomic_json_write(self._path(domain), checkpoint)
 
     def update_step(self, domain: str, step_result: dict) -> None:
-        """Record a completed step in the checkpoint."""
+        """Record a completed step in the checkpoint and clear WAL."""
         path = self._path(domain)
         if not os.path.exists(path):
             return
@@ -83,8 +91,49 @@ class ExecutionCheckpoint:
         if step_result.get("artifacts"):
             checkpoint["artifacts"].extend(step_result["artifacts"])
         checkpoint["last_updated"] = datetime.now(timezone.utc).isoformat()
+        # Clear WAL — step completed successfully
+        checkpoint.pop("wal_pending", None)
 
         atomic_json_write(path, checkpoint)
+
+    def write_ahead(self, domain: str, step_index: int,
+                    step_info: dict) -> None:
+        """
+        WAL: Record intent before starting a step.
+
+        If the process crashes during this step, recovery can see
+        wal_pending in the checkpoint and know what was in-flight.
+        """
+        path = self._path(domain)
+        if not os.path.exists(path):
+            return
+
+        try:
+            with open(path) as f:
+                checkpoint = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return
+
+        checkpoint["wal_pending"] = {
+            "step_index": step_index,
+            "step_info": step_info,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+        }
+        checkpoint["last_updated"] = datetime.now(timezone.utc).isoformat()
+        atomic_json_write(path, checkpoint)
+
+    def clear_wal(self, domain: str) -> None:
+        """Clear WAL entry without recording a completed step."""
+        path = self._path(domain)
+        if not os.path.exists(path):
+            return
+        try:
+            with open(path) as f:
+                checkpoint = json.load(f)
+            checkpoint.pop("wal_pending", None)
+            atomic_json_write(path, checkpoint)
+        except (json.JSONDecodeError, OSError):
+            pass
 
     def load(self, domain: str) -> Optional[dict]:
         """
@@ -151,18 +200,19 @@ class ExecutionCheckpoint:
         Get information needed to resume an execution.
 
         Returns:
-            Dict with plan, completed step indices, and artifacts,
-            or None if nothing to resume.
+            Dict with plan, completed step indices, artifacts,
+            and wal_pending if a step was in-flight when crash occurred.
+            None if nothing to resume.
         """
         checkpoint = self.load(domain)
         if not checkpoint:
             return None
 
         completed_steps = checkpoint.get("completed_steps", [])
-        if not completed_steps:
+        if not completed_steps and not checkpoint.get("wal_pending"):
             return None  # Nothing to resume from
 
-        return {
+        info = {
             "goal": checkpoint["goal"],
             "plan": checkpoint["plan"],
             "completed_step_count": len(completed_steps),
@@ -170,3 +220,6 @@ class ExecutionCheckpoint:
             "artifacts": checkpoint.get("artifacts", []),
             "started_at": checkpoint.get("started_at"),
         }
+        if checkpoint.get("wal_pending"):
+            info["wal_pending"] = checkpoint["wal_pending"]
+        return info

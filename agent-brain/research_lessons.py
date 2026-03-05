@@ -23,6 +23,13 @@ from utils.atomic_write import atomic_json_write
 LESSONS_DIR = os.path.join(os.path.dirname(__file__), "memory", "_lessons")
 MAX_LESSONS_PER_DOMAIN = 30  # Keep it tight. Noise kills agent performance.
 
+# Confidence thresholds for lesson usage
+INITIAL_CONFIDENCE = 0.5
+CONFIDENCE_REPEAT_BOOST = 0.1   # +0.1 per repeat observation
+CONFIDENCE_CONTRADICT_PENALTY = 0.2  # -0.2 per contradiction
+MIN_CONFIDENCE_FOR_STRATEGY = 0.6  # Only lessons >= this inform strategy rewrites
+GLOBAL_LESSON_THRESHOLD = 2  # Seen in N+ domains to become global
+
 
 def _lessons_path(domain: str) -> str:
     return os.path.join(LESSONS_DIR, f"{domain}.json")
@@ -47,7 +54,8 @@ def _save_lessons(domain: str, lessons: list[dict]) -> None:
     atomic_json_write(_lessons_path(domain), lessons)
 
 
-def add_lesson(domain: str, lesson: str, source: str, details: str = "") -> None:
+def add_lesson(domain: str, lesson: str, source: str, details: str = "",
+               project: str = "") -> None:
     """
     Add a lesson from a failure.
     
@@ -56,14 +64,24 @@ def add_lesson(domain: str, lesson: str, source: str, details: str = "") -> None
         lesson: The specific rule (e.g., "Don't search for future-dated events as facts")
         source: Where this came from ("critic_rejection", "strategy_rollback", "manual")
         details: Optional context (e.g., the critique feedback that triggered this)
+        project: Optional project tag (from hands build)
     """
     lessons = _load_lessons(domain)
+    now = datetime.now(timezone.utc).isoformat()
     
     # Deduplicate — don't add the same lesson twice
     for existing in lessons:
         if existing.get("lesson") == lesson:
             existing["hit_count"] = existing.get("hit_count", 1) + 1
-            existing["last_seen"] = datetime.now(timezone.utc).isoformat()
+            existing["observation_count"] = existing.get("observation_count", 1) + 1
+            existing["last_seen"] = now
+            # Boost confidence on repeat observation (capped at 1.0)
+            conf = existing.get("confidence", INITIAL_CONFIDENCE)
+            existing["confidence"] = min(1.0, conf + CONFIDENCE_REPEAT_BOOST)
+            # Track domains where this lesson was seen
+            domains_seen = set(existing.get("domains_seen", [domain]))
+            domains_seen.add(domain)
+            existing["domains_seen"] = sorted(domains_seen)
             _save_lessons(domain, lessons)
             return
     
@@ -71,9 +89,15 @@ def add_lesson(domain: str, lesson: str, source: str, details: str = "") -> None
         "lesson": lesson,
         "source": source,
         "details": details[:500],  # Cap detail length
+        "domain": domain,
+        "project": project,
+        "confidence": INITIAL_CONFIDENCE,
+        "observation_count": 1,
         "hit_count": 1,
-        "created": datetime.now(timezone.utc).isoformat(),
-        "last_seen": datetime.now(timezone.utc).isoformat(),
+        "domains_seen": [domain],
+        "created": now,
+        "first_seen": now,
+        "last_seen": now,
     })
     _save_lessons(domain, lessons)
 
@@ -111,19 +135,82 @@ def get_lessons(domain: str) -> list[dict]:
     return sorted(lessons, key=lambda l: l.get("hit_count", 1), reverse=True)
 
 
+def get_confident_lessons(domain: str) -> list[dict]:
+    """Get lessons with confidence >= MIN_CONFIDENCE_FOR_STRATEGY.
+    
+    Only these should inform strategy rewrites (meta-analyst).
+    """
+    return [
+        l for l in get_lessons(domain)
+        if l.get("confidence", INITIAL_CONFIDENCE) >= MIN_CONFIDENCE_FOR_STRATEGY
+    ]
+
+
+def get_global_lessons() -> list[dict]:
+    """Get lessons seen across 2+ domains (domain-agnostic patterns).
+    
+    Global lessons are higher-signal: if the same mistake appears in
+    multiple domains, it's a systemic issue worth addressing everywhere.
+    """
+    if not os.path.exists(LESSONS_DIR):
+        return []
+    
+    # Collect all lessons across all domains
+    all_by_text: dict[str, dict] = {}
+    for filename in sorted(os.listdir(LESSONS_DIR)):
+        if not filename.endswith(".json"):
+            continue
+        domain = filename[:-5]
+        for lesson in _load_lessons(domain):
+            text = lesson.get("lesson", "")
+            if text in all_by_text:
+                existing = all_by_text[text]
+                domains = set(existing.get("domains_seen", []))
+                domains.add(domain)
+                existing["domains_seen"] = sorted(domains)
+                existing["observation_count"] = existing.get("observation_count", 1) + lesson.get("observation_count", 1)
+            else:
+                all_by_text[text] = dict(lesson)
+                all_by_text[text].setdefault("domains_seen", [domain])
+    
+    return [
+        l for l in all_by_text.values()
+        if len(l.get("domains_seen", [])) >= GLOBAL_LESSON_THRESHOLD
+    ]
+
+
+def contradict_lesson(domain: str, lesson_text: str) -> bool:
+    """Reduce confidence of a lesson that was contradicted by evidence.
+    
+    Returns True if the lesson was found and updated.
+    """
+    lessons = _load_lessons(domain)
+    for existing in lessons:
+        if existing.get("lesson") == lesson_text:
+            conf = existing.get("confidence", INITIAL_CONFIDENCE)
+            existing["confidence"] = max(0.0, conf - CONFIDENCE_CONTRADICT_PENALTY)
+            existing["last_seen"] = datetime.now(timezone.utc).isoformat()
+            _save_lessons(domain, lessons)
+            return True
+    return False
+
+
 def format_lessons_for_prompt(domain: str, max_items: int = 10) -> str:
     """
     Format lessons as a block to inject into the researcher's system prompt.
     Returns empty string if no lessons exist.
+    Only includes lessons with sufficient confidence.
     """
-    lessons = get_lessons(domain)[:max_items]
+    lessons = get_confident_lessons(domain)[:max_items]
     if not lessons:
         return ""
     
     lines = ["LESSONS FROM PAST FAILURES (do NOT repeat these mistakes):"]
     for l in lessons:
         hit = f" (seen {l['hit_count']}x)" if l.get("hit_count", 1) > 1 else ""
-        lines.append(f"- {l['lesson']}{hit}")
+        conf = l.get("confidence", INITIAL_CONFIDENCE)
+        conf_label = f" [{conf:.0%}]" if conf < 1.0 else ""
+        lines.append(f"- {l['lesson']}{hit}{conf_label}")
     
     return "\n".join(lines)
 

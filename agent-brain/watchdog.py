@@ -25,13 +25,14 @@ Usage:
   Status available via get_watchdog_status().
 """
 
+import glob
 import json
 import os
 import time
 import threading
 from datetime import datetime, timezone, timedelta
 from enum import Enum
-from config import LOG_DIR, DAILY_BUDGET_USD
+from config import LOG_DIR, DAILY_BUDGET_USD, EXEC_MEMORY_DIR
 from utils.atomic_write import atomic_json_write
 
 
@@ -52,6 +53,14 @@ FAILURE_COOLDOWN_SECONDS = 1800  # 30 minutes
 # Cost ceiling: absolute max spend per day (independent of DAILY_BUDGET_USD)
 # This is the "never exceed" hard ceiling — a safety net above the normal budget
 HARD_COST_CEILING_USD = DAILY_BUDGET_USD * 1.5
+
+# HEARTBEAT-style periodic checks
+LOG_RETENTION_DAYS = 7        # Delete log files older than this
+STALE_CHECKPOINT_HOURS = 24   # Flag exec_memory checkpoints older than this
+CONFIG_SNAPSHOT_KEYS = [       # Config keys to monitor for unexpected changes
+    "DAILY_BUDGET_USD", "EXEC_MAX_STEPS", "MAX_EXECUTION_COST",
+    "BUILD_BUDGET_CAP", "HARD_COST_CEILING_USD",
+]
 
 # Stall detection: max time for a single research round (seconds)
 # Includes research + scoring + synthesis + verification + meta-analysis.
@@ -486,6 +495,132 @@ class Watchdog:
                 )
 
         return result
+
+    # ── HEARTBEAT-style Periodic Checks ────────────────────────────────
+
+    def run_heartbeat_checks(self) -> dict:
+        """
+        HEARTBEAT-style periodic self-checks (inspired by proactive-agent).
+
+        Runs three maintenance checks:
+        1. Security integrity — detect unexpected config changes
+        2. Resource cleanup — remove old log files
+        3. Memory maintenance — flag stale exec_memory checkpoints
+
+        Returns dict with results of each check.
+        """
+        results = {
+            "security": self._check_security_integrity(),
+            "cleanup": self._cleanup_old_resources(),
+            "memory": self._check_stale_memory(),
+        }
+
+        issues = sum(1 for v in results.values() if v.get("issues"))
+        severity = "warning" if issues else "info"
+        self._record_event(
+            "heartbeat_check",
+            f"Heartbeat: {3 - issues}/3 checks clean"
+            + (f", {issues} with issues" if issues else ""),
+            severity=severity,
+            details=results,
+        )
+        return results
+
+    def _check_security_integrity(self) -> dict:
+        """Verify critical config values haven't changed unexpectedly."""
+        import config as cfg
+        snapshot_path = os.path.join(LOG_DIR, "_config_snapshot.json")
+
+        current = {}
+        for key in CONFIG_SNAPSHOT_KEYS:
+            current[key] = getattr(cfg, key, None)
+
+        # Load previous snapshot
+        if os.path.exists(snapshot_path):
+            try:
+                with open(snapshot_path) as f:
+                    previous = json.load(f)
+                changed = {
+                    k: {"was": previous.get(k), "now": current[k]}
+                    for k in current
+                    if previous.get(k) is not None and previous.get(k) != current[k]
+                }
+                if changed:
+                    self._record_event(
+                        "config_drift",
+                        f"Config changed since last check: {list(changed.keys())}",
+                        severity="warning",
+                        details=changed,
+                    )
+                    # Save new snapshot (the change is now acknowledged)
+                    os.makedirs(LOG_DIR, exist_ok=True)
+                    atomic_json_write(snapshot_path, current)
+                    return {"ok": True, "issues": list(changed.keys()),
+                            "changes": changed}
+            except (json.JSONDecodeError, OSError):
+                pass  # Corrupt snapshot — recreate
+
+        # Save current snapshot
+        os.makedirs(LOG_DIR, exist_ok=True)
+        atomic_json_write(snapshot_path, current)
+        return {"ok": True, "issues": []}
+
+    def _cleanup_old_resources(self) -> dict:
+        """Remove log files older than LOG_RETENTION_DAYS."""
+        cleaned = 0
+        errors = 0
+        cutoff = datetime.now(timezone.utc) - timedelta(days=LOG_RETENTION_DAYS)
+        cutoff_ts = cutoff.timestamp()
+
+        if not os.path.exists(LOG_DIR):
+            return {"cleaned": 0, "errors": 0, "issues": []}
+
+        for fname in os.listdir(LOG_DIR):
+            fpath = os.path.join(LOG_DIR, fname)
+            if not os.path.isfile(fpath):
+                continue
+            # Only clean .jsonl log files, not state files
+            if not fname.endswith(".jsonl"):
+                continue
+            try:
+                if os.path.getmtime(fpath) < cutoff_ts:
+                    os.remove(fpath)
+                    cleaned += 1
+            except OSError:
+                errors += 1
+
+        issues = [f"{errors} files failed to clean"] if errors else []
+        return {"cleaned": cleaned, "errors": errors, "issues": issues}
+
+    def _check_stale_memory(self) -> dict:
+        """Flag stale exec_memory checkpoint files."""
+        stale = []
+        checkpoint_dir = os.path.join(EXEC_MEMORY_DIR, "_checkpoints")
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=STALE_CHECKPOINT_HOURS)
+        cutoff_ts = cutoff.timestamp()
+
+        if not os.path.exists(checkpoint_dir):
+            return {"stale_checkpoints": [], "issues": []}
+
+        for fname in os.listdir(checkpoint_dir):
+            fpath = os.path.join(checkpoint_dir, fname)
+            if not fname.endswith(".json"):
+                continue
+            try:
+                if os.path.getmtime(fpath) < cutoff_ts:
+                    stale.append(fname)
+            except OSError:
+                continue
+
+        issues = [f"{len(stale)} stale checkpoints"] if stale else []
+        if stale:
+            self._record_event(
+                "stale_checkpoints",
+                f"{len(stale)} checkpoint(s) older than {STALE_CHECKPOINT_HOURS}h",
+                severity="warning",
+                details={"files": stale},
+            )
+        return {"stale_checkpoints": stale, "issues": issues}
 
     # ── Manual Controls ────────────────────────────────────────────────
 

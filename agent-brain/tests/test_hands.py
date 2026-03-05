@@ -1560,6 +1560,125 @@ class TestValidatorArtifactReading:
         assert pkg in files
 
 
+# ============================================================
+# Validator Confidence Scoring Tests
+# ============================================================
+
+class TestValidatorConfidenceScoring:
+    """Tests for confidence-based issue filtering in exec_validator."""
+
+    def test_normalize_dict_issue(self):
+        """Dict issues with confidence are preserved."""
+        from hands.validator import _normalize_issue
+        entry = _normalize_issue({"issue": "Missing tests", "confidence": 85})
+        assert entry["issue"] == "Missing tests"
+        assert entry["confidence"] == 85
+
+    def test_normalize_string_issue(self):
+        """Plain string issues get default high confidence (backward compat)."""
+        from hands.validator import _normalize_issue
+        entry = _normalize_issue("No error handling")
+        assert entry["issue"] == "No error handling"
+        assert entry["confidence"] == 95
+
+    def test_filter_removes_low_confidence(self):
+        """Issues below 70 confidence are removed from main lists."""
+        from hands.validator import _filter_by_confidence
+        result = {
+            "weaknesses": [
+                {"issue": "High confidence", "confidence": 92},
+                {"issue": "Low confidence", "confidence": 40},
+                {"issue": "Medium confidence", "confidence": 75},
+            ],
+            "critical_issues": [
+                {"issue": "Real bug", "confidence": 95},
+                {"issue": "Maybe a bug", "confidence": 55},
+            ],
+        }
+        filtered = _filter_by_confidence(result)
+        assert len(filtered["weaknesses"]) == 2
+        assert len(filtered["critical_issues"]) == 1
+        assert len(filtered["_low_confidence_issues"]) == 2
+
+    def test_filter_keeps_all_high_confidence(self):
+        """All high-confidence issues are kept."""
+        from hands.validator import _filter_by_confidence
+        result = {
+            "weaknesses": [
+                {"issue": "Bug A", "confidence": 90},
+                {"issue": "Bug B", "confidence": 100},
+            ],
+            "critical_issues": [{"issue": "Critical", "confidence": 95}],
+        }
+        filtered = _filter_by_confidence(result)
+        assert len(filtered["weaknesses"]) == 2
+        assert len(filtered["critical_issues"]) == 1
+        assert "_low_confidence_issues" not in filtered
+
+    def test_filter_handles_empty_lists(self):
+        """Empty weaknesses/critical_issues work fine."""
+        from hands.validator import _filter_by_confidence
+        result = {"weaknesses": [], "critical_issues": []}
+        filtered = _filter_by_confidence(result)
+        assert filtered["weaknesses"] == []
+        assert filtered["critical_issues"] == []
+
+    def test_filter_backward_compat_strings(self):
+        """String issues (old format) are treated as high confidence."""
+        from hands.validator import _filter_by_confidence
+        result = {
+            "weaknesses": ["No error handling", "Missing types"],
+            "critical_issues": ["Security flaw"],
+        }
+        filtered = _filter_by_confidence(result)
+        # All strings get confidence=95, above threshold, so all kept
+        assert len(filtered["weaknesses"]) == 2
+        assert len(filtered["critical_issues"]) == 1
+
+    def test_validate_with_confidence_scores(self, sample_plan, sample_execution_report):
+        """Full validate_execution with confidence-scored issues."""
+        from hands.validator import validate_execution
+
+        mock_response = MagicMock()
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 150
+        mock_response.content = [MagicMock(text=json.dumps({
+            "scores": {
+                "correctness": 7, "completeness": 6,
+                "code_quality": 5, "security": 8, "kb_alignment": 6,
+            },
+            "overall_score": 6.4,
+            "strengths": ["Works correctly"],
+            "weaknesses": [
+                {"issue": "No error handling", "confidence": 85},
+                {"issue": "Maybe missing types", "confidence": 45},
+            ],
+            "actionable_feedback": "Add try/except blocks",
+            "verdict": "accept",
+            "critical_issues": [],
+        }))]
+
+        with patch("hands.validator.create_message", return_value=mock_response), \
+             patch("hands.validator.log_cost"):
+            result = validate_execution(
+                goal="Build hello world",
+                plan=sample_plan,
+                execution_report=sample_execution_report,
+            )
+
+        assert result["verdict"] == "accept"
+        # High-confidence issue kept, low-confidence filtered
+        assert len(result["weaknesses"]) == 1
+        assert result["weaknesses"][0]["issue"] == "No error handling"
+        assert len(result["_low_confidence_issues"]) == 1
+
+    def test_confidence_thresholds_exported(self):
+        """Confidence thresholds are accessible."""
+        from hands.validator import CONFIDENCE_ERROR_THRESHOLD, CONFIDENCE_WARNING_THRESHOLD
+        assert CONFIDENCE_ERROR_THRESHOLD == 90
+        assert CONFIDENCE_WARNING_THRESHOLD == 70
+
+
 class TestWorkspaceAwarePlanning:
     """Tests for planner workspace scanning."""
 
@@ -3406,6 +3525,79 @@ class TestCheckpoint:
 
         cp.create("test", "Task", {"steps": []})
         assert cp.get_resume_info("test") is None
+
+
+# ============================================================
+# v8: WAL-style Checkpoint Persistence (Obj 19)
+# ============================================================
+
+class TestCheckpointWAL:
+    """Test WAL (Write-Ahead Log) style persistence for crash recovery."""
+
+    def test_write_ahead_creates_wal_entry(self, tmp_path):
+        """write_ahead records pending step in checkpoint."""
+        from hands.checkpoint import ExecutionCheckpoint
+        cp = ExecutionCheckpoint(str(tmp_path))
+
+        cp.create("test", "Build API", {"steps": [1, 2]})
+        cp.write_ahead("test", step_index=0, step_info={"tool": "write_file", "args": {}})
+
+        loaded = cp.load("test")
+        assert loaded["wal_pending"] is not None
+        assert loaded["wal_pending"]["step_index"] == 0
+        assert loaded["wal_pending"]["step_info"]["tool"] == "write_file"
+        assert "started_at" in loaded["wal_pending"]
+
+    def test_update_step_clears_wal(self, tmp_path):
+        """Completing a step clears the WAL entry."""
+        from hands.checkpoint import ExecutionCheckpoint
+        cp = ExecutionCheckpoint(str(tmp_path))
+
+        cp.create("test", "Build API", {"steps": [1]})
+        cp.write_ahead("test", step_index=0, step_info={"tool": "code"})
+        cp.update_step("test", {"step": 1, "success": True, "artifacts": []})
+
+        loaded = cp.load("test")
+        assert "wal_pending" not in loaded
+
+    def test_clear_wal_without_completing(self, tmp_path):
+        """clear_wal removes WAL without recording a step."""
+        from hands.checkpoint import ExecutionCheckpoint
+        cp = ExecutionCheckpoint(str(tmp_path))
+
+        cp.create("test", "Build API", {"steps": [1]})
+        cp.write_ahead("test", step_index=0, step_info={"tool": "code"})
+        cp.clear_wal("test")
+
+        loaded = cp.load("test")
+        assert "wal_pending" not in loaded
+        assert len(loaded["completed_steps"]) == 0
+
+    def test_resume_info_includes_wal(self, tmp_path):
+        """get_resume_info includes wal_pending when present."""
+        from hands.checkpoint import ExecutionCheckpoint
+        cp = ExecutionCheckpoint(str(tmp_path))
+
+        cp.create("test", "Build API", {"steps": [1, 2]})
+        cp.update_step("test", {"step": 1, "success": True, "artifacts": []})
+        cp.write_ahead("test", step_index=1, step_info={"tool": "code"})
+
+        info = cp.get_resume_info("test")
+        assert info is not None
+        assert info["completed_step_count"] == 1
+        assert info["wal_pending"]["step_index"] == 1
+
+    def test_resume_with_only_wal_no_steps(self, tmp_path):
+        """Checkpoint with only WAL (crashed on first step) is resumable."""
+        from hands.checkpoint import ExecutionCheckpoint
+        cp = ExecutionCheckpoint(str(tmp_path))
+
+        cp.create("test", "Build API", {"steps": [1]})
+        cp.write_ahead("test", step_index=0, step_info={"tool": "code"})
+
+        info = cp.get_resume_info("test")
+        assert info is not None
+        assert info["wal_pending"]["step_index"] == 0
 
 
 # ============================================================

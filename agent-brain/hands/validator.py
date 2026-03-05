@@ -89,11 +89,23 @@ Output ONLY valid JSON:
     }},
     "overall_score": 6.4,
     "strengths": ["what was done well"],
-    "weaknesses": ["what was done poorly"],
+    "weaknesses": [
+        {{"issue": "what was done poorly", "confidence": 85}},
+        {{"issue": "another issue", "confidence": 45}}
+    ],
     "actionable_feedback": "specific instructions for how to improve if re-executed",
     "verdict": "accept|reject",
-    "critical_issues": ["any blocking issues that must be fixed"]
+    "critical_issues": [
+        {{"issue": "any blocking issues that must be fixed", "confidence": 92}}
+    ]
 }}
+
+CONFIDENCE SCORING (0-100 per issue):
+- Each weakness and critical_issue MUST include a "confidence" score (0-100).
+- 90-100: Certain — you verified this in the code. Treat as error.
+- 70-89: Likely — strong evidence but not 100% verified. Treat as warning.
+- Below 70: Possible — speculative or based on incomplete info. Logged only.
+- Be honest about your confidence. If you haven't seen the file, don't guess high.
 
 Threshold for accept: overall_score >= {EXEC_QUALITY_THRESHOLD}.
 Be harsh but fair. The system depends on honest evaluation.
@@ -626,6 +638,52 @@ def _should_fast_reject(
     }
 
 
+# Confidence thresholds for issue filtering
+CONFIDENCE_ERROR_THRESHOLD = 90   # 90-100: reported as errors
+CONFIDENCE_WARNING_THRESHOLD = 70  # 70-89: reported as warnings
+# Below 70: logged only, not reported as failures
+
+
+def _normalize_issue(item) -> dict:
+    """Normalize an issue entry to {issue: str, confidence: int} format.
+
+    The LLM may return plain strings (old format) or dicts with confidence.
+    Plain strings are treated as high-confidence (95) for backward compatibility.
+    """
+    if isinstance(item, dict):
+        return {
+            "issue": str(item.get("issue", "")),
+            "confidence": int(item.get("confidence", 95)),
+        }
+    return {"issue": str(item), "confidence": 95}
+
+
+def _filter_by_confidence(result: dict) -> dict:
+    """Filter weaknesses and critical_issues by confidence score.
+
+    - confidence >= 90: error (kept in list)
+    - confidence 70-89: warning (kept, marked as warning)
+    - confidence < 70: removed from list, stored in _low_confidence_issues
+    """
+    low_confidence = []
+
+    for key in ("weaknesses", "critical_issues"):
+        raw = result.get(key, [])
+        filtered = []
+        for item in raw:
+            entry = _normalize_issue(item)
+            if entry["confidence"] < CONFIDENCE_WARNING_THRESHOLD:
+                low_confidence.append(entry)
+            else:
+                filtered.append(entry)
+        result[key] = filtered
+
+    if low_confidence:
+        result["_low_confidence_issues"] = low_confidence
+
+    return result
+
+
 def validate_execution(
     goal: str,
     plan: dict,
@@ -791,6 +849,9 @@ def validate_execution(
     result.setdefault("strengths", [])
     result.setdefault("weaknesses", [])
     result.setdefault("actionable_feedback", "")
+
+    # Apply confidence filtering to weaknesses and critical_issues
+    result = _filter_by_confidence(result)
 
     # Attach static check results for downstream consumers
     result["static_checks"] = static_results
