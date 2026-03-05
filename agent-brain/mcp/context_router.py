@@ -47,6 +47,9 @@ KEYWORD_CATEGORIES: dict[str, list[str]] = {
     r"\b(build|compile|deploy|ci|cd|pipeline|npm|pip|cargo)\b": ["build", "deploy"],
     # Documentation
     r"\b(docs|documentation|readme|changelog|markdown)\b": ["documentation"],
+    # Validation / reality check
+    r"\b(validate|reality.?check|idea.?check|already.?exists|competition|competitors|"
+    r"saturated|market.?research|pre.?build|existing.?solutions)\b": ["validation", "research"],
 }
 
 

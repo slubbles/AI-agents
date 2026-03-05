@@ -65,7 +65,7 @@ CATEGORY_KEYWORDS = {
     ),
     "marketing": re.compile(
         r"\b(marketing|content|copy|seo|blog|article|brand|campaign|social.?media|"
-        r"headline|newsletter|email.?marketing|outreach)\b",
+        r"headline|newsletter|email.?marketing|outreach|landing.?page|press.?release)\b",
         re.IGNORECASE,
     ),
     "sales": re.compile(

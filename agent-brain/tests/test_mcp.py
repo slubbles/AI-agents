@@ -1031,3 +1031,45 @@ class TestEdgeCases:
         assert cfg.restart_on_failure is True
         assert cfg.description == ""
         assert cfg.categories == []
+
+
+# ============================================================
+# Objective 16: idea-reality-mcp Integration Tests
+# ============================================================
+
+class TestIdeaRealityIntegration:
+    """Tests for idea-reality-mcp integration in context_router and mcp_servers.json."""
+
+    def test_validation_keywords_route_correctly(self):
+        """Validation keywords should match validation/research categories."""
+        router = ContextRouter()
+        for task in [
+            "validate this product idea",
+            "do a reality check on this SaaS concept",
+            "check if this already exists",
+            "analyze the competition for task management",
+            "pre-build check for this app idea",
+        ]:
+            cats = router.get_categories_for_task(task)
+            assert "validation" in cats or "research" in cats, f"Failed for: {task}"
+
+    def test_idea_reality_in_mcp_config(self):
+        """idea-reality server should be in mcp_servers.json."""
+        import json
+        config_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "mcp_servers.json",
+        )
+        with open(config_path) as f:
+            config = json.load(f)
+        assert "idea-reality" in config["servers"]
+        ir = config["servers"]["idea-reality"]
+        assert ir["enabled"] is True
+        assert "validation" in ir["categories"]
+        assert ir["command"] == "uvx"
+
+    def test_non_build_tasks_dont_trigger_validation(self):
+        """Non-build tasks should not match validation keywords."""
+        router = ContextRouter()
+        cats = router.get_categories_for_task("write a unit test for the parser")
+        assert "validation" not in cats

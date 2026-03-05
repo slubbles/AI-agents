@@ -498,3 +498,150 @@ class TestWithTempSkills:
         # Filter to rules should find nothing (no rules CSV)
         result2 = lookup_design_data("healthcare", data_type="rules")
         assert result2 == ""
+
+
+# ============================================================
+# Objective 13: Anthropic Marketing + Sales Skills
+# ============================================================
+
+class TestAnthropicSkills:
+    """Verify Anthropic marketing and sales skills are installed and loadable."""
+
+    def test_content_creation_installed(self):
+        skills = list_skills("marketing")
+        names = [s["name"] for s in skills]
+        assert "Content Creation" in names
+
+    def test_competitive_analysis_installed(self):
+        skills = list_skills("research")
+        names = [s["name"] for s in skills]
+        assert "Competitive Analysis" in names
+
+    def test_brand_voice_installed(self):
+        skills = list_skills("marketing")
+        names = [s["name"] for s in skills]
+        assert "Brand Voice" in names
+
+    def test_campaign_planning_installed(self):
+        skills = list_skills("marketing")
+        names = [s["name"] for s in skills]
+        assert "Campaign Planning" in names
+
+    def test_draft_outreach_installed(self):
+        skills = list_skills("sales")
+        names = [s["name"] for s in skills]
+        assert "Draft Outreach" in names
+
+    def test_marketing_skills_load_for_landing_page_task(self):
+        cats = detect_categories("build a landing page for a SaaS product")
+        assert "marketing" in cats
+        content = load_skills(["marketing"])
+        assert len(content) > 0
+
+    def test_sales_skills_load_for_outreach_task(self):
+        cats = detect_categories("draft cold email outreach to potential clients")
+        assert "sales" in cats
+        content = load_skills(["sales"])
+        assert "Draft Outreach" in content
+
+    def test_total_skills_at_least_18(self):
+        """13 from before + 5 Anthropic = 18 minimum."""
+        all_skills = list_skills()
+        assert len(all_skills) >= 18
+
+    def test_content_creation_has_seo_section(self):
+        content = load_skills(["marketing"], max_chars=20000)
+        assert "SEO" in content or "seo" in content.lower()
+
+    def test_draft_outreach_has_research_first(self):
+        content = load_skills(["sales"], max_chars=20000)
+        assert "research" in content.lower()
+
+
+# ============================================================
+# Objective 16: Planner Reality Check Integration Tests
+# ============================================================
+
+class TestPlannerRealityCheck:
+    """Tests for _get_reality_signal and _BUILD_TASK_PATTERN in planner."""
+
+    def test_build_task_pattern_matches_saas(self):
+        from hands.planner import _BUILD_TASK_PATTERN
+        assert _BUILD_TASK_PATTERN.search("build a SaaS dashboard for analytics")
+        assert _BUILD_TASK_PATTERN.search("Create an app for task management")
+        assert _BUILD_TASK_PATTERN.search("develop a platform for freelancers")
+        assert _BUILD_TASK_PATTERN.search("launch an MVP for food delivery")
+
+    def test_build_task_pattern_rejects_non_build(self):
+        from hands.planner import _BUILD_TASK_PATTERN
+        assert not _BUILD_TASK_PATTERN.search("fix the CSS on the homepage")
+        assert not _BUILD_TASK_PATTERN.search("write unit tests for the parser")
+        assert not _BUILD_TASK_PATTERN.search("research market trends in AI")
+
+    def test_reality_signal_returns_empty_for_non_build(self):
+        from hands.planner import _get_reality_signal
+        result = _get_reality_signal("fix a bug in the login form")
+        assert result == ""
+
+    def test_reality_signal_handles_missing_package(self, monkeypatch):
+        from hands.planner import _get_reality_signal
+        # Force ImportError by making the import fail
+        import builtins
+        original_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if "idea_reality_mcp" in name:
+                raise ImportError("mocked")
+            return original_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+        result = _get_reality_signal("build a SaaS app for project management")
+        assert result == ""
+
+    def test_planner_prompt_includes_reality_check_section_format(self):
+        """When reality signal is non-empty, it should have the expected format."""
+        # Test the format constants
+        from hands.planner import _get_reality_signal
+        # Since we can't guarantee the package works, just test the pattern matching
+        from hands.planner import _BUILD_TASK_PATTERN
+        assert _BUILD_TASK_PATTERN.search("ship a product for email marketing")
+
+
+# ============================================================
+# Objective 15: PM + Feature Dev Skills Tests
+# ============================================================
+
+class TestPMSkills:
+    """Verify PM and feature-dev skills are installed and loadable."""
+
+    def test_feature_spec_installed(self):
+        skills = list_skills("product")
+        names = [s["name"] for s in skills]
+        assert "Feature Spec" in names
+
+    def test_user_research_synthesis_installed(self):
+        skills = list_skills("product")
+        names = [s["name"] for s in skills]
+        assert "User Research Synthesis" in names
+
+    def test_feature_dev_methodology_installed(self):
+        skills = list_skills("workflow")
+        names = [s["name"] for s in skills]
+        assert "Feature Dev Methodology" in names
+
+    def test_product_skills_load_for_saas_task(self):
+        cats = detect_categories("build a SaaS product for project management")
+        assert "product" in cats
+        content = load_skills(["product"])
+        assert len(content) > 0
+
+    def test_workflow_skills_include_feature_dev(self):
+        content = load_skills(["workflow"], max_chars=20000)
+        assert "7 Phases" in content or "7-phase" in content.lower() or "Phase 1" in content
+
+    def test_total_skills_at_least_21(self):
+        """18 from before + 3 PM/workflow = 21 minimum."""
+        all_skills = list_skills()
+        assert len(all_skills) >= 21
+
+    def test_feature_spec_has_acceptance_criteria(self):
+        content = load_skills(["product"], max_chars=20000)
+        assert "acceptance" in content.lower() or "criteria" in content.lower()

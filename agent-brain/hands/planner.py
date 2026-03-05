@@ -29,6 +29,11 @@ from utils.retry import create_message
 from utils.json_parser import extract_json
 from skills_loader import load_skills, detect_categories, lookup_design_data
 
+import logging
+import re as _re
+
+logger = logging.getLogger("planner")
+
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 # Import shared constants (single source of truth)
@@ -38,6 +43,74 @@ from hands.constants import (
     MAX_TREE_CHARS as _MAX_TREE_CHARS,
     MAX_KEY_FILE_CHARS as _MAX_KEY_FILE_CHARS,
 )
+
+# Regex to detect new product/SaaS build tasks (triggers reality check)
+_BUILD_TASK_PATTERN = _re.compile(
+    r"\b(build|create|develop|launch|make|ship)\b.*\b(saas|app|product|platform|tool|service|mvp|startup|website)\b",
+    _re.IGNORECASE,
+)
+
+
+def _get_reality_signal(goal: str) -> str:
+    """
+    Run a pre-build reality check using idea-reality-mcp.
+
+    Returns a context string with the reality signal, or empty string if
+    the check is unavailable or the task isn't a new product build.
+    """
+    # Only check for new product/SaaS build tasks
+    if not _BUILD_TASK_PATTERN.search(goal):
+        return ""
+
+    try:
+        import asyncio
+        from idea_reality_mcp.tools import idea_check
+        from idea_reality_mcp.scoring.engine import extract_keywords
+
+        # Run the async idea_check synchronously
+        result = asyncio.run(idea_check(idea_text=goal, depth="quick"))
+
+        signal = result.get("signal", 0)
+        summary = result.get("summary", "")
+        similar = result.get("similar_projects", [])
+
+        # Build context string based on signal level
+        if signal <= 30:
+            level = "LOW COMPETITION"
+            guidance = "Proceed with confidence. Few existing solutions found."
+        elif signal <= 60:
+            level = "MODERATE COMPETITION"
+            guidance = "Differentiate clearly. Some existing solutions exist."
+        elif signal <= 80:
+            level = "HIGH COMPETITION"
+            guidance = "Must have clear differentiator. Many solutions exist."
+        else:
+            level = "SATURATED MARKET"
+            guidance = "Consider pivoting or finding a niche. Market is crowded."
+
+        parts = [
+            f"\n=== PRE-BUILD REALITY CHECK (signal: {signal}/100 — {level}) ===",
+            f"Guidance: {guidance}",
+        ]
+        if summary:
+            parts.append(f"Summary: {summary}")
+        if similar:
+            parts.append("Similar projects found:")
+            for proj in similar[:5]:
+                name = proj.get("name", "Unknown")
+                desc = proj.get("description", "")[:100]
+                parts.append(f"  - {name}: {desc}")
+        parts.append("=== END REALITY CHECK ===\n")
+
+        logger.info(f"Reality check for '{goal[:60]}...': signal={signal} ({level})")
+        return "\n".join(parts)
+
+    except ImportError:
+        logger.debug("idea-reality-mcp not installed, skipping reality check")
+        return ""
+    except Exception as e:
+        logger.debug(f"Reality check failed: {e}")
+        return ""
 
 
 def _scan_workspace(workspace_dir: str) -> dict:
@@ -326,7 +399,12 @@ def plan(
 
     system = _build_system_prompt(tools_description, domain_knowledge, execution_strategy, workspace_context, goal)
 
+    # Pre-build reality check (if idea-reality-mcp is available)
+    reality_signal = _get_reality_signal(goal)
+
     user_message = f"TASK: {goal}"
+    if reality_signal:
+        user_message += f"\n{reality_signal}"
     if context:
         user_message += f"\n\nADDITIONAL CONTEXT:\n{context}"
 

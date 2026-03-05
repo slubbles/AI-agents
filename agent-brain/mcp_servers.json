@@ -40,6 +40,13 @@
       "categories": ["web", "testing"],
       "description": "Browser automation and page screenshots",
       "enabled": false
+    },
+    "idea-reality": {
+      "command": "uvx",
+      "args": ["idea-reality-mcp"],
+      "categories": ["validation", "research"],
+      "description": "Pre-build reality check — scans GitHub, HN, npm, PyPI, Product Hunt for existing solutions. Returns signal score 0-100.",
+      "enabled": true
     }
   }
 }
