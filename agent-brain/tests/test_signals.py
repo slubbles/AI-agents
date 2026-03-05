@@ -200,11 +200,11 @@ class TestKeywordMatching:
 
 
 # ============================================================
-# 3. Signal Collector — Reddit Fetching
+# 3. Signal Collector — Reddit Fetching (RSS)
 # ============================================================
 
 class TestRedditFetching:
-    """Test Reddit public JSON API fetching."""
+    """Test Reddit RSS/Atom feed fetching and parsing."""
 
     @pytest.fixture(autouse=True)
     def tmp_db(self, tmp_path):
@@ -217,98 +217,122 @@ class TestRedditFetching:
         signal_collector.SIGNALS_DB_PATH = self._orig_path
         signal_collector._db_initialized = False
 
-    @patch("signal_collector._reddit_request")
+    def test_strip_html_removes_tags(self):
+        from signal_collector import _strip_html
+        assert _strip_html("<p>Hello <b>world</b></p>") == "Hello world"
+
+    def test_strip_html_decodes_entities(self):
+        from signal_collector import _strip_html
+        assert _strip_html("&amp; &lt;b&gt;bold&lt;/b&gt;") == "& bold"
+
+    @patch("signal_collector._reddit_rss_request")
     @patch("signal_collector.REQUEST_DELAY", 0)
-    def test_scrape_subreddit_extracts_posts(self, mock_request):
+    def test_scrape_subreddit_extracts_posts(self, mock_rss):
         from signal_collector import scrape_subreddit
-        mock_request.return_value = {
-            "data": {
-                "children": [
-                    {
-                        "data": {
-                            "name": "t3_mock001",
-                            "title": "I wish there was a better CRM",
-                            "selftext": "So frustrated with current tools",
-                            "author": "mockuser",
-                            "permalink": "/r/SaaS/comments/mock001/test/",
-                            "score": 50,
-                            "num_comments": 12,
-                            "created_utc": 1700000000,
-                        }
-                    }
-                ]
+        mock_rss.return_value = [
+            {
+                "reddit_id": "t3_mock001",
+                "title": "I wish there was a better CRM",
+                "body": "So frustrated with current tools",
+                "author": "mockuser",
+                "url": "https://old.reddit.com/r/SaaS/comments/mock001/test/",
+                "subreddit": "SaaS",
+                "score": 0,
+                "num_comments": 0,
+                "created_utc": 1700000000,
             }
-        }
+        ]
 
         stats = scrape_subreddit("SaaS", search_terms=["frustrated"])
         assert stats["found"] >= 1
         assert stats["matched"] >= 1
         assert stats["new"] >= 1
 
-    @patch("signal_collector._reddit_request")
+    @patch("signal_collector._reddit_rss_request")
     @patch("signal_collector.REQUEST_DELAY", 0)
-    def test_scrape_skips_non_matching_posts(self, mock_request):
+    def test_scrape_skips_non_matching_posts(self, mock_rss):
         from signal_collector import scrape_subreddit
-        mock_request.return_value = {
-            "data": {
-                "children": [
-                    {
-                        "data": {
-                            "name": "t3_nomatch",
-                            "title": "Beautiful day today",
-                            "selftext": "Everything is great",
-                            "author": "happyuser",
-                            "permalink": "/r/SaaS/comments/nomatch/",
-                            "score": 100,
-                            "num_comments": 5,
-                            "created_utc": 1700000000,
-                        }
-                    }
-                ]
+        mock_rss.return_value = [
+            {
+                "reddit_id": "t3_nomatch",
+                "title": "Beautiful day today",
+                "body": "Everything is great",
+                "author": "happyuser",
+                "url": "https://old.reddit.com/r/SaaS/comments/nomatch/",
+                "subreddit": "SaaS",
+                "score": 0,
+                "num_comments": 0,
+                "created_utc": 1700000000,
             }
-        }
+        ]
 
         stats = scrape_subreddit("SaaS", search_terms=["frustrated"])
         assert stats["found"] >= 1
         assert stats["matched"] == 0
 
-    @patch("signal_collector._reddit_request")
+    @patch("signal_collector._reddit_rss_request")
     @patch("signal_collector.REQUEST_DELAY", 0)
-    def test_scrape_handles_api_failure(self, mock_request):
+    def test_scrape_handles_api_failure(self, mock_rss):
         from signal_collector import scrape_subreddit
-        mock_request.return_value = None  # API failure
+        mock_rss.return_value = None  # RSS failure
 
         stats = scrape_subreddit("SaaS", search_terms=["frustrated"])
         assert stats["errors"] >= 1
 
-    @patch("signal_collector._reddit_request")
+    @patch("signal_collector._reddit_rss_request")
     @patch("signal_collector.REQUEST_DELAY", 0)
-    def test_scrape_deduplicates_across_terms(self, mock_request):
+    def test_scrape_deduplicates_across_terms(self, mock_rss):
         from signal_collector import scrape_subreddit
         # Same post returned for two different search terms
-        post_data = {
-            "data": {
-                "children": [
-                    {
-                        "data": {
-                            "name": "t3_dedup001",
-                            "title": "I wish I could find a tool to automate this",
-                            "selftext": "Frustrated",
-                            "author": "user1",
-                            "permalink": "/r/SaaS/comments/dedup001/",
-                            "score": 30,
-                            "num_comments": 8,
-                            "created_utc": 1700000000,
-                        }
-                    }
-                ]
-            }
+        post_entry = {
+            "reddit_id": "t3_dedup001",
+            "title": "I wish I could find a tool to automate this",
+            "body": "Frustrated with manual work",
+            "author": "user1",
+            "url": "https://old.reddit.com/r/SaaS/comments/dedup001/",
+            "subreddit": "SaaS",
+            "score": 0,
+            "num_comments": 0,
+            "created_utc": 1700000000,
         }
-        mock_request.return_value = post_data
+        mock_rss.return_value = [post_entry]
 
         stats = scrape_subreddit("SaaS", search_terms=["i wish", "frustrated"])
         # Found once per term but only counted/stored once
         assert stats["new"] == 1
+
+    def test_reddit_rss_request_parses_atom(self):
+        """Test that _reddit_rss_request correctly parses Atom XML."""
+        from signal_collector import _reddit_rss_request
+        atom_xml = '''<?xml version="1.0" encoding="UTF-8"?>
+        <feed xmlns="http://www.w3.org/2005/Atom">
+            <entry>
+                <id>t3_test123</id>
+                <title>I wish there was a better tool</title>
+                <link href="https://old.reddit.com/r/SaaS/comments/test123/"/>
+                <updated>2026-03-01T12:00:00+00:00</updated>
+                <published>2026-03-01T12:00:00+00:00</published>
+                <author><name>/u/testuser</name></author>
+                <category term="SaaS"/>
+                <content type="html">&lt;p&gt;Frustrated with current tools&lt;/p&gt;</content>
+            </entry>
+        </feed>'''
+
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_resp = MagicMock()
+            mock_resp.read.return_value = atom_xml.encode("utf-8")
+            mock_resp.__enter__ = lambda s: s
+            mock_resp.__exit__ = MagicMock(return_value=False)
+            mock_urlopen.return_value = mock_resp
+
+            entries = _reddit_rss_request("https://old.reddit.com/r/SaaS/search.rss", {"q": "test"})
+            assert entries is not None
+            assert len(entries) == 1
+            assert entries[0]["reddit_id"] == "t3_test123"
+            assert entries[0]["title"] == "I wish there was a better tool"
+            assert entries[0]["author"] == "testuser"
+            assert entries[0]["subreddit"] == "SaaS"
+            assert "Frustrated" in entries[0]["body"]
 
 
 # ============================================================

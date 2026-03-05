@@ -1,29 +1,34 @@
 """
-Signal Collector — Reddit public JSON API scraper for pain point discovery.
+Signal Collector — Reddit RSS/Atom feed scraper for pain point discovery.
 
-Fetches posts from target subreddits using Reddit's public JSON API.
-No authentication needed. No PRAW dependency. Pure urllib.
+Fetches posts from target subreddits using Reddit's public RSS feeds.
+No authentication needed. No PRAW dependency. Pure urllib + xml.etree.
+
+Reddit's JSON API blocks datacenter IPs (403). RSS feeds via old.reddit.com
+work reliably from any environment.
 
 Pipeline:
-    1. For each subreddit, search with pain-point keywords
+    1. For each subreddit, search RSS with pain-point keywords
     2. Filter by keyword match in title/body
     3. Store in SQLite (deduped by reddit_id)
     4. Zero LLM cost — pure HTTP + regex
 
 Modeled after: github.com/lefttree/reddit-pain-points
 
-Rate limits: Reddit public API allows ~10 req/min unauthenticated.
-We enforce a 2-second delay between requests.
+Rate limits: ~10 req/min unauthenticated, 3.5s delay enforced.
 """
 
+import html as html_mod
 import json
 import logging
 import os
 import re
 import sqlite3
 import time
-import urllib.request
 import urllib.error
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Optional
@@ -35,8 +40,12 @@ logger = logging.getLogger(__name__)
 SIGNALS_DB_PATH = os.path.join(os.path.dirname(__file__), "logs", "signals.db")
 
 # Reddit rate limit: ~10 req/min for unauthenticated
-REQUEST_DELAY = 2.5  # seconds between requests (conservative)
-USER_AGENT = "cortex-signal-collector/1.0 (research tool)"
+# Datacenter IPs need longer delays to avoid 403s
+REQUEST_DELAY = 3.5  # seconds between requests (datacenter-safe)
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+
+# Atom XML namespace
+_ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
 
 DEFAULT_SUBREDDITS = [
     "SaaS", "startups", "Entrepreneur", "smallbusiness",
@@ -285,30 +294,97 @@ def _matches_pain_keywords(text: str) -> bool:
     return any(kw in text_lower for kw in PAIN_KEYWORDS)
 
 
-def _reddit_request(url: str, params: dict, timeout: int = 30) -> Optional[dict]:
-    """Make a request to Reddit's public JSON API."""
-    query = urllib.parse.urlencode(params)
-    full_url = f"{url}?{query}"
+def _strip_html(text: str) -> str:
+    """Strip HTML tags and decode entities from RSS content."""
+    text = html_mod.unescape(text)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def _reddit_rss_request(url: str, params: dict = None, timeout: int = 30) -> Optional[list[dict]]:
+    """Fetch Reddit RSS/Atom feed and parse entries into dicts.
+
+    Returns list of post dicts or None on failure.
+    """
+    if params:
+        query = urllib.parse.urlencode(params)
+        full_url = f"{url}?{query}"
+    else:
+        full_url = url
 
     req = urllib.request.Request(full_url)
     req.add_header("User-Agent", USER_AGENT)
+    req.add_header("Accept", "text/xml,application/xml,application/atom+xml")
 
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            data = resp.read().decode("utf-8")
     except urllib.error.HTTPError as e:
         if e.code == 429:
-            logger.warning("[SIGNALS] Reddit rate limit hit, backing off 10s")
-            time.sleep(10)
+            logger.warning("[SIGNALS] Reddit rate limit hit, backing off 15s")
+            time.sleep(15)
         else:
-            logger.warning(f"[SIGNALS] HTTP {e.code} for {url}")
+            logger.warning(f"[SIGNALS] HTTP {e.code} for {full_url}")
         return None
     except (urllib.error.URLError, Exception) as e:
         logger.warning(f"[SIGNALS] Request failed: {e}")
         return None
 
+    try:
+        root = ET.fromstring(data)
+    except ET.ParseError as e:
+        logger.warning(f"[SIGNALS] XML parse error: {e}")
+        return None
 
-import urllib.parse  # needed for urlencode
+    entries = []
+    for entry in root.findall("atom:entry", _ATOM_NS):
+        eid = entry.find("atom:id", _ATOM_NS)
+        title = entry.find("atom:title", _ATOM_NS)
+        link = entry.find("atom:link", _ATOM_NS)
+        updated = entry.find("atom:updated", _ATOM_NS)
+        published = entry.find("atom:published", _ATOM_NS)
+        author_el = entry.find("atom:author", _ATOM_NS)
+        content = entry.find("atom:content", _ATOM_NS)
+        category = entry.find("atom:category", _ATOM_NS)
+
+        # Extract author name (format: "/u/username")
+        author = "[deleted]"
+        if author_el is not None:
+            name_el = author_el.find("atom:name", _ATOM_NS)
+            if name_el is not None and name_el.text:
+                author = name_el.text.replace("/u/", "")
+
+        # Extract body text from HTML content
+        body = ""
+        if content is not None and content.text:
+            body = _strip_html(content.text)
+
+        # Parse timestamp
+        ts_text = (published.text if published is not None else
+                   updated.text if updated is not None else None)
+        created_utc = 0.0
+        if ts_text:
+            try:
+                dt = datetime.fromisoformat(ts_text.replace("Z", "+00:00"))
+                created_utc = dt.timestamp()
+            except (ValueError, OSError):
+                pass
+
+        entries.append({
+            "reddit_id": eid.text if eid is not None else "",
+            "title": title.text if title is not None else "",
+            "body": body[:5000],
+            "author": author,
+            "url": link.get("href", "") if link is not None else "",
+            "subreddit": category.get("term", "") if category is not None else "",
+            "created_utc": created_utc,
+            # RSS doesn't provide score/comments — set to 0
+            "score": 0,
+            "num_comments": 0,
+        })
+
+    return entries
 
 
 def scrape_subreddit(
@@ -318,7 +394,10 @@ def scrape_subreddit(
     time_filter: str = "month",
 ) -> dict:
     """
-    Scrape a subreddit using Reddit's public JSON search API.
+    Scrape a subreddit using Reddit's public RSS/Atom search feed.
+
+    Uses old.reddit.com search RSS — works from datacenter IPs where
+    the JSON API returns 403.
 
     Args:
         subreddit: Subreddit name (without r/)
@@ -338,8 +417,8 @@ def scrape_subreddit(
     seen_ids = set()
 
     for term in search_terms:
-        data = _reddit_request(
-            f"https://www.reddit.com/r/{subreddit}/search.json",
+        entries = _reddit_rss_request(
+            f"https://old.reddit.com/r/{subreddit}/search.rss",
             {
                 "q": term,
                 "restrict_sr": "on",
@@ -349,42 +428,30 @@ def scrape_subreddit(
             },
         )
 
-        if data is None:
+        if entries is None:
             stats["errors"] += 1
             time.sleep(REQUEST_DELAY)
             continue
 
-        posts = data.get("data", {}).get("children", [])
+        for post_data in entries:
+            post_id = post_data["reddit_id"]
 
-        for post in posts:
-            pd = post.get("data", {})
-            post_id = pd.get("name", "")
-
-            if post_id in seen_ids:
+            if post_id in seen_ids or not post_id:
                 continue
             seen_ids.add(post_id)
             stats["found"] += 1
 
-            title = pd.get("title", "")
-            body = pd.get("selftext", "")
-            full_text = f"{title} {body}"
+            full_text = f"{post_data['title']} {post_data['body']}"
 
             if not _matches_pain_keywords(full_text):
                 continue
 
             stats["matched"] += 1
 
-            is_new = insert_post({
-                "reddit_id": post_id,
-                "subreddit": subreddit,
-                "title": title,
-                "body": body[:5000],
-                "author": pd.get("author", "[deleted]"),
-                "url": f"https://reddit.com{pd.get('permalink', '')}",
-                "score": pd.get("score", 0),
-                "num_comments": pd.get("num_comments", 0),
-                "created_utc": pd.get("created_utc", 0),
-            })
+            # Override subreddit with our target (RSS may differ in casing)
+            post_data["subreddit"] = subreddit
+
+            is_new = insert_post(post_data)
             if is_new:
                 stats["new"] += 1
 
