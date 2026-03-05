@@ -43,6 +43,11 @@ def tmp_memory(tmp_path, monkeypatch):
     monkeypatch.setattr("config.STRATEGY_DIR", str(strat_dir))
     monkeypatch.setattr("config.LOG_DIR", str(log_dir))
     monkeypatch.setattr("config.EXEC_MEMORY_DIR", str(exec_dir))
+    monkeypatch.setattr("config.EXEC_ALLOWED_DIRS", None)
+    # Also reset the local binding in code/terminal tools to prevent
+    # cross-test pollution when _execute_build sets config.EXEC_ALLOWED_DIRS
+    monkeypatch.setattr("hands.tools.code.EXEC_ALLOWED_DIRS", None)
+    monkeypatch.setattr("hands.tools.terminal.EXEC_ALLOWED_DIRS", None)
 
     return tmp_path
 
