@@ -554,6 +554,10 @@ FETCH_TOOL_DEFINITION = {
         },
         "required": ["url"],
     },
+    "input_examples": [
+        {"url": "https://nextjs.org/docs/app/building-your-application/routing"},
+        {"url": "https://github.com/vercel/next.js/blob/canary/README.md"},
+    ],
 }
 
 SEARCH_AND_FETCH_TOOL_DEFINITION = {
@@ -579,4 +583,9 @@ SEARCH_AND_FETCH_TOOL_DEFINITION = {
         },
         "required": ["query"],
     },
+    "input_examples": [
+        {"query": "Next.js server actions best practices"},
+        {"query": "landing page conversion rate optimization", "max_results": 8, "max_fetch": 5},
+        {"query": "React server components vs client components", "max_fetch": 2},
+    ],
 }

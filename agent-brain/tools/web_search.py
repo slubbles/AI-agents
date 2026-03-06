@@ -77,4 +77,9 @@ SEARCH_TOOL_DEFINITION = {
         },
         "required": ["query"],
     },
+    "input_examples": [
+        {"query": "hiring freelance developers complaints reddit"},
+        {"query": "Next.js performance optimization 2025", "max_results": 8},
+        {"query": "SaaS churn rate benchmarks"},
+    ],
 }

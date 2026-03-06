@@ -2112,9 +2112,25 @@ def run_daemon(
             if cycle % 10 == 0:
                 _rotate_logs()
 
-            # Wait for next cycle
-            _log_daemon(f"Sleeping {interval_minutes} minutes until next cycle...")
-            if _daemon_stop_event.wait(timeout=interval_minutes * 60):
+            # Wait for next cycle — exponential backoff on consecutive failures
+            # Symphony-style: delay = min(base * 2^(failures-1), max_backoff)
+            base_sleep = interval_minutes * 60
+            max_backoff = 5 * 60  # 5 minutes max backoff cap
+            try:
+                consec_failures = watchdog.get_status().get("consecutive_failures", 0)
+            except Exception:
+                consec_failures = 0
+            if consec_failures > 0:
+                backoff = min(base_sleep * (2 ** (consec_failures - 1)), max_backoff)
+                sleep_seconds = base_sleep + backoff
+                _log_daemon(
+                    f"Sleeping {sleep_seconds:.0f}s (base {base_sleep}s + "
+                    f"{backoff:.0f}s backoff for {consec_failures} consecutive failures)..."
+                )
+            else:
+                sleep_seconds = base_sleep
+                _log_daemon(f"Sleeping {interval_minutes} minutes until next cycle...")
+            if _daemon_stop_event.wait(timeout=sleep_seconds):
                 break
 
     finally:
