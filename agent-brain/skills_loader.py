@@ -41,6 +41,7 @@ DESIGN_DATA_DIR = os.path.join(SKILLS_DIR, "design", "data")
 
 # Category priority for loading order when budget is tight
 CATEGORY_PRIORITY = {
+    "writing": 0,
     "workflow": 1,
     "coding": 2,
     "design": 3,
@@ -91,6 +92,11 @@ CATEGORY_KEYWORDS = {
     "workflow": re.compile(
         r"\b(workflow|process|methodology|search.?first|verification|"
         r"loop|pipeline|cost.?aware|architecture)\b",
+        re.IGNORECASE,
+    ),
+    "writing": re.compile(
+        r"\b(writ|voice|tone|human|reddit|post|content|article|"
+        r"copy|humaniz|natural|style|prose)\b",
         re.IGNORECASE,
     ),
 }

@@ -134,6 +134,15 @@ def _get_identity_for_chat() -> str:
         return "(Identity layer not loaded)"
 
 
+def _get_writing_voice() -> str:
+    """Load human voice writing skill — always on for all Cortex output."""
+    try:
+        from skills_loader import load_skills
+        return load_skills(["writing"], max_chars=4000)
+    except Exception:
+        return "(Writing voice skill not loaded)"
+
+
 # ============================================================
 # System Context Builder
 # ============================================================
@@ -337,6 +346,9 @@ CRITICAL BEHAVIOR: When the user wants to research something or run cycles:
 Never run research cycles without a goal. The whole point is directed research, not academic browsing.
 
 {goal_info}
+
+WRITING VOICE:
+{_get_writing_voice()}
 
 IDENTITY:
 {_get_identity_for_chat()}
