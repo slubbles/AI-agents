@@ -4,6 +4,50 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 21 — May 30, 2025
+**Prompt:** "is all in upnext.md done and properly integrated? if not continue"
+
+### What We Did
+- Completed full A-P audit of upnext.md against actual code (verified Sessions 19-20 work)
+- Added curated seed questions for 3 revenue-generating domains (domain_seeder.py)
+- Wired post-build Vercel auto-deploy trigger in the Hands pipeline (agents/cortex.py)
+- 147/147 tests passing, committed a516c9b, VPS synced
+
+### Why
+- upnext.md gaps P and J remained after Sessions 19/20 — both actionable without architectural decisions
+- Gap P (domain seeds): VPS was actively researching onlinejobsph-employers, productized-services, saas-fullstack-apps using generic questions instead of strategic domain-specific ones
+- Gap J (auto-deploy): Built web artifacts sat in workspace_dir with no deployment path
+
+### Purpose
+- Revenue domains (the 3 actively researched on VPS) now get targeted, strategic seed questions on domain bootstrap
+- When VERCEL_TOKEN is set, Hands-built web projects auto-deploy to Vercel immediately after a successful build
+- Closes all actionable gaps from upnext.md; remaining deferred items (I, N, O) require UX/architectural decisions
+
+### Steps Taken
+1. Re-read upnext.md and cross-checked every gap A-P against actual code
+2. Confirmed gaps A-M (except J) all wired in Sessions 19-20
+3. Added 5 curated questions each for: onlinejobsph-employers, saas-fullstack-apps, productized-services to domain_seeder.py SEED_QUESTIONS dict
+4. Added post-build deploy block in agents/cortex.py pipeline() inside the `if build_result.get("success"):` branch — checks `package.json` + `VERCEL_TOKEN`, runs `npx vercel --prod --yes`, stores URL in result, notifies Telegram
+5. Smoke-tested domain_seeder — all 3 new domains return curated seeds correctly
+6. 147 wiring + core tests green; committed + pushed + VPS synced
+
+### Deferred (require design/UX decisions)
+- **Gap I** (Credential Vault): .env works fine; API key rotation vault is over-engineering for now
+- **Gap N** (Browser direct access): Already works as fallback in web_fetcher; researcher uses it when BROWSER_ENABLED
+- **Gap O** (Consultant human answer): Needs Telegram inline keyboard UX — deferred
+
+### Suggested Next Steps
+**Goal/Intent:** First live deployment of a Hands-built product
+- **Why/Purpose:** Prove the full loop end-to-end (Research → Build → Deploy → Live URL) — "don't let it stay a demo"
+- **Objectives:**
+  1. Set VERCEL_TOKEN on VPS (export VERCEL_TOKEN=... → /etc/environment or systemd override)
+  2. Run one Hands pipeline build on a revenue domain (onlinejobsph-employers or productized-services)
+  3. Verify auto-deploy to Vercel fires and returns a live URL
+  4. Check Telegram notification for deploy URL
+  5. Manual review of the live site output quality
+
+---
+
 ## Session 20 — Mar 6, 2026
 **Prompt:** "execute /workspaces/AI-agents/upnext.md"
 
