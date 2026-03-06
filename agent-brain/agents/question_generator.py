@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import ANTHROPIC_API_KEY, MODELS
 from memory_store import load_outputs, get_stats, load_knowledge_base
 from cost_tracker import log_cost
-from domain_goals import get_goal
+from domain_goals import get_goal, get_goal_record, get_active_objectives
 from utils.retry import create_message
 from utils.json_parser import extract_json
 
@@ -47,17 +47,53 @@ MAX_OUTPUTS_TO_SCAN = 30
 MAX_QUESTIONS = 5
 
 
-def _build_generator_prompt(goal: str | None = None) -> str:
+def _build_generator_prompt(goal: str | None = None, goal_record: dict | None = None) -> str:
     today = date.today().isoformat()
     
     goal_section = ""
     if goal:
+        # Build a rich goal context from the structured record if available
+        what_i_want = (goal_record or {}).get("what_i_want", "")
+        what_i_dont_want = (goal_record or {}).get("what_i_dont_want", "")
+        solution = (goal_record or {}).get("solution", "")
+        active_objectives = get_active_objectives((goal_record or {}).get("domain", "")) if goal_record else []
+        monthly_priority = (goal_record or {}).get("monthly_priority", "")
+        task_queue = (goal_record or {}).get("task_queue", [])
+
         goal_section = f"""
 
-USER'S GOAL FOR THIS DOMAIN:
-{goal}
+USER'S GOAL FRAMEWORK FOR THIS DOMAIN:
+Goal: {goal}
+"""
+        if what_i_want:
+            goal_section += f"What they want: {what_i_want}\n"
+        if what_i_dont_want:
+            goal_section += f"What they don't want: {what_i_dont_want}\n"
+        if solution:
+            goal_section += f"Chosen solution approach: {solution}\n"
+        if monthly_priority:
+            goal_section += f"Monthly priority (focus for THIS month): {monthly_priority}\n"
+        if active_objectives:
+            goal_section += f"Active objectives (what needs to be achieved):\n"
+            for i, obj in enumerate(active_objectives, 1):
+                goal_section += f"  {i}. {obj}\n"
+        if task_queue:
+            goal_section += f"Queued research tasks (do THESE next if relevant):\n"
+            for t in task_queue[:5]:
+                goal_section += f"  - {t}\n"
 
+        goal_section += """
 This is WHY the user cares about this domain. Every question you generate MUST
+directly serve this goal and its active objectives. Do NOT generate generic
+academic questions. Do NOT research market statistics, industry reports, or
+theoretical frameworks unless they directly help achieve a stated objective.
+
+If queued tasks exist, prioritize generating questions that address them first.
+If a monthly priority is set, weight questions toward it over other objectives.
+
+Ask yourself for each question: "Does answering this move us closer to a specific objective?"
+If not, discard it.
+"""
 directly serve this goal. Do NOT generate generic academic questions. Do NOT
 research market statistics, industry reports, or theoretical frameworks unless
 they directly help the user achieve their stated goal.
@@ -262,7 +298,7 @@ def generate_questions(domain: str) -> dict | None:
         f"DATA:\n{json.dumps(payload, indent=2)}"
     )
 
-    generator_prompt = _build_generator_prompt(goal=goal)  # Fresh per call (avoids stale dates)
+    generator_prompt = _build_generator_prompt(goal=goal, goal_record=get_goal_record(domain))  # Fresh per call (avoids stale dates)
     response = create_message(
         client,
         model=MODELS["question_generator"],  # Haiku — it's a synthesis task

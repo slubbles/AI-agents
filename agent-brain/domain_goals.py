@@ -1,20 +1,21 @@
 """
-Domain Goals — What The User Actually Wants
+Domain Goals — Structured Goal Record (Lifebook-inspired Framework)
 
 The system's biggest failure mode: researching academically interesting things
 that don't serve the user's actual purpose. This module stores per-domain goals
 so every question generated and every research cycle is DIRECTED at what matters.
 
-A goal answers: "Why do you care about this domain? What are you trying to achieve?"
+Goal structure (mirrors the architect's personal goal-setting methodology):
+  what_i_want      — Desired outcome + success state
+  what_i_dont_want — Constraints, anti-patterns to avoid, failure modes
+  solution         — The strategic approach to get there
+  goal             — Single measurable target sentence ("the goal")
+  objectives       — Numbered sub-goals that, when all done, = goal achieved
+  monthly_priority — The one thing to focus on this month
+  task_queue       — Specific next research tasks aligned to current objective
 
-Example:
-  Domain: productized-services
-  Goal: "I want to sell productized Next.js landing page services to employers
-         on OnlineJobsPH. I need intelligence about pricing, pain points,
-         competitor gaps, and pitch angles."
-
-Without this, the question generator produces generic academic research.
-With this, every question serves the user's actual objective.
+Backward compatible: get_goal() still returns a plain string (the "goal" field).
+New: get_goal_record() returns the full structured record.
 
 Storage: strategies/{domain}/_goal.json
 """
@@ -35,20 +36,49 @@ def _goal_path(domain: str) -> str:
 
 def set_goal(domain: str, goal: str) -> dict:
     """
-    Set or update the goal/intent for a domain.
-    
-    Args:
-        domain: The research domain
-        goal: Free-text description of what the user wants to achieve
-        
-    Returns:
-        The saved goal record
+    Set or update the plain-text goal for a domain (backward-compat API).
+    Preserves any existing structured fields (objectives, priorities, etc.).
+    """
+    existing = get_goal_record(domain) or {}
+    return set_goal_structured(
+        domain=domain,
+        goal=goal,
+        what_i_want=existing.get("what_i_want", ""),
+        what_i_dont_want=existing.get("what_i_dont_want", ""),
+        solution=existing.get("solution", ""),
+        objectives=existing.get("objectives", []),
+        monthly_priority=existing.get("monthly_priority", ""),
+        task_queue=existing.get("task_queue", []),
+    )
+
+
+def set_goal_structured(
+    domain: str,
+    goal: str,
+    what_i_want: str = "",
+    what_i_dont_want: str = "",
+    solution: str = "",
+    objectives: list[str] | None = None,
+    monthly_priority: str = "",
+    task_queue: list[str] | None = None,
+) -> dict:
+    """
+    Set or update the full structured goal record for a domain.
+
+    The structured format mirrors the architect's goal-setting methodology:
+      what_i_want      → desired outcome ("I want to sell productized services...")
+      what_i_dont_want → failure modes to avoid ("I don't want generic research...")
+      solution         → the strategic approach ("Build landing pages for OLJ employers")
+      goal             → measurable 1-sentence target ("3 clients at $500/mo by Q2")
+      objectives       → numbered sub-goals that together = goal achieved
+      monthly_priority → the ONE thing to focus on this month
+      task_queue       → specific next research tasks, ordered by priority
     """
     path = _goal_path(domain)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    
+
     now = datetime.now(timezone.utc).isoformat()
-    
+
     # Load existing to preserve history
     existing = None
     if os.path.exists(path):
@@ -57,26 +87,36 @@ def set_goal(domain: str, goal: str) -> dict:
                 existing = json.load(f)
         except (json.JSONDecodeError, OSError):
             pass
-    
+
     record = {
-        "goal": goal.strip(),
         "domain": domain,
+        # Core goal fields
+        "goal": goal.strip(),
+        "what_i_want": what_i_want.strip(),
+        "what_i_dont_want": what_i_dont_want.strip(),
+        "solution": solution.strip(),
+        # Execution breakdown
+        "objectives": objectives or [],
+        "monthly_priority": monthly_priority.strip(),
+        "task_queue": task_queue or [],
+        # Metadata
         "set_at": existing["set_at"] if existing else now,
         "updated_at": now,
     }
-    
-    # Track previous goals if updated
+
+    # Track goal history when the goal sentence itself changes
     if existing and existing.get("goal") != goal.strip():
         history = existing.get("previous_goals", [])
         history.append({
             "goal": existing["goal"],
+            "what_i_wanted": existing.get("what_i_want", ""),
             "replaced_at": now,
         })
-        # Keep last 5 previous goals
         record["previous_goals"] = history[-5:]
-    
+    elif existing:
+        record["previous_goals"] = existing.get("previous_goals", [])
+
     atomic_json_write(path, record)
-    
     return record
 
 
@@ -137,6 +177,108 @@ def list_goals() -> dict[str, str]:
             goals[domain_dir] = goal
     
     return goals
+
+
+# ── Objective helpers ────────────────────────────────────────────────
+
+def add_objective(domain: str, objective: str) -> dict:
+    """Append an objective to the domain's goal record."""
+    record = get_goal_record(domain) or {}
+    objs = record.get("objectives", [])
+    if objective.strip() and objective.strip() not in objs:
+        objs.append(objective.strip())
+    return set_goal_structured(domain, goal=record.get("goal", ""),
+                               objectives=objs,
+                               what_i_want=record.get("what_i_want", ""),
+                               what_i_dont_want=record.get("what_i_dont_want", ""),
+                               solution=record.get("solution", ""),
+                               monthly_priority=record.get("monthly_priority", ""),
+                               task_queue=record.get("task_queue", []))
+
+
+def complete_objective(domain: str, index: int) -> dict:
+    """Mark objective at index as completed (prefix '✅ ')."""
+    record = get_goal_record(domain) or {}
+    objs = record.get("objectives", [])
+    if 0 <= index < len(objs) and not objs[index].startswith("✅"):
+        objs[index] = "✅ " + objs[index]
+    return set_goal_structured(domain, goal=record.get("goal", ""),
+                               objectives=objs,
+                               what_i_want=record.get("what_i_want", ""),
+                               what_i_dont_want=record.get("what_i_dont_want", ""),
+                               solution=record.get("solution", ""),
+                               monthly_priority=record.get("monthly_priority", ""),
+                               task_queue=record.get("task_queue", []))
+
+
+def set_monthly_priority(domain: str, priority: str) -> dict:
+    """Set the current monthly focus for a domain."""
+    record = get_goal_record(domain) or {}
+    return set_goal_structured(domain, goal=record.get("goal", ""),
+                               monthly_priority=priority,
+                               what_i_want=record.get("what_i_want", ""),
+                               what_i_dont_want=record.get("what_i_dont_want", ""),
+                               solution=record.get("solution", ""),
+                               objectives=record.get("objectives", []),
+                               task_queue=record.get("task_queue", []))
+
+
+def push_task(domain: str, task: str) -> dict:
+    """Add a task to the domain's task queue."""
+    record = get_goal_record(domain) or {}
+    queue = record.get("task_queue", [])
+    if task.strip() and task.strip() not in queue:
+        queue.append(task.strip())
+    return set_goal_structured(domain, goal=record.get("goal", ""),
+                               task_queue=queue,
+                               what_i_want=record.get("what_i_want", ""),
+                               what_i_dont_want=record.get("what_i_dont_want", ""),
+                               solution=record.get("solution", ""),
+                               objectives=record.get("objectives", []),
+                               monthly_priority=record.get("monthly_priority", ""))
+
+
+def pop_task(domain: str) -> str | None:
+    """Remove and return the first task in the queue (FIFO)."""
+    record = get_goal_record(domain)
+    if not record:
+        return None
+    queue = record.get("task_queue", [])
+    if not queue:
+        return None
+    task = queue.pop(0)
+    set_goal_structured(domain, goal=record.get("goal", ""),
+                        task_queue=queue,
+                        what_i_want=record.get("what_i_want", ""),
+                        what_i_dont_want=record.get("what_i_dont_want", ""),
+                        solution=record.get("solution", ""),
+                        objectives=record.get("objectives", []),
+                        monthly_priority=record.get("monthly_priority", ""))
+    return task
+
+
+def audit_goal(domain: str, audit_notes: str) -> dict:
+    """
+    Record an audit pass — what's working, what isn't, what to do next.
+    Appended to an audit log inside the goal record.
+    """
+    record = get_goal_record(domain) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    audit_log = record.get("audit_log", [])
+    audit_log.append({"ts": now, "notes": audit_notes.strip()})
+    record["audit_log"] = audit_log[-10:]  # keep last 10
+    record["last_audited"] = now
+    path = _goal_path(domain)
+    atomic_json_write(path, record)
+    return record
+
+
+def get_active_objectives(domain: str) -> list[str]:
+    """Return only objectives not yet marked complete."""
+    record = get_goal_record(domain)
+    if not record:
+        return []
+    return [o for o in record.get("objectives", []) if not o.startswith("✅")]
 
 
 MIN_GOAL_LENGTH = 20  # Minimum chars for a meaningful goal

@@ -285,21 +285,60 @@ The goal: mistake rate drops to zero over time. Every correction becomes a perma
 
 ### The Architect's Goal-Setting Framework (applied to development)
 
-The architect uses a structured framework for goal achievement. Apply it to development tasks:
+The architect operates using a Lifebook-inspired framework for every domain and every development task. This is the same framework baked into `domain_goals.py`. Apply it whenever the scope is non-trivial:
 
 ```
-WHAT I WANT        → Clear definition of the end state (what "done" looks like)
-WHAT I DON'T WANT  → Constraints and anti-patterns to avoid
-SOLUTION           → The technical approach
-GOAL               → The measurable outcome
-OBJECTIVES         → Specific deliverables (files, functions, tests)
-SCHEDULE           → The ordered todo list with dependencies
-EXECUTE            → Do the work, one step at a time
-CHECK              → Run tests, verify, review
-ANALYZE            → What worked? What didn't? What can improve?
-AUDIT              → Is the codebase healthy? Tests green? No regressions?
-REPEAT             → Until the request is 100% working as expected
+LIFEBOOK PRINCIPLE     → Align the work to a domain or life category before starting.
+                         Ask: "What area of the system does this serve? Why does it matter?"
+
+WHAT I WANT            → The desired end state. Concrete, specific, positive framing.
+                         "I want X working so that Y is possible."
+
+WHAT I DON'T WANT      → Failure modes, anti-patterns, constraints.
+                         "I don't want over-engineering, regressions, or half-finished features."
+
+SOLUTION               → The strategic approach. How to get from current state to desired state.
+                         Not the implementation detail — the direction.
+
+GOAL                   → One measurable target sentence. This is the anchor.
+                         "Feature X passes all tests, is committed, and does Y on demand."
+
+OBJECTIVES             → Numbered sub-goals. Each objective = one deliverable, one scope.
+                         1. Read and understand the relevant file(s)
+                         2. Write the new logic
+                         3. Update callers / wiring
+                         4. Run tests and fix failures
+                         5. Commit with descriptive message
+
+SCHEDULE-TO-EXECUTION  → The todo list with explicit dependencies (step N before step N+1).
+                         This IS the manage_todo_list task list.
+
+MONTHLY PRIORITY       → (For multi-session work) The one focus for the current 30-day window.
+                         In code: the single highest-leverage thing left to build.
+
+DAILY TASKS            → The specific actions aligned to objectives for this session.
+                         Each task is a concrete code action, not a vague intent.
+
+EXECUTE                → Do the work. One todo at a time. Mark in-progress, then completed.
+
+CHECK OFF              → Mark each task done immediately — not in batches at the end.
+
+ANALYZE                → After execution: what did the output reveal?
+                         Did tests pass? Did behavior change as expected? What surprised you?
+
+AUDIT                  → Is the codebase healthy? Tests green? No regressions? Logs clean?
+                         Check errors, check file states, check for unintended side effects.
+
+LIST IMPROVEMENTS      → What new tasks did this work surface?
+                         Add them to the next todo list or progress.md suggested next steps.
+
+REPEAT                 → Loop until the GOAL is 100% achieved — not until it "seems fine."
 ```
+
+**The critical insight:** This framework exists at every scale:
+- For a single bugfix: WHAT I WANT = fix the bug. OBJECTIVES = 2 items. SCHEDULE = 5 minutes. Run the loop once.
+- For a multi-session feature: WHAT I WANT = the full capability. OBJECTIVES = 5-10 items across files. Run one loop per objective, then one integration loop.
+- For a domain goal in Cortex: Stored in `domain_goals.py`. The question_generator reads objectives to target research. The meta-analyst audits progress against objectives.
 
 ### Checklist: Is this loop pass complete?
 
