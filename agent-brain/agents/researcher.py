@@ -607,7 +607,24 @@ Research question: {question}"""
             _threads_available = True
     except ImportError:
         pass
-    
+
+    # Add MCP tools if gateway is already running (started externally or by CLI)
+    _mcp_dispatch = None
+    _mcp_tool_names: set[str] = set()
+    try:
+        from mcp.gateway import get_gateway
+        from mcp.tool_bridge import get_mcp_research_tools, get_mcp_tool_names
+        _gw = get_gateway()
+        if _gw.is_started:
+            _mcp_tools, _mcp_dispatch = get_mcp_research_tools(
+                task=question, domain=domain, max_tools=8
+            )
+            if _mcp_tools:
+                tools.extend(_mcp_tools)
+                _mcp_tool_names = get_mcp_tool_names(_mcp_tools)
+    except Exception:
+        pass
+
     search_count = 0
     fetch_count = 0
     empty_search_count = 0  # Track searches that returned 0 results
@@ -824,6 +841,21 @@ Research question: {question}"""
                             "type": "tool_result",
                             "tool_use_id": block.id,
                             "content": content[:10000],
+                        })
+                        continue
+
+                    # Handle MCP tools (injected by tool bridge when gateway is running)
+                    if _mcp_dispatch and tool_name in _mcp_tool_names:
+                        print(f"  [MCP] {tool_name}")
+                        try:
+                            mcp_result = _mcp_dispatch(tool_name, block.input or {})
+                        except Exception as e:
+                            mcp_result = f"[MCP Error] {e}"
+                        tool_log.append({"tool": tool_name, "success": not mcp_result.startswith("[MCP Error]")})
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": mcp_result[:8000],
                         })
                         continue
 

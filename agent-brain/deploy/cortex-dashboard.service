@@ -1,0 +1,22 @@
+[Unit]
+Description=Cortex AI — Dashboard API (FastAPI)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/AI-agents/agent-brain
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/root/AI-agents/agent-brain/venv/bin/uvicorn dashboard.api:app --host 0.0.0.0 --port 8000 --workers 1
+Restart=always
+RestartSec=10
+StandardOutput=append:/root/AI-agents/agent-brain/logs/dashboard-stdout.log
+StandardError=append:/root/AI-agents/agent-brain/logs/dashboard-stderr.log
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=20%
+
+[Install]
+WantedBy=multi-user.target

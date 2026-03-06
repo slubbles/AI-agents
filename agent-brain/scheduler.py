@@ -1944,6 +1944,19 @@ def run_daemon(
                         "avg_score": round(avg, 1),
                     })
 
+                    # Crawl-to-KB: if crawl_data exists for this domain, inject into KB
+                    try:
+                        crawl_dir = os.path.join(os.path.dirname(__file__), "crawl_data", domain)
+                        if os.path.isdir(crawl_dir) and os.listdir(crawl_dir):
+                            from tools.crawl_to_kb import inject_crawl_claims_into_kb
+                            crawl_result = inject_crawl_claims_into_kb(domain)
+                            if crawl_result.get("injected", 0) > 0:
+                                _log_daemon(
+                                    f"Crawl-to-KB: {crawl_result['injected']} claims injected for {domain}"
+                                )
+                    except Exception as e:
+                        _log_daemon(f"Crawl-to-KB failed for {domain}: {e}", "warning")
+
                 cycle_end = datetime.now(timezone.utc)
                 duration = (cycle_end - cycle_start).total_seconds()
                 

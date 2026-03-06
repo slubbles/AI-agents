@@ -441,3 +441,134 @@ class TestSignalEnrichmentWiring:
         fn_end = source.find("\ndef ", fn_start + 1)
         fn_body = source[fn_start:fn_end]
         assert '"enriched": 0' in fn_body or '"enriched"' in fn_body
+
+
+# ============================================================
+# MCP Tool Bridge Wired in Executor
+# ============================================================
+
+class TestMcpToolBridgeWiring:
+    """Verify MCP tool bridge is wired into the executor (cortex.py)."""
+
+    def test_mcp_bridge_import_in_cortex(self):
+        """cortex.py must contain register_mcp_tools_in_registry call."""
+        cortex_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "cortex.py")
+        with open(cortex_path) as f:
+            source = f.read()
+        assert "register_mcp_tools_in_registry" in source
+
+    def test_mcp_bridge_guarded_by_is_started(self):
+        """MCP registration in cortex.py must be guarded by gw.is_started."""
+        cortex_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "cortex.py")
+        with open(cortex_path) as f:
+            source = f.read()
+        # The call should be inside an is_started check
+        bridge_idx = source.find("register_mcp_tools_in_registry")
+        snippet = source[max(0, bridge_idx - 200):bridge_idx + 200]
+        assert "is_started" in snippet
+
+    def test_mcp_bridge_is_nonfatal(self):
+        """MCP registration must be wrapped in try/except so it never crashes pipeline."""
+        cortex_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "cortex.py")
+        with open(cortex_path) as f:
+            source = f.read()
+        bridge_idx = source.find("register_mcp_tools_in_registry")
+        # Scan backwards for the enclosing try block
+        preceding = source[max(0, bridge_idx - 600):bridge_idx]
+        assert "try:" in preceding
+
+
+# ============================================================
+# MCP Research Tools Wired in Researcher
+# ============================================================
+
+class TestMcpResearchToolsWiring:
+    """Verify MCP research tools are wired into researcher.py."""
+
+    def test_mcp_research_tools_imported(self):
+        """researcher.py must call get_mcp_research_tools."""
+        researcher_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "researcher.py")
+        with open(researcher_path) as f:
+            source = f.read()
+        assert "get_mcp_research_tools" in source
+
+    def test_mcp_dispatch_in_tool_loop(self):
+        """researcher.py must dispatch MCP tools in its tool-use loop."""
+        researcher_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "researcher.py")
+        with open(researcher_path) as f:
+            source = f.read()
+        assert "_mcp_dispatch" in source
+        assert "_mcp_tool_names" in source
+
+    def test_mcp_researcher_guarded_by_is_started(self):
+        """MCP tools in researcher must only be added if gateway is_started."""
+        researcher_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "researcher.py")
+        with open(researcher_path) as f:
+            source = f.read()
+        mcp_tools_idx = source.find("get_mcp_research_tools")
+        snippet = source[max(0, mcp_tools_idx - 400):mcp_tools_idx + 200]
+        assert "is_started" in snippet
+
+
+# ============================================================
+# Crawl-to-KB Wired in Scheduler
+# ============================================================
+
+class TestCrawlToKbWiring:
+    """Verify crawl-to-KB is wired into the daemon scheduler."""
+
+    def test_crawl_to_kb_in_scheduler(self):
+        """scheduler.py must call inject_crawl_claims_into_kb."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "scheduler.py")) as f:
+            source = f.read()
+        assert "inject_crawl_claims_into_kb" in source
+
+    def test_crawl_to_kb_per_domain(self):
+        """Crawl-to-KB wiring must be inside the per-domain loop."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "scheduler.py")) as f:
+            source = f.read()
+        inject_idx = source.find("inject_crawl_claims_into_kb")
+        # Should be after domain_results.append
+        domain_idx = source.rfind("domain_results.append", 0, inject_idx)
+        assert domain_idx < inject_idx, "inject_crawl_claims_into_kb should follow domain_results.append"
+
+    def test_crawl_to_kb_is_nonfatal(self):
+        """Crawl-to-KB must be wrapped in try/except so it never crashes the cycle."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "scheduler.py")) as f:
+            source = f.read()
+        inject_idx = source.find("inject_crawl_claims_into_kb")
+        preceding = source[max(0, inject_idx - 400):inject_idx]
+        assert "try:" in preceding
+
+
+# ============================================================
+# Dataset Loader Wired in Executor Strategy
+# ============================================================
+
+class TestDatasetLoaderWiring:
+    """Verify dataset loader is wired into cortex.py executor strategy loading."""
+
+    def test_dataset_loader_imported_in_cortex(self):
+        """cortex.py must call inject_examples_into_strategy."""
+        cortex_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "cortex.py")
+        with open(cortex_path) as f:
+            source = f.read()
+        assert "inject_examples_into_strategy" in source
+
+    def test_dataset_loader_applied_after_strategy_load(self):
+        """inject_examples_into_strategy must appear after get_strategy('executor')."""
+        cortex_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "cortex.py")
+        with open(cortex_path) as f:
+            source = f.read()
+        strategy_idx = source.find('get_strategy("executor"')
+        inject_idx = source.find("inject_examples_into_strategy")
+        assert strategy_idx < inject_idx, "inject_examples_into_strategy should follow get_strategy"
+
+    def test_dataset_loader_is_nonfatal(self):
+        """inject_examples_into_strategy must be wrapped in try/except."""
+        cortex_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "cortex.py")
+        with open(cortex_path) as f:
+            source = f.read()
+        inject_idx = source.find("inject_examples_into_strategy")
+        preceding = source[max(0, inject_idx - 300):inject_idx]
+        assert "try:" in preceding

@@ -1651,6 +1651,17 @@ def _execute_build(
     
     # Tool registry
     registry = create_default_registry()
+    # Wire in MCP tools if the gateway is already running (started externally or by CLI)
+    try:
+        from mcp.tool_bridge import register_mcp_tools_in_registry
+        from mcp.gateway import get_gateway
+        _gw = get_gateway()
+        if _gw.is_started:
+            _n = register_mcp_tools_in_registry(registry, gateway=_gw)
+            if _n:
+                logger.info(f"[MCP] Registered {_n} MCP tools in execution registry")
+    except Exception:
+        pass
     tools_desc = registry.get_tool_descriptions()
     
     # Load strategy
@@ -1663,6 +1674,12 @@ def _execute_build(
         except Exception:
             strategy = ""
             strategy_version = "none"
+    # Inject real code examples from HuggingFace/GitHub datasets into strategy
+    try:
+        from tools.dataset_loader import inject_examples_into_strategy
+        strategy = inject_examples_into_strategy(domain, strategy)
+    except Exception:
+        pass
     
     # Load domain knowledge
     domain_knowledge = ""
