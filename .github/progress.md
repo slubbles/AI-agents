@@ -4,6 +4,48 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 19 — Mar 6, 2026
+**Prompt:** "execute upnext.md — Finalize stuff, improve, refine, test, integrate, sync to VPS"
+
+### What We Did
+- Audited all 7 gaps from upnext.md against actual code state; found most already closed in Sessions 13-17
+- Wired `enrich_top_posts()` into daemon signal cycle as non-fatal Step 2.5
+- Added `/threads thread <id>` Telegram command for per-post analytics
+- Added 3 signal intelligence tools to chat (`show_signals`, `enrich_signals`, `show_build_specs`)
+- Fixed atomic write violation in `opportunity_scorer._save_build_spec` (pre-existing bug)
+- Added 13 new tests (signals: 7→8, integration wiring: 29→42); suite: 326 passed, 0 failed
+
+### Why
+- `enrich_top_posts()` existed since Session 14 but was never wired into the daemon — dead letter code
+- `get_thread_insights()` was built but unreachable via Telegram; only profile-level stats were exposed
+- Chat had 28 tools but zero for signal intelligence; couldn't ask "what are top opportunities?" in chat
+- `opportunity_scorer` was using raw `json.dump` violating the project write-integrity rule
+
+### Purpose
+- Signal cycle now collects → scores → **enriches** → bridges (full pipeline live)
+- Telegram `/threads thread <id>` gives per-post engagement breakdown
+- Chat can now query, enrich, and display the full signal intelligence pipeline interactively
+
+### Steps Taken
+1. **scheduler.py** — Added Step 2.5: calls `enrich_top_posts(limit=20)` inside `_run_signal_cycle()`; failure is caught and logged but never aborts the cycle; results dict gains `"enriched"` key
+2. **telegram_bot.py** — Added `/threads thread <id>` sub-command using `get_thread_insights()`; updated both help text locations
+3. **cli/chat.py** — Added 3 tools to CHAT_TOOLS + handlers in `_execute_tool`: `show_signals` (DB query), `enrich_signals` (Reddit enrichment), `show_build_specs` (read build spec files). Tool count: 28 → 31
+4. **opportunity_scorer.py** — Added `atomic_json_write` import, replaced `json.dump` with `atomic_json_write` in `_save_build_spec()`
+5. **tests/test_signals.py** — Updated `test_run_signal_cycle_full` to mock enrichment; added `test_run_signal_cycle_enrichment_failure_is_nonfatal`
+6. **tests/test_integration_wiring.py** — Added 3 test classes: `TestSignalChatTools`, `TestTelegramThreadsCommand`, `TestSignalEnrichmentWiring`
+7. **Full suite**: 326 passed, 0 failed. Committed `297b522`, pushed, VPS synced.
+
+### Suggested Next Steps
+- **Goal:** Orchestrator — 24/7 stability layer (watchdog + sync + cost control)
+- **Why:** Daemon has never run unsupervised; the thesis is unproven until it does
+- **Objectives:**
+  1. Watchdog: restart daemon on crash, alert Telegram, log cause
+  2. Daily budget enforcer: kill daemon if daily spend > threshold
+  3. Sync: keep Brain ↔ Hands state consistent across restarts
+  4. Health endpoint: simple HTTP check so external monitor can ping it
+
+---
+
 ## Session 18 — Mar 7, 2026
 **Prompt:** "set it for cortex ready to use the ptc so by the time i top it up with credits, ptc is ready to use"
 
