@@ -4,6 +4,82 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 23 — Current
+**Prompt:** Beads/Agent Orchestrator research + THREADS.MD full implementation + full system audit + new CORTEX_CONSULTANT_HANDOFF.md
+
+### What We Did
+1. **Researched Beads + Agent Orchestrator** — evaluated both for applicability to Cortex
+2. **Implemented THREADS.MD image pipeline** — `tools/image_publisher.py` (screenshot + chart posts via Vercel Blob)
+3. **Updated tools/threads_client.py** — added `THREADS_SCREENSHOT_POST_TOOL`, `THREADS_CHART_POST_TOOL` defs + execute handlers
+4. **Updated agents/threads_analyst.py** — added `post_build_screenshot()` and `post_score_chart()` narrator hooks
+5. **Full system audit** — import health, stale imports, test counts, LOC, git history
+6. **Rewrote CORTEX_CONSULTANT_HANDOFF.md** — from Session 13 (9 sessions stale) to full Session 23 update
+
+### Why
+- Beads and Agent Orchestrator were found by architect — needed honest applicability assessment
+- THREADS.MD described an image pipeline but tools/threads_client.py had no image source or upload
+- Handoff doc was 9 sessions stale (Sessions 14–22 entirely undocumented for consultants)
+- Consultant/architect needs a fresh full-picture document covering the entire system as it exists now
+
+### Purpose
+- Beads: not now — patterns documented for later (get_ready_tasks blocked_by field)
+- Agent Orchestrator: not now — single-agent system; revisit at 5+ parallel Hands instances
+- Image pipeline enables Threads social posts with screenshots + score charts (full THREADS.MD spec)
+- New handoff doc enables consultant onboarding without needing to read all 22 session logs
+
+### Steps Taken
+1. Researched github.com/steveyegge/beads (18k stars, Go, distributed agent task tracker)
+2. Researched github.com/ComposioHQ/agent-orchestrator (TypeScript, parallel worktree agents)
+3. Verdict: both not applicable now; patterns documented
+4. Read THREADS.MD and confirmed: no image source, no upload, no public URL bridge
+5. Created `tools/image_publisher.py` (323 lines): blob_configured, upload_to_vercel_blob, capture_and_post (Playwright 2×Retina + agent-browser fallback), generate_score_chart (matplotlib dark theme), post_with_chart
+6. Added VERCEL_BLOB_ENABLED to config.py
+7. Added THREADS_SCREENSHOT_POST_TOOL + THREADS_CHART_POST_TOOL defs to threads_client.py
+8. Added execute handlers for threads_screenshot_post + threads_chart_post in execute_threads_tool
+9. Added post_build_screenshot() + post_score_chart() to threads_analyst.py
+10. Ran full audit: 135 prod files / 52,147 LOC; 45 test files / 29,827 LOC / 2,092 test functions
+11. Confirmed 147/147 actively-run tests pass (54 integration + 93 core)
+12. Confirmed stale imports from Session 13 handoff ALL fixed
+13. Wrote new comprehensive CORTEX_CONSULTANT_HANDOFF.md covering Sessions 1–23
+14. Committed 8965db2 (image pipeline), VPS synced
+
+### Stale Import Fixes Confirmed (from Session 13 known issues)
+- ✅ sync.py: lazy imports `execute_plan` + `validate_execution` (not stale `execute`/`validate`)
+- ✅ project_orchestrator.py: same lazy import pattern
+- ✅ scheduler.py: `page_type="app"` present in execute_plan() call
+
+### Audit Findings
+- Production grew from 120→135 files, 44,483→52,147 LOC (+7,664 lines since Session 13)
+- Test suite grew from 38→45 files, 24,998→29,827 LOC (+4,829 lines since Session 13)
+- True test function count: 2,092 in 45 files (only 147 actively run — 43 files are historical)
+- image_publisher: blob_configured()=False on dev (expected — no BLOB_READ_WRITE_TOKEN set)
+- Verified imports: all 13 critical module imports pass
+
+### What This Enables
+- Cortex can post build screenshots to Threads after a successful Hands pipeline run
+- Cortex can post research score charts showing domain improvement over time
+- Full THREADS.MD spec is now implemented — screenshots + charts + text all supported
+- Consultants and architects have a current, comprehensive (24-section) handoff document
+
+### New Todo Items Surfaced
+- Set BLOB_READ_WRITE_TOKEN in .env for image posting to go live
+- Set VERCEL_TOKEN on VPS so post-build auto-deploy fires
+- Enable daemon first supervised cycle (5 cycles, monitor via Telegram)
+- Deploy dashboard (FastAPI) as systemd service on VPS
+- Wire RAG auto-indexing: new KB outputs → ChromaDB on accept
+
+### Suggested Next Steps
+- **Goal:** Prove the transistor — one domain, one build, live URL, zero human code
+- **Why/Purpose:** Everything is built for autonomous operation but the daemon has never run unsupervised. "Don't let it stay a demo."
+- **Objectives:**
+  1. Set VERCEL_TOKEN + BLOB_READ_WRITE_TOKEN on VPS
+  2. Enable daemon with 5-cycle limit, monitor via Telegram
+  3. Let signal cycle run → watch auto-generated build specs appear
+  4. Run /build on best signal opportunity
+  5. Verify Vercel auto-deploy fires and returns a live URL
+
+---
+
 ## Session 22 — May 30, 2025
 **Prompt:** Lifebook goal-setting framework applied to Cortex domains + sandboxed chat execution + copilot-instructions loop strengthening
 

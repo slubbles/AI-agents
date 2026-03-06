@@ -1,4 +1,11 @@
-# Cortex — Complete System Documentation
+# Cortex — Complete System Documentation (OUTDATED)
+
+> **⚠️ This version is from Session 13 (March 4, 2026) and is 9 sessions out of date.**  
+> **The current version is at `/workspaces/AI-agents/CORTEX_CONSULTANT_HANDOFF.md`**
+
+---
+
+# SUPERSEDED CONTENT BELOW (Session 13 — March 4, 2026)
 
 > **Comprehensive Handoff Document for Consultants**  
 > Generated: March 4, 2026  
