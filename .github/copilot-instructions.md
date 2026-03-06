@@ -251,29 +251,37 @@ The goal: mistake rate drops to zero over time. Every correction becomes a perma
 
 **You (Copilot) must develop this system the same way the system itself operates: in a structured, self-improving loop.** Every task — from a single bugfix to a multi-file feature — follows this loop. No shortcuts. No skipping steps.
 
+> **Meta-principle:** This system is being built to loop intelligently until results are 100% correct. You, building it, must operate exactly the same way. The development process mirrors the product. If the system you're building loops until output quality is verified, you must loop until your changes are verified. There is no "good enough." There is only "done" or "still looping."
+
 ### The Loop (execute every time)
 
 ```
-1. ANALYZE    — Understand the request. Read relevant code. Gather context.
-2. AUDIT      — Check current state: tests passing? errors? what's broken?
-3. PLAN       — Break the work into specific, actionable steps.
-4. TODO LIST  — Create a todo list (use manage_todo_list). Every step tracked.
-5. EXECUTE    — Implement one step at a time. Mark todos in-progress → completed.
-6. BUILD/TEST — Run tests (pytest), check for errors (get_errors), verify output.
-7. FIX        — If anything fails: debug, fix, re-test. Don't move on until green.
-8. IMPROVE    — Review what was just built. Is there a better way? Refactor if so.
-9. VERIFY     — Final check: all tests pass, no errors, code is clean.
-10. REPEAT    — If more steps remain, go to step 5. If done, commit.
+1.  ANALYZE    — Understand the request fully. Read relevant code. Gather all context first.
+2.  AUDIT      — Check current state: tests passing? errors present? what's already built?
+3.  PLAN       — Break the work into specific, actionable steps. No vague steps allowed.
+4.  TODO LIST  — Create a todo list (use manage_todo_list). Every step tracked.
+5.  EXECUTE    — Implement one step at a time. Mark todos in-progress → completed immediately.
+6.  BUILD/TEST — Run the equivalent of `npm run build` or `pytest`. Verify output compiles/passes.
+7.  FIX        — If anything fails: debug, fix, re-test. Do NOT move on with a broken state.
+8.  IMPROVE    — Review what was just built. Is there a simpler or more correct way?
+9.  VERIFY     — Final check: all tests pass, no errors, behavior matches the request exactly.
+10. ASK        — Does this 100% satisfy what the user asked for? If no → go to step 1 again.
+11. REPEAT     — Create a NEW todo list for the next pass if more work remains. Loop again.
 ```
+
+**The loop ends only when the request is 100% working as the user expects — not when it "seems fine."**
 
 ### Rules for the Loop
 
 - **Never skip the audit step.** Before changing anything, know what's currently working and what's broken.
 - **Never skip tests.** After every meaningful change, run the relevant tests. After all changes, run the full suite.
-- **One todo at a time.** Mark in-progress, do the work, mark completed. Don't batch.
+- **One todo at a time.** Mark in-progress, do the work, mark completed. Don't batch completions.
 - **If a fix creates a new problem, fix the new problem before moving on.** No broken windows.
 - **Every session should leave the codebase better than it found it.** No regressions. No half-implemented features.
 - **If you're unsure about an approach, research first (read code, search codebase) before implementing.**
+- **"Mostly works" is not done.** If 90% of the request is fulfilled, the loop continues.
+- **Create a new todo list for each pass through the loop.** Don't reuse the same list — each pass has its own scope, derived from what the previous pass revealed.
+- **The depth of the loop must match the complexity of the request.** A simple fix = one loop pass. A multi-component feature = one loop pass per component, plus an integration pass.
 
 ### The Architect's Goal-Setting Framework (applied to development)
 
@@ -293,11 +301,27 @@ AUDIT              → Is the codebase healthy? Tests green? No regressions?
 REPEAT             → Until the request is 100% working as expected
 ```
 
+### Checklist: Is this loop pass complete?
+
+Before ending a loop pass and either stopping or starting the next, answer every question:
+
+- [ ] Did I read the relevant code before changing it?
+- [ ] Did I create a todo list and track every step?
+- [ ] Did I mark todos in-progress before starting and completed immediately after?
+- [ ] Did I run the build/test suite and see it pass?
+- [ ] Did I fix every failure before moving on?
+- [ ] Does the output match exactly what the user asked for?
+- [ ] Are there any regressions I introduced?
+- [ ] Is there anything left in the request that isn't done yet?
+
+If any answer is "no" → loop again.
+
 ### When to Loop Multiple Times
 
-- Complex features: loop per component (backend → frontend → integration → tests)
+- Complex features: loop per component (backend → integration → tests → docs)
 - Bug fixes: loop once for diagnosis, once for fix, once for regression testing
 - Refactors: loop per module being refactored
+- Requests with multiple parts: loop per part, then one integration loop
 - **Keep looping until the user's request is 100% fulfilled.** Don't stop at "mostly works."
 
 ## Progress Logging — MANDATORY
