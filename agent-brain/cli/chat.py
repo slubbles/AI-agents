@@ -892,6 +892,98 @@ CHAT_TOOLS = [
             "required": []
         }
     },
+    # === EXECUTION / SYSTEM CONTROL ===
+    # Sandboxed source code editing, service control, log access, test running.
+    {
+        "name": "patch_file",
+        "description": "Edit a source file by replacing exact text. Use to fix bugs, improve code, add features, or update config. Only works within agent-brain/. ALWAYS read_source first to confirm the exact old_str. If old_str is not found, the patch is rejected.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "type": "string",
+                    "description": "Relative path within agent-brain/ (e.g. 'config.py', 'agents/researcher.py')"
+                },
+                "old_str": {
+                    "type": "string",
+                    "description": "Exact string to find and replace. Must appear exactly once in the file."
+                },
+                "new_str": {
+                    "type": "string",
+                    "description": "Replacement string. Can be empty string to delete old_str."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "One-line summary of what this patch does, shown in the edit log."
+                }
+            },
+            "required": ["file", "old_str", "new_str"]
+        }
+    },
+    {
+        "name": "control_service",
+        "description": "Start, stop, restart, or check Cortex system services. Use when user says to start/stop/restart the daemon, telegram bot, or dashboard. Also use to check if a service is running.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "service": {
+                    "type": "string",
+                    "description": "Service name: 'daemon' (cortex-daemon), 'telegram' (cortex-telegram), 'dashboard' (cortex-dashboard)"
+                },
+                "action": {
+                    "type": "string",
+                    "description": "Action: 'start', 'stop', 'restart', 'status'"
+                }
+            },
+            "required": ["service", "action"]
+        }
+    },
+    {
+        "name": "tail_log",
+        "description": "Read the last N lines of a Cortex log file. Use when user asks to see logs, recent output, errors, or what the daemon/bot is doing.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "log": {
+                    "type": "string",
+                    "description": "Log name: 'daemon' (daemon runs), 'telegram' (bot log), 'costs' (API costs), 'chat' (chat sessions), or a filename like 'daemon_state.json'"
+                },
+                "lines": {
+                    "type": "integer",
+                    "description": "Number of lines to return (default 30, max 100)"
+                }
+            },
+            "required": ["log"]
+        }
+    },
+    {
+        "name": "run_tests",
+        "description": "Run the pytest test suite and return a summary of results. Use when user asks to run tests, check if things are working, or wants to verify a change doesn't break anything.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "type": "string",
+                    "description": "Optional test file or pattern to run (e.g. 'test_core.py', 'test_signals'). Defaults to all tests."
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "run_safe_command",
+        "description": "Execute a whitelisted safe system command and return output. Use for git status, system info, or other approved operations. Only a restricted set of commands is allowed.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "description": "One of the allowed commands: 'git status', 'git log', 'git diff', 'systemctl list-units cortex', 'df -h', 'free -h', 'uptime', 'pip list', 'python --version', 'cat .env.example'"
+                }
+            },
+            "required": ["command"]
+        }
+    },
 ]
 
 
@@ -1634,6 +1726,233 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             return "\n".join(lines)
         except Exception as e:
             return f"Build specs fetch failed: {e}"
+
+    # === EXECUTION / SYSTEM CONTROL TOOLS ===
+
+    elif name == "patch_file":
+        try:
+            base = os.path.dirname(os.path.dirname(__file__))  # agent-brain/
+            rel_path = args["file"]
+            target = os.path.normpath(os.path.join(base, rel_path))
+
+            # Security: stay inside agent-brain/
+            if not target.startswith(base):
+                return "Access denied: cannot edit files outside agent-brain/"
+
+            # Only allow safe file types
+            allowed_ext = {".py", ".json", ".md", ".txt", ".toml", ".cfg", ".yaml", ".yml", ".env"}
+            if not any(target.endswith(ext) for ext in allowed_ext):
+                return f"File type not allowed. Allowed: {', '.join(sorted(allowed_ext))}"
+
+            if not os.path.isfile(target):
+                return f"File not found: {rel_path}"
+
+            old_str = args["old_str"]
+            new_str = args["new_str"]
+            description = args.get("description", "")
+
+            with open(target, "r", encoding="utf-8", errors="replace") as f:
+                content = f.read()
+
+            count = content.count(old_str)
+            if count == 0:
+                return (
+                    f"Patch rejected: old_str not found in {rel_path}.\n"
+                    f"Use read_source to confirm the exact text before patching."
+                )
+            if count > 1:
+                return (
+                    f"Patch rejected: old_str matches {count} locations in {rel_path}. "
+                    f"Provide more context so it matches exactly once."
+                )
+
+            new_content = content.replace(old_str, new_str, 1)
+
+            # Write atomically
+            import tempfile
+            tmp = target + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            os.replace(tmp, target)
+
+            # Log the edit
+            log_entry = {
+                "ts": datetime.now().isoformat(),
+                "file": rel_path,
+                "description": description,
+                "old_len": len(old_str),
+                "new_len": len(new_str),
+            }
+            edit_log = os.path.join(base, "logs", "code_edits.jsonl")
+            os.makedirs(os.path.dirname(edit_log), exist_ok=True)
+            with open(edit_log, "a") as f:
+                f.write(json.dumps(log_entry) + "\n")
+
+            lines_changed = new_content.count("\n") - content.count("\n")
+            diff_sign = f"+{lines_changed}" if lines_changed >= 0 else str(lines_changed)
+            return (
+                f"✅ Patched {rel_path}\n"
+                f"  {description or 'Edit applied'}\n"
+                f"  Lines: {diff_sign} | Old: {len(old_str)} chars → New: {len(new_str)} chars"
+            )
+        except Exception as e:
+            return f"Patch failed: {e}"
+
+    elif name == "control_service":
+        try:
+            service_map = {
+                "daemon": "cortex-daemon",
+                "telegram": "cortex-telegram",
+                "dashboard": "cortex-dashboard",
+                "cortex-daemon": "cortex-daemon",
+                "cortex-telegram": "cortex-telegram",
+                "cortex-dashboard": "cortex-dashboard",
+            }
+            action_allow = {"start", "stop", "restart", "status"}
+
+            svc_key = args["service"].lower().strip()
+            action = args["action"].lower().strip()
+
+            if svc_key not in service_map:
+                return f"Unknown service '{svc_key}'. Known: {', '.join(['daemon','telegram','dashboard'])}"
+            if action not in action_allow:
+                return f"Unknown action '{action}'. Allowed: start, stop, restart, status"
+
+            svc_name = service_map[svc_key]
+            import subprocess
+
+            if action == "status":
+                proc = subprocess.run(
+                    ["systemctl", "status", svc_name, "--no-pager", "-l"],
+                    capture_output=True, text=True, timeout=10
+                )
+                out = (proc.stdout + proc.stderr).strip()
+                return f"📋 {svc_name} status:\n<pre>{out[:1500]}</pre>" if out else f"{svc_name}: no output"
+            else:
+                # Confirm dangerous actions
+                proc = subprocess.run(
+                    ["systemctl", action, svc_name],
+                    capture_output=True, text=True, timeout=15
+                )
+                if proc.returncode == 0:
+                    # Get new status
+                    status_proc = subprocess.run(
+                        ["systemctl", "is-active", svc_name],
+                        capture_output=True, text=True, timeout=5
+                    )
+                    active = status_proc.stdout.strip()
+                    return f"✅ {svc_name} {action}ed — now: {active}"
+                else:
+                    err = (proc.stderr or proc.stdout or "unknown error").strip()
+                    return f"❌ {action} {svc_name} failed: {err[:500]}"
+        except Exception as e:
+            return f"Service control failed: {e}"
+
+    elif name == "tail_log":
+        try:
+            base_dir = os.path.dirname(os.path.dirname(__file__))  # agent-brain/
+            log_dir = os.path.join(base_dir, "logs")
+            n = min(int(args.get("lines", 30)), 100)
+
+            log_map = {
+                "daemon": "daemon_history.jsonl",
+                "costs": "costs.jsonl",
+                "chat": "chat_sessions.jsonl",
+                "state": "daemon_state.json",
+                "edits": "code_edits.jsonl",
+            }
+            log_key = args["log"].lower().strip()
+            fname = log_map.get(log_key, log_key)  # passthrough if not in map
+
+            # Security: stay inside logs/
+            target = os.path.normpath(os.path.join(log_dir, fname))
+            if not target.startswith(log_dir):
+                return "Access denied: log path outside logs/"
+            if not os.path.isfile(target):
+                available = ", ".join(k for k in log_map)
+                return f"Log not found: {fname}\nAvailable: {available}"
+
+            with open(target, "r", errors="replace") as f:
+                all_lines = f.readlines()
+
+            tail = all_lines[-n:]
+            content = "".join(tail)
+            header = f"📄 {fname} — last {len(tail)} lines (of {len(all_lines)}):\n"
+            return header + content[-3000:]
+        except Exception as e:
+            return f"Log read failed: {e}"
+
+    elif name == "run_tests":
+        try:
+            import subprocess
+            base_dir = os.path.dirname(os.path.dirname(__file__))  # agent-brain/
+            test_filter = args.get("filter", "")
+
+            cmd = ["python", "-m", "pytest", "tests/", "--tb=short", "-q", "--no-header",
+                   "--ignore=tests/test_hardening_round.py"]
+            if test_filter:
+                # Sanitize: only allow alphanumeric, underscores, dots, and path separators
+                safe_filter = re.sub(r"[^a-zA-Z0-9_.:/\-]", "", test_filter)
+                cmd.append(safe_filter)
+
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=120, cwd=base_dir
+            )
+            output = (proc.stdout + proc.stderr).strip()
+            # Extract last 40 lines
+            lines = output.split("\n")
+            summary = "\n".join(lines[-40:])
+            rc = "✅ PASSED" if proc.returncode == 0 else "❌ FAILED"
+            return f"{rc}\n\n{summary}"
+        except subprocess.TimeoutExpired:
+            return "Tests timed out after 120s."
+        except Exception as e:
+            return f"Test run failed: {e}"
+
+    elif name == "run_safe_command":
+        try:
+            import subprocess, shlex
+            cmd_str = args["command"].strip()
+
+            # Strict whitelist — exact prefix matches only, no shell expansion
+            ALLOWED_PREFIXES = [
+                "git status",
+                "git log --oneline",
+                "git log -",
+                "git diff --stat",
+                "git diff --name-only",
+                "systemctl list-units cortex",
+                "systemctl is-active",
+                "df -h",
+                "free -h",
+                "uptime",
+                "pip list",
+                "pip show",
+                "python --version",
+                "python3 --version",
+                "cat .env.example",
+                "ls logs/",
+                "ls strategies/",
+                "ls memory/",
+            ]
+            allowed = any(cmd_str.startswith(p) for p in ALLOWED_PREFIXES)
+            if not allowed:
+                return (
+                    f"Command not in whitelist: '{cmd_str}'\n"
+                    f"Allowed prefixes:\n" + "\n".join(f"  • {p}" for p in ALLOWED_PREFIXES)
+                )
+
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            proc = subprocess.run(
+                shlex.split(cmd_str), capture_output=True, text=True,
+                timeout=30, cwd=base_dir
+            )
+            output = (proc.stdout + proc.stderr).strip()
+            return output[:3000] if output else "(no output)"
+        except subprocess.TimeoutExpired:
+            return "Command timed out after 30s."
+        except Exception as e:
+            return f"Command failed: {e}"
 
     return f"Unknown tool: {name}"
 

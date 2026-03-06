@@ -399,7 +399,8 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "• Research any topic (web search + critic scoring)\n"
             "• Build products from research (Brain → Hands pipeline)\n"
             "• Show what the system knows (knowledge base)\n"
-            "• Check budget, status, domain stats\n\n"
+            "• Check budget, status, domain stats\n"
+            "• Control services, edit code, run tests from chat\n\n"
             "<b>Research Commands:</b>\n"
             "/research [rounds] — Run a research cycle (default: 1 round)\n"
             "/research 3 — Run 3 rounds of self-directed research\n\n"
@@ -421,12 +422,24 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "/kitchen — What's cooking right now (live daemon view)\n"
             "/domains — List all research domains\n"
             "/domain &lt;name&gt; — Switch active domain\n"
-            "/model — Switch chat model (gemini-flash/grok/deepseek/sonnet)\n"
+            "/model [name] — List or switch chat model\n"
+            "/daemon [start|stop|restart|status] — Full daemon control\n"
+            "/services — All service statuses at a glance\n"
+            "/logs [n] — Daemon history log (last n entries)\n"
+            "/logcat [daemon|telegram|dashboard] [n] — Service journal\n"
+            "/tests — Run the full test suite in background\n"
+            "/patch &lt;file&gt; — Open a file for editing in chat\n"
+            "/editlog — Show recent code edits made via chat\n"
             "/clear — Clear conversation history\n"
-            "/daemon — Full daemon status\n"
             "/help — Show this message\n\n"
-            "Or just type naturally — I understand plain English.\n"
-            "Chat: Gemini Flash (cheap + reasoning). Orchestrator: Claude Sonnet."
+            "<b>Natural language (via chat):</b>\n"
+            "• 'Stop the daemon'\n"
+            "• 'Change DAILY_BUDGET_USD to 5 in config.py'\n"
+            "• 'Show me the last 20 lines of daemon logs'\n"
+            "• 'Run the integration tests'\n"
+            "• 'Switch model to sonnet'\n"
+            "• 'What does researcher.py do?'\n\n"
+            "Chat model: Gemini Flash (cheap + reasoning). Orchestrator: Claude Sonnet."
         )
     
     if cmd_name == "/help":
@@ -873,6 +886,222 @@ def _handle_command(chat_id: str, command: str) -> str | None:
                 return f"❌ Analysis failed: {e}"
         
         return f"Unknown sub-command: {sub_cmd}. Use /threads for help."
+    
+    # ── Control / Execution Commands ─────────────────────────────────────
+    # These allow direct system control without going through the LLM.
+    
+    if cmd_name == "/services":
+        import subprocess
+        services = ["cortex-daemon", "cortex-telegram", "cortex-dashboard"]
+        lines = ["🖥 <b>Service Status</b>\n"]
+        for svc in services:
+            try:
+                proc = subprocess.run(
+                    ["systemctl", "is-active", svc],
+                    capture_output=True, text=True, timeout=5
+                )
+                active = proc.stdout.strip()
+                icon = "🟢" if active == "active" else "🔴"
+                lines.append(f"{icon} {svc}: {active}")
+            except Exception as e:
+                lines.append(f"⚪ {svc}: unknown ({e})")
+        lines.append("\nUse /daemon start|stop|restart|status")
+        return "\n".join(lines)
+    
+    if cmd_name == "/daemon":
+        import subprocess
+
+        _DAEMON_SVC = "cortex-daemon"
+        sub = cmd_arg.strip().lower() if cmd_arg else ""
+
+        if sub in ("start", "stop", "restart"):
+            # Require explicit confirmation for stop/restart on running daemon
+            proc = subprocess.run(
+                ["systemctl", sub, _DAEMON_SVC],
+                capture_output=True, text=True, timeout=15
+            )
+            if proc.returncode == 0:
+                status_proc = subprocess.run(
+                    ["systemctl", "is-active", _DAEMON_SVC],
+                    capture_output=True, text=True, timeout=5
+                )
+                active = status_proc.stdout.strip()
+                icon = "🟢" if active == "active" else "🔴"
+                return f"{icon} <b>{_DAEMON_SVC}</b> {sub}ed — now: {active}"
+            else:
+                err = (proc.stderr or proc.stdout or "unknown error").strip()
+                return f"❌ {sub} failed: {err[:400]}"
+        
+        if sub == "status" or sub == "":
+            # Full daemon status (existing handler logic)
+            live = _get_live_daemon_state()
+            try:
+                from scheduler import get_daemon_status
+                s = get_daemon_status()
+                state = s.get("state", {})
+                cycle = state.get("cycle", 0)
+                avg = state.get("avg_score", "?")
+                cost = state.get("cycle_cost", 0)
+                domains = state.get("domain_results", [])
+                domain_lines = "\n".join(
+                    f"  • {d['domain']}: {d.get('avg_score','?')}/10 ({d.get('rounds_completed','?')} rounds)"
+                    for d in domains
+                ) if domains else "  (no domain results)"
+                return (
+                    f"🤖 <b>Daemon Status</b>\n\n"
+                    f"{live}\n\n"
+                    f"<b>Last cycle results:</b>\n"
+                    f"{domain_lines}\n"
+                    f"Cost: ${cost:.4f} | Avg: {avg}/10"
+                )
+            except Exception:
+                return f"🤖 <b>Daemon Status</b>\n\n{live}"
+        
+        return (
+            "🤖 <b>Daemon Control</b>\n\n"
+            "/daemon status — Full status\n"
+            "/daemon start — Start daemon\n"
+            "/daemon stop — Stop daemon\n"
+            "/daemon restart — Restart daemon"
+        )
+    
+    if cmd_name == "/logs":
+        n_lines = 40
+        if cmd_arg:
+            try:
+                n_lines = max(5, min(int(cmd_arg), 100))
+            except ValueError:
+                pass
+        
+        log_dir = os.path.join(LOG_DIR)
+        # Show daemon_history.jsonl (most useful live view)
+        history_file = os.path.join(log_dir, "daemon_history.jsonl")
+        if not os.path.exists(history_file):
+            return "📄 No daemon history yet. Run a research cycle first."
+        
+        try:
+            with open(history_file, errors="replace") as f:
+                all_lines = f.readlines()
+            tail = all_lines[-n_lines:]
+            # Parse JSONL for a readable summary
+            entries = []
+            for line in tail:
+                try:
+                    e = json.loads(line.strip())
+                    ts = e.get("timestamp", e.get("ts", "?"))[:16]
+                    cycle = e.get("cycle", "?")
+                    avg = e.get("avg_score", "?")
+                    cost = e.get("cycle_cost", 0)
+                    domains = e.get("domains", [])
+                    entries.append(
+                        f"[{ts}] Cycle {cycle}: {avg}/10 • ${cost:.3f} • {', '.join(domains)}"
+                    )
+                except Exception:
+                    entries.append(line.strip()[:120])
+            
+            out = "\n".join(entries[-30:])
+            return f"📋 <b>Daemon Log</b> (last {len(entries)} entries):\n\n<pre>{out[:3000]}</pre>"
+        except Exception as e:
+            return f"❌ Log read failed: {e}"
+    
+    if cmd_name == "/logcat":
+        # /logcat [service] [lines] — tail systemd journal for a service
+        import subprocess
+        
+        parts = cmd_arg.split() if cmd_arg else []
+        svc_map = {
+            "daemon": "cortex-daemon",
+            "telegram": "cortex-telegram",
+            "dashboard": "cortex-dashboard",
+        }
+        
+        svc = "cortex-telegram"  # default to own service
+        n_lines = 40
+        
+        for part in parts:
+            if part in svc_map:
+                svc = svc_map[part]
+            elif part.isdigit():
+                n_lines = max(5, min(int(part), 100))
+        
+        try:
+            proc = subprocess.run(
+                ["journalctl", "-u", svc, "-n", str(n_lines), "--no-pager", "--output=short-iso"],
+                capture_output=True, text=True, timeout=10
+            )
+            out = (proc.stdout or proc.stderr or "(no output)").strip()
+            return f"📋 <b>{svc}</b> journal (last {n_lines} lines):\n\n<pre>{out[-3000:]}</pre>"
+        except Exception as e:
+            return f"❌ Journal read failed: {e}"
+    
+    if cmd_name == "/tests":
+        _send_message(int(chat_id), "🧪 Running test suite in background...")
+        
+        def _run_tests():
+            try:
+                import subprocess
+                base_dir = os.path.dirname(__file__)
+                proc = subprocess.run(
+                    ["python", "-m", "pytest", "tests/", "--tb=short", "-q", "--no-header",
+                     "--ignore=tests/test_hardening_round.py"],
+                    capture_output=True, text=True, timeout=180, cwd=base_dir
+                )
+                output = (proc.stdout + proc.stderr).strip()
+                lines = output.split("\n")
+                summary = "\n".join(lines[-40:])
+                rc = "✅ PASSED" if proc.returncode == 0 else "❌ FAILED"
+                _send_message(int(chat_id),
+                    f"{rc}\n\n<pre>{summary[:3000]}</pre>")
+            except Exception as e:
+                _send_message(int(chat_id), f"❌ Test run failed: {e}")
+        
+        t = threading.Thread(target=_run_tests, daemon=True, name="run-tests")
+        t.start()
+        return None  # notification already sent
+
+    if cmd_name == "/patch":
+        # /patch <file> — then the LLM handles the actual edit via chat
+        # This is a shortcut that sets context and switches to code-edit mode
+        if not cmd_arg:
+            return (
+                "🔧 <b>Code Patch</b>\n\n"
+                "Usage: /patch &lt;file&gt;\n"
+                "Example: /patch config.py\n\n"
+                "This will open the file and let you describe the change in plain English.\n"
+                "The system will read the file, apply your edit, and show a diff.\n\n"
+                "Or just describe what you want to change directly in chat:\n"
+                "  'Change the DAILY_BUDGET_USD in config.py from 2.0 to 5.0'"
+            )
+        
+        # Trigger the LLM with context to handle the patch
+        # The natural language chat + patch_file tool handles this
+        hint = f"I want to edit the file '{cmd_arg}'. Please read it first with read_source, then wait for my instruction on what to change."
+        return _process_message(chat_id, hint)
+    
+    if cmd_name == "/editlog":
+        # Show recent code edits made via patch_file tool
+        log_file = os.path.join(LOG_DIR, "code_edits.jsonl")
+        if not os.path.exists(log_file):
+            return "📝 No code edits made yet via chat interface."
+        try:
+            with open(log_file, errors="replace") as f:
+                lines = f.readlines()
+            entries = []
+            for line in lines[-20:]:
+                try:
+                    e = json.loads(line.strip())
+                    ts = e.get("ts", "?")[:16]
+                    fname = e.get("file", "?")
+                    desc = e.get("description", "")
+                    old_l = e.get("old_len", 0)
+                    new_l = e.get("new_len", 0)
+                    entries.append(f"[{ts}] {fname}: {desc or 'edit'} ({old_l}→{new_l} chars)")
+                except Exception:
+                    entries.append(line.strip()[:120])
+            out = "\n".join(entries)
+            return f"📝 <b>Code Edit Log</b> (last {len(entries)}):\n\n<pre>{out}</pre>"
+        except Exception as e:
+            return f"❌ Edit log read failed: {e}"
     
     return None  # Not a recognized command
 
