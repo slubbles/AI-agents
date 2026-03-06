@@ -404,3 +404,119 @@ def _format_posts(posts: list[dict], include_engagement: bool = False) -> str:
         lines.append(line)
     
     return "\n\n".join(lines)
+
+
+# ── Image-post convenience functions (Narrator API) ───────────────────────
+
+def post_build_screenshot(
+    page_url: str,
+    post_text: str,
+    full_page: bool = False,
+) -> dict:
+    """
+    Capture a screenshot of a live build and post it to Threads.
+
+    Called by the Narrator / executor when a build phase completes:
+
+        post_build_screenshot(
+            page_url="https://invoicer-abc.vercel.app/dashboard",
+            post_text=(
+                "Dashboard phase complete. Visual score 8.6/10.\\n"
+                "Cortex iterated 3 times to get the spacing right.\\n"
+                "Built autonomously — zero human code."
+            )
+        )
+
+    Falls back to text-only post if BLOB_READ_WRITE_TOKEN is not set
+    or if the screenshot fails.
+
+    Args:
+        page_url:  URL of the live (or local) page to screenshot.
+        post_text: Threads post text (max 500 chars).
+        full_page: Capture full scroll height instead of viewport.
+
+    Returns:
+        {"id": str, "published": bool, "image_url": str}
+        or {"error": str, "fallback_published": bool}
+    """
+    from tools.image_publisher import capture_and_post, blob_configured
+    from tools.threads_client import publish_post, ThreadsAPIError
+
+    result = capture_and_post(page_url=page_url, post_text=post_text, full_page=full_page)
+
+    if "error" in result:
+        logger.warning(f"[NARRATOR] Image post failed ({result['error']}) — posting text-only")
+        try:
+            fallback = publish_post(text=post_text)
+            fallback["fallback_published"] = True
+            fallback["image_error"] = result["error"]
+            return fallback
+        except ThreadsAPIError as e:
+            return {"error": str(e), "fallback_published": False}
+
+    logger.info(f"[NARRATOR] Screenshot post published: {result.get('id')}")
+    return result
+
+
+def post_score_chart(
+    domain: str,
+    post_text: str | None = None,
+) -> dict:
+    """
+    Pull this domain's accepted output scores from memory, generate a trend
+    chart, and publish it to Threads.
+
+    Called periodically by the Narrator to show Brain's improving quality:
+
+        post_score_chart("productized-services")
+
+    If matplotlib is not installed or scores are unavailable, returns an
+    error dict (no exception raised — Narrator can decide whether to
+    fall back to text-only).
+
+    Args:
+        domain:    Domain name (used to load scores from memory_store).
+        post_text: Override post text. If None, auto-generated from scores.
+
+    Returns:
+        {"id": str, "published": bool, "image_url": str}
+        or {"error": str}
+    """
+    from tools.image_publisher import post_with_chart, blob_configured
+
+    # Load scores from memory store
+    try:
+        from memory_store import load_outputs
+        outputs = load_outputs(domain)
+    except Exception as e:
+        return {"error": f"Could not load outputs for domain '{domain}': {e}"}
+
+    if not outputs:
+        return {"error": f"No scored outputs found for domain '{domain}'"}
+
+    # Build parallel date/score lists from accepted outputs (score >= 6)
+    dated_scores = []
+    for out in outputs:
+        score = out.get("score")
+        ts = out.get("timestamp", "")
+        if score is not None and float(score) >= 6:
+            label = ts[:10] if ts else "?"
+            dated_scores.append((label, float(score)))
+
+    if not dated_scores:
+        return {"error": f"No accepted outputs (score ≥ 6) for domain '{domain}'"}
+
+    dates = [d for d, _ in dated_scores]
+    scores = [s for _, s in dated_scores]
+    avg = round(sum(scores) / len(scores), 1)
+
+    if post_text is None:
+        post_text = (
+            f"Brain research quality improving on '{domain}'.\n"
+            f"{len(scores)} accepted outputs. Average score: {avg}/10.\n"
+            f"Strategy has rewritten itself based on what worked.\n"
+            f"Built by Cortex — autonomous AI research loop."
+        )[:500]
+
+    title = f"{domain} — Research Quality"
+    return post_with_chart(post_text=post_text, dates=dates, scores=scores, title=title)

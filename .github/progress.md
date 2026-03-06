@@ -4,7 +4,49 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
-## Session 21 — May 30, 2025
+## Session 22 — May 30, 2025
+**Prompt:** Lifebook goal-setting framework applied to Cortex domains + sandboxed chat execution + copilot-instructions loop strengthening
+
+### What We Did
+1. **Sandboxed execution in chat/Telegram** — 5 new CHAT_TOOLS (patch_file, control_service, tail_log, run_tests, run_safe_command) + 7 new Telegram /commands (daemon, services, logs, logcat, tests, patch, editlog)
+2. **copilot-instructions.md loop** — Added steps 10/11 (ASK + REPEAT), "mostly works is not done" rule, 8-question loop completion checklist
+3. **Lifebook goal framework for Cortex** — domain_goals.py upgraded to full structured record; question_generator uses it
+
+### Why
+- Chat and Telegram needed to execute code, restart services, and run tests autonomously  
+- The dev loop needed a formal "am I done?" gate and a rule to not reuse todo lists across loop passes
+- Domain goals were a single string — couldn't support the architect's full Lifebook methodology
+
+### Purpose
+- Chat/Telegram can now self-modify Cortex source code on command (sandboxed)
+- Dev process mirrors the product's own loop: plan → execute → test → verify → learn → repeat
+- Cortex research is now goal-directed at the objectives level, not just a topic string
+
+### Steps Taken
+1. Added 5 CHAT_TOOLS to cli/chat.py with path sandboxing + command whitelisting
+2. Added 7 /commands to telegram_bot.py; updated /start help text
+3. Updated copilot-instructions.md: steps 10/11, "mostly works" rule, new-todo-list rule, 8-question checklist
+4. Upgraded domain_goals.py schema — full Lifebook record: what_i_want, what_i_dont_want, solution, goal, objectives[], monthly_priority, task_queue[], audit_log[]
+5. Added 8 new helper functions: set_goal_structured, add_objective, complete_objective, set_monthly_priority, push_task, pop_task, audit_goal, get_active_objectives — all backward-compat
+6. Updated question_generator.py: imports get_goal_record + get_active_objectives; _build_generator_prompt now injects objectives/priority/task_queue into LLM system prompt; call site passes goal_record
+7. Expanded Lifebook section in copilot-instructions.md with full framework (PRINCIPLE → WHAT I WANT → SOLUTION → GOAL → OBJECTIVES → SCHEDULE → MONTHLY PRIORITY → DAILY TASKS → EXECUTE → CHECK → ANALYZE → AUDIT → LIST IMPROVEMENTS → REPEAT)
+8. 147/147 tests passing, committed 8f1a4d7, VPS synced
+
+### What This Enables
+- Set a goal like: `set_goal_structured("productized-services", goal="3 clients at $500/mo", what_i_want="...", objectives=["Research OLJ pain points", "Build LP template"], monthly_priority="Validate offer with 10 outreach messages")`
+- question_generator will generate questions aimed at completing specific objectives, prioritized by monthly focus
+- pop_task / push_task lets the system consume a FIFO work queue per domain
+
+### Suggested Next Steps
+- **Goal:** Wire `set_goal_structured` into the CLI so the user can set a full structured goal via `python main.py --domain X --set-goal`
+- **Why:** Currently only callable from Python code — needs a UX wrapper for real use
+- **Objectives:**
+  1. Add `--set-goal-structured` flag (or interactive prompt) to main.py/cli
+  2. Add `/setgoal` Telegram command that prompts through each field
+  3. Add `--add-objective`, `--complete-objective`, `--monthly-priority` flags
+  4. Show structured goal in `--status` output and `/status` Telegram command
+
+
 **Prompt:** "is all in upnext.md done and properly integrated? if not continue"
 
 ### What We Did

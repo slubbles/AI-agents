@@ -226,6 +226,11 @@ VAULT_PASSPHRASE_ENV = "VAULT_PASSPHRASE"  # env var name for vault master passp
 THREADS_ENABLED = bool(os.environ.get("THREADS_ACCESS_TOKEN", ""))
 THREADS_MAX_SEARCHES_PER_RUN = 3          # max Threads searches per research run
 
+# --- Vercel Blob (image hosting for Threads posts) ---
+# Create a Blob store at vercel.com → your project → Storage → Blob
+# then copy BLOB_READ_WRITE_TOKEN to VPS .env
+VERCEL_BLOB_ENABLED = bool(os.environ.get("BLOB_READ_WRITE_TOKEN", ""))
+
 # --- VPS Deploy ---
 DEPLOY_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "deploy", "vps_config.json")
 

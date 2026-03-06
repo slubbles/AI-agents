@@ -513,6 +513,69 @@ THREADS_INSIGHTS_TOOL = {
     },
 }
 
+THREADS_SCREENSHOT_POST_TOOL = {
+    "name": "threads_screenshot_post",
+    "description": (
+        "Take a high-quality Retina screenshot of a URL, upload it to Vercel Blob, "
+        "and publish it as an image post on Threads. "
+        "Use after a build phase completes to show the real product in action. "
+        "Requires BLOB_READ_WRITE_TOKEN in .env."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "page_url": {
+                "type": "string",
+                "description": "URL to screenshot (e.g. https://your-app.vercel.app or http://localhost:3001).",
+            },
+            "text": {
+                "type": "string",
+                "description": "Threads post text (max 500 chars). Describe what was just built.",
+            },
+            "full_page": {
+                "type": "boolean",
+                "description": "Capture full scroll height (true) or viewport only (false, default).",
+                "default": False,
+            },
+        },
+        "required": ["page_url", "text"],
+    },
+}
+
+THREADS_CHART_POST_TOOL = {
+    "name": "threads_chart_post",
+    "description": (
+        "Generate a score trend chart from research quality data, upload it to Vercel Blob, "
+        "and post it on Threads. Use to show Brain's improving research quality over time. "
+        "Requires BLOB_READ_WRITE_TOKEN in .env and matplotlib installed."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "text": {
+                "type": "string",
+                "description": "Threads post text (max 500 chars). Describe what the chart shows.",
+            },
+            "dates": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "List of date/label strings for the X axis.",
+            },
+            "scores": {
+                "type": "array",
+                "items": {"type": "number"},
+                "description": "Corresponding score values (0-10) for the Y axis.",
+            },
+            "title": {
+                "type": "string",
+                "description": "Chart title (default: 'Research Quality Over Time').",
+                "default": "Research Quality Over Time",
+            },
+        },
+        "required": ["text", "dates", "scores"],
+    },
+}
+
 
 def execute_threads_tool(tool_name: str, tool_input: dict) -> str:
     """
@@ -540,7 +603,26 @@ def execute_threads_tool(tool_name: str, tool_input: dict) -> str:
                 limit=tool_input.get("limit", 10),
             )
             return json.dumps(result)
-        
+
+        elif tool_name == "threads_screenshot_post":
+            from tools.image_publisher import capture_and_post
+            result = capture_and_post(
+                page_url=tool_input["page_url"],
+                post_text=tool_input["text"],
+                full_page=tool_input.get("full_page", False),
+            )
+            return json.dumps(result)
+
+        elif tool_name == "threads_chart_post":
+            from tools.image_publisher import post_with_chart
+            result = post_with_chart(
+                post_text=tool_input["text"],
+                dates=tool_input["dates"],
+                scores=tool_input["scores"],
+                title=tool_input.get("title", "Research Quality Over Time"),
+            )
+            return json.dumps(result)
+
         else:
             return json.dumps({"error": f"Unknown Threads tool: {tool_name}"})
     
