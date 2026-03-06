@@ -345,6 +345,140 @@ def _compress_messages(messages: list) -> None:
         msg["content"] = compressed_content
 
 
+def _build_ptc_tools() -> list[dict]:
+    """
+    Build tool definitions for PTC (Programmatic Tool Calling) mode.
+    
+    In PTC, Claude gets a code_execution sandbox + our tools registered as
+    callable functions. Claude writes Python to orchestrate tool calls,
+    process results, and return only the final output — reducing tokens by ~37%.
+    
+    Returns Anthropic PTC tool format: code_execution tool + regular tools.
+    """
+    # The code_execution tool that gives Claude a Python sandbox
+    ptc_tools = [
+        {
+            "type": "code_execution_20260120",
+            "name": "code_execution",
+        }
+    ]
+    
+    # Regular tools — Claude can call these FROM the sandbox via tool calls
+    # PTC still uses the same Anthropic tool definitions, but the model
+    # orchestrates them through Python code instead of one-at-a-time
+    ptc_tools.append(SEARCH_TOOL_DEFINITION)
+    ptc_tools.append(FETCH_TOOL_DEFINITION)
+    ptc_tools.append(SEARCH_AND_FETCH_TOOL_DEFINITION)
+    
+    return ptc_tools
+
+
+def _research_ptc(question: str, strategy: str | None, critique: str | None,
+                  domain: str, build_mode: bool, system_prompt: str,
+                  prior_knowledge_block: str) -> dict:
+    """
+    PTC (Programmatic Tool Calling) research path.
+    
+    Instead of the traditional tool-use loop (one tool call per LLM round),
+    Claude writes Python code that orchestrates all tools in a sandbox.
+    Only the final processed output enters the conversation context.
+    
+    Benefits:
+    - ~37% fewer tokens (intermediate tool results stay in sandbox, not context)
+    - Fewer API round trips (1-2 instead of 4-8)
+    - Model controls what data it keeps (smarter context management)
+    
+    Requires:
+    - PTC_ENABLED=true in config
+    - ANTHROPIC_API_KEY set (direct Anthropic, not OpenRouter)
+    - Beta header: advanced-tool-use-2025-11-20
+    """
+    from config import PTC_MODEL, PTC_BETA_HEADER
+    from llm_router import call_llm
+    
+    user_message = f"Research question: {question}"
+    
+    if prior_knowledge_block:
+        user_message = f"""=== PRIOR KNOWLEDGE (from your memory) ===
+PRIOR KNOWLEDGE INSTRUCTIONS:
+- Claims marked [high] are verified — don't re-search these unless the question specifically requires updated data.
+- Claims marked [medium] may benefit from corroboration — search for a second source.
+- If new findings CONTRADICT a prior claim, flag it explicitly as a contradiction.
+- Focus searches on the KNOWLEDGE GAPS listed below, not on re-verifying known claims.
+{prior_knowledge_block}
+=== END PRIOR KNOWLEDGE ===
+
+Research question: {question}"""
+
+    if critique:
+        user_message += f"\n\nPREVIOUS ATTEMPT REJECTED. Feedback:\n{critique}\n\nSearch for more specific information and improve."
+
+    # PTC-specific instruction appended to system prompt
+    ptc_system = system_prompt + """
+
+PTC MODE: You have a Python code execution sandbox available.
+Use it to orchestrate your tool calls efficiently:
+1. Write Python code that calls web_search, fetch_page, and/or search_and_fetch
+2. Process and filter the results in code (extract key facts, discard noise)
+3. Return ONLY the final structured JSON with your findings
+This approach is more efficient — you control what data enters the conversation.
+"""
+
+    messages = [{"role": "user", "content": user_message}]
+    tools = _build_ptc_tools()
+    
+    print(f"  [RESEARCHER/PTC] Using Programmatic Tool Calling via {PTC_MODEL}")
+    
+    # PTC uses direct Anthropic API with beta header
+    response = call_llm(
+        model=PTC_MODEL,
+        system=ptc_system,
+        messages=messages,
+        tools=tools,
+        max_tokens=16384,  # PTC needs more tokens for code + tool results in sandbox
+        betas=[PTC_BETA_HEADER],
+    )
+    
+    log_cost(PTC_MODEL, response.usage.input_tokens, response.usage.output_tokens, "researcher_ptc", domain)
+    
+    # Extract text from response — PTC returns the final output directly
+    raw_text = ""
+    tool_log = [{"tool": "ptc_mode", "model": PTC_MODEL, "success": True}]
+    
+    for block in response.content:
+        if hasattr(block, "text"):
+            raw_text += block.text
+        # Log code execution blocks for observability
+        if hasattr(block, "type") and block.type == "code_execution_result":
+            tool_log.append({
+                "tool": "code_execution",
+                "success": getattr(block, "return_code", 1) == 0,
+            })
+    
+    raw_text = raw_text.strip()
+    
+    # Parse structured JSON output (same as traditional path)
+    EXPECTED_KEYS = {"question", "findings", "summary"}
+    result = extract_json(raw_text, expected_keys=EXPECTED_KEYS)
+    if result:
+        result["_ptc_mode"] = True
+        result["_tool_log"] = tool_log
+        return result
+    
+    # Fallback: wrap raw text
+    return {
+        "question": question,
+        "findings": [{"claim": raw_text[:2000], "confidence": "low", "reasoning": "PTC raw output, failed to parse structured response", "source": ""}],
+        "key_insights": [],
+        "knowledge_gaps": ["PTC response was not structured — may need strategy adjustment"],
+        "sources_used": [],
+        "summary": raw_text[:500],
+        "_parse_error": True,
+        "_ptc_mode": True,
+        "_tool_log": tool_log,
+    }
+
+
 def research(question: str, strategy: str | None = None, critique: str | None = None, domain: str = "general", build_mode: bool = False) -> dict:
     """
     Run the researcher agent on a question with web search tool use.
@@ -414,6 +548,25 @@ def research(question: str, strategy: str | None = None, critique: str | None = 
     
     # Prior knowledge injected into user message (below), not system prompt,
     # so the static system prompt stays cacheable across tool-use rounds.
+
+    # === PTC DISPATCH ===
+    # If PTC is enabled and Anthropic API key is set, use the PTC path
+    # which is dramatically more efficient (37% fewer tokens, fewer round trips).
+    try:
+        from config import PTC_ENABLED, ANTHROPIC_API_KEY
+        if PTC_ENABLED and ANTHROPIC_API_KEY:
+            print("  [RESEARCHER] PTC mode enabled — using Programmatic Tool Calling")
+            return _research_ptc(
+                question=question,
+                strategy=strategy,
+                critique=critique,
+                domain=domain,
+                build_mode=build_mode,
+                system_prompt=system_prompt,
+                prior_knowledge_block=prior_knowledge_block,
+            )
+    except ImportError:
+        pass
 
     user_message = f"Research question: {question}"
     

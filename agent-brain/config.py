@@ -205,6 +205,15 @@ RAG_ENABLED = True                # use vector embeddings for semantic retrieval
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # local, free, 384 dimensions
 VECTORDB_DIR = os.path.join(os.path.dirname(__file__), "memory", "_vectordb")
 
+# --- Programmatic Tool Calling (PTC) ---
+# Anthropic PTC: Claude writes Python to orchestrate tools in a sandbox.
+# Only final processed output enters conversation context → 37% token savings.
+# Requires: direct Anthropic API (not OpenRouter), beta header, Claude Sonnet 4.5+
+# Set PTC_ENABLED=true in .env when you have Anthropic credits to spare.
+PTC_ENABLED = os.environ.get("PTC_ENABLED", "false").lower() in ("true", "1", "yes")
+PTC_MODEL = "claude-sonnet-4-20250514"  # Direct Anthropic model (not OpenRouter path)
+PTC_BETA_HEADER = "advanced-tool-use-2025-11-20"
+
 # --- Browser (Playwright Stealth) ---
 BROWSER_ENABLED = True            # enable stealth browser for JS-rendered/auth-required sites
 BROWSER_HEADLESS = True           # run browser headless (True for server, False for debugging)

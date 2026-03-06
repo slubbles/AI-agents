@@ -318,7 +318,7 @@ def call_llm(
     """
     
     if is_claude_model(model):
-        return _call_anthropic(model, messages, system, max_tokens, tools, temperature, **kwargs)
+        return _call_anthropic(model, messages, system, max_tokens, tools, temperature, betas=kwargs.pop("betas", None), **kwargs)
     else:
         return _call_openrouter(model, messages, system, max_tokens, tools, temperature, reasoning_effort=reasoning_effort, **kwargs)
 
@@ -330,9 +330,15 @@ def _call_anthropic(
     max_tokens: int,
     tools: list[dict],
     temperature: float,
+    betas: list[str] = None,
     **kwargs
 ) -> NormalizedResponse:
-    """Call Anthropic API directly."""
+    """Call Anthropic API directly.
+    
+    Args:
+        betas: Optional list of beta feature headers (e.g., ["advanced-tool-use-2025-11-20"])
+               Required for PTC (Programmatic Tool Calling).
+    """
     from utils.retry import retry_api_call
     
     client = _get_anthropic_client()
@@ -351,12 +357,22 @@ def _call_anthropic(
     # Don't pass temperature to Anthropic if not needed
     # (some models have default temp)
     
-    response = retry_api_call(
-        lambda: client.messages.create(**call_kwargs),
-        max_attempts=5,
-        base_delay=15.0,
-        verbose=True,
-    )
+    if betas:
+        # Beta features require using client.beta.messages.create()
+        call_kwargs["betas"] = betas
+        response = retry_api_call(
+            lambda: client.beta.messages.create(**call_kwargs),
+            max_attempts=5,
+            base_delay=15.0,
+            verbose=True,
+        )
+    else:
+        response = retry_api_call(
+            lambda: client.messages.create(**call_kwargs),
+            max_attempts=5,
+            base_delay=15.0,
+            verbose=True,
+        )
     
     # Anthropic response is already in correct format
     return response
