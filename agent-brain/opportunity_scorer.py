@@ -59,12 +59,18 @@ For each post, return:
     "potential_solutions": ["Idea 1", "Idea 2", "Idea 3"],
     "market_size_estimate": "Small|Medium|Large - brief reasoning",
     "existing_solutions": ["Tool 1", "Tool 2"],
-    "opportunity_score": <1-100 based on: severity * market_size * lack_of_solutions * engagement>
+    "opportunity_score": <1-100 based on: pain severity, urgency, willingness to pay, wedge clarity, lack_of_solutions, switching cost, distribution difficulty, and trust/liability risk>
 }}
 
 Rules:
 - Be practical and specific. Focus on actionable software/product ideas.
+- Penalize broad, generic pain points with no sharp wedge. "Marketing is hard" should not score like a concrete buyer workflow.
+- Penalize ideas in crowded categories with strong incumbents, high switching costs, or obvious substitutes.
+- Penalize trust-heavy or liability-heavy workflows unless the post suggests a narrow, credible entry wedge.
+- Reward concrete pain tied to money, time, compliance, or operational failure.
+- Reward opportunities with a clear first buyer and a narrow, underserved entry point.
 - If a post has no clear pain point, set opportunity_score to 10 or below.
+- Generic market facts should usually score 60 or below unless the post reveals a clear wedge or strong unmet need.
 - Return ONLY a JSON array. No markdown, no explanation.
 """
 
@@ -351,6 +357,10 @@ Generate a JSON object with:
     "monetization": "Pricing model and price point with reasoning",
     "existing_competitors": ["Competitor 1 (what they do)", "Competitor 2"],
     "competitive_gap": "What's missing from existing solutions — this is the opportunity",
+    "narrow_wedge": "The smallest, most underserved entry segment worth targeting first",
+    "distribution_strategy": "Direct, realistic way to reach first customers",
+    "killer_objections": ["Objection 1", "Objection 2", "Objection 3"],
+    "why_this_could_fail": "The blunt commercial reason this may not be worth building",
     "research_questions": [
         "Question 1 for deeper market validation",
         "Question 2 about technical feasibility",
@@ -362,9 +372,27 @@ Rules:
 - Be specific and practical. This should be buildable by one developer.
 - MVP means MINIMUM. Cut anything that isn't essential for first 10 users.
 - Price based on pain severity and audience willingness to pay.
+- Do NOT assume the idea is good. If the market is crowded or distribution is ugly, say so plainly.
+- Prefer a narrow, underserved wedge over a broad SMB or founder category.
+- Distribution strategy must be direct and believable, not generic "SEO/content/social" filler.
+- Killer objections should reflect why buyers may not switch, trust, or adopt the product.
 - Research questions should be answerable via web search.
 - Return ONLY valid JSON. No markdown, no explanation.
 """
+
+REALITY_CHECK_EVALUATION_STEPS = [
+    "Check whether the pain is tied to concrete financial loss, operational failure, compliance burden, or repeated wasted time.",
+    "Check whether the first buyer is narrow, specific, and reachable through a direct channel without brand-scale distribution.",
+    "Check whether incumbents, substitutes, switching costs, and trust requirements make adoption materially harder than the build itself.",
+    "Check whether a small entry wedge exists that avoids heavy integrations, operational liability, or service expectations.",
+    "Prefer ideas with a believable direct GTM path and a clear reason to win, and penalize broad categories with weak differentiation.",
+]
+
+REALITY_CHECK_RUBRIC = {
+    "go_now": "Sharp wedge, painful workflow, reachable first buyers, and manageable switching/trust risk.",
+    "test_first": "Some demand exists, but distribution or differentiation is shaky; validate with a narrow manual or concierge offer.",
+    "skip": "Crowded market, weak wedge, ugly distribution, or operational complexity likely kills ROI.",
+}
 
 
 def generate_build_spec(opportunity: dict, model: str = None) -> dict | None:
@@ -446,6 +474,94 @@ def generate_build_spec(opportunity: dict, model: str = None) -> dict | None:
     return spec
 
 
+def _build_reality_check_evidence(opportunity: dict, spec: dict) -> dict:
+    """Build a repeatable commercial-evaluation packet for Cortex."""
+    return {
+        "opportunity": {
+            "pain_point_summary": opportunity.get("pain_point_summary"),
+            "category": opportunity.get("category"),
+            "severity": opportunity.get("severity"),
+            "affected_audience": opportunity.get("affected_audience"),
+            "market_size_estimate": opportunity.get("market_size_estimate"),
+            "opportunity_score": opportunity.get("opportunity_score"),
+            "subreddit": opportunity.get("subreddit"),
+            "source_post_title": opportunity.get("title"),
+            "existing_solutions": opportunity.get("existing_solutions"),
+            "potential_solutions": opportunity.get("potential_solutions"),
+        },
+        "proposed_product": {
+            "product_name": spec.get("product_name"),
+            "problem_statement": spec.get("problem_statement"),
+            "target_audience": spec.get("target_audience"),
+            "core_features": spec.get("core_features", []),
+            "mvp_scope": spec.get("mvp_scope"),
+            "monetization": spec.get("monetization"),
+            "existing_competitors": spec.get("existing_competitors", []),
+            "competitive_gap": spec.get("competitive_gap"),
+            "narrow_wedge": spec.get("narrow_wedge"),
+            "distribution_strategy": spec.get("distribution_strategy"),
+            "killer_objections": spec.get("killer_objections", []),
+            "why_this_could_fail": spec.get("why_this_could_fail"),
+        },
+        "commercial_evaluation_steps": REALITY_CHECK_EVALUATION_STEPS,
+        "commercial_rubric": REALITY_CHECK_RUBRIC,
+    }
+
+
+def generate_opportunity_decision_packet(
+    opportunity: dict,
+    model: str = None,
+    focus: str = "",
+) -> dict | None:
+    """
+    Generate a build spec plus a Cortex commercial reality check.
+
+    This creates a reusable decision packet so the signals workflow can move
+    from raw opportunity -> proposed product -> commercial verdict.
+    """
+    spec = generate_build_spec(opportunity, model=model)
+    if not spec:
+        return None
+
+    from agents.cortex import reality_check_opportunity
+
+    evidence = _build_reality_check_evidence(opportunity, spec)
+    idea_name = spec.get("product_name") or opportunity.get("pain_point_summary") or "Unnamed opportunity"
+    reality_check = reality_check_opportunity(
+        idea_name,
+        evidence,
+        domain="signals",
+        focus=focus,
+    )
+
+    packet = {
+        "opportunity": {
+            "post_id": opportunity.get("post_id"),
+            "pain_point_summary": opportunity.get("pain_point_summary"),
+            "opportunity_score": opportunity.get("opportunity_score"),
+            "severity": opportunity.get("severity"),
+            "affected_audience": opportunity.get("affected_audience"),
+            "subreddit": opportunity.get("subreddit"),
+            "title": opportunity.get("title"),
+        },
+        "build_spec": spec,
+        "evaluation_framework": {
+            "steps": REALITY_CHECK_EVALUATION_STEPS,
+            "rubric": REALITY_CHECK_RUBRIC,
+        },
+        "reality_check": reality_check,
+        "decision_summary": {
+            "verdict": reality_check.get("verdict"),
+            "worth_building_now": reality_check.get("worth_building_now"),
+            "best_wedge": reality_check.get("underserved_wedge") or spec.get("narrow_wedge"),
+            "direct_gtm_plan": reality_check.get("direct_gtm_plan") or spec.get("distribution_strategy"),
+        },
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    packet["artifact_path"] = _save_decision_packet(packet, spec)
+    return packet
+
+
 def _save_build_spec(spec: dict, opportunity: dict):
     """Persist build spec to logs/build_specs/ for reference."""
     spec_dir = os.path.join(os.path.dirname(__file__), "logs", "build_specs")
@@ -469,3 +585,20 @@ def _save_build_spec(spec: dict, opportunity: dict):
     filepath = os.path.join(spec_dir, filename)
     atomic_json_write(filepath, record)
     logger.info(f"[SPEC] Saved build spec to {filepath}")
+
+
+def _save_decision_packet(packet: dict, spec: dict) -> str:
+    """Persist a combined build-spec + commercial-verdict packet."""
+    spec_dir = os.path.join(os.path.dirname(__file__), "logs", "build_specs")
+    os.makedirs(spec_dir, exist_ok=True)
+
+    product_name = spec.get("product_name", "unnamed").lower().replace(" ", "_")[:30]
+    filename = (
+        f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_"
+        f"{product_name}_decision.json"
+    )
+
+    filepath = os.path.join(spec_dir, filename)
+    atomic_json_write(filepath, packet)
+    logger.info(f"[SPEC] Saved decision packet to {filepath}")
+    return filepath

@@ -236,6 +236,32 @@ class TestProjectOrchestratorCLIWiring:
 
 
 # ============================================================
+# Signals → CLI Wiring Tests
+# ============================================================
+
+class TestSignalsCLIWiring:
+    """Verify signal reality-check wiring exists in CLI and main dispatch."""
+
+    def test_signal_reality_check_argparse_flags(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "--reality-check" in source
+        assert "--reality-focus" in source
+
+    def test_signal_reality_check_dispatch_wired(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "from cli.signals_cmd import run_reality_check" in source
+        assert "run_reality_check(args.reality_check" in source
+
+    def test_signal_reality_check_handler_exists(self):
+        cli_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cli", "signals_cmd.py")
+        with open(cli_path) as f:
+            source = f.read()
+        assert "def run_reality_check(" in source
+
+
+# ============================================================
 # Deploy → CLI Wiring Tests
 # ============================================================
 

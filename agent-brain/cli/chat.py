@@ -866,6 +866,32 @@ CHAT_TOOLS = [
         }
     },
     {
+        "name": "orchestrator_reality_check",
+        "description": "Ask Cortex to do a hard-nosed commercial reality check on a product or opportunity. Use when you need objections, competitive pressure, hidden complexity, underserved wedge analysis, or a direct go-to-market plan. This runs in evidence-only mode by default so it does not get distracted by general system state.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "idea": {
+                    "type": "string",
+                    "description": "The product idea or opportunity to reality-check"
+                },
+                "evidence": {
+                    "type": "string",
+                    "description": "External evidence, competitor notes, objections, or market facts to analyze"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Optional domain tag for the analysis"
+                },
+                "focus": {
+                    "type": "string",
+                    "description": "Optional extra constraint or angle to emphasize"
+                }
+            },
+            "required": ["idea", "evidence"]
+        }
+    },
+    {
         "name": "show_signals",
         "description": "Show top Reddit signal opportunities with real engagement data. Use when user asks 'what signals', 'top opportunities', 'best pain points', 'what did the signal scan find?', or 'what should we build?'.",
         "input_schema": {
@@ -1661,6 +1687,19 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             return format_orchestrator_response(result)
         except Exception as e:
             return f"System assessment failed: {e}"
+
+    elif name == "orchestrator_reality_check":
+        try:
+            from agents.cortex import reality_check_opportunity, format_orchestrator_response
+            result = reality_check_opportunity(
+                idea=args["idea"],
+                evidence=args["evidence"],
+                domain=args.get("domain", domain),
+                focus=args.get("focus", ""),
+            )
+            return format_orchestrator_response(result)
+        except Exception as e:
+            return f"Reality check failed: {e}"
 
     elif name == "show_signals":
         try:

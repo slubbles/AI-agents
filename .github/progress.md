@@ -4,6 +4,293 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 30 — Mar 6, 2026
+**Prompt:** Push the latest work, sync it to the VPS, and write a comprehensive next-steps document tied to the real Cortex goal
+
+### What We Did
+1. **Prepared a clean deployable change set** by separating intentional code changes from runtime artifacts and unrelated editor settings
+2. **Added a comprehensive roadmap document** covering what Cortex must do next to reach the real goal
+3. **Prepared the repo for push and VPS sync** around the new signals commercial-decision workflow
+
+### Why
+- The repo had mixed state: real code changes plus logs, databases, and unrelated local files
+- The system needed a written plan that ties architecture work back to proof, revenue, and autonomous reliability
+- Deployment should ship the product changes, not transient local runtime data
+
+### Purpose
+- Keeps the git history clean and reviewable
+- Gives the architect a durable strategic document for what to do next
+- Aligns the code changes with the broader mission: revenue, verification, and trustworthy autonomy
+
+### Steps Taken
+1. Reviewed changed files and identified deploy-safe scope
+2. Verified the existing deploy mechanism and VPS configuration path
+3. Wrote `my-notes.md/NEXT-STEPS-TO-GOAL.md`
+4. Kept the strategic recommendations tied to the architect's stated vision and current system reality
+
+### Use Cases
+- Use as the current operating roadmap for Cortex development
+- Use as a filter for deciding whether a feature is enabling proof or just adding complexity
+- Use as the basis for the next execution sprint after deployment
+
+### Suggested Next Steps
+- **Goal/Intent**: Turn the new code and roadmap into a real market-validation cycle
+- **Why/Purpose**: The next proof comes from deployed usage and commercial outcomes, not more inward iteration
+- **Objectives**:
+  1. Run the new reality-check packets on the top current opportunities
+  2. Pick one narrow offer and test outreach immediately
+  3. Start logging commercial outcomes as first-class learning signals
+
+## Session 29 — Mar 6, 2026
+**Prompt:** Improve Cortex further by wiring commercial reality checks directly into the signals workflow and borrow good patterns from external repos
+
+### What We Did
+1. **Added a signals-level decision-packet workflow** in `opportunity_scorer.py`
+2. **Introduced a first-class CLI reality-check command** so ranked opportunities can now be evaluated commercially without ad hoc chat calls
+3. **Captured a reusable commercial evaluation framework** inside the packet payload to make judgments more repeatable
+4. **Added focused tests and wiring checks** for the new workflow
+
+### Why
+- The previous improvement made reality checks possible, but not canonical in the signals pipeline
+- We needed the default path to become: signal -> product spec -> commercial verdict -> saved artifact
+- External repo review showed the useful pattern is structured evaluation criteria plus reusable traces, not more free-form prompting
+
+### Purpose
+- Makes commercial judgment a standard part of opportunity triage
+- Produces reusable decision artifacts instead of one-off chat outputs
+- Moves Cortex closer to a repeatable evaluation loop inspired by eval frameworks and reasoning-memory repos
+
+### Steps Taken
+1. Reviewed signal CLI and scorer insertion points
+2. Added `generate_opportunity_decision_packet()` to build a spec, assemble evidence, and call Cortex reality-check mode
+3. Added a reusable commercial evaluation framework payload with explicit evaluation steps and rubric
+4. Added `_save_decision_packet()` so combined spec + verdict artifacts are persisted under `logs/build_specs/`
+5. Added `run_reality_check()` to `cli/signals_cmd.py`
+6. Wired `--reality-check N` and `--reality-focus` through `main.py`
+7. Added tests for packet generation, artifact persistence, CLI output, and source wiring
+
+### Use Cases
+- Evaluate ranked opportunities before committing build effort
+- Compare multiple opportunity packets under the same commercial lens
+- Revisit past decision packets as the system learns from real market outcomes
+
+### Suggested Next Steps
+- **Goal/Intent**: Compare the top 3 current opportunities under the new decision-packet workflow
+- **Why/Purpose**: The new path is only valuable if it becomes the standard decision gate before Hands builds anything
+- **Objectives**:
+  1. Run `--reality-check` on the top 3 ranked opportunities
+  2. Extract common failure patterns from the saved packets and feed them back into strategy/memory
+  3. Add a compare-top-opportunities command that ranks multiple packets side by side on the same rubric
+
+## Session 28 — Mar 6, 2026
+**Prompt:** Improve Cortex so it gets better at commercial reality checks, not just optimistic idea generation
+
+### What We Did
+1. **Added a first-class Cortex reality-check helper** in `agents/cortex.py`
+2. **Added a chat tool for evidence-based reality checks** so this workflow can be invoked directly later
+3. **Strengthened opportunity scoring prompt rules** to penalize broad pain, crowded markets, switching costs, distribution difficulty, and trust/liability-heavy workflows
+4. **Strengthened build spec generation** so specs now include narrow wedge, distribution strategy, killer objections, and why the idea could fail
+5. **Fixed pre-existing logger errors** in `agents/cortex.py`
+
+### Why
+- The system was too willing to reward generic pain points and broad categories
+- Build specs were optimistic and product-shaped, but weak on objections, GTM reality, and failure modes
+- We needed the same hard commercial lens we just used manually to become reusable system behavior
+
+### Purpose
+- Makes Cortex better at distinguishing "easy to build" from "worth building"
+- Pushes future opportunity analysis toward narrower wedges and more realistic go-to-market thinking
+- Gives the chat/orchestration layer a reusable commercial reality-check capability
+
+### Steps Taken
+1. Reviewed orchestrator and opportunity-scorer code paths
+2. Added `reality_check_opportunity()` to Cortex with evidence-only mode (no Brain/Hands/infra state by default)
+3. Updated `format_orchestrator_response()` to render reality-check outputs cleanly
+4. Added `orchestrator_reality_check` to the chat tool surface and execution router
+5. Updated analysis prompt to penalize generic, crowded, hard-to-distribute ideas
+6. Updated build-spec prompt to force wedge, objections, GTM, and failure analysis
+7. Added tests for the new helper, formatter, chat tool, and extended build spec fields
+8. Fixed missing `logger` definition in `agents/cortex.py`
+9. Verified: `tests/test_cortex.py` passes and build-spec-related signal tests pass
+
+### Results
+- Cortex now has an explicit commercial reality-check path
+- Opportunity analysis is less likely to overrate vague, generic, or crowded opportunities
+- Build specs now ask for the exact information needed to decide whether something is worth pursuing, not just how to build it
+
+### Key Files
+- `agent-brain/agents/cortex.py`
+- `agent-brain/cli/chat.py`
+- `agent-brain/opportunity_scorer.py`
+- `agent-brain/tests/test_cortex.py`
+- `agent-brain/tests/test_signals.py`
+
+### Suggested Next Steps
+- **Goal:** Apply the new reality-check loop to the next opportunity candidate before committing build effort
+- **Why/Purpose:** The system now has a better decision lens; use it consistently so we stop wasting time on commercially weak ideas
+- **Objectives:**
+  1. Run the same evidence-driven reality check on the next top opportunity
+  2. Compare opportunities under the same standard: pain, distribution, switching cost, wedge, and trust complexity
+  3. Pick the first build target only after it survives the stricter lens
+
+---
+
+## Session 27 — Mar 6, 2026
+**Prompt:** Reality-check the CallGuard idea with Cortex — objections, competitors, complexities, underserved wedge, and direct GTM
+
+### What We Did
+1. **Set a dedicated research goal** for `callguard-reality-check` so the system would investigate the idea commercially, not academically
+2. **Gathered external market evidence** on competitors, substitute solutions, partner ecosystems, pricing, and missed-call pain signals
+3. **Used Cortex Orchestrator to do a hard go/no-go assessment** with no optimism bias
+4. **Forced a narrow-wedge recommendation** from Cortex in case we still wanted a cheap validation test
+5. **Saved the full reality-check memo** for future reference
+
+### Why
+- The initial CallGuard thesis sounded buildable, but the architect asked for a reality check before committing effort
+- The right question was not "can we build it?" but "is it worth selling into this market?"
+- This is the exact kind of load-bearing decision Cortex should learn: distinguish technically easy ideas from commercially winnable ones
+
+### Purpose
+- Prevents building a product that is easy to code but hard to sell
+- Forces the system to look at switching costs, incumbents, distribution difficulty, and trust/risk
+- Produces a narrower test wedge if the broad idea is not worth pursuing
+
+### Steps Taken
+1. Set structured goal for `callguard-reality-check`
+2. Reviewed competitor evidence: Smith.ai, AnswerConnect, Grasshopper, niche text-back products, and the crowded field-service software category
+3. Gathered partner-channel evidence from Housecall Pro, Jobber, and ServiceTitan ecosystems
+4. Gathered pain/distribution signals from HVAC/plumbing missed-call and answering-service search results
+5. Ran Cortex on the evidence bundle for a blunt verdict
+6. Ran a follow-up Cortex query: if forced to test anyway, what is the smallest viable wedge?
+7. Saved the output to `logs/build_specs/2026-03-06_callguard_reality_check.md`
+
+### Results
+- **Broad verdict:** not worth building now as a broad SaaS
+- **Main reasons:** saturated market, weak differentiation, fragmented/expensive distribution, and trust-heavy workflows where human solutions still dominate
+- **Underserved wedge:** 1-3 employee emergency HVAC / plumbing shops that cannot justify full answering services but still lose real money on after-hours missed calls
+- **If testing anyway:** run a concierge validation offer first, not a full SaaS
+- **Recommended test offer:** "24/7 Emergency Call Backup for HVAC Contractors" at ~$97/month with manual fulfillment behind the scenes
+
+### Key Files
+- `agent-brain/logs/build_specs/2026-03-06_callguard_reality_check.md` — final market reality-check memo
+
+### Suggested Next Steps
+- **Goal:** Focus on winnable revenue paths before product build effort compounds in the wrong direction
+- **Why/Purpose:** Cortex found that distribution, not coding, is the real bottleneck here
+- **Objectives:**
+  1. Return focus to the productized-services path for the fastest near-term revenue
+  2. If still curious about CallGuard, run the concierge HVAC validation test before writing product code
+  3. Capture trial response/conversion data and let Cortex re-evaluate based on real customer behavior instead of theory
+
+---
+
+## Session 26 — Mar 6, 2026
+**Prompt:** Create build specs for the top 3 opportunities and turn them into a convincing market research memo using Cortex
+
+### What We Did
+1. **Used Cortex Orchestrator to select 3 distinct opportunities** from the signal DB instead of blindly taking the top 3 raw scores
+2. **Generated build specs** for the selected opportunities using `generate_build_spec()`
+3. **Used Cortex again for strategic ranking** and commercial analysis
+4. **Saved a reusable market memo** covering sales pitch, feasibility, audience, GTM, and solution design
+
+### Why
+- The top-scored opportunities contained near-duplicates in the small-business admin category
+- The architect asked for something closer to a founder-facing investment memo than raw JSON specs
+- This is exactly the Brain → Cortex → build decision workflow the system needs to practice
+
+### Purpose
+- Converts signal analysis into buildable product decisions
+- Creates a reusable artifact for deciding what to build first
+- Exercises Cortex as the orchestration layer so it learns the selection and prioritization pattern
+
+### Steps Taken
+1. Reviewed the top scored opportunities from the partial signal run
+2. Asked Cortex to choose the 3 best distinct wedges by ROI clarity, feasibility, and GTM clarity
+3. Cortex selected: missed-call recovery for service businesses, lightweight QA test management, and SaaS marketing automation
+4. Generated detailed product specs for the three chosen opportunities
+5. Asked Cortex to rank the three and explain which should be built first
+6. Wrote the final memo to `logs/build_specs/2026-03-06_top3_market_memo.md`
+
+### Results
+- **#1 Recommendation:** CallGuard / CallCatcher-style missed-call recovery for service businesses
+- **#2:** GrowthPulse-style SaaS marketing automation for founders
+- **#3:** TestFlow-style lightweight QA test management
+- **Key thesis:** choose products with immediate financial pain and simple ROI explanation; CallGuard won because one recovered call can justify the subscription
+
+### Key Files
+- `agent-brain/logs/build_specs/2026-03-06_top3_market_memo.md` — founder-facing market memo
+- `agent-brain/logs/build_specs/` — generated JSON build specs from the spec generator
+
+### Suggested Next Steps
+- **Goal:** Turn the selected opportunity into an execution-ready product brief
+- **Why/Purpose:** The decision layer is done; now the system should move into build mode
+- **Objectives:**
+  1. Create a strict MVP scope for CallGuard with pages, flows, schema, and Twilio webhook requirements
+  2. Validate pricing and onboarding assumptions with competitor comparison
+  3. Draft landing page copy and core offer for local service businesses
+  4. Have Hands build the MVP in a scoped two-week execution plan
+
+---
+
+## Session 25 — Mar 6, 2026
+**Prompt:** Fix Telegram bot fundamentals + run signal analysis batch (Option B)
+
+### What We Did
+1. **Fixed Telegram bot conversation persistence** — `ConversationManager` now persists to disk (`logs/telegram_sessions/{chat_id}.json`), survives restarts
+2. **Added message batching** — rapid-fire messages batched with 1.5s delay window before single LLM call
+3. **Rewrote system prompt behavioral rules** — 7 hard rules replacing soft STYLE section (no more "Sound good?", menus, permission-seeking)
+4. **Fixed enrich_signals tool** — replaced scrapling dependency with stdlib urllib + graceful 403 handling
+5. **Ran signal analysis batch** — batch-scoring 1,477 unanalyzed posts via DeepSeek (cheapest tier, ~$0.28 total)
+6. **Generated first weekly brief** — premium model synthesis of top 15 opportunities into 4 themes + micro-SaaS recommendation
+
+### Why
+- User reported Telegram bot is "fundamentally broken": loses context on restart, asks permission instead of acting, treats rapid messages as independent conversations
+- enrich_signals kept failing ("Reddit API calls not working") — scrapling dependency + Reddit 403 from server IPs
+- 1,397 posts sitting unanalyzed in signal DB — zero intelligence generated from the data
+
+### Purpose
+- Telegram bot is now a reliable chat interface (persistent memory, batched messages, direct personality)
+- Signal intelligence pipeline now operational end-to-end: collect → analyze → score → brief
+- Weekly brief recommended building a "Billing Recovery Automation Tool" ($49-99/mo) based on Reddit pain points
+
+### Steps Taken
+1. Diagnosed 4 root causes from user's Telegram conversation transcript
+2. Rewrote `ConversationManager` with disk persistence + 50-message history limit
+3. Added `_queue_message()` / `_flush_messages()` batching system with 1.5s timer
+4. Replaced STYLE section with 7 CRITICAL BEHAVIORAL RULES
+5. Rewrote `enrich_post()` using stdlib urllib (removed scrapling dependency)
+6. Fixed all test failures (temp dir isolation, updated limits), 273 tests pass
+7. Deployed to VPS (commit `373cd1f`), confirmed bot active
+8. Ran `score_unanalyzed(batch_size=10, max_batches=150)` — DeepSeek scoring entire DB
+9. Generated weekly brief with `generate_weekly_brief(top_n=15, premium_top=5)`
+10. Saved brief to `logs/briefs/weekly-brief-2026-03-06.md`
+
+### Key Files Modified
+- `telegram_bot.py` — ConversationManager rewritten, message batching added
+- `cli/chat.py` — behavioral rules, enrich_signals handler
+- `signal_collector.py` — enrich_post() rewritten
+- `tests/test_telegram_bot.py` — persistence test, temp dir isolation
+- `logs/briefs/weekly-brief-2026-03-06.md` — first weekly brief (NEW)
+
+### Results
+- **Score distribution (200+ analyzed):** 60 high (80+), 104 moderate (50-79), 16 low (<50)
+- **Top categories:** Business (57), Marketing (37), Developer Tools (23), Productivity (13), Automation (10)
+- **Top recommendation:** Billing Recovery Automation Tool — integrates with Stripe/Chargebee, $49-99/mo, 2-week build
+- **Cost:** ~$0.28 for full DB analysis (DeepSeek) + ~$0.05 for brief synthesis (Claude)
+- **Batch still running:** Processing remaining ~1,200 posts in background
+
+### Suggested Next Steps
+- **Goal:** Prove signal intelligence has commercial value
+- **Why/Purpose:** The system can now find + score + synthesize opportunities autonomously. Next step is proving someone would pay for this.
+- **Objectives:**
+  1. Test Telegram bot with user — verify persistent memory + direct personality work in practice
+  2. Regenerate weekly brief after full batch completes (1,477 posts analyzed)
+  3. Build spec for top opportunity using `generate_build_spec()`
+  4. Share weekly brief via Telegram — test the distribution channel
+  5. First cold outreach with signal data as proof of value
+
+---
+
 ## Session 24 — Mar 6, 2026
 **Prompt:** Humanizer integration — teach Cortex to write like a human using blader/humanizer + Reddit voice patterns
 

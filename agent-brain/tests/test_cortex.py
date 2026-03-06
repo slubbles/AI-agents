@@ -521,6 +521,46 @@ class TestInterpretFindings:
         assert "pricing models" in user_msg
 
 
+class TestRealityCheckOpportunity:
+    """Test evidence-only reality check helper."""
+
+    def test_reality_check_uses_evidence_only_mode(self, tmp_memory, mock_llm_response):
+        from agents.cortex import reality_check_opportunity
+
+        response = {
+            "verdict": "Skip",
+            "worth_building_now": False,
+            "why_not": "Crowded market",
+            "strongest_objections": ["Switching costs"],
+            "hidden_complexities": ["Routing reliability"],
+            "competitive_landscape": "Crowded",
+            "underserved_wedge": "Tiny emergency HVAC shops",
+            "distribution_reality": "Fragmented",
+            "direct_gtm_plan": "Manual outreach",
+            "value_proposition": "Weak broad pitch, better narrow wedge",
+            "final_recommendation": "Do not build broad product",
+        }
+        mock_resp = mock_llm_response(json.dumps(response))
+
+        with patch("agents.cortex.call_llm", return_value=mock_resp) as mock_call, \
+             patch("agents.cortex.log_cost"):
+            result = reality_check_opportunity(
+                "CallGuard",
+                {"competitors": ["Smith.ai"], "objections": ["Trust"]},
+                domain="signals",
+                focus="Be blunt",
+            )
+
+        assert result["worth_building_now"] is False
+        call_args = mock_call.call_args
+        msgs = call_args.kwargs.get("messages") or call_args[1].get("messages", [])
+        user_msg = msgs[0]["content"] if msgs else ""
+        assert "IDEA:" in user_msg
+        assert "EVIDENCE BUNDLE:" in user_msg
+        assert "CallGuard" in user_msg
+        assert "Smith.ai" in user_msg
+
+
 # ── Response Formatting ──────────────────────────────────────────────────
 
 class TestFormatOrchestratorResponse:
@@ -580,6 +620,27 @@ class TestFormatOrchestratorResponse:
         assert "CRITICAL" in formatted
         assert "LOW" in formatted
 
+    def test_format_reality_check_response(self):
+        from agents.cortex import format_orchestrator_response
+        result = {
+            "verdict": "Not worth building now",
+            "worth_building_now": False,
+            "why_not": "Crowded market and ugly distribution.",
+            "strongest_objections": ["Incumbents", "Trust"],
+            "hidden_complexities": ["Carrier routing"],
+            "competitive_landscape": "Crowded",
+            "underserved_wedge": "After-hours HVAC",
+            "distribution_reality": "Fragmented local market",
+            "direct_gtm_plan": "Manual concierge trial",
+            "value_proposition": "Weak broad, stronger narrow wedge",
+            "final_recommendation": "Skip broad idea",
+        }
+        formatted = format_orchestrator_response(result)
+        assert "Verdict" in formatted
+        assert "Worth Building Now" in formatted
+        assert "Strongest Objections" in formatted
+        assert "Direct GTM Plan" in formatted
+
 
 # ── Chat Integration ─────────────────────────────────────────────────────
 
@@ -595,6 +656,7 @@ class TestChatToolDefinitions:
         assert "orchestrator_interpret" in tool_names
         assert "orchestrator_coordinate" in tool_names
         assert "orchestrator_assess" in tool_names
+        assert "orchestrator_reality_check" in tool_names
 
     def test_ask_orchestrator_schema(self):
         from cli.chat import CHAT_TOOLS
@@ -657,6 +719,32 @@ class TestChatToolExecution:
             )
 
         assert isinstance(result, str)
+
+    def test_execute_orchestrator_reality_check(self):
+        from cli.chat import _execute_tool
+        mock_result = {
+            "verdict": "Skip",
+            "worth_building_now": False,
+            "why_not": "Crowded",
+            "strongest_objections": ["Switching costs"],
+            "hidden_complexities": ["Routing"],
+            "competitive_landscape": "Crowded",
+            "underserved_wedge": "HVAC after-hours",
+            "distribution_reality": "Hard",
+            "direct_gtm_plan": "Manual trial",
+            "value_proposition": "Weak broad pitch",
+            "final_recommendation": "Skip broad idea",
+        }
+
+        with patch("agents.cortex.reality_check_opportunity", return_value=mock_result):
+            result = _execute_tool(
+                "orchestrator_reality_check",
+                {"idea": "CallGuard", "evidence": "Smith.ai, Grasshopper, AnswerConnect"},
+                "signals",
+            )
+
+        assert "Verdict" in result
+        assert "Skip" in result
 
     def test_execute_orchestrator_coordinate(self):
         from cli.chat import _execute_tool

@@ -35,6 +35,7 @@ Usage:
 """
 
 import json
+import logging
 import os
 import sys
 import threading
@@ -46,6 +47,9 @@ from config import MODELS, DAILY_BUDGET_USD, LOG_DIR
 from llm_router import call_llm
 from cost_tracker import log_cost
 from utils.json_parser import extract_json
+
+
+logger = logging.getLogger(__name__)
 
 
 # ── Configuration ────────────────────────────────────────────────────────
@@ -663,6 +667,56 @@ def interpret_findings(domain: str, question: str = "") -> dict:
     )
 
 
+def reality_check_opportunity(
+    idea: str,
+    evidence: dict | list | str,
+    domain: str | None = None,
+    focus: str = "",
+) -> dict:
+    """
+    Ask Cortex to do a hard-nosed commercial reality check on an idea.
+
+    Unlike the general orchestrator path, this defaults to evidence-only mode.
+    It is meant for go/no-go decisions, objections, wedge finding, and direct
+    GTM analysis — not for generic system planning.
+
+    Args:
+        idea: The product or opportunity being evaluated.
+        evidence: External evidence bundle, notes, competitor findings, etc.
+        domain: Optional domain tag for cost/accounting only.
+        focus: Optional extra focus or constraints for the reality check.
+
+    Returns:
+        Structured dict with verdict, objections, wedge, and GTM plan.
+    """
+    if isinstance(evidence, str):
+        evidence_text = evidence
+    else:
+        evidence_text = json.dumps(evidence, indent=2)
+
+    question = (
+        f"Reality-check this opportunity with no optimism bias: '{idea}'. "
+        f"Return strict JSON with keys: verdict, worth_building_now, why_not, "
+        f"strongest_objections, hidden_complexities, competitive_landscape, "
+        f"underserved_wedge, distribution_reality, direct_gtm_plan, "
+        f"value_proposition, final_recommendation. "
+        f"Be blunt. Distinguish technical ease from commercial viability. "
+        f"Identify why this could fail, where the switching costs are, and what "
+        f"narrow wedge is actually worth testing first if any."
+    )
+    if focus:
+        question += f"\n\nAdditional focus: {focus}"
+
+    return query_orchestrator(
+        question,
+        domain=domain,
+        include_brain=False,
+        include_hands=False,
+        include_infra=False,
+        extra_context=f"IDEA:\n{idea}\n\nEVIDENCE BUNDLE:\n{evidence_text}",
+    )
+
+
 # ── Response Formatting ─────────────────────────────────────────────────
 
 def format_orchestrator_response(result: dict) -> str:
@@ -676,6 +730,44 @@ def format_orchestrator_response(result: dict) -> str:
         return f"Orchestrator error: {result['error']}"
 
     lines = []
+
+    # Specialized reality-check responses
+    if result.get("verdict") is not None or result.get("worth_building_now") is not None:
+        verdict = result.get("verdict", "")
+        worth = result.get("worth_building_now")
+        if verdict:
+            lines.append(f"**Verdict:** {verdict}")
+        if worth is not None:
+            lines.append(f"**Worth Building Now:** {'Yes' if worth else 'No'}")
+        why_not = result.get("why_not", "")
+        if why_not:
+            lines.append(f"\n**Why Not:**\n{why_not}")
+
+        objections = result.get("strongest_objections", [])
+        if objections:
+            lines.append("\n**Strongest Objections:**")
+            for item in objections:
+                lines.append(f"  • {item}")
+
+        complexities = result.get("hidden_complexities", [])
+        if complexities:
+            lines.append("\n**Hidden Complexities:**")
+            for item in complexities:
+                lines.append(f"  • {item}")
+
+        for key, label in (
+            ("competitive_landscape", "Competitive Landscape"),
+            ("underserved_wedge", "Underserved Wedge"),
+            ("distribution_reality", "Distribution Reality"),
+            ("direct_gtm_plan", "Direct GTM Plan"),
+            ("value_proposition", "Value Proposition"),
+            ("final_recommendation", "Final Recommendation"),
+        ):
+            value = result.get(key)
+            if value:
+                lines.append(f"\n**{label}:**\n{value}")
+
+        return "\n".join(lines) if lines else "No orchestrator response."
 
     # Interpretation — the main insight
     interpretation = result.get("interpretation", "")

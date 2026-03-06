@@ -790,6 +790,55 @@ class TestBuildSpecGenerator:
 
     @patch("opportunity_scorer.call_llm")
     @patch("opportunity_scorer.log_cost")
+    def test_generate_build_spec_supports_reality_check_fields(self, mock_cost, mock_llm, tmp_path):
+        from opportunity_scorer import generate_build_spec
+
+        spec_data = {
+            "product_name": "CallGuard",
+            "problem_statement": "Missed emergency calls cost local contractors real revenue.",
+            "target_audience": "1-3 employee HVAC shops",
+            "core_features": ["Alerts"],
+            "tech_stack": "Next.js + Supabase + Twilio",
+            "mvp_scope": "Landing page + callback alerts",
+            "monetization": "$97/mo",
+            "existing_competitors": ["Smith.ai"],
+            "competitive_gap": "Cheaper than live answering for micro-shops",
+            "narrow_wedge": "After-hours emergency HVAC shops",
+            "distribution_strategy": "Manual outreach to Google Maps prospects",
+            "killer_objections": ["Trust", "Already use dispatcher"],
+            "why_this_could_fail": "Crowded and hard to distribute",
+            "research_questions": ["Will they trust automation?"],
+        }
+
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text=json.dumps(spec_data))]
+        mock_response.usage = MagicMock(input_tokens=300, output_tokens=400)
+        mock_llm.return_value = mock_response
+
+        opp = {
+            "pain_point_summary": "Missed emergency calls for contractors",
+            "category": "Communication",
+            "severity": 5,
+            "affected_audience": "HVAC contractors",
+            "market_size_estimate": "Medium",
+            "existing_solutions": json.dumps(["Smith.ai"]),
+            "potential_solutions": json.dumps(["Call alerts"]),
+            "title": "Missing after-hours HVAC calls",
+            "subreddit": "smallbusiness",
+            "opportunity_score": 85,
+        }
+
+        with patch("opportunity_scorer._save_build_spec"):
+            spec = generate_build_spec(opp)
+
+        assert spec is not None
+        assert spec["narrow_wedge"] == "After-hours emergency HVAC shops"
+        assert "distribution_strategy" in spec
+        assert "killer_objections" in spec
+        assert "why_this_could_fail" in spec
+
+    @patch("opportunity_scorer.call_llm")
+    @patch("opportunity_scorer.log_cost")
     def test_generate_build_spec_handles_parse_failure(self, mock_cost, mock_llm):
         from opportunity_scorer import generate_build_spec
 
@@ -824,6 +873,68 @@ class TestBuildSpecGenerator:
         spec_dir = tmp_path / "logs" / "build_specs"
         assert spec_dir.exists()
         files = list(spec_dir.glob("*.json"))
+        assert len(files) == 1
+
+    @patch("opportunity_scorer.generate_build_spec")
+    @patch("opportunity_scorer._save_decision_packet")
+    @patch("agents.cortex.reality_check_opportunity")
+    def test_generate_opportunity_decision_packet_returns_combined_packet(
+        self,
+        mock_reality_check,
+        mock_save_packet,
+        mock_build_spec,
+    ):
+        from opportunity_scorer import generate_opportunity_decision_packet
+
+        mock_build_spec.return_value = {
+            "product_name": "CallGuard",
+            "narrow_wedge": "Emergency HVAC shops",
+            "distribution_strategy": "Direct cold outreach",
+            "core_features": ["Missed-call alerting"],
+        }
+        mock_reality_check.return_value = {
+            "verdict": "Test concierge wedge first",
+            "worth_building_now": False,
+            "underserved_wedge": "Emergency HVAC shops",
+            "direct_gtm_plan": "Manual outreach to owner-operators",
+        }
+        mock_save_packet.return_value = "/tmp/callguard_decision.json"
+
+        opp = {
+            "post_id": 7,
+            "pain_point_summary": "Missed after-hours service calls",
+            "opportunity_score": 84,
+            "severity": 5,
+            "affected_audience": "Local contractors",
+            "subreddit": "smallbusiness",
+            "title": "We keep missing emergency calls",
+        }
+
+        packet = generate_opportunity_decision_packet(opp, focus="Be ruthless")
+
+        assert packet is not None
+        assert packet["build_spec"]["product_name"] == "CallGuard"
+        assert packet["reality_check"]["verdict"] == "Test concierge wedge first"
+        assert packet["decision_summary"]["best_wedge"] == "Emergency HVAC shops"
+        assert packet["artifact_path"] == "/tmp/callguard_decision.json"
+
+    def test_save_decision_packet_creates_file(self, tmp_path):
+        from opportunity_scorer import _save_decision_packet
+        import opportunity_scorer
+
+        packet = {
+            "decision_summary": {"verdict": "Skip"},
+            "generated_at": "2026-03-06T00:00:00+00:00",
+        }
+        spec = {"product_name": "TestProd"}
+
+        with patch.object(opportunity_scorer.os.path, "dirname", return_value=str(tmp_path)):
+            filepath = _save_decision_packet(packet, spec)
+
+        assert filepath.endswith("_decision.json")
+        spec_dir = tmp_path / "logs" / "build_specs"
+        assert spec_dir.exists()
+        files = list(spec_dir.glob("*_decision.json"))
         assert len(files) == 1
 
 
@@ -985,6 +1096,48 @@ class TestSignalsCLIExtended:
         run_build_spec(1)
         output = capsys.readouterr().out
         assert "not found" in output
+
+    def test_run_reality_check_no_opportunities(self, capsys):
+        from cli.signals_cmd import run_reality_check
+        from signal_collector import init_signals_db
+        init_signals_db()
+        run_reality_check(1)
+        output = capsys.readouterr().out
+        assert "not found" in output
+
+    @patch("cli.signals_cmd.generate_opportunity_decision_packet")
+    @patch("cli.signals_cmd.get_top_opportunities")
+    def test_run_reality_check_shows_results(self, mock_get_top, mock_packet, capsys):
+        from cli.signals_cmd import run_reality_check
+
+        mock_get_top.return_value = [{
+            "pain_point_summary": "Missed emergency service calls",
+            "opportunity_score": 88,
+        }]
+        mock_packet.return_value = {
+            "build_spec": {"product_name": "CallGuard"},
+            "reality_check": {
+                "verdict": "Test first",
+                "worth_building_now": False,
+                "why_not": "Crowded market",
+                "strongest_objections": ["Switching costs"],
+                "final_recommendation": "Run concierge validation",
+            },
+            "decision_summary": {
+                "verdict": "Test first",
+                "worth_building_now": False,
+                "best_wedge": "Emergency HVAC shops",
+                "direct_gtm_plan": "Manual outreach",
+            },
+            "artifact_path": "/tmp/callguard_decision.json",
+        }
+
+        run_reality_check(1, focus="Be blunt")
+        output = capsys.readouterr().out
+        assert "REALITY CHECK" in output
+        assert "CallGuard" in output
+        assert "Worth Building Now: No" in output
+        assert "Emergency HVAC shops" in output
 
 
 # ============================================================

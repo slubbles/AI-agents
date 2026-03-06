@@ -801,6 +801,8 @@ def main():
     parser.add_argument("--signal-status", action="store_true", help="Show signal collection stats and top opportunities")
     parser.add_argument("--enrich-signals", action="store_true", help="Enrich top posts with real engagement data via Scrapling")
     parser.add_argument("--build-spec", type=int, metavar="N", help="Generate build spec for opportunity #N")
+    parser.add_argument("--reality-check", type=int, metavar="N", help="Generate a commercial decision packet for opportunity #N")
+    parser.add_argument("--reality-focus", default="", help="Optional extra focus for --reality-check")
     parser.add_argument("--engagement-check", action="store_true", help="Check engagement changes on high-scoring opportunities")
 
     # VPS Deploy
@@ -1252,6 +1254,10 @@ def main():
     if getattr(args, 'build_spec', None) is not None:
         from cli.signals_cmd import run_build_spec
         run_build_spec(args.build_spec)
+        return
+    if getattr(args, 'reality_check', None) is not None:
+        from cli.signals_cmd import run_reality_check
+        run_reality_check(args.reality_check, focus=getattr(args, 'reality_focus', ''))
         return
     if getattr(args, 'engagement_check', False):
         from cli.signals_cmd import run_engagement_check

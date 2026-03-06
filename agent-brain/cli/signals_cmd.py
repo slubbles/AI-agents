@@ -11,7 +11,12 @@ from signal_collector import (
     DEFAULT_SUBREDDITS,
     init_signals_db,
 )
-from opportunity_scorer import score_unanalyzed, generate_weekly_brief, generate_build_spec
+from opportunity_scorer import (
+    score_unanalyzed,
+    generate_weekly_brief,
+    generate_build_spec,
+    generate_opportunity_decision_packet,
+)
 
 
 def run_collect_signals(subreddits: str = "", time_filter: str = "month"):
@@ -191,6 +196,65 @@ def run_build_spec(opportunity_rank: int):
         print(f"\n  Research Questions for Brain:")
         for q in rqs[:5]:
             print(f"    ? {q}")
+
+    print()
+
+
+def run_reality_check(opportunity_rank: int, focus: str = ""):
+    """Generate a commercial decision packet for a ranked opportunity."""
+    opps = get_top_opportunities(limit=opportunity_rank)
+
+    if not opps or len(opps) < opportunity_rank:
+        print(f"\n  Opportunity #{opportunity_rank} not found. Only {len(opps) if opps else 0} scored.\n")
+        return
+
+    opp = opps[opportunity_rank - 1]
+    print(f"\n{'='*60}")
+    print("  REALITY CHECK")
+    print(f"  Opportunity #{opportunity_rank}: {opp.get('pain_point_summary', 'N/A')[:60]}")
+    print(f"  Score: {opp.get('opportunity_score', 0)}/100")
+    print(f"{'='*60}\n")
+
+    packet = generate_opportunity_decision_packet(opp, focus=focus)
+    if not packet:
+        print("  Failed to generate decision packet.\n")
+        return
+
+    spec = packet.get("build_spec", {})
+    reality = packet.get("reality_check", {})
+    summary = packet.get("decision_summary", {})
+
+    print(f"  Product: {spec.get('product_name', 'N/A')}")
+    print(f"  Verdict: {summary.get('verdict', reality.get('verdict', 'N/A'))}")
+    worth = summary.get("worth_building_now", reality.get("worth_building_now"))
+    if worth is not None:
+        print(f"  Worth Building Now: {'Yes' if worth else 'No'}")
+
+    wedge = summary.get("best_wedge")
+    if wedge:
+        print(f"  Best Wedge: {wedge}")
+
+    gtm = summary.get("direct_gtm_plan")
+    if gtm:
+        print(f"  Direct GTM: {gtm}")
+
+    why_not = reality.get("why_not")
+    if why_not:
+        print(f"\n  Why Not: {why_not}")
+
+    objections = reality.get("strongest_objections", [])
+    if objections:
+        print("\n  Strongest Objections:")
+        for item in objections[:5]:
+            print(f"    - {item}")
+
+    recommendation = reality.get("final_recommendation")
+    if recommendation:
+        print(f"\n  Final Recommendation: {recommendation}")
+
+    artifact_path = packet.get("artifact_path")
+    if artifact_path:
+        print(f"\n  Saved: {artifact_path}")
 
     print()
 
