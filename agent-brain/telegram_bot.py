@@ -119,48 +119,113 @@ def _send_typing(chat_id: int | str):
         pass
 
 
-# ── Conversation State ─────────────────────────────────────────────────
+# ── Conversation State (persisted to disk) ─────────────────────────────
+
+TELEGRAM_SESSIONS_DIR = os.path.join(LOG_DIR, "telegram_sessions")
+
+
+def _ensure_tg_sessions_dir():
+    os.makedirs(TELEGRAM_SESSIONS_DIR, exist_ok=True)
+
 
 class ConversationManager:
-    """Manages per-chat conversation history, domain state, and model preference."""
+    """Manages per-chat conversation history, domain state, and model preference.
+    
+    Persists to disk so context survives bot restarts and deploys.
+    """
     
     def __init__(self):
         self.conversations: dict[str, list[dict]] = {}  # chat_id → messages
         self.domains: dict[str, str] = {}  # chat_id → active domain
         self.models: dict[str, str] = {}   # chat_id → active chat model
         self._lock = threading.Lock()
+        self._load_from_disk()
+    
+    def _session_path(self, chat_id: str) -> str:
+        _ensure_tg_sessions_dir()
+        return os.path.join(TELEGRAM_SESSIONS_DIR, f"{chat_id}.json")
+    
+    def _load_from_disk(self):
+        """Load all saved sessions on startup."""
+        _ensure_tg_sessions_dir()
+        for fname in os.listdir(TELEGRAM_SESSIONS_DIR):
+            if not fname.endswith(".json"):
+                continue
+            chat_id = fname.replace(".json", "")
+            try:
+                with open(os.path.join(TELEGRAM_SESSIONS_DIR, fname)) as f:
+                    data = json.load(f)
+                self.conversations[chat_id] = data.get("messages", [])
+                if data.get("domain"):
+                    self.domains[chat_id] = data["domain"]
+                if data.get("model"):
+                    self.models[chat_id] = data["model"]
+                logger.info(f"Restored {len(self.conversations[chat_id])} messages for chat {chat_id}")
+            except Exception as e:
+                logger.warning(f"Failed to load session {fname}: {e}")
+    
+    def _save_to_disk(self, chat_id: str):
+        """Persist current conversation state for a chat."""
+        try:
+            path = self._session_path(chat_id)
+            data = {
+                "chat_id": chat_id,
+                "domain": self.domains.get(chat_id, DEFAULT_DOMAIN),
+                "model": self.models.get(chat_id, ""),
+                "updated": datetime.now(timezone.utc).isoformat(),
+                "messages": self.conversations.get(chat_id, []),
+            }
+            clean = json.loads(json.dumps(data, default=str))
+            with open(path, "w") as f:
+                json.dump(clean, f, indent=1)
+        except Exception as e:
+            logger.warning(f"Failed to save session {chat_id}: {e}")
     
     def get_messages(self, chat_id: str) -> list[dict]:
         with self._lock:
-            return self.conversations.get(chat_id, [])
+            return list(self.conversations.get(chat_id, []))
     
     def add_message(self, chat_id: str, role: str, content):
         with self._lock:
             if chat_id not in self.conversations:
                 self.conversations[chat_id] = []
             self.conversations[chat_id].append({"role": role, "content": content})
-            # Keep last 30 messages
-            if len(self.conversations[chat_id]) > 30:
-                self.conversations[chat_id] = self.conversations[chat_id][-30:]
+            # Keep last 50 messages (more context than before)
+            if len(self.conversations[chat_id]) > 50:
+                self.conversations[chat_id] = self.conversations[chat_id][-50:]
+            self._save_to_disk(chat_id)
     
     def clear(self, chat_id: str):
         with self._lock:
             self.conversations[chat_id] = []
+            self._save_to_disk(chat_id)
     
     def get_domain(self, chat_id: str) -> str:
         return self.domains.get(chat_id, DEFAULT_DOMAIN)
     
     def set_domain(self, chat_id: str, domain: str):
         self.domains[chat_id] = domain
+        self._save_to_disk(chat_id)
     
     def get_model(self, chat_id: str) -> str:
         return self.models.get(chat_id, CHAT_MODEL)
     
     def set_model(self, chat_id: str, model: str):
         self.models[chat_id] = model
+        self._save_to_disk(chat_id)
 
 
 _conversations = ConversationManager()
+
+# ── Message Batching ───────────────────────────────────────────────────
+
+# When the user sends multiple messages quickly, batch them into one LLM call
+# instead of treating each as a separate conversation turn.
+
+_pending_messages: dict[str, list[str]] = {}  # chat_id → [msg1, msg2, ...]
+_pending_timers: dict[str, threading.Timer] = {}  # chat_id → timer
+_pending_lock = threading.Lock()
+BATCH_DELAY = 1.5  # seconds to wait for more messages before processing
 
 
 # ── Chat Pipeline (reuses cli/chat.py components) ─────────────────────
@@ -1106,6 +1171,61 @@ def _handle_command(chat_id: str, command: str) -> str | None:
     return None  # Not a recognized command
 
 
+# ── Message Batching ───────────────────────────────────────────────────
+
+def _queue_message(chat_id: str, text: str):
+    """Queue a message for batched processing.
+    
+    If the user sends multiple messages within BATCH_DELAY seconds,
+    they're combined into a single LLM call instead of separate ones.
+    """
+    with _pending_lock:
+        if chat_id not in _pending_messages:
+            _pending_messages[chat_id] = []
+        _pending_messages[chat_id].append(text)
+        
+        # Cancel existing timer for this chat
+        if chat_id in _pending_timers:
+            _pending_timers[chat_id].cancel()
+        
+        # Start new timer — when it fires, flush all pending messages
+        timer = threading.Timer(BATCH_DELAY, _flush_messages, args=[chat_id])
+        timer.daemon = True
+        _pending_timers[chat_id] = timer
+        timer.start()
+    
+    # Show typing while waiting
+    _send_typing(int(chat_id))
+
+
+def _flush_messages(chat_id: str):
+    """Process all queued messages for a chat as a single LLM call."""
+    with _pending_lock:
+        messages = _pending_messages.pop(chat_id, [])
+        _pending_timers.pop(chat_id, None)
+    
+    if not messages:
+        return
+    
+    # Combine multiple messages into one
+    combined = "\n".join(messages) if len(messages) > 1 else messages[0]
+    
+    if len(messages) > 1:
+        print(f"  [{datetime.now().strftime('%H:%M:%S')}] Batched {len(messages)} messages")
+    
+    _send_typing(int(chat_id))
+    
+    try:
+        response = _process_message(chat_id, combined)
+        formatted = _markdown_to_telegram(response)
+        _send_message(int(chat_id), formatted)
+        print(f"  [{datetime.now().strftime('%H:%M:%S')}] → Response sent ({len(response)} chars)")
+    except Exception as e:
+        logger.error(f"Error processing message: {e}", exc_info=True)
+        _send_message(int(chat_id), f"Error: {str(e)[:300]}")
+        print(f"  [{datetime.now().strftime('%H:%M:%S')}] → Error: {e}")
+
+
 # ── Main Bot Loop ──────────────────────────────────────────────────────
 
 _bot_running = False
@@ -1200,24 +1320,8 @@ def run_telegram_bot():
                             print(f"  [{datetime.now().strftime('%H:%M:%S')}] → Command response sent")
                             continue
                     
-                    # Send typing indicator
-                    _send_typing(int(chat_id))
-                    
-                    # Process through LLM pipeline
-                    try:
-                        response = _process_message(chat_id, text)
-                        
-                        # Convert markdown to Telegram HTML
-                        formatted = _markdown_to_telegram(response)
-                        
-                        _send_message(int(chat_id), formatted)
-                        print(f"  [{datetime.now().strftime('%H:%M:%S')}] → Response sent ({len(response)} chars)")
-                        
-                    except Exception as e:
-                        logger.error(f"Error processing message: {e}", exc_info=True)
-                        error_msg = f"❌ Error: {str(e)[:300]}"
-                        _send_message(int(chat_id), error_msg)
-                        print(f"  [{datetime.now().strftime('%H:%M:%S')}] → Error: {e}")
+                    # Batch messages: collect rapid-fire messages before responding
+                    _queue_message(chat_id, text)
                 
             except urllib.error.URLError as e:
                 # Network error — retry after brief pause

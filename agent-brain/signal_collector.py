@@ -531,79 +531,54 @@ def collect_signals(
     }
 
 
-# ── Scrapling Enrichment ───────────────────────────────────────────────
+# ── Reddit Engagement Enrichment ───────────────────────────────────────
 
 def _get_scrapling_fetcher():
     """Lazy-load Scrapling Fetcher for Reddit page enrichment."""
     try:
         from scrapling.fetchers import Fetcher
         return Fetcher
-    except (ImportError, Exception) as e:
-        logger.warning(f"[SIGNALS] Scrapling not available for enrichment: {e}")
+    except (ImportError, Exception):
         return None
 
 
 def enrich_post(post_url: str) -> Optional[dict]:
     """
-    Fetch a Reddit post page via Scrapling to extract real engagement data
+    Fetch a Reddit post page to extract real engagement data
     (upvotes + comment count) that RSS feeds don't provide.
 
-    Args:
-        post_url: Full Reddit post URL
-
-    Returns:
-        {"score": int, "num_comments": int} or None on failure
+    Uses Reddit's .json endpoint with proper User-Agent.
+    Returns None if Reddit blocks the request (common from server IPs).
     """
-    Fetcher = _get_scrapling_fetcher()
-    if not Fetcher:
-        return None
+    # Build .json URL
+    url = post_url.rstrip("/")
+    if not url.endswith(".json"):
+        url += ".json"
+    # Use www.reddit.com (not old.)
+    url = url.replace("old.reddit.com", "www.reddit.com")
 
     try:
-        # Use old.reddit.com for simpler HTML parsing
-        url = post_url.replace("www.reddit.com", "old.reddit.com")
-        if "old.reddit.com" not in url:
-            url = url.replace("reddit.com", "old.reddit.com")
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "cortex-signal:v1.0 (research tool)",
+            "Accept": "application/json",
+        })
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
 
-        page = Fetcher().get(url, stealthy_headers=True, timeout=15)
+        post_data = data[0]["data"]["children"][0]["data"]
+        return {
+            "score": post_data.get("score", 0),
+            "num_comments": post_data.get("num_comments", 0),
+        }
 
-        score = 0
-        num_comments = 0
-
-        # old.reddit.com puts score in <div class="score unvoted"> or .score
-        score_el = page.css(".score.unvoted::text")
-        if not score_el:
-            score_el = page.css(".score::text")
-        if score_el:
-            raw = score_el[0] if isinstance(score_el, list) else str(score_el)
-            raw = str(raw).replace("\u2022", "").strip()
-            if raw.isdigit():
-                score = int(raw)
-            elif raw.endswith("k"):
-                try:
-                    score = int(float(raw[:-1]) * 1000)
-                except ValueError:
-                    pass
-
-        # Comment count from the comments link text: "N comments"
-        for link_text in page.css("a.bylink.comments::text").getall() if hasattr(page.css("a.bylink.comments::text"), "getall") else []:
-            link_text = str(link_text).strip()
-            parts = link_text.split()
-            if parts and parts[0].isdigit():
-                num_comments = int(parts[0])
-                break
-
-        # Fallback: search page text for comment count pattern
-        if num_comments == 0:
-            page_text = page.css("title::text")
-            if page_text:
-                title_text = str(page_text[0] if isinstance(page_text, list) else page_text)
-                # Title format: "Post Title : subreddit" — comments often on page
-                pass
-
-        return {"score": score, "num_comments": num_comments}
-
+    except urllib.error.HTTPError as e:
+        if e.code == 403:
+            logger.info(f"[SIGNALS] Reddit blocked enrichment (403) — server IP likely blocked")
+            return None
+        logger.warning(f"[SIGNALS] Enrichment HTTP {e.code} for {post_url}")
+        return None
     except Exception as e:
-        logger.warning(f"[SIGNALS] Scrapling enrichment failed for {post_url}: {e}")
+        logger.warning(f"[SIGNALS] Enrichment failed for {post_url}: {e}")
         return None
 
 
@@ -619,17 +594,10 @@ def update_post_engagement(post_id: int, score: int, num_comments: int):
 
 def enrich_top_posts(limit: int = 50) -> dict:
     """
-    Enrich top-scored posts (and unenriched analyzed posts) with real
-    engagement data via Scrapling.
+    Enrich top-scored posts with real engagement data from old.reddit.com.
 
     Only enriches posts that still have score=0 (RSS default).
     Respects rate limits with delays between requests.
-
-    Args:
-        limit: Max posts to enrich per run
-
-    Returns:
-        {"enriched": int, "failed": int, "skipped": int}
     """
     init_signals_db()
 
@@ -648,12 +616,6 @@ def enrich_top_posts(limit: int = 50) -> dict:
     stats = {"enriched": 0, "failed": 0, "skipped": 0}
 
     if not rows:
-        return stats
-
-    Fetcher = _get_scrapling_fetcher()
-    if not Fetcher:
-        logger.warning("[SIGNALS] Scrapling not available — cannot enrich posts")
-        stats["skipped"] = len(rows)
         return stats
 
     for row in rows:

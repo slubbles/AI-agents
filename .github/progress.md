@@ -4,7 +4,62 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
-## Session 23 — Current
+## Session 24 — Mar 6, 2026
+**Prompt:** Humanizer integration — teach Cortex to write like a human using blader/humanizer + Reddit voice patterns
+
+### What We Did
+1. **Integrated blader/humanizer anti-AI-pattern rules** into Cortex system prompt
+2. **Created writing skill** — `identity/skills/writing/human_voice.md` (120 lines)
+3. **Updated skills_loader.py** — added "writing" category at priority 0 (always loads first)
+4. **Added `_get_writing_voice()` helper** in `cli/chat.py` — loads and injects the skill into every system prompt
+5. **Deployed to VPS** — git pull + restart cortex-telegram service
+
+### Why
+- Cortex output reads like a chatbot — "Great question!", "I'd be happy to help", "delve", "landscape"
+- blader/humanizer (7,812 stars) has 24 anti-AI-pattern categories with concrete before/after examples
+- Reddit posts from signal DB show how real micro-SaaS builders actually write — direct, opinionated, specific
+
+### Purpose
+- Every Cortex output (chat, Telegram, research, opportunity reports) now passes through the humanizer filter
+- Makes Cortex output indistinguishable from a sharp founder's writing
+- Prerequisite for selling signal intelligence reports — reports must sound human, not AI-generated
+- Proof: Telegram chat quality should immediately improve
+
+### Steps Taken
+1. Read blader/humanizer SKILL.md (488 lines, 24 anti-AI-pattern categories)
+2. Extracted 15 Reddit writing samples from signals.db (real r/SaaS, r/microsaas posts)
+3. Created `identity/skills/writing/human_voice.md` combining humanizer rules + Reddit voice patterns
+4. Added "writing" to `CATEGORY_PRIORITY` (priority 0) and `CATEGORY_KEYWORDS` in skills_loader.py
+5. Added `_get_writing_voice()` function in cli/chat.py
+6. Injected writing voice into system prompt template between goal_info and identity
+7. Verified: `load_skills(["writing"])` returns 4,000 chars of humanizer content
+8. All 128 related tests pass (87 skills + 23 identity + 18 chat)
+9. Committed `2cc52bb`, pushed to GitHub, deployed to VPS, restarted Telegram bot
+
+### Key Files
+- `agent-brain/identity/skills/writing/human_voice.md` — the humanizer skill (NEW)
+- `agent-brain/skills_loader.py` — writing category added
+- `agent-brain/cli/chat.py` — `_get_writing_voice()` + prompt injection
+
+### What This Enables
+- Telegram bot responses sound like a builder, not a chatbot
+- Chat CLI responses same
+- Foundation for humanized research reports, opportunity briefs, Reddit posts
+- The skill is priority 0 — it loads before all other skills in every context
+
+### Suggested Next Steps
+- **Goal:** Prove ROI — tangible proof Cortex writes like a human
+- **Why/Purpose:** User needs proof via Telegram chat quality before monetization push
+- **Objectives:**
+  1. Send test questions to Telegram bot and screenshot before/after comparison
+  2. Wire humanizer into researcher agent output (not just chat)
+  3. Wire humanizer into opportunity scorer narrative output
+  4. First Reddit post draft using humanized Cortex output
+  5. Run signal analysis cycle with humanized writing
+
+---
+
+## Session 23 — Previous
 **Prompt:** Beads/Agent Orchestrator research + THREADS.MD full implementation + full system audit + new CORTEX_CONSULTANT_HANDOFF.md
 
 ### What We Did

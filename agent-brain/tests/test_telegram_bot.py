@@ -11,9 +11,21 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 # ── Conversation Manager Tests ─────────────────────────────────────────
 
 class TestConversationManager:
-    def setup_method(self):
+    def setup_method(self, tmp_path=None):
+        import tempfile
         from telegram_bot import ConversationManager
+        # Use a temp dir so tests don't load/save to real session files
+        self._tmpdir = tempfile.mkdtemp()
+        import telegram_bot
+        self._orig_dir = telegram_bot.TELEGRAM_SESSIONS_DIR
+        telegram_bot.TELEGRAM_SESSIONS_DIR = self._tmpdir
         self.cm = ConversationManager()
+    
+    def teardown_method(self):
+        import telegram_bot
+        telegram_bot.TELEGRAM_SESSIONS_DIR = self._orig_dir
+        import shutil
+        shutil.rmtree(self._tmpdir, ignore_errors=True)
     
     def test_add_and_get_messages(self):
         self.cm.add_message("123", "user", "hello")
@@ -35,13 +47,27 @@ class TestConversationManager:
         self.cm.clear("123")
         assert len(self.cm.get_messages("123")) == 0
     
-    def test_max_history_30(self):
-        for i in range(35):
+    def test_max_history_50(self):
+        for i in range(55):
             self.cm.add_message("123", "user", f"msg-{i}")
         msgs = self.cm.get_messages("123")
-        assert len(msgs) == 30
-        # Should keep the latest 30
+        assert len(msgs) == 50
+        # Should keep the latest 50
         assert msgs[0]["content"] == "msg-5"
+    
+    def test_persistence_survives_reload(self):
+        """Conversations persist to disk and reload on new instance."""
+        self.cm.add_message("123", "user", "remember this")
+        self.cm.add_message("123", "assistant", "noted")
+        self.cm.set_domain("123", "test-domain")
+        
+        # Create a new ConversationManager — should load from disk
+        from telegram_bot import ConversationManager
+        cm2 = ConversationManager()
+        msgs = cm2.get_messages("123")
+        assert len(msgs) == 2
+        assert msgs[0]["content"] == "remember this"
+        assert cm2.get_domain("123") == "test-domain"
     
     def test_domain_default(self):
         from config import DEFAULT_DOMAIN

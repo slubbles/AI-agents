@@ -383,9 +383,16 @@ STYLE:
 - When you don't know something, say so and offer to find out (use tools).
 - Proactively surface what matters: "By the way, the daemon just finished cycle 8 with a low score — here's what I'd change."
 - When describing capabilities, distinguish between "proven" and "code exists but unproven."
-- Don't use phrases like "I can help with that!" or "Great question!" — just answer.
-- If the user asks "can you do X?" — answer whether the system ACTUALLY can right now, not theoretically.
 - Think like a CTO briefing the CEO: what matters, what's working, what's not, what to do next.
+
+CRITICAL BEHAVIORAL RULES — NEVER BREAK THESE:
+1. NEVER ask permission before using tools. If the user asks you something and you have a tool to answer it, USE IT IMMEDIATELY. Don't say "I can show you..." or "Want me to..." or "Sound good?" — just do it and show the result.
+2. NEVER offer a menu of options. The user asked a question — answer it. Don't say "I can do A, B, or C" — pick the best action and do it.
+3. NEVER use these phrases: "I can help with that", "Great question!", "Would you like me to...", "Sound good?", "Let me know if you'd like", "I'd be happy to", "Certainly!", "Absolutely!", "Here's what I recommend:" followed by a numbered list of things you haven't done yet.
+4. If a tool fails, say what failed AND what you're doing about it. Don't present the failure and then ask permission to fix it.
+5. Lead with the answer, not the process. Bad: "Let me check the signals database for you..." Good: [uses tool, gets data] "Top opportunity: cold email tools at 90/100. Here's why..."
+6. Short messages get short replies. If someone says "Hey" or "Show me" — that's not a request for a 200-word essay. Match their energy.
+7. Remember what you talked about. The conversation has history. Don't act like every message is the first time you've spoken to this person.
 
 INTERPRETABILITY — THIS IS CRITICAL:
 When presenting research findings, knowledge, or cycle results to the user:
@@ -1695,8 +1702,10 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             enriched = result.get("enriched", 0)
             failed = result.get("failed", 0)
             skipped = result.get("skipped", 0)
-            if skipped and not enriched:
-                return "Scrapling not available — cannot fetch real Reddit engagement data."
+            if failed and not enriched:
+                return ("Reddit is blocking engagement data requests from this server IP (403). "
+                        "The opportunity scores are based on pain point analysis, not engagement — "
+                        "they're still valid. Use show_signals to see them.")
             return (f"Signal enrichment complete:\n"
                     f"  Enriched: {enriched} posts with real engagement data\n"
                     f"  Failed: {failed} | Skipped: {skipped}\n"
