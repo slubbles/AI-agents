@@ -1563,6 +1563,34 @@ def pipeline(
                     f"Cost: ${result['cost']:.4f}\n"
                     f"Workspace: {result['workspace_dir']}",
                     emoji="✅")
+            
+            # Post-build: auto-deploy if VERCEL_TOKEN is set and web artifacts detected
+            try:
+                ws = result.get("workspace_dir", "")
+                if ws and os.path.exists(os.path.join(ws, "package.json")):
+                    vercel_token = os.environ.get("VERCEL_TOKEN", "")
+                    if vercel_token:
+                        import subprocess
+                        logger.info(f"[DEPLOY] Auto-deploying {ws} to Vercel")
+                        proc = subprocess.run(
+                            ["npx", "vercel", "--prod", "--yes",
+                             "--token", vercel_token],
+                            cwd=ws,
+                            capture_output=True,
+                            text=True,
+                            timeout=180,
+                        )
+                        if proc.returncode == 0:
+                            deploy_url = proc.stdout.strip().split("\n")[-1]
+                            result["deploy_url"] = deploy_url
+                            _notify("Deployed", f"URL: {deploy_url}", emoji="🚀")
+                            logger.info(f"[DEPLOY] Success: {deploy_url}")
+                        else:
+                            logger.warning(f"[DEPLOY] Failed: {proc.stderr[:300]}")
+                    else:
+                        logger.debug("[DEPLOY] VERCEL_TOKEN not set — skipping auto-deploy")
+            except Exception as _deploy_err:
+                logger.warning(f"[DEPLOY] Auto-deploy skipped: {_deploy_err}")
         else:
             result["error"] = build_result.get("error", "Build failed")
             _update_stage("build")

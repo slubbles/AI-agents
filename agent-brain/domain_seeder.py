@@ -100,6 +100,27 @@ SEED_QUESTIONS = {
         "What are the current best practices for micro-interactions, loading states, empty states, error states, and skeleton screens in modern web applications? Include Framer Motion animation patterns with specific code examples.",
         "What are the anti-patterns in modern web design — things that immediately make a site look cheap or unprofessional? Include typography mistakes, spacing errors, color system failures, and mobile responsiveness problems.",
     ],
+    "onlinejobsph-employers": [
+        "What are the most in-demand Filipino remote workers on OnlineJobs.ph, what skills command the highest rates, and what do employers consistently struggle to find?",
+        "What pain points do foreign employers most commonly experience when hiring Filipino remote workers — communication, reliability, skill gaps, timezone, payment?",
+        "What are the typical salary ranges, contract structures, and onboarding practices that successfully attract top Filipino talent on OnlineJobs.ph?",
+        "What industries and job categories are growing fastest on OnlineJobs.ph, and which are declining — include current 2025-2026 market data?",
+        "What are the most common mistakes foreign employers make when setting up their first Philippine remote team, and how do successful employers avoid them?",
+    ],
+    "saas-fullstack-apps": [
+        "What are the most underserved pain points in SaaS tooling for small businesses (1-20 employees) that have no adequate existing solution in 2025-2026?",
+        "What are the current best practices for Next.js + Supabase + Stripe SaaS boilerplate architecture for rapid MVP development, including auth, billing, and multi-tenancy patterns?",
+        "What SaaS pricing models (per-seat, usage-based, flat-rate, freemium) work best for bootstrapped micro-SaaS products targeting SMBs, with real revenue data?",
+        "What are the most common technical mistakes that cause early-stage SaaS products to fail at scale, and how do successful bootstrapped founders avoid them?",
+        "What are the fastest-growing micro-SaaS niches in 2025-2026 that remain underserved by existing tools — include specific pain points and willingness-to-pay signals?",
+    ],
+    "productized-services": [
+        "What services can most effectively be productized for Filipino remote workers to sell to foreign clients, with defined scope and fixed pricing in the $500-$2000/month range?",
+        "What are the most successful productized service models in 2025-2026 — delivery systems, scope definition, client onboarding, and pricing structures that scale?",
+        "How do successful productized service businesses handle scope creep, client refusals, and delivery systems that allow a solo operator to serve 5-10 clients simultaneously?",
+        "What are the highest-ROI productized services that leverage AI tools to deliver 10x more value than traditional agency work at competitive prices?",
+        "What are the critical differences between a successful productized service offer and a commodity freelance service — what specific framing, guarantees, and deliverables make clients pay a premium?",
+    ],
 }
 
 # Generic seed questions for any domain not in the list above
