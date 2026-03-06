@@ -799,6 +799,9 @@ def main():
     parser.add_argument("--rank-opportunities", action="store_true", help="Score unanalyzed posts and rank opportunities")
     parser.add_argument("--weekly-brief", action="store_true", help="Generate weekly opportunity brief (premium model)")
     parser.add_argument("--signal-status", action="store_true", help="Show signal collection stats and top opportunities")
+    parser.add_argument("--enrich-signals", action="store_true", help="Enrich top posts with real engagement data via Scrapling")
+    parser.add_argument("--build-spec", type=int, metavar="N", help="Generate build spec for opportunity #N")
+    parser.add_argument("--engagement-check", action="store_true", help="Check engagement changes on high-scoring opportunities")
 
     # VPS Deploy
     parser.add_argument("--deploy", action="store_true", help="Deploy Agent Brain to VPS")
@@ -1241,6 +1244,18 @@ def main():
     if getattr(args, 'signal_status', False):
         from cli.signals_cmd import run_signal_status
         run_signal_status()
+        return
+    if getattr(args, 'enrich_signals', False):
+        from cli.signals_cmd import run_enrich_signals
+        run_enrich_signals()
+        return
+    if getattr(args, 'build_spec', None) is not None:
+        from cli.signals_cmd import run_build_spec
+        run_build_spec(args.build_spec)
+        return
+    if getattr(args, 'engagement_check', False):
+        from cli.signals_cmd import run_engagement_check
+        run_engagement_check()
         return
 
     # Project Orchestrator commands

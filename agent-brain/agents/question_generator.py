@@ -19,6 +19,7 @@ not a quality-critical judgment.
 """
 
 import json
+import logging
 import os
 import re
 import sys
@@ -33,6 +34,8 @@ from cost_tracker import log_cost
 from domain_goals import get_goal
 from utils.retry import create_message
 from utils.json_parser import extract_json
+
+logger = logging.getLogger(__name__)
 
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -390,11 +393,21 @@ def _fallback_question_from_kb(domain: str) -> str | None:
 def get_next_question(domain: str) -> str | None:
     """
     Convenience function: generate questions and return the top-priority one.
-    Falls back to KB knowledge gaps if model generation fails.
+    
+    Priority order:
+    1. Signal-sourced questions (from Reddit pain points) — if domain matches
+    2. LLM-generated questions from knowledge gap analysis
+    3. KB knowledge gap fallback
+    4. Seed question fallback
     
     Returns:
         The top question string, or None if generation failed.
     """
+    # Check for signal-sourced questions first (real-world demand > self-analysis)
+    signal_question = _get_signal_question(domain)
+    if signal_question:
+        return signal_question
+
     result = generate_questions(domain)
     if result and result.get("questions"):
         top = result["questions"][0]
@@ -414,4 +427,38 @@ def get_next_question(domain: str) -> str | None:
             print(f"[QUESTION-GEN] Using seed question fallback")
             return seed
     
+    return None
+
+
+def _get_signal_question(domain: str) -> str | None:
+    """
+    Try to get a research question sourced from signal intelligence.
+    
+    Only returns a signal question if:
+    1. Signal bridge module is available
+    2. There are scored opportunities above threshold
+    3. The opportunity's category maps to this domain
+    """
+    try:
+        from signal_bridge import generate_signal_questions, get_signal_domain_for_category
+    except ImportError:
+        return None
+
+    try:
+        questions = generate_signal_questions(limit=5, min_score=60)
+    except Exception as e:
+        logger.debug(f"[QUESTION-GEN] Signal bridge error: {e}")
+        return None
+
+    if not questions:
+        return None
+
+    # Find a signal question that maps to this domain
+    for sq in questions:
+        signal_domain = get_signal_domain_for_category(sq.get("category", "Other"))
+        if signal_domain == domain or domain in ("micro-saas", "general"):
+            print(f"[QUESTION-GEN] Using signal-sourced question (score={sq['opportunity_score']})")
+            print(f"  Pain point: {sq['pain_point'][:80]}")
+            return sq["question"]
+
     return None

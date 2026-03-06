@@ -622,3 +622,766 @@ class TestSignalConfig:
         assert "Productivity" in CATEGORIES
         assert "Developer Tools" in CATEGORIES
         assert "Business" in CATEGORIES
+
+
+# ============================================================
+# 9. Scrapling Enrichment
+# ============================================================
+
+class TestScraplingEnrichment:
+    """Test Scrapling-based post enrichment."""
+
+    @pytest.fixture(autouse=True)
+    def tmp_db(self, tmp_path):
+        db_path = str(tmp_path / "test_signals.db")
+        import signal_collector
+        signal_collector._db_initialized = False
+        self._orig_path = signal_collector.SIGNALS_DB_PATH
+        signal_collector.SIGNALS_DB_PATH = db_path
+        yield
+        signal_collector.SIGNALS_DB_PATH = self._orig_path
+        signal_collector._db_initialized = False
+
+    def test_update_post_engagement(self):
+        from signal_collector import insert_post, update_post_engagement, get_unanalyzed_posts, init_signals_db
+        init_signals_db()
+        insert_post({
+            "reddit_id": "t3_enrich1",
+            "subreddit": "SaaS",
+            "title": "Test enrichment",
+            "url": "https://reddit.com/r/SaaS/test",
+            "score": 0,
+            "num_comments": 0,
+        })
+        posts = get_unanalyzed_posts()
+        assert posts[0]["score"] == 0
+
+        update_post_engagement(posts[0]["id"], score=42, num_comments=15)
+
+        posts = get_unanalyzed_posts()
+        assert posts[0]["score"] == 42
+        assert posts[0]["num_comments"] == 15
+
+    @patch("signal_collector._get_scrapling_fetcher")
+    def test_enrich_post_extracts_data(self, mock_fetcher):
+        from signal_collector import enrich_post
+
+        mock_page = MagicMock()
+
+        def css_side_effect(selector):
+            if "score.unvoted" in selector:
+                return ["142"]
+            if "score" in selector:
+                return ["142"]
+            if "bylink" in selector:
+                mock_links = MagicMock()
+                mock_links.getall = MagicMock(return_value=["23 comments"])
+                return mock_links
+            return []
+
+        mock_page.css = MagicMock(side_effect=css_side_effect)
+        mock_fetcher_cls = MagicMock()
+        mock_fetcher_cls.return_value.get.return_value = mock_page
+        mock_fetcher.return_value = mock_fetcher_cls
+
+        result = enrich_post("https://www.reddit.com/r/SaaS/comments/test123/test/")
+        assert result is not None
+        assert isinstance(result, dict)
+        assert "score" in result
+        assert "num_comments" in result
+
+    def test_enrich_post_returns_none_without_scrapling(self):
+        from signal_collector import enrich_post
+        with patch("signal_collector._get_scrapling_fetcher", return_value=None):
+            result = enrich_post("https://reddit.com/r/SaaS/test")
+            assert result is None
+
+    def test_enrich_top_posts_skips_without_scrapling(self):
+        from signal_collector import enrich_top_posts, insert_post, insert_analysis, init_signals_db
+        init_signals_db()
+        insert_post({
+            "reddit_id": "t3_enrich_skip",
+            "subreddit": "SaaS",
+            "title": "I wish there was X",
+            "url": "https://reddit.com/r/SaaS/test",
+            "score": 0,
+            "num_comments": 0,
+        })
+        from signal_collector import get_unanalyzed_posts
+        posts = get_unanalyzed_posts()
+        insert_analysis(posts[0]["id"], {"pain_point_summary": "Test", "opportunity_score": 80})
+
+        with patch("signal_collector._get_scrapling_fetcher", return_value=None):
+            stats = enrich_top_posts(limit=10)
+            assert stats["skipped"] == 1
+            assert stats["enriched"] == 0
+
+    def test_enrich_top_posts_empty_db(self):
+        from signal_collector import enrich_top_posts, init_signals_db
+        init_signals_db()
+        stats = enrich_top_posts(limit=10)
+        assert stats["enriched"] == 0
+        assert stats["failed"] == 0
+
+
+# ============================================================
+# 10. Build Spec Generator
+# ============================================================
+
+class TestBuildSpecGenerator:
+    """Test LLM-based build spec generation."""
+
+    @pytest.fixture(autouse=True)
+    def tmp_db(self, tmp_path):
+        db_path = str(tmp_path / "test_signals.db")
+        import signal_collector
+        signal_collector._db_initialized = False
+        self._orig_path = signal_collector.SIGNALS_DB_PATH
+        signal_collector.SIGNALS_DB_PATH = db_path
+        yield
+        signal_collector.SIGNALS_DB_PATH = self._orig_path
+        signal_collector._db_initialized = False
+
+    @patch("opportunity_scorer.call_llm")
+    @patch("opportunity_scorer.log_cost")
+    def test_generate_build_spec_returns_dict(self, mock_cost, mock_llm, tmp_path):
+        from opportunity_scorer import generate_build_spec
+
+        spec_data = {
+            "product_name": "PayPal Shield",
+            "problem_statement": "SaaS founders face unexpected PayPal restrictions",
+            "target_audience": "SaaS founders processing $1K-50K/mo via PayPal",
+            "core_features": ["Risk dashboard", "Alert system", "Compliance checker"],
+            "tech_stack": "Next.js + Supabase + PayPal API",
+            "mvp_scope": "3 pages: dashboard, alerts, settings",
+            "monetization": "$29/mo SaaS subscription",
+            "existing_competitors": ["PayPal Business (limited)"],
+            "competitive_gap": "No tool monitors PayPal risk specifically for SaaS",
+            "research_questions": ["What PayPal API endpoints expose account health?"],
+        }
+
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text=json.dumps(spec_data))]
+        mock_response.usage = MagicMock(input_tokens=300, output_tokens=400)
+        mock_llm.return_value = mock_response
+
+        opp = {
+            "pain_point_summary": "PayPal account restrictions for SaaS founders",
+            "category": "Finance",
+            "severity": 5,
+            "affected_audience": "SaaS founders",
+            "market_size_estimate": "Large",
+            "existing_solutions": json.dumps(["PayPal Business"]),
+            "potential_solutions": json.dumps(["Risk dashboard"]),
+            "title": "PayPal froze my account",
+            "subreddit": "SaaS",
+            "opportunity_score": 90,
+        }
+
+        # Patch _save_build_spec to write to tmp_path
+        with patch("opportunity_scorer._save_build_spec"):
+            spec = generate_build_spec(opp)
+
+        assert spec is not None
+        assert spec["product_name"] == "PayPal Shield"
+        assert "core_features" in spec
+        assert len(spec["core_features"]) >= 1
+        assert "research_questions" in spec
+
+    @patch("opportunity_scorer.call_llm")
+    @patch("opportunity_scorer.log_cost")
+    def test_generate_build_spec_handles_parse_failure(self, mock_cost, mock_llm):
+        from opportunity_scorer import generate_build_spec
+
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="This is not valid JSON at all")]
+        mock_response.usage = MagicMock(input_tokens=100, output_tokens=50)
+        mock_llm.return_value = mock_response
+
+        opp = {
+            "pain_point_summary": "Test pain",
+            "category": "Other",
+            "severity": 2,
+            "title": "Test",
+            "subreddit": "test",
+        }
+
+        with patch("opportunity_scorer._save_build_spec"):
+            spec = generate_build_spec(opp)
+        assert spec is None
+
+    def test_save_build_spec_creates_file(self, tmp_path):
+        from opportunity_scorer import _save_build_spec
+        import opportunity_scorer
+
+        # Temporarily redirect log dir
+        orig_file = opportunity_scorer.__file__
+        with patch.object(opportunity_scorer.os.path, "dirname", return_value=str(tmp_path)):
+            _save_build_spec(
+                {"product_name": "TestProd", "mvp_scope": "test"},
+                {"post_id": 1, "opportunity_score": 80, "pain_point_summary": "test", "subreddit": "SaaS", "title": "T"},
+            )
+        spec_dir = tmp_path / "logs" / "build_specs"
+        assert spec_dir.exists()
+        files = list(spec_dir.glob("*.json"))
+        assert len(files) == 1
+
+
+# ============================================================
+# 11. Signal Bridge — Signal → Brain Integration
+# ============================================================
+
+class TestSignalBridge:
+    """Test signal-to-brain question generation bridge."""
+
+    @pytest.fixture(autouse=True)
+    def tmp_db(self, tmp_path):
+        db_path = str(tmp_path / "test_signals.db")
+        import signal_collector
+        signal_collector._db_initialized = False
+        self._orig_path = signal_collector.SIGNALS_DB_PATH
+        signal_collector.SIGNALS_DB_PATH = db_path
+        yield
+        signal_collector.SIGNALS_DB_PATH = self._orig_path
+        signal_collector._db_initialized = False
+
+    def test_generate_signal_questions_empty_db(self):
+        from signal_bridge import generate_signal_questions
+        from signal_collector import init_signals_db
+        init_signals_db()
+        questions = generate_signal_questions(limit=3)
+        assert questions == []
+
+    def test_generate_signal_questions_with_data(self):
+        from signal_bridge import generate_signal_questions
+        from signal_collector import insert_post, insert_analysis, init_signals_db
+        init_signals_db()
+
+        # Insert a high-scoring opportunity
+        insert_post({
+            "reddit_id": "t3_bridge1",
+            "subreddit": "SaaS",
+            "title": "PayPal froze my account",
+            "body": "I wish there was a tool to monitor PayPal risk",
+            "score": 50,
+            "num_comments": 20,
+        })
+        from signal_collector import get_unanalyzed_posts
+        posts = get_unanalyzed_posts()
+        insert_analysis(posts[0]["id"], {
+            "pain_point_summary": "SaaS founders face unexpected PayPal restrictions",
+            "category": "Finance",
+            "severity": 5,
+            "affected_audience": "SaaS founders processing via PayPal",
+            "potential_solutions": json.dumps(["Risk dashboard"]),
+            "existing_solutions": json.dumps(["PayPal Business"]),
+            "opportunity_score": 90,
+        })
+
+        questions = generate_signal_questions(limit=3, min_score=60)
+        assert len(questions) >= 1
+        assert questions[0]["source"] == "signal"
+        assert questions[0]["opportunity_score"] == 90
+        assert questions[0]["priority"] == "high"
+        assert "PayPal" in questions[0]["question"]
+
+    def test_generate_signal_questions_filters_low_scores(self):
+        from signal_bridge import generate_signal_questions
+        from signal_collector import insert_post, insert_analysis, init_signals_db
+        init_signals_db()
+
+        insert_post({
+            "reddit_id": "t3_bridge_low",
+            "subreddit": "SaaS",
+            "title": "Minor annoyance",
+        })
+        from signal_collector import get_unanalyzed_posts
+        posts = get_unanalyzed_posts()
+        insert_analysis(posts[0]["id"], {
+            "pain_point_summary": "Minor inconvenience",
+            "opportunity_score": 25,
+        })
+
+        questions = generate_signal_questions(limit=3, min_score=60)
+        assert len(questions) == 0
+
+    def test_domain_mapping(self):
+        from signal_bridge import get_signal_domain_for_category
+        assert get_signal_domain_for_category("Finance") == "fintech"
+        assert get_signal_domain_for_category("Marketing") == "marketing-tools"
+        assert get_signal_domain_for_category("Developer Tools") == "dev-tools"
+        assert get_signal_domain_for_category("Unknown Category") == "micro-saas"
+
+    def test_deduplicates_similar_pain_points(self):
+        from signal_bridge import generate_signal_questions
+        from signal_collector import insert_post, insert_analysis, init_signals_db
+        init_signals_db()
+
+        for i in range(3):
+            insert_post({
+                "reddit_id": f"t3_dup_bridge{i}",
+                "subreddit": "SaaS",
+                "title": f"PayPal problem {i}",
+            })
+        from signal_collector import get_unanalyzed_posts
+        posts = get_unanalyzed_posts()
+        for p in posts:
+            insert_analysis(p["id"], {
+                "pain_point_summary": "SaaS founders face unexpected PayPal restrictions",
+                "category": "Finance",
+                "severity": 5,
+                "affected_audience": "SaaS founders",
+                "opportunity_score": 85,
+            })
+
+        questions = generate_signal_questions(limit=5, min_score=60)
+        # Should deduplicate — same pain point summary
+        assert len(questions) == 1
+
+
+# ============================================================
+# 12. CLI — Enrichment + Build Spec
+# ============================================================
+
+class TestSignalsCLIExtended:
+    """Test new CLI commands for enrichment and build specs."""
+
+    @pytest.fixture(autouse=True)
+    def tmp_db(self, tmp_path):
+        db_path = str(tmp_path / "test_signals.db")
+        import signal_collector
+        signal_collector._db_initialized = False
+        self._orig_path = signal_collector.SIGNALS_DB_PATH
+        signal_collector.SIGNALS_DB_PATH = db_path
+        yield
+        signal_collector.SIGNALS_DB_PATH = self._orig_path
+        signal_collector._db_initialized = False
+
+    def test_run_enrich_empty_db(self, capsys):
+        from cli.signals_cmd import run_enrich_signals
+        from signal_collector import init_signals_db
+        init_signals_db()
+        run_enrich_signals()
+        output = capsys.readouterr().out
+        assert "No posts" in output
+
+    @patch("signal_collector.enrich_top_posts")
+    def test_run_enrich_shows_results(self, mock_enrich, capsys):
+        from cli.signals_cmd import run_enrich_signals
+        from signal_collector import insert_post, init_signals_db
+        init_signals_db()
+        insert_post({"reddit_id": "t3_cli_enrich", "subreddit": "SaaS", "title": "Test"})
+        mock_enrich.return_value = {"enriched": 5, "failed": 1, "skipped": 0}
+
+        run_enrich_signals()
+        output = capsys.readouterr().out
+        assert "ENRICHMENT COMPLETE" in output
+        assert "5" in output
+
+    def test_run_build_spec_no_opportunities(self, capsys):
+        from cli.signals_cmd import run_build_spec
+        from signal_collector import init_signals_db
+        init_signals_db()
+        run_build_spec(1)
+        output = capsys.readouterr().out
+        assert "not found" in output
+
+
+# ============================================================
+# Signal-Aware Daemon Tests
+# ============================================================
+
+class TestSignalDaemon:
+    """Test signal intelligence integration in the scheduler daemon."""
+
+    @pytest.fixture(autouse=True)
+    def tmp_db(self, tmp_path):
+        """Use a temp database for each test."""
+        db_path = str(tmp_path / "test_signals.db")
+        import signal_collector
+        signal_collector._db_initialized = False
+        self._orig_path = signal_collector.SIGNALS_DB_PATH
+        signal_collector.SIGNALS_DB_PATH = db_path
+        yield db_path
+        signal_collector.SIGNALS_DB_PATH = self._orig_path
+        signal_collector._db_initialized = False
+
+    @pytest.fixture(autouse=True)
+    def tmp_logs(self, tmp_path):
+        """Use temp log directory for signal state."""
+        import scheduler
+        self._orig_signal_state = scheduler.SIGNAL_STATE_FILE
+        scheduler.SIGNAL_STATE_FILE = str(tmp_path / "signal_state.json")
+        scheduler._last_signal_collection = None
+        yield
+        scheduler.SIGNAL_STATE_FILE = self._orig_signal_state
+        scheduler._last_signal_collection = None
+
+    def test_should_run_signals_first_time(self):
+        """First run (no state file) should return True."""
+        from scheduler import _should_run_signals
+        assert _should_run_signals() is True
+
+    def test_should_run_signals_within_interval(self):
+        """Returns False if we just ran."""
+        import scheduler
+        scheduler._last_signal_collection = datetime.now(timezone.utc)
+        assert scheduler._should_run_signals() is False
+
+    def test_should_run_signals_after_interval(self):
+        """Returns True after interval has elapsed."""
+        import scheduler
+        from datetime import timedelta
+        scheduler._last_signal_collection = (
+            datetime.now(timezone.utc) - timedelta(hours=7)
+        )
+        assert scheduler._should_run_signals() is True
+
+    def test_signal_state_persistence(self, tmp_path):
+        """State file is written and read correctly."""
+        import scheduler
+        state = {"last_collection": "2025-01-01T00:00:00+00:00", "last_results": {}}
+        scheduler._save_signal_state(state)
+        loaded = scheduler._load_signal_state()
+        assert loaded["last_collection"] == "2025-01-01T00:00:00+00:00"
+
+    @patch("signal_bridge.generate_signal_questions")
+    @patch("opportunity_scorer.score_unanalyzed")
+    @patch("signal_collector.collect_signals")
+    def test_run_signal_cycle_full(self, mock_collect, mock_score, mock_bridge):
+        """Full signal cycle runs collect + score + bridge."""
+        import scheduler
+        scheduler._last_signal_collection = None
+        # Reset state file so _should_run_signals returns True
+        scheduler._save_signal_state({})
+
+        mock_collect.return_value = {
+            "total_new": 15, "total_found": 50, "total_matched": 30,
+        }
+        mock_score.return_value = {"analyzed": 10, "top_score": 85}
+        mock_bridge.return_value = [{"question": "q1"}, {"question": "q2"}]
+
+        result = scheduler._run_signal_cycle()
+        assert result is not None
+        assert result["collected"] == 15
+        assert result["scored"] == 10
+        assert result["top_score"] == 85
+        assert result["questions_queued"] == 2
+        mock_collect.assert_called_once()
+        mock_score.assert_called_once()
+        mock_bridge.assert_called_once()
+
+    def test_run_signal_cycle_skips_within_interval(self):
+        """Signal cycle returns None if interval not elapsed."""
+        import scheduler
+        scheduler._last_signal_collection = datetime.now(timezone.utc)
+        result = scheduler._run_signal_cycle()
+        assert result is None
+
+    @patch("signal_collector.collect_signals", side_effect=Exception("network error"))
+    def test_run_signal_cycle_handles_collection_error(self, mock_collect):
+        """If collection fails, returns partial results (not crash)."""
+        import scheduler
+        scheduler._last_signal_collection = None
+        scheduler._save_signal_state({})
+        result = scheduler._run_signal_cycle()
+        assert result is not None
+        assert result["collected"] == 0
+
+
+# ============================================================
+# Build Spec Pipeline Tests (Obj 5)
+# ============================================================
+
+class TestBuildSpecPipeline:
+    """Test auto build-spec generation from signal opportunities."""
+
+    @pytest.fixture(autouse=True)
+    def tmp_db(self, tmp_path):
+        db_path = str(tmp_path / "test_signals.db")
+        import signal_collector
+        signal_collector._db_initialized = False
+        self._orig_path = signal_collector.SIGNALS_DB_PATH
+        signal_collector.SIGNALS_DB_PATH = db_path
+        yield db_path
+        signal_collector.SIGNALS_DB_PATH = self._orig_path
+        signal_collector._db_initialized = False
+
+    @pytest.fixture(autouse=True)
+    def tmp_logs(self, tmp_path):
+        import scheduler
+        self._orig_log_dir = scheduler.LOG_DIR
+        scheduler.LOG_DIR = str(tmp_path / "logs")
+        os.makedirs(str(tmp_path / "logs"), exist_ok=True)
+        yield
+        scheduler.LOG_DIR = self._orig_log_dir
+
+    @patch("opportunity_scorer.generate_build_spec")
+    def test_generates_specs_for_high_score(self, mock_gen):
+        """Generate build specs for opportunities >= 70."""
+        from signal_collector import init_signals_db, insert_post, insert_analysis
+        init_signals_db()
+        insert_post({"reddit_id": "t3_spec1", "subreddit": "SaaS", "title": "Need X"})
+        insert_analysis(1, {"pain_point_summary": "X is broken", "opportunity_score": 85})
+        mock_gen.return_value = {"product_name": "FixX", "core_features": []}
+
+        from scheduler import _generate_signal_build_specs
+        result = _generate_signal_build_specs({"top_score": 85})
+        assert result["generated"] == 1
+        mock_gen.assert_called_once()
+
+    def test_skips_low_score_opportunities(self):
+        """Opportunities under 70 are skipped."""
+        from signal_collector import init_signals_db, insert_post, insert_analysis
+        init_signals_db()
+        insert_post({"reddit_id": "t3_low", "subreddit": "SaaS", "title": "Meh"})
+        insert_analysis(1, {"pain_point_summary": "minor", "opportunity_score": 40})
+
+        from scheduler import _generate_signal_build_specs
+        result = _generate_signal_build_specs({"top_score": 40})
+        assert result["generated"] == 0
+
+    @patch("opportunity_scorer.generate_build_spec")
+    def test_skips_existing_specs(self, mock_gen, tmp_path):
+        """Don't regenerate specs for the same post."""
+        import scheduler
+        from signal_collector import init_signals_db, insert_post, insert_analysis
+        init_signals_db()
+        insert_post({"reddit_id": "t3_dup", "subreddit": "SaaS", "title": "Dup"})
+        insert_analysis(1, {"pain_point_summary": "dup", "opportunity_score": 90})
+
+        # Create existing spec file that has post_id "1" in the name
+        specs_dir = os.path.join(scheduler.LOG_DIR, "build_specs")
+        os.makedirs(specs_dir, exist_ok=True)
+        with open(os.path.join(specs_dir, "2025_1_dup_product.json"), "w") as f:
+            f.write("{}")
+
+        result = scheduler._generate_signal_build_specs({"top_score": 90})
+        assert result["skipped"] == 1
+        assert result["generated"] == 0
+        mock_gen.assert_not_called()
+
+    @patch("sync.create_task")
+    @patch("opportunity_scorer.generate_build_spec")
+    def test_creates_sync_task_on_spec(self, mock_gen, mock_task):
+        """Build spec generation creates a sync task for Hands."""
+        from signal_collector import init_signals_db, insert_post, insert_analysis
+        init_signals_db()
+        insert_post({"reddit_id": "t3_task1", "subreddit": "SaaS", "title": "Need Y"})
+        insert_analysis(1, {"pain_point_summary": "Y hurts", "opportunity_score": 80})
+        mock_gen.return_value = {
+            "product_name": "FixY",
+            "problem_statement": "Y is hard",
+            "target_audience": "devs",
+            "core_features": ["auto-fix", "dashboard"],
+            "tech_stack": {"frontend": "Next.js"},
+            "mvp_scope": "Landing + core feature",
+        }
+
+        from scheduler import _generate_signal_build_specs
+        result = _generate_signal_build_specs({"top_score": 80})
+        assert result["generated"] == 1
+        mock_task.assert_called_once()
+        call_kwargs = mock_task.call_args[1]
+        assert "FixY" in call_kwargs["title"]
+        assert call_kwargs["task_type"] == "build"
+        assert call_kwargs["priority"] == "high"
+        assert call_kwargs["metadata"]["signal_score"] == 80
+
+
+# ============================================================
+# Engagement Feedback Loop Tests (Obj 7)
+# ============================================================
+
+class TestEngagementFeedback:
+    """Test engagement re-checking and feedback loop."""
+
+    @pytest.fixture(autouse=True)
+    def tmp_db(self, tmp_path):
+        db_path = str(tmp_path / "test_signals.db")
+        import signal_collector
+        signal_collector._db_initialized = False
+        self._orig_path = signal_collector.SIGNALS_DB_PATH
+        signal_collector.SIGNALS_DB_PATH = db_path
+        yield db_path
+        signal_collector.SIGNALS_DB_PATH = self._orig_path
+        signal_collector._db_initialized = False
+
+    def test_no_posts_returns_empty(self):
+        """No enriched posts returns empty list."""
+        from signal_collector import check_engagement_changes, init_signals_db
+        init_signals_db()
+        result = check_engagement_changes()
+        assert result == []
+
+    def test_skips_unenriched_posts(self):
+        """Posts with score=0 and comments=0 are not checked."""
+        from signal_collector import (
+            check_engagement_changes, init_signals_db,
+            insert_post, insert_analysis,
+        )
+        init_signals_db()
+        insert_post({"reddit_id": "t3_no_eng", "subreddit": "SaaS", "title": "Test"})
+        insert_analysis(1, {"pain_point_summary": "test", "opportunity_score": 80})
+        # Post has score=0, num_comments=0 by default — should be skipped
+        result = check_engagement_changes()
+        assert result == []
+
+    @patch("signal_collector.enrich_post")
+    def test_detects_growing_engagement(self, mock_enrich):
+        """Detects when upvotes/comments increase."""
+        from signal_collector import (
+            check_engagement_changes, init_signals_db,
+            insert_post, insert_analysis, update_post_engagement,
+        )
+        init_signals_db()
+        insert_post({"reddit_id": "t3_grow", "subreddit": "SaaS",
+                      "title": "Growing", "url": "https://old.reddit.com/r/SaaS/t3_grow"})
+        insert_analysis(1, {"pain_point_summary": "growing pain", "opportunity_score": 85})
+        update_post_engagement(1, 10, 5)  # Initial enrichment
+
+        mock_enrich.return_value = {"score": 25, "num_comments": 12}
+
+        result = check_engagement_changes(min_score=60)
+        assert len(result) == 1
+        assert result[0]["growing"] is True
+        assert result[0]["score_delta"] == 15
+        assert result[0]["comment_delta"] == 7
+
+    @patch("signal_collector.enrich_post")
+    def test_detects_stable_engagement(self, mock_enrich):
+        """Detects when engagement is unchanged."""
+        from signal_collector import (
+            check_engagement_changes, init_signals_db,
+            insert_post, insert_analysis, update_post_engagement,
+        )
+        init_signals_db()
+        insert_post({"reddit_id": "t3_stable", "subreddit": "SaaS",
+                      "title": "Stable", "url": "https://old.reddit.com/r/SaaS/t3_stable"})
+        insert_analysis(1, {"pain_point_summary": "stable", "opportunity_score": 75})
+        update_post_engagement(1, 10, 5)
+
+        mock_enrich.return_value = {"score": 10, "num_comments": 5}
+
+        result = check_engagement_changes(min_score=60)
+        assert len(result) == 1
+        assert result[0]["growing"] is False
+
+    def test_engagement_cli_no_data(self, capsys):
+        """CLI engagement check with no data."""
+        from cli.signals_cmd import run_engagement_check
+        from signal_collector import init_signals_db
+        init_signals_db()
+        run_engagement_check()
+        output = capsys.readouterr().out
+        assert "No posts" in output
+
+
+# ============================================================
+# End-to-End Integration Test (Obj 8)
+# ============================================================
+
+class TestEndToEndPipeline:
+    """Integration test: full signal pipeline from collection to build spec."""
+
+    @pytest.fixture(autouse=True)
+    def tmp_db(self, tmp_path):
+        db_path = str(tmp_path / "test_signals.db")
+        import signal_collector
+        signal_collector._db_initialized = False
+        self._orig_path = signal_collector.SIGNALS_DB_PATH
+        signal_collector.SIGNALS_DB_PATH = db_path
+        yield db_path
+        signal_collector.SIGNALS_DB_PATH = self._orig_path
+        signal_collector._db_initialized = False
+
+    @pytest.fixture(autouse=True)
+    def tmp_logs(self, tmp_path):
+        import scheduler
+        self._orig_signal_state = scheduler.SIGNAL_STATE_FILE
+        self._orig_log_dir = scheduler.LOG_DIR
+        scheduler.SIGNAL_STATE_FILE = str(tmp_path / "signal_state.json")
+        scheduler.LOG_DIR = str(tmp_path / "logs")
+        os.makedirs(str(tmp_path / "logs"), exist_ok=True)
+        scheduler._last_signal_collection = None
+        yield
+        scheduler.SIGNAL_STATE_FILE = self._orig_signal_state
+        scheduler.LOG_DIR = self._orig_log_dir
+        scheduler._last_signal_collection = None
+
+    @patch("sync.create_task")
+    @patch("opportunity_scorer.generate_build_spec")
+    @patch("signal_bridge.generate_signal_questions")
+    @patch("opportunity_scorer.score_unanalyzed")
+    @patch("signal_collector.collect_signals")
+    def test_full_pipeline(self, mock_collect, mock_score, mock_bridge,
+                           mock_build_spec, mock_sync_task):
+        """
+        Full pipeline:
+        1. Signal cycle collects posts
+        2. Scoring finds high-value opportunities
+        3. Bridge generates research questions
+        4. Build spec pipeline generates specs for top opportunities
+        5. Sync tasks created for Hands execution
+        """
+        import scheduler
+
+        # Step 1+2+3: Signal cycle
+        mock_collect.return_value = {
+            "total_new": 20, "total_found": 100, "total_matched": 40,
+        }
+        mock_score.return_value = {"analyzed": 15, "top_score": 92}
+        mock_bridge.return_value = [
+            {"question": "Validate demand for X", "pain_point": "X is broken",
+             "opportunity_score": 92, "category": "SaaS"},
+        ]
+
+        result = scheduler._run_signal_cycle()
+        assert result is not None
+        assert result["collected"] == 20
+        assert result["scored"] == 15
+        assert result["top_score"] == 92
+        assert result["questions_queued"] == 1
+
+        # Step 4+5: Build spec pipeline (needs real DB data)
+        from signal_collector import init_signals_db, insert_post, insert_analysis
+        init_signals_db()
+        insert_post({"reddit_id": "t3_e2e", "subreddit": "SaaS", "title": "X is broken"})
+        insert_analysis(1, {"pain_point_summary": "X is broken", "opportunity_score": 92})
+
+        mock_build_spec.return_value = {
+            "product_name": "FixX Pro",
+            "problem_statement": "X breaks constantly",
+            "target_audience": "SaaS developers",
+            "core_features": ["auto-fix", "monitoring"],
+            "tech_stack": {"backend": "FastAPI", "frontend": "Next.js"},
+            "mvp_scope": "Core fix + dashboard",
+        }
+
+        spec_results = scheduler._generate_signal_build_specs({"top_score": 92})
+        assert spec_results["generated"] == 1
+        mock_build_spec.assert_called_once()
+        mock_sync_task.assert_called_once()
+
+        # Verify sync task has correct structure
+        task_kwargs = mock_sync_task.call_args[1]
+        assert "FixX Pro" in task_kwargs["title"]
+        assert task_kwargs["task_type"] == "build"
+        assert task_kwargs["priority"] == "high"
+        assert task_kwargs["source_domain"] == "micro-saas"
+
+    def test_config_defaults(self):
+        """Signal config values are set."""
+        from config import (
+            SIGNAL_COLLECTION_INTERVAL_HOURS,
+            SIGNAL_SCORING_BATCH,
+            SIGNAL_SCORING_MAX_BATCHES,
+        )
+        assert SIGNAL_COLLECTION_INTERVAL_HOURS == 6
+        assert SIGNAL_SCORING_BATCH == 10
+        assert SIGNAL_SCORING_MAX_BATCHES == 3
+
+    def test_alert_function_exists(self):
+        """Signal alert function is importable."""
+        from alerts import alert_signal_collection
+        assert callable(alert_signal_collection)

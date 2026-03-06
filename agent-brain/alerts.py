@@ -216,3 +216,15 @@ def alert_watchdog_event(event_type: str, details: str):
 def alert_custom(title: str, message: str, emoji: str = "📢"):
     """Send a custom alert."""
     _send_telegram(f"{emoji} <b>{title}</b>\n{message[:800]}")
+
+
+def alert_signal_collection(collected: int, scored: int, top_score: int,
+                            new_questions: int):
+    """Alert after a signal intelligence cycle completes."""
+    _send_telegram(
+        f"📡 <b>Signal Intelligence Cycle</b>\n"
+        f"Collected: {collected} new posts\n"
+        f"Scored: {scored} opportunities\n"
+        f"Top score: {top_score}/100\n"
+        f"Research questions queued: {new_questions}"
+    )

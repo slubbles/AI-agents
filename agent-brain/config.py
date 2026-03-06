@@ -162,6 +162,11 @@ MODEL_PROVIDER = {
     "google/gemini-2.0-flash-001": "openrouter",
 }
 
+# --- Signals ---
+SIGNAL_COLLECTION_INTERVAL_HOURS = 6   # Collect Reddit signals every N hours
+SIGNAL_SCORING_BATCH = 10              # Posts per scoring batch after collection
+SIGNAL_SCORING_MAX_BATCHES = 3         # Max batches per cycle (controls LLM cost)
+
 # --- Loop ---
 DEFAULT_DOMAIN = "general"
 

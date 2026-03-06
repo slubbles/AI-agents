@@ -529,3 +529,221 @@ def collect_signals(
         "per_subreddit": per_sub,
         "duration_seconds": round(duration, 1),
     }
+
+
+# ── Scrapling Enrichment ───────────────────────────────────────────────
+
+def _get_scrapling_fetcher():
+    """Lazy-load Scrapling Fetcher for Reddit page enrichment."""
+    try:
+        from scrapling.fetchers import Fetcher
+        return Fetcher
+    except (ImportError, Exception) as e:
+        logger.warning(f"[SIGNALS] Scrapling not available for enrichment: {e}")
+        return None
+
+
+def enrich_post(post_url: str) -> Optional[dict]:
+    """
+    Fetch a Reddit post page via Scrapling to extract real engagement data
+    (upvotes + comment count) that RSS feeds don't provide.
+
+    Args:
+        post_url: Full Reddit post URL
+
+    Returns:
+        {"score": int, "num_comments": int} or None on failure
+    """
+    Fetcher = _get_scrapling_fetcher()
+    if not Fetcher:
+        return None
+
+    try:
+        # Use old.reddit.com for simpler HTML parsing
+        url = post_url.replace("www.reddit.com", "old.reddit.com")
+        if "old.reddit.com" not in url:
+            url = url.replace("reddit.com", "old.reddit.com")
+
+        page = Fetcher().get(url, stealthy_headers=True, timeout=15)
+
+        score = 0
+        num_comments = 0
+
+        # old.reddit.com puts score in <div class="score unvoted"> or .score
+        score_el = page.css(".score.unvoted::text")
+        if not score_el:
+            score_el = page.css(".score::text")
+        if score_el:
+            raw = score_el[0] if isinstance(score_el, list) else str(score_el)
+            raw = str(raw).replace("\u2022", "").strip()
+            if raw.isdigit():
+                score = int(raw)
+            elif raw.endswith("k"):
+                try:
+                    score = int(float(raw[:-1]) * 1000)
+                except ValueError:
+                    pass
+
+        # Comment count from the comments link text: "N comments"
+        for link_text in page.css("a.bylink.comments::text").getall() if hasattr(page.css("a.bylink.comments::text"), "getall") else []:
+            link_text = str(link_text).strip()
+            parts = link_text.split()
+            if parts and parts[0].isdigit():
+                num_comments = int(parts[0])
+                break
+
+        # Fallback: search page text for comment count pattern
+        if num_comments == 0:
+            page_text = page.css("title::text")
+            if page_text:
+                title_text = str(page_text[0] if isinstance(page_text, list) else page_text)
+                # Title format: "Post Title : subreddit" — comments often on page
+                pass
+
+        return {"score": score, "num_comments": num_comments}
+
+    except Exception as e:
+        logger.warning(f"[SIGNALS] Scrapling enrichment failed for {post_url}: {e}")
+        return None
+
+
+def update_post_engagement(post_id: int, score: int, num_comments: int):
+    """Update a post's engagement data (from Scrapling enrichment)."""
+    init_signals_db()
+    with get_db() as conn:
+        conn.execute("""
+            UPDATE posts SET score = ?, num_comments = ?
+            WHERE id = ?
+        """, (score, num_comments, post_id))
+
+
+def enrich_top_posts(limit: int = 50) -> dict:
+    """
+    Enrich top-scored posts (and unenriched analyzed posts) with real
+    engagement data via Scrapling.
+
+    Only enriches posts that still have score=0 (RSS default).
+    Respects rate limits with delays between requests.
+
+    Args:
+        limit: Max posts to enrich per run
+
+    Returns:
+        {"enriched": int, "failed": int, "skipped": int}
+    """
+    init_signals_db()
+
+    with get_db() as conn:
+        # Get analyzed posts with no engagement data, ordered by opportunity score
+        rows = conn.execute("""
+            SELECT p.id, p.url, p.score, p.num_comments
+            FROM posts p
+            LEFT JOIN analyses a ON a.post_id = p.id
+            WHERE p.score = 0 AND p.num_comments = 0
+                AND p.url != '' AND p.url IS NOT NULL
+            ORDER BY COALESCE(a.opportunity_score, 0) DESC
+            LIMIT ?
+        """, (limit,)).fetchall()
+
+    stats = {"enriched": 0, "failed": 0, "skipped": 0}
+
+    if not rows:
+        return stats
+
+    Fetcher = _get_scrapling_fetcher()
+    if not Fetcher:
+        logger.warning("[SIGNALS] Scrapling not available — cannot enrich posts")
+        stats["skipped"] = len(rows)
+        return stats
+
+    for row in rows:
+        post_id = row[0]
+        url = row[1]
+
+        if not url:
+            stats["skipped"] += 1
+            continue
+
+        result = enrich_post(url)
+        if result and (result["score"] > 0 or result["num_comments"] > 0):
+            update_post_engagement(post_id, result["score"], result["num_comments"])
+            stats["enriched"] += 1
+            logger.info(f"[SIGNALS] Enriched post {post_id}: score={result['score']}, comments={result['num_comments']}")
+        else:
+            stats["failed"] += 1
+
+        time.sleep(REQUEST_DELAY)  # Respect rate limits
+
+    return stats
+
+
+# ── Engagement Feedback Loop ────────────────────────────────────────────
+
+def check_engagement_changes(min_score: int = 60) -> list[dict]:
+    """
+    Re-check engagement on high-scoring posts to validate demand.
+
+    Compares current engagement (via Scrapling) against stored values.
+    Flags posts where engagement is growing (demand validated).
+
+    Args:
+        min_score: Minimum opportunity score to check (default: 60)
+
+    Returns:
+        List of dicts with post_id, old/new engagement, delta, growing flag.
+    """
+    init_signals_db()
+
+    with get_db() as conn:
+        rows = conn.execute("""
+            SELECT p.id, p.url, p.score, p.num_comments, a.opportunity_score
+            FROM posts p
+            JOIN analyses a ON a.post_id = p.id
+            WHERE a.opportunity_score >= ?
+                AND p.url != '' AND p.url IS NOT NULL
+                AND (p.score > 0 OR p.num_comments > 0)
+            ORDER BY a.opportunity_score DESC
+            LIMIT 20
+        """, (min_score,)).fetchall()
+
+    if not rows:
+        return []
+
+    Fetcher = _get_scrapling_fetcher()
+    if not Fetcher:
+        logger.warning("[SIGNALS] Scrapling not available for engagement check")
+        return []
+
+    results = []
+    for row in rows:
+        post_id, url, old_score, old_comments, opp_score = row
+
+        current = enrich_post(url)
+        if not current:
+            continue
+
+        new_score = current["score"]
+        new_comments = current["num_comments"]
+        score_delta = new_score - old_score
+        comment_delta = new_comments - old_comments
+        growing = score_delta > 0 or comment_delta > 0
+
+        # Update stored engagement
+        if new_score > 0 or new_comments > 0:
+            update_post_engagement(post_id, new_score, new_comments)
+
+        results.append({
+            "post_id": post_id,
+            "opportunity_score": opp_score,
+            "old_score": old_score,
+            "new_score": new_score,
+            "score_delta": score_delta,
+            "old_comments": old_comments,
+            "new_comments": new_comments,
+            "comment_delta": comment_delta,
+            "growing": growing,
+        })
+
+        time.sleep(REQUEST_DELAY)
+
+    return results

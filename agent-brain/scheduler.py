@@ -439,6 +439,12 @@ CYCLE_HISTORY_FILE = os.path.join(LOG_DIR, "cycle_history.jsonl")
 # Cortex journal — persistent log of Cortex Orchestrator insights
 CORTEX_JOURNAL_FILE = os.path.join(LOG_DIR, "cortex_journal.jsonl")
 
+# Signal intelligence state
+SIGNAL_STATE_FILE = os.path.join(LOG_DIR, "signal_state.json")
+
+# Track last signal collection time (in-memory, persisted via signal_state.json)
+_last_signal_collection: datetime | None = None
+
 # Track last daily assessment date to avoid repeating
 _last_daily_assessment_date: str | None = None
 
@@ -536,6 +542,232 @@ def get_cycle_history(last_n: int = 20) -> list[dict]:
     except IOError:
         return []
     return records[-last_n:]
+
+
+# ============================================================
+# Signal Intelligence — Autonomous Collection + Scoring
+# ============================================================
+
+def _load_signal_state() -> dict:
+    """Load signal intelligence state from disk."""
+    if not os.path.exists(SIGNAL_STATE_FILE):
+        return {}
+    try:
+        with open(SIGNAL_STATE_FILE) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+
+def _save_signal_state(state: dict):
+    """Persist signal intelligence state."""
+    os.makedirs(LOG_DIR, exist_ok=True)
+    atomic_json_write(SIGNAL_STATE_FILE, state)
+
+
+def _should_run_signals() -> bool:
+    """Check if enough time has passed since last signal collection."""
+    global _last_signal_collection
+    from config import SIGNAL_COLLECTION_INTERVAL_HOURS
+
+    # Try in-memory cache first
+    if _last_signal_collection is not None:
+        elapsed = (datetime.now(timezone.utc) - _last_signal_collection).total_seconds()
+        return elapsed >= SIGNAL_COLLECTION_INTERVAL_HOURS * 3600
+
+    # Fall back to persisted state
+    state = _load_signal_state()
+    last_run = state.get("last_collection")
+    if not last_run:
+        return True  # Never run before
+
+    try:
+        last_dt = datetime.fromisoformat(last_run)
+        elapsed = (datetime.now(timezone.utc) - last_dt).total_seconds()
+        return elapsed >= SIGNAL_COLLECTION_INTERVAL_HOURS * 3600
+    except (ValueError, TypeError):
+        return True
+
+
+def _run_signal_cycle() -> dict | None:
+    """
+    Run a complete signal intelligence cycle:
+    1. Collect Reddit posts via RSS
+    2. Score unanalyzed posts via LLM
+    3. Bridge top opportunities into Brain research questions
+
+    Returns summary dict or None if skipped/failed.
+    """
+    global _last_signal_collection
+
+    if not _should_run_signals():
+        _log_daemon("Signal collection: skipped (interval not elapsed)")
+        return None
+
+    _log_daemon("=== Signal Intelligence cycle starting ===")
+    results = {
+        "collected": 0,
+        "scored": 0,
+        "top_score": 0,
+        "questions_queued": 0,
+    }
+
+    try:
+        # Step 1: Collect
+        from signal_collector import collect_signals
+        collection = collect_signals()
+        results["collected"] = collection.get("total_new", 0)
+        _log_daemon(f"Signals collected: {results['collected']} new posts "
+                    f"({collection.get('total_found', 0)} found, "
+                    f"{collection.get('total_matched', 0)} matched)")
+    except Exception as e:
+        _log_daemon(f"Signal collection failed: {e}", "error")
+        return results
+
+    try:
+        # Step 2: Score
+        from config import SIGNAL_SCORING_BATCH, SIGNAL_SCORING_MAX_BATCHES
+        from opportunity_scorer import score_unanalyzed
+        scoring = score_unanalyzed(
+            batch_size=SIGNAL_SCORING_BATCH,
+            max_batches=SIGNAL_SCORING_MAX_BATCHES,
+        )
+        results["scored"] = scoring.get("analyzed", 0)
+        results["top_score"] = scoring.get("top_score", 0)
+        _log_daemon(f"Signals scored: {results['scored']} posts, "
+                    f"top score {results['top_score']}/100")
+    except Exception as e:
+        _log_daemon(f"Signal scoring failed: {e}", "error")
+
+    try:
+        # Step 3: Bridge to Brain questions
+        from signal_bridge import generate_signal_questions
+        questions = generate_signal_questions(limit=5, min_score=60)
+        results["questions_queued"] = len(questions)
+        if questions:
+            _log_daemon(f"Signal bridge: {len(questions)} research questions queued")
+    except Exception as e:
+        _log_daemon(f"Signal bridge failed: {e}", "error")
+
+    # Update last collection timestamp
+    _last_signal_collection = datetime.now(timezone.utc)
+
+    # Track how many signal cycles have run for periodic tasks
+    prev_state = _load_signal_state()
+    signal_cycle_count = prev_state.get("cycle_count", 0) + 1
+
+    _save_signal_state({
+        "last_collection": _last_signal_collection.isoformat(),
+        "last_results": results,
+        "cycle_count": signal_cycle_count,
+    })
+
+    # Engagement feedback loop — every 3rd signal cycle, re-check engagement
+    # on high-scoring posts to validate demand
+    if signal_cycle_count % 3 == 0:
+        try:
+            from signal_collector import check_engagement_changes
+            changes = check_engagement_changes(min_score=60)
+            growing = [c for c in changes if c["growing"]]
+            results["engagement_checked"] = len(changes)
+            results["engagement_growing"] = len(growing)
+            if growing:
+                _log_daemon(f"Engagement feedback: {len(growing)}/{len(changes)} "
+                           f"opportunities showing growth")
+        except Exception as e:
+            _log_daemon(f"Engagement feedback failed: {e}", "error")
+
+    # Telegram alert
+    try:
+        from alerts import alert_signal_collection
+        alert_signal_collection(
+            results["collected"], results["scored"],
+            results["top_score"], results["questions_queued"],
+        )
+    except Exception:
+        pass
+
+    _log_daemon(f"=== Signal Intelligence cycle complete ===")
+    return results
+
+
+def _generate_signal_build_specs(signal_results: dict) -> dict:
+    """
+    Generate build specs for top signal opportunities and create Hands tasks.
+
+    Only runs for opportunities scoring >= 70 that don't already have a spec.
+    Keeps LLM costs low: max 3 specs per cycle.
+    Creates sync tasks so Hands can auto-execute the builds.
+    """
+    from signal_collector import get_top_opportunities
+    from opportunity_scorer import generate_build_spec
+
+    specs_dir = os.path.join(LOG_DIR, "build_specs")
+    existing_specs = set()
+    if os.path.isdir(specs_dir):
+        existing_specs = {f for f in os.listdir(specs_dir) if f.endswith(".json")}
+
+    opportunities = get_top_opportunities(limit=5)
+    generated = 0
+    skipped = 0
+
+    for opp in opportunities:
+        if generated >= 3:
+            break
+        score = opp.get("opportunity_score", 0)
+        if score < 70:
+            continue
+
+        # Check if spec already exists (by post_id fragment in filename)
+        post_id = str(opp.get("post_id", ""))
+        if any(post_id in f for f in existing_specs):
+            skipped += 1
+            continue
+
+        try:
+            spec = generate_build_spec(opp)
+            if spec:
+                generated += 1
+                product_name = spec.get("product_name", "unknown")
+                _log_daemon(f"Build spec: {product_name} (score {score})")
+
+                # Create a sync task for Hands to execute
+                try:
+                    from sync import create_task
+                    features = spec.get("core_features", [])
+                    features_text = ", ".join(features[:5]) if features else "see spec"
+                    tech = spec.get("tech_stack", {})
+                    tech_text = ", ".join(
+                        f"{k}: {v}" for k, v in (tech.items() if isinstance(tech, dict) else [])
+                    )[:200]
+                    create_task(
+                        title=f"Build MVP: {product_name}",
+                        description=(
+                            f"Signal-sourced build (score {score}/100).\n"
+                            f"Problem: {spec.get('problem_statement', 'N/A')}\n"
+                            f"Target: {spec.get('target_audience', 'N/A')}\n"
+                            f"Features: {features_text}\n"
+                            f"Tech: {tech_text}\n"
+                            f"MVP scope: {spec.get('mvp_scope', 'N/A')}"
+                        ),
+                        source_domain="micro-saas",
+                        task_type="build",
+                        priority="high",
+                        metadata={
+                            "signal_score": score,
+                            "build_spec": spec,
+                            "source_post_id": post_id,
+                        },
+                    )
+                    _log_daemon(f"Sync task created: Build MVP: {product_name}")
+                except Exception as e:
+                    _log_daemon(f"Sync task creation failed: {e}", "warning")
+
+        except Exception as e:
+            _log_daemon(f"Build spec generation error: {e}", "error")
+            break  # Stop on first error to not waste budget
+
+    return {"generated": generated, "skipped": skipped}
 
 
 # ============================================================
@@ -1513,6 +1745,13 @@ def run_daemon(
                     break
                 continue
 
+            # === Signal Intelligence (collects + scores if interval elapsed) ===
+            signal_results = None
+            try:
+                signal_results = _run_signal_cycle()
+            except Exception as e:
+                _log_daemon(f"Signal cycle error: {e}", "error")
+
             # === Cortex pre-cycle planning (strategic layer) ===
             cortex_plan = cortex_plan_cycle(cycle, budget["remaining"])
 
@@ -1731,6 +1970,7 @@ def run_daemon(
                     "avg_score": round(cycle_avg, 1),
                     "cycle_cost": round(cycle_cost, 4),
                     "domain_results": domain_results,
+                    "signal_intelligence": signal_results,
                     "next_run": (cycle_end + timedelta(
                         minutes=interval_minutes)).isoformat(),
                 })
@@ -1746,6 +1986,7 @@ def run_daemon(
                     "avg_score": round(cycle_avg, 1),
                     "cycle_cost": round(cycle_cost, 4),
                     "domain_results": domain_results,
+                    "signal_intelligence": signal_results,
                 })
 
                 # Telegram alert: cycle complete
@@ -1755,6 +1996,20 @@ def run_daemon(
                                          cycle_cost, duration, domain_results)
                 except Exception:
                     pass
+
+                # === Signal → Build Spec Pipeline ===
+                # If signals were processed this cycle, generate build specs
+                # for top opportunities that don't already have specs
+                if signal_results and signal_results.get("top_score", 0) >= 70:
+                    try:
+                        spec_results = _generate_signal_build_specs(signal_results)
+                        if spec_results:
+                            _log_daemon(
+                                f"Build specs generated: {spec_results['generated']} "
+                                f"(skipped {spec_results['skipped']})"
+                            )
+                    except Exception as e:
+                        _log_daemon(f"Build spec generation failed: {e}", "error")
 
                 # === Hands auto-execution (build from research) ===
                 if not require_approval:

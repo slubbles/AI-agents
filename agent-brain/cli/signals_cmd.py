@@ -6,10 +6,12 @@ from signal_collector import (
     collect_signals,
     get_collection_stats,
     get_top_opportunities,
+    enrich_top_posts,
+    check_engagement_changes,
     DEFAULT_SUBREDDITS,
     init_signals_db,
 )
-from opportunity_scorer import score_unanalyzed, generate_weekly_brief
+from opportunity_scorer import score_unanalyzed, generate_weekly_brief, generate_build_spec
 
 
 def run_collect_signals(subreddits: str = "", time_filter: str = "month"):
@@ -114,3 +116,110 @@ def _show_top_opportunities(limit: int = 10):
         score = opp.get("opportunity_score", 0)
         sev = opp.get("severity", 0)
         print(f"  {i:<3} {score:<6} {sev:<4} r/{sub:<18} {pain}")
+
+
+def run_enrich_signals(limit: int = 50):
+    """Enrich top posts with real engagement data via Scrapling."""
+    stats = get_collection_stats()
+
+    if stats["total_posts"] == 0:
+        print("\n  No posts to enrich. Run --collect-signals first.\n")
+        return
+
+    print(f"\n{'='*60}")
+    print(f"  ENRICHING POSTS (Scrapling)")
+    print(f"  Posts available: {stats['total_posts']}")
+    print(f"  Max to enrich: {limit}")
+    print(f"{'='*60}\n")
+
+    result = enrich_top_posts(limit=limit)
+
+    print(f"\n{'='*60}")
+    print(f"  ENRICHMENT COMPLETE")
+    print(f"  Enriched: {result['enriched']}")
+    print(f"  Failed: {result['failed']}")
+    print(f"  Skipped: {result['skipped']}")
+    print(f"{'='*60}\n")
+
+
+def run_build_spec(opportunity_rank: int):
+    """Generate a build spec for a specific opportunity by rank."""
+    opps = get_top_opportunities(limit=opportunity_rank)
+
+    if not opps or len(opps) < opportunity_rank:
+        print(f"\n  Opportunity #{opportunity_rank} not found. Only {len(opps) if opps else 0} scored.\n")
+        return
+
+    opp = opps[opportunity_rank - 1]
+    print(f"\n{'='*60}")
+    print(f"  GENERATING BUILD SPEC")
+    print(f"  Opportunity #{opportunity_rank}: {opp.get('pain_point_summary', 'N/A')[:60]}")
+    print(f"  Score: {opp.get('opportunity_score', 0)}/100")
+    print(f"{'='*60}\n")
+
+    spec = generate_build_spec(opp)
+
+    if not spec:
+        print("  Failed to generate build spec.\n")
+        return
+
+    print(f"  Product: {spec.get('product_name', 'N/A')}")
+    print(f"  Problem: {spec.get('problem_statement', 'N/A')}")
+    print(f"  Audience: {spec.get('target_audience', 'N/A')}")
+    print(f"  Tech: {spec.get('tech_stack', 'N/A')}")
+    print(f"  MVP: {spec.get('mvp_scope', 'N/A')}")
+    print(f"  Revenue: {spec.get('monetization', 'N/A')}")
+
+    features = spec.get("core_features", [])
+    if features:
+        print(f"\n  Core Features:")
+        for f in features[:8]:
+            print(f"    - {f}")
+
+    competitors = spec.get("existing_competitors", [])
+    if competitors:
+        print(f"\n  Existing Competitors:")
+        for c in competitors[:5]:
+            print(f"    - {c}")
+
+    gap = spec.get("competitive_gap", "")
+    if gap:
+        print(f"\n  Competitive Gap: {gap}")
+
+    rqs = spec.get("research_questions", [])
+    if rqs:
+        print(f"\n  Research Questions for Brain:")
+        for q in rqs[:5]:
+            print(f"    ? {q}")
+
+    print()
+
+
+def run_engagement_check():
+    """Check engagement changes on high-scoring opportunities."""
+    init_signals_db()
+
+    print(f"\n{'='*60}")
+    print(f"  ENGAGEMENT FEEDBACK CHECK")
+    print(f"{'='*60}\n")
+
+    changes = check_engagement_changes(min_score=60)
+
+    if not changes:
+        print("  No posts with engagement data to check.")
+        print("  Run --enrich-signals first to collect engagement data.")
+        return
+
+    growing = [c for c in changes if c["growing"]]
+    print(f"  Checked: {len(changes)} posts")
+    print(f"  Growing: {len(growing)}")
+    print(f"  Stable/declining: {len(changes) - len(growing)}")
+
+    if growing:
+        print(f"\n  GROWING OPPORTUNITIES (demand validated):")
+        for c in growing:
+            print(f"    Post #{c['post_id']} (score: {c['opportunity_score']}/100)")
+            print(f"      Upvotes: {c['old_score']} -> {c['new_score']} ({c['score_delta']:+d})")
+            print(f"      Comments: {c['old_comments']} -> {c['new_comments']} ({c['comment_delta']:+d})")
+
+    print()

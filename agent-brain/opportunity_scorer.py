@@ -15,6 +15,8 @@ Cost design:
 
 import json
 import logging
+import os
+import re
 from datetime import datetime, timezone
 
 from config import MODELS, CHEAPEST_MODEL, PREMIUM_MODEL
@@ -319,3 +321,151 @@ def generate_weekly_brief(top_n: int = 10, premium_top: int = 3) -> str:
     )
 
     return header + brief_text
+
+
+# ── Build Spec Generator ───────────────────────────────────────────────
+
+BUILD_SPEC_PROMPT = """You are a product strategist. Given a validated pain point from Reddit, 
+generate a detailed build specification for a micro-SaaS product that solves it.
+
+Pain point data:
+- Summary: {pain_point_summary}
+- Category: {category}
+- Severity: {severity}/5
+- Affected audience: {affected_audience}
+- Market size: {market_size_estimate}
+- Existing solutions: {existing_solutions}
+- Previous solution ideas: {potential_solutions}
+- Source post title: "{post_title}"
+- Source subreddit: r/{subreddit}
+
+Generate a JSON object with:
+{{
+    "product_name": "Short, memorable product name",
+    "problem_statement": "Clear 1-2 sentence problem description",
+    "target_audience": "Specific audience (who, how many, where they hang out)",
+    "core_features": ["Feature 1", "Feature 2", "Feature 3", "Feature 4", "Feature 5"],
+    "tech_stack": "Recommended stack (prefer Next.js + Supabase for speed)",
+    "mvp_scope": "What to build in 2 weeks — be specific about pages/endpoints",
+    "monetization": "Pricing model and price point with reasoning",
+    "existing_competitors": ["Competitor 1 (what they do)", "Competitor 2"],
+    "competitive_gap": "What's missing from existing solutions — this is the opportunity",
+    "research_questions": [
+        "Question 1 for deeper market validation",
+        "Question 2 about technical feasibility",
+        "Question 3 about customer acquisition"
+    ]
+}}
+
+Rules:
+- Be specific and practical. This should be buildable by one developer.
+- MVP means MINIMUM. Cut anything that isn't essential for first 10 users.
+- Price based on pain severity and audience willingness to pay.
+- Research questions should be answerable via web search.
+- Return ONLY valid JSON. No markdown, no explanation.
+"""
+
+
+def generate_build_spec(opportunity: dict, model: str = None) -> dict | None:
+    """
+    Generate a detailed build specification from a scored opportunity.
+
+    Takes a top opportunity dict (from get_top_opportunities) and produces
+    a buildable product spec with features, tech stack, pricing, and
+    research questions for Brain to investigate further.
+
+    Args:
+        opportunity: Opportunity dict with analysis + post context
+        model: LLM model (default: CHEAPEST_MODEL)
+
+    Returns:
+        Build spec dict, or None on failure
+    """
+    if model is None:
+        model = CHEAPEST_MODEL
+
+    # Format existing solutions/potential solutions for the prompt
+    solutions = opportunity.get("potential_solutions", [])
+    if isinstance(solutions, str):
+        try:
+            solutions = json.loads(solutions)
+        except (json.JSONDecodeError, TypeError):
+            solutions = [solutions] if solutions else []
+
+    existing = opportunity.get("existing_solutions", [])
+    if isinstance(existing, str):
+        try:
+            existing = json.loads(existing)
+        except (json.JSONDecodeError, TypeError):
+            existing = [existing] if existing else []
+
+    prompt = BUILD_SPEC_PROMPT.format(
+        pain_point_summary=opportunity.get("pain_point_summary", "Unknown"),
+        category=opportunity.get("category", "Other"),
+        severity=opportunity.get("severity", 3),
+        affected_audience=opportunity.get("affected_audience", "Unknown"),
+        market_size_estimate=opportunity.get("market_size_estimate", "Unknown"),
+        existing_solutions=", ".join(existing) if existing else "None found",
+        potential_solutions=", ".join(solutions) if solutions else "None",
+        post_title=opportunity.get("title", ""),
+        subreddit=opportunity.get("subreddit", "unknown"),
+    )
+
+    response = call_llm(
+        model=model,
+        system="You are a product strategist. Return only valid JSON.",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=2048,
+        temperature=0.4,
+    )
+
+    if hasattr(response, "usage"):
+        log_cost(
+            model=model,
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
+            agent_role="build_spec_generator",
+            domain="signals",
+        )
+
+    text = ""
+    for block in response.content:
+        if hasattr(block, "text"):
+            text = block.text
+            break
+
+    spec = extract_json(text)
+    if not spec or not isinstance(spec, dict):
+        logger.warning(f"[SPEC] Failed to parse build spec: {text[:200]}")
+        return None
+
+    # Store spec to disk for reference
+    _save_build_spec(spec, opportunity)
+
+    return spec
+
+
+def _save_build_spec(spec: dict, opportunity: dict):
+    """Persist build spec to logs/build_specs/ for reference."""
+    spec_dir = os.path.join(os.path.dirname(__file__), "logs", "build_specs")
+    os.makedirs(spec_dir, exist_ok=True)
+
+    product_name = spec.get("product_name", "unnamed").lower().replace(" ", "_")[:30]
+    filename = f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{product_name}.json"
+
+    record = {
+        "spec": spec,
+        "source_opportunity": {
+            "post_id": opportunity.get("post_id"),
+            "opportunity_score": opportunity.get("opportunity_score"),
+            "pain_point_summary": opportunity.get("pain_point_summary"),
+            "subreddit": opportunity.get("subreddit"),
+            "title": opportunity.get("title"),
+        },
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    filepath = os.path.join(spec_dir, filename)
+    with open(filepath, "w") as f:
+        json.dump(record, f, indent=2)
+    logger.info(f"[SPEC] Saved build spec to {filepath}")
