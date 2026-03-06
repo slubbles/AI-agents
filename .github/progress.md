@@ -4,6 +4,37 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 31 — Mar 6, 2026
+**Prompt:** Rewrite the repo README with a benefit-first explanation, then push it
+
+### What We Did
+1. **Rewrote the root README** from a technical-first Agent Brain description into a benefit-first Cortex explanation
+2. **Repositioned the repo around outcomes**: leverage, opportunity selection, execution, and learning from real-world loops
+3. **Clarified current proof versus future ambition** so the repo explains what exists without overselling it
+
+### Why
+- The root README was too implementation-heavy up front and did not explain the practical value quickly enough
+- A repo visitor should understand the benefit, the use case, and the current system shape before reading architecture details
+- The project needs clearer positioning around what Cortex is actually trying to do
+
+### Purpose
+- Makes the repo easier to understand for humans evaluating the project quickly
+- Aligns the public-facing explanation with the architect's real goal: an autonomous operator that creates leverage
+- Improves the first impression of the repository without hiding current limitations
+
+### Steps Taken
+1. Reviewed the root and inner README structure
+2. Rewrote the root README around benefits, use cases, and current system value
+3. Added explicit sections for what is working, what is not yet proven, and where to read deeper
+
+### Suggested Next Steps
+- **Goal/Intent**: Keep public-facing documentation aligned with the actual proof level of the system
+- **Why/Purpose**: Stronger positioning helps people understand the project quickly, but trust comes from honest scope
+- **Objectives**:
+  1. Refresh the inner `agent-brain/README.md` next so it matches the new top-level framing
+  2. Add one concrete end-to-end example flow from signal -> decision -> execution
+  3. Keep updating docs as new proof points are earned
+
 ## Session 30 — Mar 6, 2026
 **Prompt:** Push the latest work, sync it to the VPS, and write a comprehensive next-steps document tied to the real Cortex goal
 
