@@ -4,6 +4,54 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 20 — Mar 6, 2026
+**Prompt:** "execute /workspaces/AI-agents/upnext.md"
+
+### What We Did
+- Audited upnext.md again against code state; identified 5 remaining real gaps not yet wired
+- Wired MCP tool bridge into executor (cortex.py → register_mcp_tools_in_registry)
+- Wired MCP research tools into researcher (get_mcp_research_tools in tool loop)
+- Wired crawl-to-KB into scheduler daemon (inject_crawl_claims_into_kb after each domain)
+- Wired dataset loader into executor strategy loading (inject_examples_into_strategy in cortex.py)
+- Created cortex-dashboard.service on VPS, installed FastAPI, started it — API live on port 8000
+- Added 12 new integration tests (42→54); full suite: 338 passed, 0 failed
+
+### Why
+- MCP gateway + tool bridge existed but no agent could use MCP tools. Now if gateway is started, all agents can use GitHub MCP, idea-reality check, etc.
+- Crawl data was collected but never fed into the knowledge base automatically
+- Dataset loader (HuggingFace/GitHub examples) existed since Session 13 but nothing triggered it
+- Dashboard API fully built but never deployed — FastAPI wasn't even installed on VPS
+
+### Purpose
+- Every "BUILT BUT NOT INTEGRATED" gap from upnext.md is now wired (except Deploy automation + Consultant human answer, which require UX decisions)
+- Dashboard API + existing Next.js frontend = full observability stack running at 207.180.219.27:8000
+- MCP tools (GitHub, idea-reality) now available in all agent contexts when gateway is started
+
+### Steps Taken
+1. **agents/cortex.py** — After `create_default_registry()`: try `register_mcp_tools_in_registry()` guarded by `gw.is_started`; after `get_strategy("executor")`: try `inject_examples_into_strategy()`
+2. **agents/researcher.py** — After Threads tool section: try `get_mcp_research_tools()` guarded by `gw.is_started`; MCP dispatch added to tool loop before web_search handler
+3. **scheduler.py** — After each domain's `domain_results.append()`: try `inject_crawl_claims_into_kb(domain)` if `crawl_data/domain/` exists
+4. **VPS** — `pip install fastapi`, created `/etc/systemd/system/cortex-dashboard.service`, `systemctl enable + start cortex-dashboard` → active on port 8000
+5. **deploy/cortex-dashboard.service** — service file version-controlled in repo
+6. **tests/test_integration_wiring.py** — 4 new test classes: `TestMcpToolBridgeWiring`, `TestMcpResearchToolsWiring`, `TestCrawlToKbWiring`, `TestDatasetLoaderWiring` (12 tests)
+7. **Broad suite** — 338 passed. Committed `3d962de`, pushed, VPS synced.
+
+### Remaining Gaps (deferred — require UX/infra decisions)
+- **Deploy automation** — `deploy/deployer.py` exists but build artifacts need a destination. Requires Vercel/server target setup decisions.
+- **Consultant human answer** — `hands/consultant.py` `_consult` tool gets LLM answers, not human. Needs Telegram inline keyboard or polling mechanism.
+- **MCP Docker containers** — Gateway wired but Docker containers need to be started (handled by `gateway.start_all()` from CLI or future service)
+
+### Suggested Next Steps
+- **Goal:** Enable the daemon (currently DISABLED) for a supervised 24-hour test run
+- **Why:** The system has never run unsupervised. The entire thesis is unproven until it does.
+- **Objectives:**
+  1. Enable `cortex-daemon.service`, monitor for 4-6 hours via Telegram
+  2. Verify signal cycles run, enrichment fires, crawl-to-KB triggers
+  3. Verify budget enforcer kills it at $7 limit
+  4. Fix any runtime errors before going 24/7
+
+---
+
 ## Session 19 — Mar 6, 2026
 **Prompt:** "execute upnext.md — Finalize stuff, improve, refine, test, integrate, sync to VPS"
 
