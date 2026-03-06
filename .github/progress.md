@@ -4,6 +4,55 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 18 — Mar 7, 2026
+**Prompt:** "set it for cortex ready to use the ptc so by the time i top it up with credits, ptc is ready to use"
+
+### What We Did
+- Pre-wired Anthropic PTC (Programmatic Tool Calling) so flipping one env var activates it
+- Answered LangChain question (not needed — Cortex has its own routing/dispatch/memory)
+
+### Why
+- PTC = biggest efficiency gain identified in Session 16: ~37% token savings, fewer API round trips (4-8 → 1-2), context pollution eliminated
+- Budget blocks actual usage, but code should be ready so `PTC_ENABLED=true` is all that's needed when credits arrive
+
+### Purpose
+- Zero-activation-cost PTC support: disabled by default, zero tokens burned until enabled
+- When activated: researcher auto-routes to PTC path (direct Anthropic API with beta header)
+
+### Steps Taken
+1. **config.py** — Added PTC config block: `PTC_ENABLED` (env var, default false), `PTC_MODEL = "claude-sonnet-4-20250514"`, `PTC_BETA_HEADER = "advanced-tool-use-2025-11-20"`
+2. **llm_router.py** — Added `betas` parameter to `_call_anthropic()`, routes to `client.beta.messages.create()` when betas provided, regular `client.messages.create()` otherwise. `call_llm()` passes betas through.
+3. **agents/researcher.py** — Added `_build_ptc_tools()` (code_execution sandbox + 3 search tools) and `_research_ptc()` (full PTC research implementation with system prompt augmentation, JSON parsing, cost logging as "researcher_ptc"). Modified `research()` to dispatch to PTC when `PTC_ENABLED and ANTHROPIC_API_KEY`.
+4. **tests/test_ptc.py** — 19 tests covering: config flag parsing, tool format, PTC dispatch routing, beta header routing (client.beta vs client.messages), response parsing, fallback on parse error, cost logging label.
+5. **Full suite**: 124 passed, 0 failed, 0 regressions.
+6. **Deployed**: Commit `985c44c` pushed + pulled to VPS.
+
+### Activation Instructions
+```bash
+# In agent-brain/.env, add:
+PTC_ENABLED=true
+# That's it. Researcher auto-routes to PTC. To disable, remove or set false.
+```
+
+### Suggested Next Steps
+- **Goal:** Orchestrator + 24/7 stability (watchdog, sync, cost control)
+- **Why:** Build order says Orchestrator is NEXT after Hands coding execution proven
+- **Objectives:**
+  1. Wire watchdog to auto-restart daemon on crash/hang
+  2. Sync agent — coordinate Brain + Hands task handoff
+  3. Economics agent — daily cost vs revenue tracking, kill/pivot decisions
+  4. Signal Agent — replace human "is this a good idea?" judgment
+
+### Current System State
+- **Brain**: 5 self-learning layers proven, strategy evolution working
+- **Hands**: Coding execution (chat mode, 24 tools)
+- **PTC**: Pre-wired, disabled by default. `PTC_ENABLED=true` activates.
+- **Tests**: 124 passing (excluding known hardening test)
+- **VPS**: 207.180.219.27, daemon DISABLED, telegram bot ACTIVE
+- **Git**: `985c44c` on main
+
+---
+
 ## Session 17 — Mar 6, 2026
 **Prompt:** "Execute those objectives." — Implementing Session 16's 7 integration objectives
 
