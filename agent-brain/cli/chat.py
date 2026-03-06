@@ -846,6 +846,52 @@ CHAT_TOOLS = [
             "required": []
         }
     },
+    {
+        "name": "show_signals",
+        "description": "Show top Reddit signal opportunities with real engagement data. Use when user asks 'what signals', 'top opportunities', 'best pain points', 'what did the signal scan find?', or 'what should we build?'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "description": "Max opportunities to show (default 10)"
+                },
+                "min_score": {
+                    "type": "integer",
+                    "description": "Minimum opportunity score 0-100 to include (default 50)"
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "enrich_signals",
+        "description": "Fetch real Reddit engagement data (upvotes, comments) for top-scored opportunities. Use when user says 'enrich signals', 'get real engagement data', or 'validate signal demand'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "description": "Max posts to enrich (default 20)"
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "show_build_specs",
+        "description": "Show auto-generated product build specs from high-scoring signal opportunities. Use when user asks 'what build specs', 'what products should we build?', 'show build ideas', or 'what did the signal pipeline generate?'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "description": "Max build specs to show (default 5)"
+                }
+            },
+            "required": []
+        }
+    },
 ]
 
 
@@ -1504,7 +1550,91 @@ def _execute_tool(name: str, args: dict, active_domain: str) -> str:
             return format_orchestrator_response(result)
         except Exception as e:
             return f"System assessment failed: {e}"
-    
+
+    elif name == "show_signals":
+        try:
+            from signal_collector import init_signals_db, get_db
+            import json as _json
+            init_signals_db()
+            limit = int(args.get("limit", 10))
+            min_score = int(args.get("min_score", 50))
+            with get_db() as conn:
+                rows = conn.execute("""
+                    SELECT p.title, p.subreddit, p.score, p.num_comments,
+                           a.opportunity_score, a.pain_point_summary, a.category, a.severity
+                    FROM posts p
+                    JOIN analyses a ON a.post_id = p.id
+                    WHERE a.opportunity_score >= ?
+                    ORDER BY a.opportunity_score DESC
+                    LIMIT ?
+                """, (min_score, limit)).fetchall()
+            if not rows:
+                return f"No opportunities found with score >= {min_score}. Run a signal collection cycle first."
+            lines = [f"**Top {len(rows)} Signal Opportunities** (score >= {min_score})\n"]
+            for i, row in enumerate(rows, 1):
+                title, sub, vscore, comments, opp_score, summary, category, severity = row
+                engagement = f"↑{vscore} 💬{comments}" if vscore or comments else "no engagement yet"
+                lines.append(f"**{i}. [{opp_score}/100]** r/{sub} — {title}")
+                lines.append(f"   Category: {category} | Severity: {severity}/5 | {engagement}")
+                if summary:
+                    lines.append(f"   Pain: {summary[:140]}")
+                lines.append("")
+            return "\n".join(lines)
+        except Exception as e:
+            return f"Signal fetch failed: {e}"
+
+    elif name == "enrich_signals":
+        try:
+            from signal_collector import enrich_top_posts
+            limit = int(args.get("limit", 20))
+            result = enrich_top_posts(limit=limit)
+            enriched = result.get("enriched", 0)
+            failed = result.get("failed", 0)
+            skipped = result.get("skipped", 0)
+            if skipped and not enriched:
+                return "Scrapling not available — cannot fetch real Reddit engagement data."
+            return (f"Signal enrichment complete:\n"
+                    f"  Enriched: {enriched} posts with real engagement data\n"
+                    f"  Failed: {failed} | Skipped: {skipped}\n"
+                    f"Run show_signals to see updated engagement counts.")
+        except Exception as e:
+            return f"Enrichment failed: {e}"
+
+    elif name == "show_build_specs":
+        try:
+            import os, json as _json, glob as _glob
+            limit = int(args.get("limit", 5))
+            here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            specs_dir = os.path.join(here, "logs", "build_specs")
+            if not os.path.isdir(specs_dir):
+                return "No build specs directory found. Run a signal scoring cycle with high-score opportunities first."
+            files = sorted(_glob.glob(os.path.join(specs_dir, "*.json")), reverse=True)[:limit]
+            if not files:
+                return "No build specs generated yet. The daemon generates them for opportunities scoring >= 70."
+            lines = [f"**{len(files)} Auto-Generated Build Specs** (newest first)\n"]
+            for f in files:
+                try:
+                    spec = _json.load(open(f))
+                    name_out = spec.get("product_name", "?")
+                    problem = spec.get("problem_statement", "")[:100]
+                    audience = spec.get("target_audience", "?")
+                    monetization = spec.get("monetization", "?")
+                    stack = spec.get("tech_stack", "?")
+                    lines.append(f"**{name_out}**")
+                    lines.append(f"  Problem: {problem}")
+                    lines.append(f"  Audience: {audience}")
+                    lines.append(f"  Stack: {stack}")
+                    lines.append(f"  Revenue: {monetization}")
+                    features = spec.get("core_features", [])
+                    if features:
+                        lines.append(f"  Core features: {', '.join(features[:3])}")
+                    lines.append("")
+                except Exception:
+                    pass
+            return "\n".join(lines)
+        except Exception as e:
+            return f"Build specs fetch failed: {e}"
+
     return f"Unknown tool: {name}"
 
 

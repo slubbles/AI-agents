@@ -1,10 +1,11 @@
 # Cortex — Complete System Documentation
 
-> **Handoff Document for Consultants**  
-> Generated: March 3, 2026  
-> Last VPS State Check: March 3, 2026 07:47 CET
+> **Comprehensive Handoff Document for Consultants**  
+> Generated: March 4, 2026  
+> Current Development Phase: Objectives 1-5 Complete, Objective 6 Pending  
+> VPS State: Active (budget_halt)
 
-This document provides complete context on **Cortex**, an autonomous dual-agent AI system built by a solo developer (the "Architect") over approximately 2 weeks of intensive development. The system is designed to research, build, and sell solutions autonomously — learning and improving from every cycle.
+This document provides complete context on **Cortex**, an autonomous dual-agent AI system. It covers the entire journey from inception through current state — philosophy, architecture, every AI agent, and the technical implementation.
 
 ---
 
@@ -13,42 +14,77 @@ This document provides complete context on **Cortex**, an autonomous dual-agent 
 1. [Executive Summary](#1-executive-summary)
 2. [The Vision — Why This Exists](#2-the-vision--why-this-exists)
 3. [The Naming — "Cortex", "Brain", "Hands"](#3-the-naming--cortex-brain-hands)
-4. [Architecture Overview](#4-architecture-overview)
+4. [The Transistor Analogy — Scaling Vision](#4-the-transistor-analogy--scaling-vision)
 5. [The 5-Layer Self-Learning System](#5-the-5-layer-self-learning-system)
-6. [Agent Brain — Research Subsystem](#6-agent-brain--research-subsystem)
-7. [Agent Hands — Execution Subsystem](#7-agent-hands--execution-subsystem)
-8. [The Orchestrator Layer](#8-the-orchestrator-layer)
-9. [The Identity Layer](#9-the-identity-layer)
-10. [Infrastructure & Operations](#10-infrastructure--operations)
-11. [Current VPS State](#11-current-vps-state)
-12. [Known Issues & Technical Debt](#12-known-issues--technical-debt)
-13. [The Architect's Vision Documents — Summary](#13-the-architects-vision-documents--summary)
-14. [Roadmap](#14-roadmap)
-15. [Codebase Statistics](#15-codebase-statistics)
-16. [Appendix: File Inventory](#16-appendix-file-inventory)
+6. [Architecture Overview](#6-architecture-overview)
+7. [Agent Brain — Research Subsystem (10 Agents)](#7-agent-brain--research-subsystem)
+8. [Agent Hands — Execution Subsystem (30+ Components)](#8-agent-hands--execution-subsystem)
+9. [The Orchestrator Layer](#9-the-orchestrator-layer)
+10. [The Identity Layer](#10-the-identity-layer)
+11. [Infrastructure & Operations](#11-infrastructure--operations)
+12. [Development Journey — Objectives 1-5](#12-development-journey--objectives-1-5)
+13. [Current VPS State](#13-current-vps-state)
+14. [Known Issues & Technical Debt](#14-known-issues--technical-debt)
+15. [The Architect's Vision Documents — Summary](#15-the-architects-vision-documents--summary)
+16. [Roadmap — What's Next](#16-roadmap--whats-next)
+17. [Codebase Statistics](#17-codebase-statistics)
+18. [Appendix: Complete File Inventory](#18-appendix-complete-file-inventory)
 
 ---
 
 ## 1. Executive Summary
 
-**What Cortex Is:**
-Cortex is a dual-agent autonomous AI system consisting of:
-- **Agent Brain** — A self-learning research engine that searches the web, scores its own outputs, and evolves its strategies based on empirical performance data
-- **Agent Hands** — An execution engine that writes code, uses tools, and deploys solutions
-- **Cortex Orchestrator** — The reasoning layer above both, making strategic decisions about what to research and build
+### What Cortex Is
 
-**What Makes It Novel:**
-The system implements 5 layers of "self-learning" — not through model weight updates, but through **strategy document evolution driven by empirical scoring**. The strategies are natural language documents that the system reads, reasons about, and rewrites based on what works.
+Cortex is a **dual-agent autonomous AI system** consisting of:
 
-**Current State:**
-- Deployed on VPS (207.180.219.27), running as systemd services
-- 4,053 research outputs in database, 2,344 cost entries, 37 pending Hands tasks
-- Daemon is active but in "cooldown" state
-- ~41,600 lines of Python code, 1,538 tests passing
-- Daily budget: $7.00 USD ($2 Claude + $5 OpenRouter)
+- **Agent Brain** — A self-learning research engine that searches the web, scores its own outputs, and evolves its research strategies based on empirical performance data
+- **Agent Hands** — An execution engine that writes code, uses tools, deploys applications, and iterates based on visual feedback
+- **Cortex Orchestrator** — The strategic reasoning layer above both, making decisions about what to research, what to build, and how to coordinate the two subsystems
 
-**Key Challenge:**
-The Brain→Hands pipeline is broken (0 tasks executed). The system researches effectively but doesn't act on what it learns. This is the highest-priority fix.
+### What Makes It Novel
+
+The system implements **5 layers of "self-learning"** — not through model weight updates, but through **strategy document evolution driven by empirical scoring**:
+
+1. Knowledge is accumulated and stored
+2. A Critic scores every output on a structured rubric
+3. A Meta-Analyst extracts patterns from scores and rewrites strategy documents
+4. Strategies evolve autonomously with rollback on regression
+5. Cross-domain transfer abstracts principles from one domain to seed others
+
+The strategies are **natural language documents** that the system reads, reasons about, and rewrites based on what works. This is achievable with current tools — no research breakthroughs needed.
+
+### Current State (March 4, 2026)
+
+| Metric | Value |
+|--------|-------|
+| **Lines of Code** | 44,483 (production Python) |
+| **Test Count** | 1,737 tests passing |
+| **Test Lines** | 24,998 lines |
+| **Production Files** | 120+ Python files |
+| **Identity Files** | 8 markdown files |
+| **VPS Status** | Active (budget_halt state) |
+| **Daily Budget** | $7.00 ($2 Claude + $5 OpenRouter) |
+| **Git Commits** | 6 major objectives completed |
+
+### Key Achievement
+
+**Objectives 1-5 of the CORTEX_MASTER_PLAN are complete:**
+- ✅ Objective 1: Fixed 3 critical bugs (budget desync, task type mismatch, watchdog stall)
+- ✅ Objective 2: Prompt upgrades for all agents, design system created
+- ✅ Objective 3: Full three-way Brain↔Cortex↔Hands communication protocol (10 message types)
+- ✅ Objective 4: Playwright visual feedback system (browser tool, visual evaluator, visual gate)
+- ✅ Objective 5: Train the visual standard (design systems, marketing design, scoring rubric)
+- ✅ Audit: 3 additional bugs fixed, 1,737 tests passing
+
+### What Remains
+
+**Objective 6: Full Production-Ready SaaS Build** — The final objective that proves the complete pipeline:
+- Brain researches a niche
+- Cortex approves the build
+- Hands builds the application with visual iteration
+- Deploy to Vercel with live URL
+- Zero human code written
 
 ---
 
@@ -56,7 +92,7 @@ The Brain→Hands pipeline is broken (0 tasks executed). The system researches e
 
 ### The Architect's Goal
 
-The Architect is a full-stack developer building a system that, when pointed at any domain:
+The Architect is a solo full-stack developer building a system that, when pointed at any domain:
 
 1. **Researches** the domain (finds opportunities, gaps, problems)
 2. **Validates** demand (tests if real humans care and will pay)
@@ -66,30 +102,41 @@ The Architect is a full-stack developer building a system that, when pointed at 
 6. **Learns from outcomes** and compounds intelligence across domains
 7. **Repeats** — getting cheaper and smarter each cycle
 
-### The Analogy: Transistor → H100
+### The End State Vision
 
-The Architect's perspective (from their notes):
+From the CORTEX_MASTER_PLAN:
 
-> "It's like I'm building a transistor right now, but it processes real-world interaction across domains. Once we have one fully capable AI system, I will deploy multiple of it across multiple VPS and add an orchestrator layer on top. Like how NVIDIA worked on one transistor and now has H100."
-
-**The scaling vision:**
 ```
-STAGE 1 (NOW):     Building the transistor — one Brain + Hands, one domain
-STAGE 2 (6-12mo):  Single fully capable instance, multiple domains
-STAGE 3 (1-2yr):   Multiple instances on multiple VPS, Meta Orchestrator
-STAGE 4 (2-3yr):   Network effect — instances teaching each other
-STAGE 5 (3-5yr):   General problem solving at scale
+YOU: "Build a client portal for web agencies"
+
+CORTEX:
+  Brain researches the niche → understands pain, users, competitors
+  Cortex evaluates → approves build
+  Hands builds → architecture, backend, frontend, visual iteration, deploy
+  Cortex reports → Telegram message with live URL
+
+YOU: open browser → production-ready SaaS staring back at you
 ```
+
+**No code written by you. Brain and Hands fully integrated. Cortex supervising end-to-end.**
 
 ### First Revenue Target
 
-Before the grand vision, the system needs to earn money to survive. The immediate target:
+Before the grand vision, the system needs to earn money to survive:
 
 - **Productized services**: Next.js landing pages for OnlineJobsPH employers
 - **Fixed scope, fixed price**: 5-day delivery, $300-500 per project
 - **Strategy**: Find job listings → Research the company using Brain → Send personalized pitch → Deliver using Hands
 
-This is why the "productized-services" and "onlinejobsph-employers" domains exist in the system.
+### Key Philosophical Insights (from Architect's notes)
+
+1. **"Don't let it stay a demo."** The biggest risk is building inward forever. Point the system at a real problem, let it break, learn from the breaks.
+
+2. **"The critic is the load-bearing component."** If the critic gives inflated scores, the entire loop learns wrong lessons. The system that judges quality must always be sharper than the system that produces it.
+
+3. **"Revenue before polish."** Every feature decision should ask: "does this help generate revenue or does it just feel productive?"
+
+4. **"The Identity Layer defined today becomes the values of the entire network."** What you bake into the first instance is what scales to 1000 instances.
 
 ---
 
@@ -97,7 +144,7 @@ This is why the "productized-services" and "onlinejobsph-employers" domains exis
 
 ### Why "Cortex"
 
-The name comes from the cerebral cortex — the outer layer of the brain responsible for higher-level processing, reasoning, and decision-making. In this system:
+The name comes from the **cerebral cortex** — the outer layer of the brain responsible for higher-level processing, reasoning, and decision-making. In this system:
 
 - **Cortex** = The overall system, and specifically the strategic orchestrator that sits above everything
 - The name reflects the system's role as a "thinking" layer that coordinates lower-level functions
@@ -109,14 +156,163 @@ From the Architect's original conversations (ULTIMATE PURPOSE.txt):
 > "Agent Brain is the research/learning side. Agent Hands is the execution/doing side. Brain learns, Hands acts. They need each other — research without action is academic, action without research is blind."
 
 The metaphor:
-- **Brain** = Cognition, learning, memory, strategy
-- **Hands** = Execution, building, deploying, doing
+- **Brain** = Cognition, learning, memory, strategy evolution
+- **Hands** = Execution, building, deploying, visual iteration
 
-This isn't just branding — it's an architectural constraint. The two subsystems are built to communicate through a formal task queue (sync.py), not ad-hoc function calls.
+This isn't just branding — it's an **architectural constraint**. The two subsystems communicate through a formal task queue (`sync.py`) and typed protocol messages (`protocol.py`), not ad-hoc function calls.
+
+### The Three-Way Communication Model
+
+```
+         YOU
+          │
+          ▼
+    CORTEX ORCHESTRATOR
+     (Strategic Layer)
+          │
+    ┌─────┴─────┐
+    │           │
+    ▼           ▼
+  BRAIN       HANDS
+(Research)  (Execution)
+```
+
+- **You → Cortex**: High-level instructions ("Build a landing page for logistics companies")
+- **Cortex → Brain**: Research requests, knowledge queries
+- **Cortex → Hands**: Build tasks with context from Brain's research
+- **Brain/Hands → Cortex**: Results, progress updates, context requests
+- **Cortex → You**: Telegram notifications with live URLs
 
 ---
 
-## 4. Architecture Overview
+## 4. The Transistor Analogy — Scaling Vision
+
+### The Core Insight
+
+From the Architect's perspective document (my-huge-perspetive.md):
+
+> "It's like I'm building a transistor right now, but it processes real-world interaction across domains. Once we have one fully capable AI system, I will deploy multiple of it across multiple VPS and add an orchestrator layer on top. Like how NVIDIA worked on one transistor and now has H100."
+
+### The Scaling Stages
+
+```
+STAGE 1 (NOW):     Building the transistor — one Brain + Hands, one domain
+STAGE 2 (6-12mo):  Single fully capable instance, multiple domains
+STAGE 3 (1-2yr):   Multiple instances on multiple VPS, Meta Orchestrator
+STAGE 4 (2-3yr):   Network effect — instances teaching each other
+STAGE 5 (3-5yr):   General problem solving at scale
+```
+
+### Why This Matters
+
+> "The transistor didn't just make computers faster. It made a new kind of thinking possible."
+> 
+> "Your system doesn't just make research faster. It makes a new kind of problem-solving possible:
+> - Cross-domain
+> - Continuous
+> - Compounding
+> - Coordinated"
+
+### The Critical Decision
+
+> "The Identity Layer you define today in one instance becomes the values of the entire network. What you bake into that first instance is what scales to 1000 instances. So the most important technical decision you will ever make isn't the architecture, isn't the models, isn't the VPS setup. It's what you put in goals.md, ethics.md, values.md of that first instance."
+
+---
+
+## 5. The 5-Layer Self-Learning System
+
+This is the **novel contribution** of Cortex. The Architect explicitly defined what "self-learning" means:
+
+### Layer 1: Knowledge Accumulation
+
+> "The agent acts, the output is stored, it can be retrieved later."
+
+**Implementation:** `memory_store.py` (918 lines)
+- Every research output stored as JSON with question, findings, sources, timestamps
+- RAG (ChromaDB) enables semantic retrieval
+- TF-IDF caching for fast retrieval
+
+**Status:** ✅ Working
+
+### Layer 2: Evaluated Knowledge
+
+> "A critic scores the output 1-10 on a structured rubric. The score is stored alongside the output."
+
+**Implementation:** `agents/critic.py` (511 lines)
+
+**5-dimensional scoring rubric:**
+| Dimension | Weight | What It Measures |
+|-----------|--------|------------------|
+| Accuracy | 30% | Factual correctness |
+| Depth | 20% | Beyond surface-level |
+| Completeness | 20% | Important angles covered |
+| Specificity | 15% | Concrete data, numbers, sources |
+| Intellectual Honesty | 15% | Flags uncertainty |
+
+**Features:**
+- Ensemble mode (Claude Sonnet + DeepSeek for uncorrelated errors)
+- Confidence validation (high-confidence claims must cite 2+ sources)
+- Parse failure logging for debugging
+
+**Status:** ✅ Working
+
+### Layer 3: Behavioral Adaptation
+
+> "The Meta-Analyst extracts patterns from scores → rewrites agent strategy documents. The strategy is natural language that the agent follows. Evolves every few outputs."
+
+**Implementation:** `agents/meta_analyst.py` (410 lines) + `strategy_store.py` (577 lines)
+
+**How it works:**
+1. Loads recent scored outputs for a domain
+2. Loads evolution history (what was tried before, outcomes)
+3. Analyzes what scored well vs. poorly across dimensions
+4. Extracts actionable patterns ("do more of X, stop doing Y")
+5. Generates new strategy document incorporating lessons
+6. Saves as "pending" → human approval → "trial" → evaluation → "active" or rollback
+
+**Status:** ✅ Infrastructure complete, evolution happening
+
+### Layer 4: Strategy Evolution
+
+> "The strategy rewriting itself becomes autonomous and recursive. Version control + rollback."
+
+**Implementation:** `strategy_store.py`
+
+**Features:**
+- Versioned strategy files (v001.md, v002.md, etc.)
+- Lifecycle states: pending → trial → active
+- Statistical testing (t-test) for significance
+- Automatic rollback if score drops >20%
+- Immutable clauses that can never be removed
+
+**Status:** ✅ Working
+
+### Layer 5: Cross-Domain Transfer
+
+> "Insights from Domain A abstracted into general principles → applied as strategy seeds in Domain B."
+
+**Implementation:** `agents/cross_domain.py` (629 lines)
+
+**How it works:**
+1. Collects proven strategies + performance data from all domains
+2. Claude abstracts domain-specific strategies into general principles
+3. Principles stored with evidence + provenance
+4. When entering new domain, generates seed strategy from principles
+5. Seed strategies saved as "pending" (require approval)
+
+**Status:** ✅ Infrastructure built, principles file exists
+
+### The Key Insight
+
+From the Architect's notes (real-self-learning.md):
+
+> "90% of memory-enabled AI projects live and die at Layer 1. They store things but never evaluate, never adapt, never evolve. **Layer 3+ is what makes this novel.**"
+>
+> "Not the agents. Not the memory. Not the tools. **The strategy evolution loop with empirical scoring is the novel piece.** Strategies are natural language documents — the LLM can read, reason about, and rewrite them. Performance is measured empirically via the Critic, not assumed."
+
+---
+
+## 6. Architecture Overview
 
 ### High-Level Structure
 
@@ -127,32 +323,39 @@ This isn't just branding — it's an architectural constraint. The two subsystem
 ╔══════════════════════════════════════════════════════════════╗
 ║                      IDENTITY LAYER                          ║
 ║                                                              ║
-║   goals.md    ethics.md    boundaries.md    risk.md    taste.md   ║
+║   goals.md   ethics.md   boundaries.md   risk.md   taste.md  ║
+║   design_system.md   marketing_design.md   visual_rubric.md  ║
 ║                                                              ║
 ║   What the system exists to do, what it will never do,      ║
-║   its operational limits, risk tolerance, quality standards  ║
+║   its operational limits, quality standards, visual taste    ║
 ╚═══════════════════════════════╤══════════════════════════════╝
                                 │
 ╔═══════════════════════════════▼══════════════════════════════╗
 ║                    CORTEX ORCHESTRATOR                       ║
 ║                                                              ║
-║   Strategic reasoning layer (Claude Sonnet)                  ║
-║   - plan_next_actions(): What to focus on next              ║
-║   - assess_system(): Unified health check                   ║
-║   - interpret_findings(): Learn from each cycle             ║
+║   agents/cortex.py (1,236 lines) — Claude Sonnet            ║
+║   - pipeline(): research → build flow                        ║
+║   - query_knowledge(): access Brain's KB mid-build          ║
+║   - monitor_build(): track phase progress                   ║
+║   - report_build_complete(): send Telegram notification     ║
 ╚═════════════════╤═══════════════════════════╤════════════════╝
                   │                           │
 ╔═════════════════▼═══════════╗  ╔═══════════▼═════════════════╗
 ║       AGENT BRAIN           ║  ║       AGENT HANDS            ║
 ║                             ║  ║                              ║
 ║   Research subsystem        ║  ║   Execution subsystem        ║
-║   - Researcher Agent        ║  ║   - Planner Agent            ║
-║   - Critic Agent            ║  ║   - Executor Agent           ║
-║   - Meta-Analyst            ║◀─║   - Validator Agent          ║
-║   - Question Generator      ║  ║   - Pattern Learner          ║
-║   - Synthesizer             ║  ║   - Project Orchestrator     ║
-║   - Verifier                ║──▶   - 5 Tool Categories        ║
-║   - Pre-screener            ║  ║                              ║
+║   10 agents, ~4,500 lines   ║  ║   30+ components, ~12,000 ln ║
+║                             ║  ║                              ║
+║   - Researcher              ║  ║   - Planner                  ║
+║   - Critic                  ║  ║   - Executor                 ║
+║   - Pre-screener            ║◀─║   - Validator                ║
+║   - Meta-Analyst            ║  ║   - Visual Gate              ║
+║   - Question Generator      ║  ║   - Visual Evaluator         ║
+║   - Synthesizer             ║  ║   - Pattern Learner          ║
+║   - Verifier                ║──▶   - Project Orchestrator     ║
+║   - Cross-Domain            ║  ║   - 7 Tool Categories        ║
+║   - Consensus               ║  ║   - Error Analyzer           ║
+║   - Orchestrator            ║  ║   - Checkpoint/Recovery      ║
 ╚═════════════════════════════╝  ╚══════════════════════════════╝
               │                              │
               └──────────┬───────────────────┘
@@ -160,11 +363,13 @@ This isn't just branding — it's an architectural constraint. The two subsystem
 ╔════════════════════════▼═════════════════════════════════════╗
 ║                   INFRASTRUCTURE                             ║
 ║                                                              ║
-║   Scheduler (daemon loop)    │    Watchdog (circuit breaker) ║
-║   Sync (Brain↔Hands queue)   │    Cost Tracker (budget)      ║
-║   Memory Store (knowledge)   │    Strategy Store (versions)  ║
-║   Analytics (score trends)   │    Monitoring (health checks) ║
-║   Telegram Bot (alerts/chat) │    DB (SQLite WAL mode)       ║
+║   scheduler.py (1,867 ln)    │    watchdog.py (601 ln)       ║
+║   sync.py (460 ln)           │    cost_tracker.py (286 ln)   ║
+║   memory_store.py (918 ln)   │    strategy_store.py (577 ln) ║
+║   analytics.py (816 ln)      │    monitoring.py (327 ln)     ║
+║   telegram_bot.py (680 ln)   │    db.py (645 ln) SQLite      ║
+║   protocol.py (300 ln)       │    llm_router.py (470 ln)     ║
+║   knowledge_graph.py (632 ln)│    loop_guard.py (207 ln)     ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
@@ -172,186 +377,166 @@ This isn't just branding — it's an architectural constraint. The two subsystem
 
 The system uses different AI models for different purposes, optimizing cost vs. quality:
 
-| Tier | Model | Use Case | Cost |
-|------|-------|----------|------|
-| **T1 (Cheapest)** | DeepSeek V3.2 | High-volume tasks: question generation, pre-screening | ~$0.14/1M tokens |
-| **T2 (Fast)** | Grok 4.1 Fast | Latency-sensitive: researcher tool loops | ~$0.50/$2.00/1M |
-| **T3 (Premium)** | Claude Sonnet 4 | Sacred tasks: critic, meta-analyst, orchestrator | ~$3/$15/1M |
-| **T4 (Chat)** | Gemini 2.0 Flash | Human chat interface | ~$0.075/$0.30/1M |
+| Tier | Model | Role Assignments | Cost |
+|------|-------|------------------|------|
+| **T1 (Cheapest)** | DeepSeek V3.2 | question_generator, prescreen, progress_tracker | ~$0.14/$0.55 per 1M |
+| **T2 (Fast)** | Grok 4.1 Fast | researcher, executor | ~$0.50/$2.00 per 1M |
+| **T3 (Premium)** | Claude Sonnet 4 | critic, meta_analyst, synthesizer, verifier, cortex_orchestrator, planner, exec_validator | ~$3/$15 per 1M |
+| **T4 (Chat)** | Gemini 2.0 Flash | chat interface | ~$0.075/$0.30 per 1M |
 
-**Design principle:** Claude is reserved for reasoning that actually matters. Never use Claude where a cheaper model would suffice.
+**Design principle:** Claude is reserved for reasoning that actually matters. Never use Claude where a cheaper model would suffice. The critic is SACRED — never cut corners.
 
----
+### Communication Protocol
 
-## 5. The 5-Layer Self-Learning System
+Defined in `protocol.py` (300 lines) — 10 typed dataclass messages:
 
-This is the novel contribution. The Architect explicitly defined what "self-learning" means for this system:
-
-### Layer 1: Knowledge Accumulation
-> "The agent acts, the output is stored, it can be retrieved later."
-
-**Implementation:** `memory_store.py` — Every research output is stored as JSON with the question, findings, sources, timestamps. RAG (ChromaDB) enables semantic retrieval.
-
-**Status:** ✅ Working (4,053 outputs in database)
-
-### Layer 2: Evaluated Knowledge
-> "A critic scores the output 1-10 on a structured rubric. The score is stored alongside the output."
-
-**Implementation:** `agents/critic.py` — 5-dimensional scoring rubric:
-- Accuracy (30%) — Factual correctness
-- Depth (20%) — Beyond surface-level
-- Completeness (20%) — Important angles covered
-- Specificity (15%) — Concrete data, numbers, sources
-- Intellectual Honesty (15%) — Flags uncertainty
-
-**Status:** ✅ Working (ensemble mode with DeepSeek as second voice, confidence validation)
-
-### Layer 3: Behavioral Adaptation
-> "The Meta-Analyst extracts patterns from scores → rewrites agent strategy documents. The strategy is natural language that the agent follows. Evolves every few outputs."
-
-**Implementation:** `agents/meta_analyst.py` + `strategy_store.py`
-
-The meta-analyst:
-1. Loads recent scored outputs for a domain
-2. Analyzes what scored well vs. poorly
-3. Extracts actionable patterns
-4. Generates a NEW strategy document
-5. New strategy is saved as "pending" → requires human approval → promoted to "trial" → evaluated → promoted to "active" or rolled back
-
-**Status:** ⚠️ Partially working (strategies exist but most domains stuck in "trial" without promotion)
-
-### Layer 4: Strategy Evolution
-> "The strategy rewriting itself becomes autonomous and recursive. Version control + rollback."
-
-**Implementation:** `strategy_store.py` manages:
-- Versioned strategy files (v001.md, v002.md, etc.)
-- Lifecycle states: pending → trial → active
-- Automatic rollback if new strategy causes score drops >1.0
-- Safety: never deploy strategy scoring >20% below current best without human review
-
-**Status:** ⚠️ Infrastructure built, but evolution is stalled (most domains never reached "active")
-
-### Layer 5: Cross-Domain Transfer
-> "Insights from Domain A abstracted into general principles → applied as strategy seeds in Domain B."
-
-**Implementation:** `agents/cross_domain.py` + `strategies/_principles.json`
-
-The system:
-1. Extracts domain-agnostic lessons from successful strategies
-2. Stores them as "principles" (e.g., "cite specific numbers, not vague claims")
-3. When seeding a new domain, injects relevant principles as starting strategy
-
-**Status:** ✅ Infrastructure built, cross-domain extraction done, principles file exists
-
-### The Key Insight
-
-From the Architect's notes:
-
-> "Not the agents. Not the memory. Not the tools. **The strategy evolution loop with empirical scoring is the novel piece.** Strategies are natural language documents — the LLM can read, reason about, and rewrite them. Performance is measured empirically via the Critic, not assumed."
-
-This is genuinely achievable with current tools — no research breakthroughs needed, just careful engineering.
+| Message | Direction | Purpose |
+|---------|-----------|---------|
+| `ResearchRequest` | Cortex → Brain | Request research on a topic |
+| `ResearchComplete` | Brain → Cortex | Research findings ready |
+| `BuildTask` | Cortex → Hands | Instruction to build something |
+| `PhaseComplete` | Hands → Cortex | A build phase finished |
+| `ContextNeeded` | Hands → Cortex | Need more info mid-build |
+| `ContextResponse` | Cortex → Hands | Knowledge base context |
+| `BuildComplete` | Hands → Cortex | Build finished successfully |
+| `BuildFailed` | Hands → Cortex | Build failed |
+| `TaskComplete` | Cortex → You | Summary for Telegram |
+| `JournalEntry` | Any → Log | Audit trail entry |
 
 ---
 
-## 6. Agent Brain — Research Subsystem
+## 7. Agent Brain — Research Subsystem
 
-### Agents in Brain
+### Overview
 
-#### Researcher Agent (`agents/researcher.py`, 682 lines)
-**Purpose:** Takes a question + strategy → uses web search tools → produces structured findings.
+Agent Brain is the cognitive side of Cortex. It researches, evaluates, synthesizes knowledge, and evolves its own strategies based on what works.
+
+**Total:** 10 agents, ~4,500 lines of code
+
+### Agent Inventory
+
+#### 1. Researcher Agent
+**File:** `agents/researcher.py` (723 lines)  
+**Model:** Grok 4.1 Fast (T2)  
+**Purpose:** Takes a question + strategy → uses web search tools → produces structured findings
 
 **How it works:**
-1. Receives a research question and domain strategy
+1. Receives research question and domain strategy
 2. Plans search approach (decomposes into sub-questions)
 3. Executes web searches (DuckDuckGo via `tools/web_search.py`)
 4. Fetches relevant pages (Scrapling via `tools/web_fetcher.py`)
-5. Synthesizes findings into structured JSON output
-
-**Model:** Grok 4.1 Fast (T2) — needs good tool-use capability at reasonable cost
+5. Optional: Browser for JS-rendered sites (`browser/stealth_browser.py`)
+6. Synthesizes findings into structured JSON output
 
 **Key features:**
 - Date-aware: knows today's date, penalizes claims about future
-- Anti-hallucination rules: "An honest 'I could not find X' scores HIGHER than a fabricated answer"
-- Injects: identity summary, domain strategy, RAG context, knowledge graph summary, rejection lessons
+- Anti-hallucination rules baked into prompt
+- Injects: identity summary, domain strategy, RAG context, knowledge graph summary
+- Max 8 tool rounds, 10 searches, 8 fetches per run
 
-#### Critic Agent (`agents/critic.py`, 511 lines)
-**Purpose:** Reviews researcher output → scores 1-10 → provides actionable feedback.
+#### 2. Critic Agent
+**File:** `agents/critic.py` (511 lines)  
+**Model:** Claude Sonnet 4 (T3) — SACRED, never cut corners  
+**Purpose:** Reviews researcher output → scores 1-10 → provides actionable feedback
 
-**How it works:**
-1. Receives the research output and original question
-2. Evaluates against 5-dimensional rubric
-3. Produces scores, verdict (accept/reject), and specific feedback
-4. Optionally runs ensemble mode (second opinion from DeepSeek)
-5. Post-hoc confidence validation (high-confidence claims must cite 2+ sources)
+**Scoring rubric:** Accuracy (30%), Depth (20%), Completeness (20%), Specificity (15%), Intellectual Honesty (15%)
 
-**Model:** Claude Sonnet 4 (T3) — this is SACRED, never cut corners
+**Features:**
+- Ensemble mode: second opinion from DeepSeek (CRITIC_ENSEMBLE_MODEL_B)
+- Confidence validation: high-confidence claims must cite 2+ sources
+- Recency awareness: penalizes stale data for time-sensitive questions
+- Parse failure logging to `logs/` directory
 
 **Threshold:** Score ≥ 6 to accept. Below 6 → retry with critique feedback (max 2 retries).
 
-#### Pre-screener (`prescreen.py`, 245 lines)
-**Purpose:** Cheap filter before expensive Claude critique.
+#### 3. Pre-screener
+**File:** `prescreen.py` (245 lines)  
+**Model:** DeepSeek V3.2 (T1) — cheapest  
+**Purpose:** Cheap filter before expensive Claude critique
 
 **How it works:**
-- Quick-scores using DeepSeek (T1)
+- Quick-scores research output
 - Accept if score ≥ 7.5 (skip Claude)
 - Reject if score ≤ 3.5 (skip Claude)
 - Escalate to Claude if between
 
 **Cost savings:** ~40% reduction in Claude critic calls
 
-#### Meta-Analyst (`agents/meta_analyst.py`, 410 lines)
-**Purpose:** Extracts patterns from scored outputs → rewrites strategy documents.
+#### 4. Meta-Analyst Agent
+**File:** `agents/meta_analyst.py` (410 lines)  
+**Model:** Claude Sonnet 4 (T3)  
+**Purpose:** Extracts patterns from scored outputs → rewrites strategy documents
 
 **How it works:**
-1. Loads recent scored outputs for domain (configurable window)
-2. Loads evolution history (what was tried before, what worked)
-3. Analyzes patterns: what dimensions scored high/low?
-4. Generates new strategy document incorporating lessons
+1. Loads recent scored outputs (configurable window, default 20)
+2. Loads evolution history (what was tried before)
+3. Analyzes patterns: what dimensions score high/low?
+4. Generates new strategy incorporating lessons
 5. Saves as "pending" with changelog
 
-**Model:** Claude Sonnet (T3) — strategy quality determines research quality
-
 **Constraints:**
-- Suppressed during warmup (need minimum outputs before evolving)
-- Suppressed during trial period (let trial run before changing again)
-- Respects `IMMUTABLE_STRATEGY_CLAUSES` — some rules can't be changed
+- Suppressed during warmup (need MIN_OUTPUTS_FOR_ANALYSIS outputs first)
+- Suppressed during trial period
+- Respects IMMUTABLE_STRATEGY_CLAUSES
+- Runs every EVOLVE_EVERY_N outputs (default 3)
 
-#### Question Generator (`agents/question_generator.py`, 417 lines)
-**Purpose:** Diagnoses knowledge gaps → generates next research question.
+#### 5. Question Generator
+**File:** `agents/question_generator.py` (417 lines)  
+**Model:** DeepSeek V3.2 (T1)  
+**Purpose:** Diagnoses knowledge gaps → generates next research question
 
 **How it works:**
 1. Reads memory + knowledge base + domain goal
 2. Identifies what's been covered vs. what's missing
 3. Generates ranked list of next questions
-4. Top question becomes next research round
+4. Avoids questions too similar to recent ones (dedup)
 
-**Model:** DeepSeek V3.2 (T1) — synthesis task, doesn't need premium reasoning
+#### 6. Synthesizer Agent
+**File:** `agents/synthesizer.py` (439 lines)  
+**Model:** Claude Sonnet 4 (T3)  
+**Purpose:** Integrates findings into domain knowledge base
 
-#### Synthesizer (`agents/synthesizer.py`, 439 lines)
-**Purpose:** Integrates new findings into the domain knowledge base.
+**What it does:**
+1. Extracts claims from accepted research outputs
+2. Deduplicates similar claims
+3. Detects contradictions between outputs
+4. Marks superseded claims when newer evidence exists
+5. Assesses confidence levels across sources
+6. Identifies remaining gaps
+7. Produces domain summary
+
+**Output:** Structured knowledge base with claims, confidence levels, contradictions, gaps
+
+#### 7. Verifier Agent
+**File:** `agents/verifier.py` (337 lines)  
+**Model:** Claude Sonnet 4 (T3)  
+**Purpose:** Tracks time-bound predictions → checks against reality
 
 **How it works:**
-1. Takes accepted research output
-2. Extracts claims from findings
-3. Checks for contradictions with existing KB
-4. Integrates non-contradicting claims
-5. Flags contradictions for human review
-
-**Model:** Claude Sonnet (T3) — knowledge integration affects downstream quality
-
-#### Verifier (`agents/verifier.py`, 337 lines)
-**Purpose:** Tracks time-bound predictions → checks against reality.
-
-**How it works:**
-1. Extracts predictive claims from research (e.g., "X will happen by Q2 2026")
+1. Extracts predictive claims ("X will happen by date Y")
 2. Stores with verification deadline
-3. When deadline passes, checks web for outcome
+3. When deadline passes, searches web for outcome
 4. Updates claim confidence based on prediction accuracy
 
-**Status:** ⚠️ Infrastructure built but underused — this is the key to breaking self-referential scoring
+**Why it matters:** Breaks the circular LLM-judging-LLM problem by introducing external ground truth.
 
-#### Consensus Agent (`agents/consensus.py`, 284 lines)
-**Purpose:** Multi-agent agreement on controversial questions.
+#### 8. Cross-Domain Agent
+**File:** `agents/cross_domain.py` (629 lines)  
+**Model:** Claude Sonnet 4 (T3)  
+**Purpose:** Extracts general principles → seeds new domains
+
+**How it works:**
+1. Collects proven strategies from mature domains
+2. Claude abstracts domain-specific tips into general principles
+3. Stores principles with evidence + provenance in `_principles.json`
+4. When entering new domain, generates seed strategy from relevant principles
+
+**Example principle:** "Use 3-5 focused searches rather than many broad ones"
+
+#### 9. Consensus Agent
+**File:** `agents/consensus.py` (284 lines)  
+**Model:** Multiple (for diversity)  
+**Purpose:** Multi-agent agreement on controversial questions
 
 **How it works:**
 1. Same question sent to 3 independent researchers
@@ -359,22 +544,33 @@ This is genuinely achievable with current tools — no research breakthroughs ne
 3. Synthesizer merges results
 4. Disagreements flagged for review
 
-**Status:** ⚠️ Built but not used in daemon loop
+**Status:** Built but not used in daemon loop by default (CONSENSUS_ENABLED = False)
 
-### Memory & Knowledge
+#### 10. Domain Orchestrator
+**File:** `agents/orchestrator.py` (582 lines)  
+**Purpose:** Multi-domain round allocation and prioritization
 
-- **Memory Store** (`memory_store.py`, 907 lines): CRUD for outputs, KB claims, knowledge gaps
-- **RAG** (`rag/vector_store.py`): ChromaDB semantic search, 217 claims indexed
-- **Knowledge Graph** (`knowledge_graph.py`, 632 lines): Entity/relation extraction from claims
+**Functions:**
+- `discover_domains()`: Find all domains with outputs
+- `prioritize_domains()`: Rank by strategy status, goal alignment, time decay
+- `allocate_rounds()`: Distribute budget across domains
 
 ---
 
-## 7. Agent Hands — Execution Subsystem
+## 8. Agent Hands — Execution Subsystem
 
-### Core Execution Pipeline
+### Overview
 
-#### Planner (`hands/planner.py`, 546 lines)
-**Purpose:** Decomposes a task into concrete, tool-using steps.
+Agent Hands is the execution side of Cortex. It plans tasks, writes code, runs commands, takes screenshots, evaluates visual quality, and deploys applications.
+
+**Total:** 30+ components, ~12,000 lines of code
+
+### Core Pipeline
+
+#### Planner
+**File:** `hands/planner.py` (594 lines)  
+**Model:** Claude Sonnet 4 (T3)  
+**Purpose:** Decomposes a task into concrete, tool-using steps
 
 **Input:**
 - Goal (natural language task description)
@@ -385,167 +581,241 @@ This is genuinely achievable with current tools — no research breakthroughs ne
 
 **Output:**
 - Structured plan: ordered steps with tool selections and parameters
-- Each step marked "required" or "optional" for criticality handling
+- Each step marked "required" or "optional"
 
-**Model:** Claude Sonnet (T3) — plan quality determines execution quality
+#### Executor
+**File:** `hands/executor.py` (932 lines)  
+**Model:** Grok 4.1 Fast (T2)  
+**Purpose:** Executes a plan step-by-step using tools
 
-#### Executor (`hands/executor.py`, 832 lines)
-**Purpose:** Executes a plan step-by-step using tools.
+**Features:**
+- Multi-turn conversational loop with tool feedback
+- Step-level retry on failures (up to 2 per step)
+- Context window management (summarizes old steps)
+- Hard cost ceiling: $0.50 per execution
+- Visual gate integration (mid-build screenshots)
+- Page-type aware design system loading
+- Abort cleanup with resource release
+
+**Recent fixes (Objective audit):**
+- `visual_gate.cleanup()` called on abort
+- `__del__` safety net on VisualGate
+- Page-type properly wired from CLI
+
+#### Validator
+**File:** `hands/validator.py` (798 lines)  
+**Model:** Claude Sonnet 4 (T3)  
+**Purpose:** Scores execution output quality
+
+**5-dimensional execution rubric:**
+| Dimension | Weight | What It Measures |
+|-----------|--------|------------------|
+| Correctness | 30% | Does the code work? |
+| Completeness | 20% | All requirements met? |
+| Code Quality | 20% | Clean, idiomatic? |
+| Security | 15% | Safe patterns? |
+| KB Alignment | 15% | Uses best practices? |
+
+**Features:**
+- Reads actual artifact file contents (not just summaries)
+- Runs automated tests if present
+- Threshold: Score ≥ 7 (higher than research threshold of 6)
+
+### Visual Feedback System (Objective 4)
+
+#### Visual Gate
+**File:** `hands/visual_gate.py` (344 lines)  
+**Purpose:** Mid-build visual quality checks during execution
 
 **How it works:**
-1. Receives structured plan from Planner
-2. For each step:
-   - Calls appropriate tool
-   - Handles tool response
-   - Retries on failure (up to 2 per step)
-   - Tracks cost, artifacts, timeline
-3. Manages context window (summarizes old steps to stay within limits)
-4. Hard cost ceiling: $0.50 per execution
+1. Detects when frontend files exist
+2. Starts dev server if needed
+3. Takes screenshot via Playwright
+4. Sends to Claude Vision for evaluation
+5. Injects fix instructions if quality below threshold
 
-**Model:** Claude Haiku (cheaper) — just following instructions
+**Features:**
+- Auto-skips when no frontend files (zero cost)
+- Configurable check frequency
+- Page-type aware (app vs marketing)
+- Resource cleanup on abort/completion
 
-#### Validator (`hands/validator.py`, 798 lines)
-**Purpose:** Validates execution outputs against expectations.
+#### Visual Evaluator
+**File:** `hands/visual_evaluator.py` (634 lines)  
+**Model:** Claude Sonnet 4 (T3) with vision  
+**Purpose:** Claude Vision scores screenshots against design standard
 
-**How it works:**
-1. Receives execution results
-2. Checks: Did the goal get accomplished?
-3. Runs any automated tests
-4. Scores execution quality
-5. Provides feedback for learning
+**Functions:**
+- `evaluate_screenshot()`: Basic evaluation
+- `evaluate_with_reference()`: Compare to reference image
+- `generate_fix_instructions()`: Specific fixes for issues
+- `store_visual_score()`: Persist scores for learning
 
-### Tools (5 Categories)
+**Thresholds:**
+- VISUAL_ACCEPT_THRESHOLD = 8 (accept as-is)
+- VISUAL_FIX_THRESHOLD = 5 (fix pass needed)
+- MAX_VISUAL_FIX_ROUNDS = 2 (prevent infinite loop)
 
-| Tool | File | Purpose |
-|------|------|---------|
-| **Code** | `hands/tools/code.py` (394 lines) | Write, edit, read files |
-| **Terminal** | `hands/tools/terminal.py` (258 lines) | Run shell commands |
-| **Git** | `hands/tools/git.py` (206 lines) | Git operations |
-| **Search** | `hands/tools/search.py` (352 lines) | Web search |
-| **HTTP** | `hands/tools/http.py` (229 lines) | HTTP requests, API calls |
+#### Browser Tool
+**File:** `hands/tools/browser.py` (432 lines)  
+**Purpose:** Playwright integration for visual feedback
+
+**Functions:**
+- `screenshot(url, viewport?)` → base64 image
+- `navigate(url)` → load page
+- `click(selector)` → interact with element
+- `fill(selector, text)` → fill input
+- `wait_for(selector)` → wait for element
+
+### Tools (7 Categories)
+
+| Tool | File | Lines | Purpose |
+|------|------|-------|---------|
+| **Code** | `hands/tools/code.py` | 394 | Write, edit, read files |
+| **Terminal** | `hands/tools/terminal.py` | 258 | Run shell commands |
+| **Git** | `hands/tools/git.py` | 206 | Git operations |
+| **Search** | `hands/tools/search.py` | 352 | Web search |
+| **HTTP** | `hands/tools/http.py` | 229 | HTTP requests, API calls |
+| **Browser** | `hands/tools/browser.py` | 432 | Playwright visual |
+| **Registry** | `hands/tools/registry.py` | 345 | Tool registration |
+
+**Tool Safety:**
+- Sandbox mode by default (EXEC_SANDBOX_MODE = True)
+- Whitelist of allowed commands (EXEC_ALLOWED_COMMANDS)
+- Blocked patterns (EXEC_BLOCKED_PATTERNS): no `rm -rf /`, fork bombs, privilege escalation
+- Max file size: 100KB per write
+- Optional directory restrictions
 
 ### Learning Layer
 
-#### Pattern Learner (`hands/pattern_learner.py`, 497 lines)
-**Purpose:** Extracts reusable patterns from execution history.
+#### Pattern Learner
+**File:** `hands/pattern_learner.py` (497 lines)  
+**Purpose:** Extracts reusable patterns from execution history
 
 **What it learns:**
-- Tool usage patterns that correlate with high/low scores
-- Step sequences that reliably succeed or fail
+- Tool usage patterns correlated with success/failure
+- Step sequences that reliably work or fail
 - Error categories and their resolutions
 - Domain-specific execution heuristics
 
-**Output:** "Execution lessons" injected into future planner/executor prompts
+**Output:** Lessons injected into future planner/executor prompts
 
-Example lesson:
-> "npm install fails without --prefix when cwd doesn't have package.json"
+#### Execution Meta-Analyst
+**File:** `hands/exec_meta.py` (506 lines)  
+**Purpose:** Execution strategy evolution (parallel to Brain's meta-analyst)
 
-#### Project Orchestrator (`hands/project_orchestrator.py`, 833 lines)
-**Purpose:** Manages multi-phase projects end-to-end.
+### Supporting Components
 
-For "build me a SaaS app":
-1. **DECOMPOSE**: Break into phases (architecture, setup, features, tests, deploy)
-2. **PLAN**: Each phase planned with Planner
-3. **EXECUTE**: Phases run sequentially with validation gates
-4. **CHECKPOINT**: Progress saved after each phase
-5. **REVIEW**: Human review at critical phases (architecture, deploy)
-
-### Additional Hands Components
-
-- `error_analyzer.py` — Root cause analysis for failures
-- `exec_meta.py` — Execution strategy evolution (parallel to Brain's meta-analyst)
-- `feedback_cache.py` — Caches correction feedback
-- `mid_validator.py` — Mid-execution validation
-- `output_polisher.py` — Cleans up execution outputs
-- `plan_cache.py` — Caches similar plans
-- `plan_preflight.py` — Validates plan before execution
-- `retry_advisor.py` — Advises on retry strategies
-- `strategy_assembler.py` — Builds execution strategies
-- `task_generator.py` — Generates tasks from goals
-- `timeout_adapter.py` — Adapts timeouts based on task complexity
-- `tool_health.py` — Monitors tool reliability
-- `workspace_diff.py` — Tracks changes to workspace
+| Component | File | Lines | Purpose |
+|-----------|------|-------|---------|
+| Error Analyzer | `error_analyzer.py` | 192 | Root cause analysis |
+| Feedback Cache | `feedback_cache.py` | 206 | Cache correction feedback |
+| Mid Validator | `mid_validator.py` | 264 | Mid-execution validation |
+| Output Polisher | `output_polisher.py` | 223 | Clean up outputs |
+| Plan Cache | `plan_cache.py` | 226 | Cache similar plans |
+| Plan Preflight | `plan_preflight.py` | 284 | Validate plan before exec |
+| Retry Advisor | `retry_advisor.py` | 266 | Advise on retry strategies |
+| Strategy Assembler | `strategy_assembler.py` | 226 | Build exec strategies |
+| Task Generator | `task_generator.py` | 332 | Generate tasks from goals |
+| Timeout Adapter | `timeout_adapter.py` | 147 | Adapt timeouts by complexity |
+| Tool Health | `tool_health.py` | 149 | Monitor tool reliability |
+| Workspace Diff | `workspace_diff.py` | 122 | Track workspace changes |
+| Checkpoint | `checkpoint.py` | 172 | Save/restore progress |
+| Artifact Tracker | `artifact_tracker.py` | 365 | Track produced artifacts |
+| Project Orchestrator | `project_orchestrator.py` | 832 | Multi-phase projects |
+| Code Exemplars | `code_exemplars.py` | 247 | Example code patterns |
+| Exec Templates | `exec_templates.py` | 280 | Execution templates |
+| File Repair | `file_repair.py` | 246 | Auto-fix common issues |
+| Exec Analytics | `exec_analytics.py` | 266 | Execution metrics |
+| Exec Cross-Domain | `exec_cross_domain.py` | 254 | Cross-domain exec transfer |
+| Exec Memory | `exec_memory.py` | 142 | Execution memory store |
 
 ---
 
-## 8. The Orchestrator Layer
+## 9. The Orchestrator Layer
 
-### Scheduler (`scheduler.py`, 1,812 lines)
-**Purpose:** The daemon loop that runs everything.
+### Scheduler
+**File:** `scheduler.py` (1,867 lines)  
+**Purpose:** The daemon loop that runs everything
 
-**How it works:**
+**How it works each cycle:**
 1. **Plan phase**: Cortex Orchestrator decides what to focus on
 2. **Allocate**: Distribute rounds across domains based on priorities
 3. **Execute**: Run research rounds
 4. **Learn**: Run meta-analyst if enough outputs
 5. **Sync**: Create tasks for Hands if research suggests actions
-6. **Health check**: Run monitoring
-7. **Sleep**: Wait for next cycle
-8. **Repeat**
+6. **Hands**: Execute pending build tasks
+7. **Health check**: Run monitoring
+8. **Sleep**: Wait for next cycle (default 60 minutes)
+9. **Repeat**
 
-**Configuration:**
+**CLI flags:**
 - `--daemon`: Run as daemon
-- `--interval N`: Minutes between cycles (default 60)
-- `--autonomous`: No human approval required for trials
-- `--rounds-per-cycle N`: Max rounds per cycle (default 5)
+- `--interval N`: Minutes between cycles
+- `--autonomous`: No human approval required for strategies
+- `--rounds-per-cycle N`: Max rounds per cycle
 
-### Watchdog (`watchdog.py`, 601 lines)
-**Purpose:** Circuit breaker and health monitoring for 24/7 operation.
+### Watchdog
+**File:** `watchdog.py` (601 lines)  
+**Purpose:** Circuit breaker and health monitoring for 24/7 operation
 
 **Responsibilities:**
 1. **Heartbeat monitoring**: Detect stalled processes
-2. **Health checks**: Run `monitoring.run_health_check()` each cycle
+2. **Health checks**: Run monitoring each cycle
 3. **Circuit breaker**: Pause on 3 consecutive critical alerts
-4. **Crash counter**: Track consecutive failures, trigger cooldown after 5
-5. **Cost ceiling**: Hard stop at 1.5x daily budget
+4. **Crash counter**: Cooldown after 5 consecutive failures (30 min)
+5. **Cost ceiling**: Hard stop at 1.5x daily budget ($10.50)
 6. **Recovery**: Auto-restart after transient failures
+7. **State persistence**: Survives daemon restarts
 
 **States:**
-- `running` — Normal operation
-- `paused` — Temporarily paused (will auto-resume)
-- `cooldown` — Cooling down after failures (30 minutes)
-- `circuit_open` — Circuit breaker tripped (needs human review)
-- `budget_halt` — Hard cost ceiling hit
-- `stopped` — Gracefully stopped
+| State | Meaning |
+|-------|---------|
+| `running` | Normal operation |
+| `paused` | Temporarily paused (will auto-resume) |
+| `cooldown` | Cooling down after failures (30 min) |
+| `circuit_open` | Circuit breaker tripped (needs human review) |
+| `budget_halt` | Hard cost ceiling hit |
+| `stopped` | Gracefully stopped |
 
-### Sync (`sync.py`, 461 lines)
-**Purpose:** Brain → Hands task queue.
+### Sync
+**File:** `sync.py` (460 lines)  
+**Purpose:** Brain → Hands task queue
 
-**How it works:**
-1. Brain research suggests an action (e.g., "We should build X")
-2. Scheduler creates a task via `create_task()`
-3. Task enters queue as "pending"
-4. Hands picks up pending tasks
-5. Task moves to "in_progress" → "completed" or "failed"
-6. Stale tasks (>72h without action) get flagged
+**Features:**
+- Tasks persisted as JSON in `logs/sync_tasks.json`
+- Task lifecycle: pending → in_progress → completed | failed | stale
+- Stale detection: tasks >72h without action get flagged
+- Max pending: 50 tasks (prevents unbounded growth)
 
-**Task types:** `action`, `build`, `deploy`, `investigate`
+**Task types:** `action`, `build`, `deploy`
 
-**Current issue:** Tasks are created as "investigate" but Hands only accepts "build"/"action" — **this is why 0 tasks have executed**.
-
-### Cortex Orchestrator (`agents/cortex.py`, 628 lines)
-**Purpose:** The "brain of brains" — strategic reasoning above everything.
+### Cortex Orchestrator Agent
+**File:** `agents/cortex.py` (1,236 lines)  
+**Model:** Claude Sonnet 4 (T3)  
+**Purpose:** The "brain of brains" — strategic reasoning above everything
 
 **Key functions:**
-- `plan_next_actions()`: Analyzes all domain stats, budget, goals → recommends what to focus on
-- `assess_system()`: Unified health assessment across Brain + Hands
-- `interpret_findings()`: After each cycle, extract strategic insights
-- `query_orchestrator()`: Ad-hoc strategic questions
-
-**Model:** Claude Sonnet (T3) — orchestration decisions are sacred
+- `pipeline()`: Full research → build flow
+- `query_knowledge()`: Access Brain's KB during builds
+- `report_build_complete()`: Send Telegram notifications
+- `monitor_build()`: Track phase progress, intervene if needed
+- `_journal()`: Write to audit trail
 
 ---
 
-## 9. The Identity Layer
+## 10. The Identity Layer
 
-The Identity Layer is a set of 5 markdown files that define what the system is, what it will do, and what it will never do. Every agent reads these. They are **immutable** by the system itself.
+The Identity Layer is a set of **8 markdown files** that define what the system is, what it will do, and what it will never do. Every agent reads these. They are **immutable** by the system itself.
+
+**Location:** `agent-brain/identity/`
 
 ### goals.md — What the System Exists to Do
 
 **Primary Goal:**
 > "Generate revenue by finding, validating, building, and selling solutions to real problems."
 
-**Operating Goals (in priority order):**
+**Operating Goals (priority order):**
 1. **Stay alive.** Don't blow the budget. Don't crash.
 2. **Learn things that lead to action.** Research only valuable if it changes what we build.
 3. **Ship revenue-generating work.** Productized services first, SaaS second.
@@ -558,7 +828,7 @@ The Identity Layer is a set of 5 markdown files that define what the system is, 
 1. Never falsify research
 2. Never deceive users
 3. Never make irreversible decisions without human approval
-4. Never optimize against constraints (budget, circuit breaker, quality threshold)
+4. Never optimize against constraints
 5. Never harm real people
 6. Never access systems without authorization
 
@@ -571,30 +841,23 @@ The Identity Layer is a set of 5 markdown files that define what the system is, 
 ### boundaries.md — Operational Limits
 
 **Budget:**
-- Daily spend limit: $7.00 USD
+- Daily spend limit: $7.00 USD ($2 Claude + $5 OpenRouter)
 - Hard ceiling: 1.5x daily ($10.50)
-- Per-round cost awareness: Skip if >25% of remaining budget
-
-**Autonomy:**
-- Strategy changes require human approval (unless `--autonomous`)
-- No self-modification of safety code
-- No external deployments without approval
+- Single execution cap: $0.50
 
 **Quality:**
-- Minimum threshold: 6/10
-- Maximum retries: 2
+- Research threshold: 6/10
+- Execution threshold: 7/10
+- Visual threshold: 8/10
+- Max retries: 2
 - Auto-rollback on >1.0 score drop
 
 ### risk.md — Risk Tolerance
 
 **Risk Tiers:**
-- **Tier 1 (Proven domains, 10+ outputs):** Up to 40% of daily budget, may trial new strategies freely
-- **Tier 2 (Developing, 3-10 outputs):** Up to 25% of budget, new strategies must beat baseline by ≥0.5
-- **Tier 3 (New domains, 0-2 outputs):** Up to 15% of budget, use seed strategy first
-
-**Cost Risk:**
-- Never spend >$0.50 on a single round
-- At 80% of daily limit → minimum-cost operations only
+- **Tier 1** (Proven, 10+ outputs): Up to 40% daily budget
+- **Tier 2** (Developing, 3-10 outputs): Up to 25% budget
+- **Tier 3** (New, 0-2 outputs): Up to 15% budget
 
 ### taste.md — Quality Standards
 
@@ -604,460 +867,660 @@ The Identity Layer is a set of 5 markdown files that define what the system is, 
 - Actionable, not academic
 - Honest about uncertainty
 
-**Bad Research:**
-- Generic summaries
-- Claims without sources
-- Restates question as answer
-- Adds no new information
+### design_system.md — Visual Standard for Apps (420+ lines)
+
+Created in Objective 5. Defines:
+- Component library: shadcn/ui
+- Animation: Framer Motion patterns
+- Typography: font families, sizes, weights
+- Color system: palette structure, dark mode
+- Spacing: 4px/8px grid
+- States: empty, loading, error (all designed)
+- Responsive: mobile-first breakpoints
+
+### marketing_design.md — Visual Standard for Landing Pages (325+ lines)
+
+Created in Objective 5. Defines:
+- Hero section structure
+- Social proof patterns
+- CTA design and placement
+- Above-the-fold content rules
+- Testimonial formatting
+- Pricing table design
+- Footer structure
+
+### visual_scoring_rubric.md — Scoring Calibration (143+ lines)
+
+Created in Objective 5. Defines:
+- What 5/10 looks like vs 8/10 vs 10/10
+- Specific visual anti-patterns
+- Calibration examples
 
 ---
 
-## 10. Infrastructure & Operations
+## 11. Infrastructure & Operations
 
-### Database (`db.py`, 646 lines)
-
-SQLite with WAL mode for concurrent access.
+### Database Layer
+**File:** `db.py` (645 lines)  
+**Tech:** SQLite with WAL mode for concurrent access
 
 **Tables:**
-| Table | Records | Purpose |
-|-------|---------|---------|
-| `outputs` | 4,053 | Research outputs with scores and metadata |
-| `costs` | 2,344 | API cost tracking per call |
-| `alerts` | 183 | Health alerts history |
-| `health_snapshots` | 124 | Periodic health state |
-| `run_log` | 212 | Research run history |
+| Table | Purpose |
+|-------|---------|
+| `outputs` | Research outputs with scores |
+| `costs` | API cost tracking per call |
+| `alerts` | Health alerts history |
+| `health_snapshots` | Periodic health state |
+| `run_log` | Research run history |
+| `sync_tasks` | Brain→Hands task queue |
+| `daemon_cycles` | Daemon cycle history |
 
-### Cost Tracking (`cost_tracker.py`, 243 lines)
-
-Dual-write to JSONL + SQLite database.
-
-**Budget configuration:**
-- `DAILY_BUDGET_USD = 7.00` ($2 Claude + $5 OpenRouter)
-- `HARD_COST_CEILING_USD = 10.50` (1.5x daily)
-- Per-provider tracking (Claude separate from OpenRouter)
-
-**Known issue:** `check_budget()` reads from JSONL which doesn't always sync with DB.
-
-### Monitoring (`monitoring.py`, 327 lines)
-
-6 automated health checks:
-1. **Score trends**: Detect declining quality
-2. **Sudden drops**: Alert on >1.5 point score drops
-3. **Budget velocity**: Alert if spending too fast
-4. **Stale domains**: Flag domains with no activity >7 days
-5. **Rejection rates**: Alert if >50% rejections
-6. **Error rates**: Alert on high error counts
-
-### Analytics (`analytics.py`, 816 lines)
-
-- `score_trajectory(domain)`: Score trend over time
-- `domain_comparison()`: Compare all domains
-- `recommendations()`: Suggest focus areas
-
-### Telegram Bot (`telegram_bot.py`, 680 lines)
-
-Full chat interface + alerting.
+### Cost Tracking
+**File:** `cost_tracker.py` (286 lines)
 
 **Features:**
+- Dual-write to JSONL + SQLite
+- Per-provider tracking (Claude vs OpenRouter)
+- Daily budget enforcement
+- All-time spend tracking
+
+**Configuration:**
+```python
+DAILY_BUDGET_USD = 7.00
+DAILY_BUDGET_CLAUDE = 2.00
+DAILY_BUDGET_OPENROUTER = 5.00
+```
+
+### LLM Router
+**File:** `llm_router.py` (470 lines)  
+**Purpose:** Multi-provider abstraction
+
+**Routing:**
+- `claude-*` models → Anthropic API (direct)
+- `*/` models (e.g., `x-ai/grok-4.1-fast`) → OpenRouter API
+
+**Features:**
+- Normalized response format (Anthropic-compatible)
+- Tool use support for both providers
+- Reasoning effort configuration per role
+
+### Monitoring
+**File:** `monitoring.py` (327 lines)  
+**Purpose:** Score trend detection, health checks, automated alerts
+
+**6 automated checks:**
+1. Declining score trends
+2. Sudden score drops (>1.5 points)
+3. Budget velocity (>80% consumed)
+4. Stale domains (>14 days inactive)
+5. High rejection rates (>50%)
+6. Error rate spikes
+
+### Analytics
+**File:** `analytics.py` (816 lines)  
+**Purpose:** Performance analysis
+
+**Functions:**
+- `score_trajectory(domain)`: Score trend over time
+- `domain_comparison()`: Compare all domains
+- `strategy_effectiveness()`: Compare strategy versions
+- `cost_efficiency()`: Cost per accepted output
+
+### Loop Guard
+**File:** `loop_guard.py` (207 lines)  
+**Purpose:** Real-time protection during auto mode
+
+**Detects:**
+- Consecutive failures (3x)
+- Question similarity (>70% overlap)
+- Cost velocity (>80% of budget)
+- Score regression
+- Same-error repetition
+
+### Telegram Bot
+**File:** `telegram_bot.py` (680 lines)  
+**Purpose:** Chat interface + alerting
+
+**Commands:**
 - `/status` — System status
 - `/budget` — Budget report
 - `/domains` — Domain list
 - `/research <question>` — Run research
-- Alert forwarding from monitoring
+- Model switching via `/model`
 
-**Status:** ✅ Running on VPS (3h 26min uptime as of last check)
+### Knowledge Graph
+**File:** `knowledge_graph.py` (632 lines)  
+**Purpose:** Structured relationships between findings
 
-### VPS Deployment
+**Features:**
+- Nodes: claims, topics, sources, questions
+- Edges: supports, contradicts, supersedes, relates_to
+- Contradiction detection
+- Gap analysis
+- Cluster identification
 
-**Server:** 207.180.219.27 (Contabo VPS)
-**OS:** Ubuntu 24.04.3 LTS
-**Services:**
-- `cortex-daemon.service` — Main daemon loop
-- `cortex-telegram.service` — Telegram bot
+### RAG (Retrieval-Augmented Generation)
+**Files:** `rag/` (3 files, 914 lines)  
+**Tech:** ChromaDB + all-MiniLM-L6-v2 embeddings
 
-**Systemd configuration:**
-```ini
-[Service]
-ExecStart=/root/AI-agents/agent-brain/venv/bin/python3 main.py --daemon --interval 60 --autonomous
-MemoryMax=2G
-Restart=on-failure
-RestartSec=30
-```
+**Components:**
+- `embeddings.py`: Local embedding generation
+- `vector_store.py`: ChromaDB persistence
+- `retrieval.py`: Semantic search
 
 ---
 
-## 11. Current VPS State
+## 12. Development Journey — Objectives 1-5
 
-*Checked: March 3, 2026 07:47 CET*
+### Timeline
 
-### Service Status
+| Date | Commit | Objective | Changes |
+|------|--------|-----------|---------|
+| Mar 3 | d9800ca | Objective 1 | Fix 3 critical bugs, deploy to VPS |
+| Mar 3 | f89f0e0 | Objective 2 prep | Prompt upgrades, design system |
+| Mar 3 | 62afba9 | Objective 3 | Full 3-way communication protocol |
+| Mar 3 | 47b2522 | Objective 4 | Playwright visual feedback system |
+| Mar 3 | 497490b | Objective 5 | Visual standard training |
+| Mar 4 | f0e85fd | Audit | Fix 3 more bugs, 27 new tests |
 
-| Service | Status | Uptime | Memory |
-|---------|--------|--------|--------|
-| cortex-daemon | ✅ Active (running) | 31 min | 587 MB / 2 GB |
-| cortex-telegram | ✅ Active (running) | 3h 26min | 117 MB / 1 GB |
+### Objective 1: Stop the Bleeding
 
-### Database Statistics
+**Bugs Fixed:**
+1. **Budget desync** — `check_budget()` was reading JSONL, DB had different data. Fix: read from SQLite as source of truth.
+2. **Brain→Hands pipeline dead** — Tasks created with type "investigate" but executor only accepted "build"/"action". Fix: map keywords correctly.
+3. **Watchdog cooldown stall** — "all" meta-domain triggered phantom cooldowns. Fix: filter invalid domains.
 
-| Table | Count |
-|-------|-------|
-| outputs | 4,053 |
-| costs | 2,344 |
-| alerts | 183 |
-| health_snapshots | 124 |
-| run_log | 212 |
+**Result:** 1,538 tests passing, deployed to VPS
 
-### Domain Breakdown (from outputs table)
+### Objective 2: Prompt Upgrades
 
-| Domain | Output Count | Notes |
-|--------|--------------|-------|
-| test | 3,809 | Testing data |
-| economics | 174 | Active research |
-| productized-services | 29 | Revenue-focused |
-| nextjs-react | 26 | Tech domain |
-| general | 6 | Catch-all |
-| geopolitics | 2 | — |
-| onlinejobsph-employers | 2 | Revenue target |
-| physics | 2 | — |
-| ai | 1 | — |
-| crypto | 1 | — |
-| cybersecurity | 1 | — |
+**Changes:**
+- Upgraded `identity/boundaries.md` with operational limits
+- Upgraded `hands/planner.py` prompt for better structure
+- Upgraded `hands/executor.py` prompt with anti-patterns
+- Upgraded `agents/cortex.py` prompt for strategic reasoning
+- Created `identity/design_system.md` (v1.0)
+- Fixed executor model to Grok 4.1 Fast
 
-### Sync Tasks (Brain → Hands Queue)
+### Objective 3: Full Three-Way Communication
 
-```
-Total: 37 tasks
-By type: {'investigate': 36, 'deploy': 1}
-By status: {'pending': 37}
-```
+**Created:** `protocol.py` with 10 typed message dataclasses
 
-**🚨 Critical:** All 37 tasks are pending. Zero executed. The pipeline is broken.
+**Messages:**
+- ResearchRequest, ResearchComplete
+- BuildTask, PhaseComplete, ContextNeeded, ContextResponse
+- BuildComplete, BuildFailed
+- TaskComplete, JournalEntry
 
-### Strategy Status
+**Tests:** 43 new tests for protocol
 
-All domains show `unknown` status with 0 versions — likely a data sync issue with VPS strategies directory.
+### Objective 4: Give Hands Eyes (Playwright)
 
-### Budget
+**Created:**
+- `hands/tools/browser.py` — Playwright tool integration
+- `hands/visual_evaluator.py` — Claude Vision scoring
+- `hands/visual_gate.py` — Mid-build visual checks
+- Executor integration for visual feedback loop
 
-```
-Spent today: $0.63
-Limit: $7.00
-Remaining: $6.37
-Within budget: True
-```
+**Tests:** 62 new tests, 1,643 total passing
+
+### Objective 5: Train the Visual Standard
+
+**Created:**
+- `identity/design_system.md` — App UI standard (v1.1, 420+ lines)
+- `identity/marketing_design.md` — Marketing page standard (v1.0, 325+ lines)
+- `identity/visual_scoring_rubric.md` — Calibration guide (143+ lines)
+
+**Changes:**
+- Executor loads page_type-aware design system
+- Scoring calibration and storage
+- Score persistence for strategy evolution
+
+**Tests:** 67 new tests, 1,710 total passing
+
+### Audit Pass
+
+**Bugs Fixed:**
+1. CLI page_type wiring — `_detect_page_type()` now passes to execute_plan()
+2. Abort cleanup leak — `visual_gate.cleanup()` called on abort
+3. No `__del__` safety net — Added to VisualGate class
+
+**Tests:** 27 new tests, 1,737 total passing
+
+### Pre-existing Issues (Low Severity, Not Fixed)
+
+1. `sync.py` stale import `execute` (should be `execute_plan`)
+2. `sync.py` stale import `validate` (should be `validate_execution`)
+3. `project_orchestrator.py` stale import
+4. `scheduler.py` missing page_type/visual_context in execute_plan() call
+
+---
+
+## 13. Current VPS State
+
+### Server Details
+
+| Property | Value |
+|----------|-------|
+| **IP** | 207.180.219.27 |
+| **Provider** | Contabo VPS |
+| **OS** | Ubuntu 24.04.3 LTS |
+| **User** | root |
+| **Git Version** | d9800ca (Objective 1 deployed) |
+
+### Service Status (March 4, 2026)
+
+| Service | Status | State |
+|---------|--------|-------|
+| cortex-daemon | ✅ Active | budget_halt |
+| cortex-telegram | ✅ Active | running |
 
 ### Watchdog State
 
-```
-State: cooldown
-Consecutive failures: 0
-Cooldowns: 0
+```json
+{
+  "state": "budget_halt",
+  "consecutive_failures": 0,
+  "cycle_count": 23,
+  "total_rounds": 30,
+  "paused_reason": null
+}
 ```
 
-The "cooldown" state indicates the system paused after hitting some threshold.
+The daemon is in `budget_halt` state because:
+- Total spend today: $25.40
+- Daily budget: $7.00
+- Hard ceiling: $10.50
 
-### Latest Commits (on VPS)
+The system correctly halted when it hit the cost ceiling.
+
+### Budget Status
 
 ```
-86a2e2b fix: eliminate ChromaDB recursion by removing embedding_function from collections
-2a438e9 fix: domain alignment ordering, rounds_per_cycle=5, total_planned cap, RAG recursion 10k
-b526a5a Fix 5 critical gaps: RAG recursion, domain alignment, circuit breaker, DB init, scrapling
-ec35c9a Fix round timeout + smart sync task priorities for Hands auto-exec
-9a4ad82 Fix 6 critical gaps: autonomous mode, Hands in daemon, Cortex enforcement, cycle persistence, DB init, test isolation
+Within budget: False
+Spent today: $25.40
+Daily limit: $7.00
+Remaining: $0.00 (blocked)
 ```
+
+### Latest Log Lines
+
+```
+[INFO] 2026-03-03T14:44:44 === Cycle 14 starting ===
+[WARNING] 2026-03-03T14:44:44 Watchdog blocked cycle: Hard cost ceiling ($10.50) exceeded
+[INFO] 2026-03-03T15:44:44 === Cycle 15 starting ===
+[WARNING] 2026-03-03T15:44:44 Watchdog blocked cycle: Hard cost ceiling reached — halted for the day
+...
+```
+
+The watchdog is correctly blocking cycles because the budget is exhausted.
+
+### VPS vs Local Codebase
+
+| | VPS | Local |
+|---|-----|-------|
+| Git commit | d9800ca | f0e85fd |
+| Tests | 1,538 | 1,737 |
+
+**Note:** VPS needs `git pull` to get Objectives 2-5 and audit fixes.
 
 ---
 
-## 12. Known Issues & Technical Debt
-
-### Critical (Blocks Core Functionality)
-
-#### 1. Brain→Hands Pipeline Broken
-**Symptom:** 37 sync tasks created, 0 executed
-**Root cause:** `_create_tasks_from_research()` creates tasks with type "investigate" (36/37) and "deploy" (1/37). But `_execute_hands_tasks()` only accepts "build" or "action" types.
-**Impact:** The system learns but never acts on what it learns.
-**Fix:** Either expand accepted types in executor OR change task creation types.
-
-#### 2. Budget Tracking Desync
-**Symptom:** JSONL shows different spend than SQLite database
-**Root cause:** `check_budget()` reads from `costs.jsonl` but some cost entries only go to DB
-**Impact:** System may think it has budget when it doesn't (or vice versa)
-**Fix:** Make `check_budget()` read from DB as source of truth
-
-#### 3. Watchdog in Cooldown State
-**Symptom:** Daemon stuck in "cooldown" state
-**Root cause:** Likely triggered by circuit breaker from repeated domain failures
-**Impact:** System not actively researching
-**Fix:** Investigate what caused cooldown, possibly reset state manually
+## 14. Known Issues & Technical Debt
 
 ### High Priority
 
-#### 4. Strategy Evolution Stalled
-**Symptom:** Most domains show "unknown" status, no active strategies
-**Root cause:** Strategies exist on VPS but `_status.json` files may be missing or malformed
-**Impact:** Research uses generic strategies instead of evolved ones
-**Fix:** Audit strategy directories, rebuild status files
+#### 1. VPS Not Updated
+The VPS is running Objective 1 code (d9800ca). It needs:
+- `git pull` to get f0e85fd
+- Service restart
 
-#### 5. Domain Goals Missing
-**Symptom:** Only productized-services has a goal defined
-**Root cause:** `domain_goals.py` wasn't populated for other domains
-**Impact:** Question generator produces generic queries instead of goal-aligned ones
-**Fix:** Define goals for revenue domains (onlinejobsph-employers especially)
+#### 2. Pre-existing Stale Imports (4 files)
+Low severity but should be cleaned up:
+- `sync.py`: `execute` → `execute_plan`, `validate` → `validate_execution`
+- `project_orchestrator.py`: same stale import
+- `scheduler.py`: execute_plan() call missing page_type/visual_context params
+
+#### 3. Consensus Agent Unused
+Built but CONSENSUS_ENABLED = False. Not wired into daemon loop.
+
+#### 4. Knowledge Graph Auto-Trigger Missing
+Graph extraction works but not auto-triggered on new outputs. Gets stale.
+
+#### 5. Dashboard Not Deployed
+`dashboard/api.py` (784 lines) built but not running on VPS.
 
 ### Medium Priority
 
-#### 6. Consensus Agent Not Used
-The consensus agent infrastructure exists but isn't called in the daemon loop. For high-stakes decisions, having 3 independent researchers would improve reliability.
+#### 6. Domain Goals Sparse
+Only productized-services has a goal defined. Other domains lack direction.
 
-#### 7. Knowledge Graph Not Auto-Triggered
-The graph extraction works but isn't automatically run on new outputs. The graph data exists but gets stale.
+#### 7. Verifier Underused
+Built to break circular LLM-judging-LLM but rarely called.
 
-#### 8. Dashboard Not Deployed
-`dashboard/api.py` (784 lines) is built but not running on VPS. Would provide visibility without SSH.
+#### 8. MCP Gateway Disconnected
+`mcp/` (1,739 lines) built for external tool servers but not configured.
 
-#### 9. MCP Gateway Disconnected
-`mcp/` (1,739 lines) was built for external tool servers but isn't configured.
+### Tech Debt
 
-### Low Priority / Tech Debt
-
-- Orphaned `rag/chroma_store` directory (old RAG implementation)
-- `TOTAL_BALANCE_USD` in config is hardcoded from Feb 28
 - Some test isolation issues (tests leave artifacts)
+- Browser tools disabled by default (needs playwright install)
 
 ---
 
-## 13. The Architect's Vision Documents — Summary
+## 15. The Architect's Vision Documents — Summary
 
-The `/workspaces/AI-agents/my-notes.md/` directory contains the Architect's raw thinking and strategic context. Here are the key insights from each:
+The `/workspaces/AI-agents/my-notes.md/` directory contains the Architect's raw thinking. Key files:
 
 ### ULTIMATE PURPOSE.txt (603 lines)
+
 The origin conversation about building self-learning AI.
 
 **Key concepts:**
-- **Observable Horizon**: The system must know what it doesn't know. Three states: (1) not enough data, (2) capability gap, (3) genuine frontier of knowledge.
-- **Calibrated uncertainty**: Not just confidence scores, but understanding WHY confidence is low.
-- **Recursive self-improvement as a separate layer**: The thing that improves the system must be separate from the system itself.
-
-**Memorable quote:**
-> "The most dangerous version is one confidently wrong at scale."
+- **Observable Horizon**: The system must know what it doesn't know
+- **Calibrated uncertainty**: Not just confidence scores, but WHY
+- "The most dangerous version is one confidently wrong at scale."
+- "Don't let it stay a demo."
 
 ### real-self-learning.md (231 lines)
-Precise definition of the 5-layer self-learning architecture.
+
+The precise 5-layer definition.
 
 **Key insight:**
-> "90% of memory-enabled AI projects live and die at Layer 1. They store things but never evaluate, never adapt, never evolve. Layer 3+ is what makes this novel."
+> "90% of memory-enabled AI projects live and die at Layer 1. They store things but never evaluate. Layer 3+ is what makes this novel."
 
 ### vision-hands.md
-Full architecture of Brain + Hands execution vision.
 
-**Domains planned:**
-- market-research, saas-building, growth-hacking, copywriting, customer-support
+Brain + Hands architecture, tool registry, revenue model.
 
-**Revenue model:** Marketplace products (Shopify apps, VS Code extensions, SaaS)
+**Revenue model:**
+- Marketplace products (Next.js landing pages)
+- $500 max initial investment
+- Self-funding by Month 2-3
 
 ### where-this-goes.md
+
 Phase roadmap:
-1. Statistical Grounding (volume of outputs)
+1. Statistical Grounding (volume)
 2. Memory as Knowledge Graph
 3. Multi-Agent Collaboration
 4. Domain Specialization
 5. Continuous Autonomous Operation
 
+**Key warning:**
+> "The biggest risk isn't technical. It's evaluation quality. The critic is the sacred component."
+
 ### more-insight.md
-Honest gap analysis from a conversation with Claude.
+
+Honest gap analysis.
 
 **Key warnings:**
 - "The system has never run unsupervised"
-- "The circular critic problem is still unsolved"
+- "The circular critic problem is real"
 - "Don't let it stay a demo"
 
 ### ACTION-PLAN.md
-Concrete action items for immediate execution.
+
+Concrete action items.
 
 **Key point:**
 > "Brain is production-ready for productized-services. Don't wait on Brain improvements to act."
 
 ### ideal-thoughts.md (3,604 lines)
-The longest document — full ideal architecture discussion.
+
+Full ideal architecture discussion.
 
 **Contains:**
 - 26-agent architecture across 5 layers
-- Cost optimization strategy (4-tier models)
+- Cost optimization strategy
 - Model routing decisions
-- HuggingFace dataset usage for local training
-- Learning loop implementation details
+- Learning loop implementation
 
 ### my-huge-perspetive.md (977 lines)
-The transistor→H100 analogy and scaling vision.
+
+The transistor→H100 analogy.
 
 **Key insight:**
-> "The Identity Layer you define today in one instance becomes the values of the entire network. What you bake into that first instance is what scales to 1000 instances."
+> "The Identity Layer you define today in one instance becomes the values of the entire network."
+
+**Scaling stages:**
+- Stage 1 (NOW): One Brain + Hands
+- Stage 2 (6-12mo): Multiple domains
+- Stage 3 (1-2yr): Multiple VPS
+- Stage 4 (2-3yr): Instances teaching each other
+- Stage 5 (3-5yr): General problem solving
 
 ### OLJstrat-mar1.md (496 lines)
-OnlineJobsPH outreach strategy for first revenue.
+
+OnlineJobsPH outreach strategy.
 
 **The pitch structure:**
 1. Pattern interrupt (prove you read their post)
 2. Reframe (make alternative feel safer)
-3. Specific deliverable (the list that builds trust)
+3. Specific deliverable
 4. Personalized line (from Brain's research)
-5. Friction removal (payment terms)
+5. Friction removal
 6. Single CTA
 
-### 8phaseplan.md
-The 8-phase implementation plan from "here" to "one working transistor."
+### 8phaseplan.md (273 lines)
 
-**Phases:**
-1. Fix Safety Gaps
-2. Integration Tests
-3. Identity Layer
-4. Supervised Dry Runs
-5. Stability Hardening
-6. Extended Unsupervised Run
-7. Cortex Orchestrator in Loop
-8. Confidence Gate
+Implementation roadmap from "here" to "one working transistor" — 8 phases.
 
 ---
 
-## 14. Roadmap
+## 16. Roadmap — What's Next
 
 ### Immediate (This Week)
 
-1. **Fix Brain→Hands pipeline** — Change task types or expand accepted types
-2. **Fix budget tracking desync** — Make check_budget() read from DB
-3. **Reset watchdog state** — Investigate cooldown cause, reset
-4. **Define domain goals** — Add goals for onlinejobsph-employers
+1. **Update VPS** — `git pull` to get Objectives 2-5 + audit fixes
+2. **Reset budget** — New day, fresh budget, daemon should resume
+3. **Test visual pipeline** — Run Hands execution with visual feedback
+4. **Fix stale imports** — Clean up the 4 pre-existing issues
 
-### Short-Term (2-4 Weeks)
+### Short-Term (1-2 Weeks)
 
-5. **Stabilize daemon 24/7** — Run full 72h unsupervised test
-6. **Wire Cortex into daemon** — Use Sonnet reasoning for domain prioritization
-7. **First Hands execution** — Get one sync task to complete successfully
-8. **First revenue attempt** — Send personalized pitch to OnlineJobsPH listing
+5. **Objective 6: Full SaaS Build** — The final objective
+   - Pick niche with Brain research data
+   - Phase 0: Context intake (PRD)
+   - Phase 1: Architecture (blueprint, human review gate)
+   - Phase 2-3: Backend (Supabase setup, API routes)
+   - Phase 4: Frontend (visual iteration loop)
+   - Phase 5: Integration (Playwright end-to-end)
+   - Phase 6: DevOps (Vercel deploy)
+   - Phase 7: Critic + learning
 
 ### Medium-Term (1-3 Months)
 
-9. **Strategy evolution working** — Domains reaching "active" status automatically
-10. **Dashboard deployed** — Web UI for monitoring without SSH
-11. **Expand Hands tools** — Add design, deployment, outreach capabilities
-12. **Verifier working** — Reality-grounded quality signal
+6. **First revenue** — Send OnlineJobsPH pitches, close first sale
+7. **Strategy evolution at scale** — More domains, more data, faster evolution
+8. **Dashboard deployed** — Web UI for monitoring
 
 ### Long-Term (3-12 Months)
 
-13. **Signal Agent** — Automated demand detection (Reddit, Twitter, forums)
-14. **Validation Agent** — Pre-sell before building ($50 ad test)
-15. **Economics Agent** — Kill/pivot/double-down decisions
-16. **Multi-VPS deployment** — Second instance, meta-orchestrator
+9. **Growth capability** — SEO, content, outreach agents
+10. **Economics agent** — Kill/pivot/double-down decisions
+11. **Multi-VPS** — Scale to multiple instances
+12. **Meta-Orchestrator** — Cross-instance coordination
+
+### Success Criteria (The Transistor Test)
+
+```
+INPUT:  You type one sentence to Cortex describing a niche.
+
+OUTPUT: A live URL.
+        Real auth (sign up, login, session, logout).
+        Real database (Supabase, data persists).
+        Core feature working.
+        Looks beautiful (consistent design system).
+        Tested end-to-end by Playwright.
+        Production-ready on Vercel.
+        Built from Brain's research on real user pain.
+        You wrote zero lines of code.
+```
+
+That is a working transistor. Everything else follows.
 
 ---
 
-## 15. Codebase Statistics
+## 17. Codebase Statistics
 
-### Lines of Code
+### Lines of Code Summary
 
-| Component | Files | Lines |
+| Category | Files | Lines |
+|----------|-------|-------|
+| **Production Python** | 120 | 44,483 |
+| **Test Python** | 38 | 24,998 |
+| **Identity Markdown** | 8 | ~1,500 |
+| **Total** | ~166 | ~71,000 |
+
+### By Component
+
+| Component | Lines | Notes |
 |-----------|-------|-------|
-| Brain Agents | 10 | ~4,200 |
-| Hands System | 25+ | ~8,500 |
-| Infrastructure | 15+ | ~10,000 |
-| CLI | 8 | ~2,500 |
-| Tools | 10 | ~2,000 |
-| Browser | 4 | ~870 |
-| RAG | 3 | ~914 |
-| Utils | 6 | ~1,208 |
-| Tests | ~40 | ~11,000 |
-| **Total** | **~120** | **~41,600** |
+| Brain Agents | ~4,500 | 10 agents |
+| Hands System | ~12,000 | 30+ components |
+| Infrastructure | ~10,000 | scheduler, watchdog, sync, etc. |
+| CLI | ~4,500 | 11 command modules |
+| Tools | ~2,000 | 7 tool categories |
+| Browser | ~1,250 | stealth browser + auth |
+| RAG | ~914 | ChromaDB + embeddings |
+| Utils | ~1,200 | retry, cache, vault, etc. |
+| Dashboard | ~933 | FastAPI backend |
+| Deploy | ~923 | VPS deployment |
+| MCP | ~1,739 | External tool gateway |
+| Examples | ~575 | 5 example scripts |
 
 ### Test Coverage
 
-- **Total tests:** 1,538
-- **Status:** All passing
-- **Key test files:**
-  - `test_watchdog.py`: 52 tests
-  - `test_new_features.py`: 68 tests
-  - `test_integration.py`: 45 tests
-
-### Dependencies
-
-**Core:**
-- `anthropic` — Claude API
-- `openai` — OpenRouter compatibility
-- `chromadb` — Vector database
-- `sentence-transformers` — Embeddings
-- `playwright` — Browser automation (disabled)
-
-**Utilities:**
-- `python-dotenv` — Environment config
-- `httpx` — HTTP client
-- `pydantic` — Data validation
+- **Total tests:** 1,737
+- **Test files:** 38
+- **Major test files:**
+  - `test_new_features.py`: ~2,500 lines
+  - `test_watchdog.py`: ~1,200 lines
+  - `test_integration.py`: ~1,000 lines
 
 ---
 
-## 16. Appendix: File Inventory
+## 18. Appendix: Complete File Inventory
 
 ### Brain Agents (`agent-brain/agents/`)
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `researcher.py` | 682 | Web research with tool use |
+| `researcher.py` | 723 | Web research with tool use |
 | `critic.py` | 511 | 5-dimensional rubric scoring |
-| `cortex.py` | 628 | Strategic orchestrator |
+| `cortex.py` | 1,236 | Strategic orchestrator |
 | `cross_domain.py` | 629 | Principle extraction + transfer |
 | `meta_analyst.py` | 410 | Strategy evolution |
-| `question_generator.py` | 417 | Gap diagnosis → next question |
+| `question_generator.py` | 417 | Gap → next question |
 | `synthesizer.py` | 439 | KB integration |
 | `verifier.py` | 337 | Prediction tracking |
 | `consensus.py` | 284 | Multi-agent agreement |
-| `orchestrator.py` | — | Domain orchestration |
+| `orchestrator.py` | 582 | Domain orchestration |
 
 ### Hands System (`agent-brain/hands/`)
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `planner.py` | 546 | Structured plan generation |
-| `executor.py` | 832 | Multi-turn tool execution |
+| `planner.py` | 594 | Structured plan generation |
+| `executor.py` | 932 | Multi-turn tool execution |
 | `validator.py` | 798 | Output verification |
+| `visual_gate.py` | 344 | Mid-build visual checks |
+| `visual_evaluator.py` | 634 | Claude Vision scoring |
 | `pattern_learner.py` | 497 | Learning from executions |
 | `project_orchestrator.py` | 832 | Multi-phase projects |
 | `exec_meta.py` | 506 | Execution strategy evolution |
-| `tools/registry.py` | 343 | Tool registration |
-| `tools/code.py` | 394 | Code operations |
-| `tools/terminal.py` | 258 | Shell commands |
-| `tools/search.py` | 352 | Web search |
-| `tools/http.py` | 229 | HTTP requests |
-| `tools/git.py` | 206 | Git operations |
+| `error_analyzer.py` | 192 | Root cause analysis |
+| `task_generator.py` | 332 | Generate tasks from goals |
+| `artifact_tracker.py` | 365 | Track produced artifacts |
+| `checkpoint.py` | 172 | Save/restore progress |
+| `code_exemplars.py` | 247 | Example code patterns |
+| `constants.py` | 53 | Shared constants |
+| `exec_analytics.py` | 266 | Execution metrics |
+| `exec_cross_domain.py` | 254 | Cross-domain exec transfer |
+| `exec_memory.py` | 142 | Execution memory store |
+| `exec_templates.py` | 280 | Execution templates |
+| `feedback_cache.py` | 206 | Cache corrections |
+| `file_repair.py` | 246 | Auto-fix common issues |
+| `mid_validator.py` | 264 | Mid-execution validation |
+| `output_polisher.py` | 223 | Clean up outputs |
+| `plan_cache.py` | 226 | Cache similar plans |
+| `plan_preflight.py` | 284 | Validate plans |
+| `retry_advisor.py` | 266 | Retry strategies |
+| `strategy_assembler.py` | 226 | Build exec strategies |
+| `timeout_adapter.py` | 147 | Adapt timeouts |
+| `tool_health.py` | 149 | Monitor tool reliability |
+| `workspace_diff.py` | 122 | Track workspace changes |
+
+### Hands Tools (`agent-brain/hands/tools/`)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `registry.py` | 345 | Tool registration |
+| `code.py` | 394 | Code operations |
+| `terminal.py` | 258 | Shell commands |
+| `git.py` | 206 | Git operations |
+| `search.py` | 352 | Web search |
+| `http.py` | 229 | HTTP requests |
+| `browser.py` | 432 | Playwright visual |
 
 ### Infrastructure (`agent-brain/`)
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `scheduler.py` | 1,812 | Daemon loop + Cortex integration |
+| `scheduler.py` | 1,867 | Daemon loop + Cortex |
 | `watchdog.py` | 601 | Circuit breaker + health |
-| `sync.py` | 461 | Brain↔Hands queue |
-| `main.py` | 1,223 | CLI entry point |
-| `config.py` | 324 | All configuration |
-| `db.py` | 646 | SQLite backend |
-| `memory_store.py` | 907 | Knowledge base management |
+| `sync.py` | 460 | Brain↔Hands queue |
+| `main.py` | 1,258 | CLI entry point |
+| `config.py` | 325 | All configuration |
+| `db.py` | 645 | SQLite backend |
+| `memory_store.py` | 918 | Knowledge base |
 | `strategy_store.py` | 577 | Strategy versioning |
-| `cost_tracker.py` | 243 | Budget awareness |
+| `cost_tracker.py` | 286 | Budget awareness |
 | `analytics.py` | 816 | Score analysis |
 | `monitoring.py` | 327 | Health checks |
 | `knowledge_graph.py` | 632 | Entity/relation graphs |
-| `identity_loader.py` | 250 | Identity layer loading |
+| `identity_loader.py` | 249 | Identity layer loading |
 | `llm_router.py` | 470 | Model routing |
-| `loop_guard.py` | 207 | Infinite loop prevention |
+| `loop_guard.py` | 207 | Loop prevention |
 | `prescreen.py` | 245 | Cheap pre-filter |
 | `telegram_bot.py` | 680 | Telegram interface |
+| `protocol.py` | 300 | Typed messages |
+| `alerts.py` | 218 | Alert management |
+| `progress_tracker.py` | 303 | Goal distance assessment |
+| `domain_goals.py` | 148 | Domain goal tracking |
+| `domain_seeder.py` | 159 | New domain seeding |
+| `validator.py` | 505 | Research validation |
+| `research_lessons.py` | 152 | Learned lessons |
+
+### CLI (`agent-brain/cli/`)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `chat.py` | 1,903 | Chat mode interface |
+| `execution.py` | 928 | Hands execution CLI |
+| `infrastructure.py` | 878 | Daemon, budget, status |
+| `research.py` | 598 | Research commands |
+| `strategy.py` | 358 | Strategy management |
+| `tools_cmd.py` | 360 | Tool commands |
+| `project.py` | 172 | Project commands |
+| `knowledge.py` | 166 | KB commands |
+| `deploy_cmd.py` | 126 | VPS deployment |
+| `vault.py` | 115 | Credential vault |
+| `browser_cmd.py` | 61 | Browser commands |
 
 ### Identity Layer (`agent-brain/identity/`)
 
 | File | Purpose |
 |------|---------|
 | `goals.md` | What the system exists to do |
-| `ethics.md` | Hard constraints (never do list) |
+| `ethics.md` | Hard constraints |
 | `boundaries.md` | Operational limits |
-| `risk.md` | Risk tolerance calibration |
+| `risk.md` | Risk tolerance |
 | `taste.md` | Quality standards |
+| `design_system.md` | App UI standard |
+| `marketing_design.md` | Marketing page standard |
+| `visual_scoring_rubric.md` | Visual scoring calibration |
 
 ---
 
@@ -1065,1008 +1528,8 @@ The 8-phase implementation plan from "here" to "one working transistor."
 
 **For questions or clarifications, contact the Architect directly.**
 
-**Document generated by GitHub Copilot (Claude Opus 4.5) based on full codebase and VPS audit.**
-
+**Document generated by GitHub Copilot (Claude Opus 4.5) based on full codebase audit, VPS state check, and comprehensive reading of all architectural notes.**
 
 ---
 
-More context:
-
-Summarized conversation history
-
-  
-
-Created 6 todos
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== SERVICE STATUS ===" && systemctl is-active cortex-daemon && echo "=== UPTIME ===" && systemctl show cortex-daemon --property=ActiveEnterTimestamp && echo "=== GIT COMMIT ===" && git log --oneline -1 && echo "=== LAST 80 LINES STDOUT ===" && tail -80 logs/daemon-stdout.log && echo "=== LAST 30 LINES STDERR ===" && tail -30 logs/daemon-stderr.log'
-
-Read [](file:///home/codespace/.vscode-remote/data/User/workspaceStorage/23b51e06/GitHub.copilot-chat/chat-session-resources/85767f3f-989d-4d3a-a95c-a12559f10226/toolu_bdrk_013FSD15ECUYxRHenFVxXp6P__vscode-1772501470942/content.txt)
-
-Now let me get a comprehensive picture of the VPS state - cycles completed, domains, memory, strategies, sync tasks, and errors. 
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== MEMORY DOMAINS ===" && ls memory/ && echo "=== MEMORY COUNTS ===" && for d in memory/*/; do echo "$(basename $d): $(ls "$d"*.json 2>/dev/null | wc -l) outputs"; done && echo "=== STRATEGY STATUS ===" && python3 -c "
-from strategy_store import StrategyStore
-s = StrategyStore()
-import os
-for d in sorted(os.listdir(\"strategies\")):
-    if os.path.isdir(f\"strategies/{d}\") and not d.startswith(\"_\"):
-        info = s.get_active(d)
-        status = info.get(\"status\",\"none\") if info else \"none\"
-        ver = info.get(\"version\",\"?\") if info else \"?\"
-        print(f\"  {d}: status={status} version={ver}\")
-" 2>/dev/null && echo "=== SYNC TASKS ===" && python3 -c "
-from db import get_db
-db = get_db()
-tasks = db.execute(\"SELECT id, domain, task_type, priority, status, created_at FROM sync_tasks ORDER BY created_at DESC LIMIT 20\").fetchall()
-for t in tasks:
-    print(f\"  [{t[4]}] {t[3]} | {t[2]} | {t[1]} | {t[5][:16]}\")
-print(f\"  Total: {db.execute(\"SELECT count(*) FROM sync_tasks\").fetchone()[0]}\")
-print(f\"  Pending: {db.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"pending\\\"\").fetchone()[0]}\")
-print(f\"  Done: {db.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"completed\\\"\").fetchone()[0]}\")
-" 2>/dev/null && echo "=== CYCLE HISTORY ===" && python3 -c "
-from db import get_db
-db = get_db()
-rows = db.execute(\"SELECT id, started_at, ended_at, status, domains_planned, domains_completed, rounds_completed, total_cost_usd FROM daemon_cycles ORDER BY id DESC LIMIT 10\").fetchall()
-for r in rows:
-    print(f\"  Cycle {r[0]}: {r[3]} | planned={r[4]} completed={r[5]} rounds={r[6]} cost=\${r[7]:.4f} | {(r[1] or \"\")[:16]}\")
-" 2>/dev/null && echo "=== COST ===" && python3 -c "
-from cost_tracker import CostTracker
-c = CostTracker()
-print(f\"  Daily: \${c.get_daily_spend().get(\"total_usd\", 0):.4f}\")
-print(f\"  All-time: \${c.get_all_time_spend():.4f}\")
-" 2>/dev/null && echo "=== ERROR COUNT IN LOGS ===" && grep -c "ERROR\|Traceback\|Exception" logs/daemon-stdout.log 2>/dev/null || echo "  0" && echo "=== RAG STATUS ===" && python3 -c "
-import chromadb
-client = chromadb.PersistentClient(path=\"rag/chroma_store\")
-for col in client.list_collections():
-    print(f\"  {col.name}: {col.count()} items\")
-" 2>/dev/null'
-Completed with input:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== MEMORY DOMAINS ===" && ls memory/ && echo "=== MEMORY COUNTS ===" && for d in memory/*/; do echo "$(basename $d): $(ls "$d"*.json 2>/dev/null | wc -l) outputs"; done && echo "=== STRATEGY STATUS ===" && python3 -c "
-from strategy_store import StrategyStore
-s = StrategyStore()
-import os
-for d in sorted(os.listdir(\"strategies\")):
-    if os.path.isdir(f\"strategies/{d}\") and not d.startswith(\"_\"):
-        info = s.get_active(d)
-        status = info.get(\"status\",\"none\") if info else \"none\"
-        ver = info.get(\"version\",\"?\") if info else \"?\"
-        print(f\"  {d}: status={status} version={ver}\")
-" 2>/dev/null && echo "=== SYNC TASKS ===" && python3 -c "
-from db import get_db
-db = get_db()
-tasks = db.execute(\"SELECT id, domain, task_type, priority, status, created_at FROM sync_tasks ORDER BY created_at DESC LIMIT 20\").fetchall()
-for t in tasks:
-    print(f\"  [{t[4]}] {t[3]} | {t[2]} | {t[1]} | {t[5][:16]}\")
-print(f\"  Total: {db.execute(\"SELECT count(*) FROM sync_tasks\").fetchone()[0]}\")
-print(f\"  Pending: {db.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"pending\\\"\").fetchone()[0]}\")
-print(f\"  Done: {db.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"completed\\\"\").fetchone()[0]}\")
-" 2>/dev/null && echo "=== CYCLE HISTORY ===" && python3 -c "
-from db import get_db
-db = get_db()
-rows = db.execute(\"SELECT id, started_at, ended_at, status, domains_planned, domains_completed, rounds_completed, total_cost_usd FROM daemon_cycles ORDER BY id DESC LIMIT 10\").fetchall()
-for r in rows:
-    print(f\"  Cycle {r[0]}: {r[3]} | planned={r[4]} completed={r[5]} rounds={r[6]} cost=\${r[7]:.4f} | {(r[1] or \"\")[:16]}\")
-" 2>/dev/null && echo "=== COST ===" && python3 -c "
-from cost_tracker import CostTracker
-c = CostTracker()
-print(f\"  Daily: \${c.get_daily_spend().get(\"total_usd\", 0):.4f}\")
-print(f\"  All-time: \${c.get_all_time_spend():.4f}\")
-" 2>/dev/null && echo "=== ERROR COUNT IN LOGS ===" && grep -c "ERROR\|Traceback\|Exception" logs/daemon-stdout.log 2>/dev/null || echo "  0" && echo "=== RAG STATUS ===" && python3 -c "
-import chromadb
-client = chromadb.PersistentClient(path=\"rag/chroma_store\")
-for col in client.list_collections():
-    print(f\"  {col.name}: {col.count()} items\")
-" 2>/dev/null'
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== STRATEGY DIRS ===" && ls strategies/ && echo "=== STRATEGY FILES ===" && for d in strategies/*/; do bn=$(basename "$d"); echo "$bn: $(ls "$d" 2>/dev/null | head -5)"; done && echo "=== SYNC TASKS ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from db import get_db
-db = get_db()
-tasks = db.execute(\"SELECT id, domain, task_type, priority, status, created_at FROM sync_tasks ORDER BY created_at DESC LIMIT 20\").fetchall()
-for t in tasks:
-    print(f\"  [{t[4]}] {t[3]} | {t[2]} | {t[1]} | {t[5][:16]}\")
-total = db.execute(\"SELECT count(*) FROM sync_tasks\").fetchone()[0]
-pending = db.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"pending\\\"\").fetchone()[0]
-print(f\"  Total: {total}, Pending: {pending}\")
-" 2>&1 && echo "=== CYCLE HISTORY ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from db import get_db
-db = get_db()
-rows = db.execute(\"SELECT id, started_at, ended_at, status, domains_planned, domains_completed, rounds_completed, total_cost_usd FROM daemon_cycles ORDER BY id DESC LIMIT 10\").fetchall()
-for r in rows:
-    end = r[2][:16] if r[2] else \"running\"
-    print(f\"  Cycle {r[0]}: {r[3]} | planned={r[4]} done={r[5]} rounds={r[6]} cost=\${r[7]:.4f} | {(r[1] or \"\")[:16]} → {end}\")
-" 2>&1 && echo "=== COST ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from cost_tracker import CostTracker
-c = CostTracker()
-d = c.get_daily_spend()
-a = c.get_all_time_spend()
-print(f\"  Daily: \${d.get(\"total_usd\",0):.4f}\")
-print(f\"  All-time: \${a:.4f}\")
-" 2>&1'
-Completed with input:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== STRATEGY DIRS ===" && ls strategies/ && echo "=== STRATEGY FILES ===" && for d in strategies/*/; do bn=$(basename "$d"); echo "$bn: $(ls "$d" 2>/dev/null | head -5)"; done && echo "=== SYNC TASKS ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from db import get_db
-db = get_db()
-tasks = db.execute(\"SELECT id, domain, task_type, priority, status, created_at FROM sync_tasks ORDER BY created_at DESC LIMIT 20\").fetchall()
-for t in tasks:
-    print(f\"  [{t[4]}] {t[3]} | {t[2]} | {t[1]} | {t[5][:16]}\")
-total = db.execute(\"SELECT count(*) FROM sync_tasks\").fetchone()[0]
-pending = db.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"pending\\\"\").fetchone()[0]
-print(f\"  Total: {total}, Pending: {pending}\")
-" 2>&1 && echo "=== CYCLE HISTORY ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from db import get_db
-db = get_db()
-rows = db.execute(\"SELECT id, started_at, ended_at, status, domains_planned, domains_completed, rounds_completed, total_cost_usd FROM daemon_cycles ORDER BY id DESC LIMIT 10\").fetchall()
-for r in rows:
-    end = r[2][:16] if r[2] else \"running\"
-    print(f\"  Cycle {r[0]}: {r[3]} | planned={r[4]} done={r[5]} rounds={r[6]} cost=\${r[7]:.4f} | {(r[1] or \"\")[:16]} → {end}\")
-" 2>&1 && echo "=== COST ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from cost_tracker import CostTracker
-c = CostTracker()
-d = c.get_daily_spend()
-a = c.get_all_time_spend()
-print(f\"  Daily: \${d.get(\"total_usd\",0):.4f}\")
-print(f\"  All-time: \${a:.4f}\")
-" 2>&1'
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== DB EXPORTS ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-import db as dbmod
-# Find available functions
-fns = [x for x in dir(dbmod) if not x.startswith(\"_\")]
-print(\"DB exports:\", fns)
-" 2>&1'
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from db import get_connection, get_daily_spend_db, get_all_time_spend_db, get_domain_stats_db, get_recent_scores, get_run_history, get_alert_summary
-
-conn = get_connection()
-c = conn.cursor()
-
-print(\"=== SYNC TASKS ===\")
-try:
-    tasks = c.execute(\"SELECT id, domain, task_type, priority, status, created_at FROM sync_tasks ORDER BY created_at DESC LIMIT 20\").fetchall()
-    for t in tasks:
-        print(f\"  [{t[4]}] {t[3]} | {t[2]} | {t[1]} | {t[5][:16]}\")
-    total = c.execute(\"SELECT count(*) FROM sync_tasks\").fetchone()[0]
-    pending = c.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"pending\\\"\").fetchone()[0]
-    print(f\"  Total: {total}, Pending: {pending}\")
-except Exception as e:
-    print(f\"  sync_tasks table: {e}\")
-
-print(\"=== CYCLE HISTORY ===\")
-try:
-    rows = c.execute(\"SELECT id, started_at, ended_at, status, domains_planned, domains_completed, rounds_completed, total_cost_usd FROM daemon_cycles ORDER BY id DESC LIMIT 10\").fetchall()
-    for r in rows:
-        end = r[2][:16] if r[2] else \"running\"
-        print(f\"  Cycle {r[0]}: {r[3]} | planned={r[4]} done={r[5]} rounds={r[6]} cost=\${r[7]:.4f} | {(r[1] or \"\")[:16]} -> {end}\")
-except Exception as e:
-    print(f\"  daemon_cycles table: {e}\")
-
-print(\"=== DB TABLES ===\")
-tables = c.execute(\"SELECT name FROM sqlite_master WHERE type=\\\"table\\\"\").fetchall()
-for t in tables:
-    count = c.execute(f\"SELECT count(*) FROM {t[0]}\").fetchone()[0]
-    print(f\"  {t[0]}: {count} rows\")
-
-print(\"=== DAILY COST ===\")
-d = get_daily_spend_db()
-print(f\"  {d}\")
-
-print(\"=== ALL-TIME COST ===\")
-a = get_all_time_spend_db()
-print(f\"  {a}\")
-
-print(\"=== ACTIVE ALERTS ===\")
-s = get_alert_summary()
-print(f\"  {s}\")
-
-conn.close()
-" 2>&1'
-Completed with input:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from db import get_connection, get_daily_spend_db, get_all_time_spend_db, get_domain_stats_db, get_recent_scores, get_run_history, get_alert_summary
-
-conn = get_connection()
-c = conn.cursor()
-
-print(\"=== SYNC TASKS ===\")
-try:
-    tasks = c.execute(\"SELECT id, domain, task_type, priority, status, created_at FROM sync_tasks ORDER BY created_at DESC LIMIT 20\").fetchall()
-    for t in tasks:
-        print(f\"  [{t[4]}] {t[3]} | {t[2]} | {t[1]} | {t[5][:16]}\")
-    total = c.execute(\"SELECT count(*) FROM sync_tasks\").fetchone()[0]
-    pending = c.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"pending\\\"\").fetchone()[0]
-    print(f\"  Total: {total}, Pending: {pending}\")
-except Exception as e:
-    print(f\"  sync_tasks table: {e}\")
-
-print(\"=== CYCLE HISTORY ===\")
-try:
-    rows = c.execute(\"SELECT id, started_at, ended_at, status, domains_planned, domains_completed, rounds_completed, total_cost_usd FROM daemon_cycles ORDER BY id DESC LIMIT 10\").fetchall()
-    for r in rows:
-        end = r[2][:16] if r[2] else \"running\"
-        print(f\"  Cycle {r[0]}: {r[3]} | planned={r[4]} done={r[5]} rounds={r[6]} cost=\${r[7]:.4f} | {(r[1] or \"\")[:16]} -> {end}\")
-except Exception as e:
-    print(f\"  daemon_cycles table: {e}\")
-
-print(\"=== DB TABLES ===\")
-tables = c.execute(\"SELECT name FROM sqlite_master WHERE type=\\\"table\\\"\").fetchall()
-for t in tables:
-    count = c.execute(f\"SELECT count(*) FROM {t[0]}\").fetchone()[0]
-    print(f\"  {t[0]}: {count} rows\")
-
-print(\"=== DAILY COST ===\")
-d = get_daily_spend_db()
-print(f\"  {d}\")
-
-print(\"=== ALL-TIME COST ===\")
-a = get_all_time_spend_db()
-print(f\"  {a}\")
-
-print(\"=== ACTIVE ALERTS ===\")
-s = get_alert_summary()
-print(f\"  {s}\")
-
-conn.close()
-" 2>&1'
-
-Read [](file:///workspaces/AI-agents/agent-brain/db.py#1-1), lines 1 to 60
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from db import get_connection, get_daily_spend_db, get_all_time_spend_db, get_alert_summary
-
-with get_connection() as conn:
-    c = conn.cursor()
-
-    print(\"=== SYNC TASKS ===\")
-    try:
-        tasks = c.execute(\"SELECT id, domain, task_type, priority, status, created_at FROM sync_tasks ORDER BY created_at DESC LIMIT 20\").fetchall()
-        for t in tasks:
-            print(f\"  [{t[\"status\"]}] {t[\"priority\"]} | {t[\"task_type\"]} | {t[\"domain\"]} | {str(t[\"created_at\"])[:16]}\")
-        total = c.execute(\"SELECT count(*) FROM sync_tasks\").fetchone()[0]
-        pending = c.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"pending\\\"\").fetchone()[0]
-        print(f\"  Total: {total}, Pending: {pending}\")
-    except Exception as e:
-        print(f\"  sync_tasks: {e}\")
-
-    print(\"=== CYCLE HISTORY ===\")
-    try:
-        rows = c.execute(\"SELECT id, started_at, ended_at, status, domains_planned, domains_completed, rounds_completed, total_cost_usd FROM daemon_cycles ORDER BY id DESC LIMIT 10\").fetchall()
-        for r in rows:
-            end = str(r[\"ended_at\"])[:16] if r[\"ended_at\"] else \"running\"
-            print(f\"  Cycle {r[\"id\"]}: {r[\"status\"]} | plan={r[\"domains_planned\"]} done={r[\"domains_completed\"]} rnd={r[\"rounds_completed\"]} cost=\${r[\"total_cost_usd\"]:.4f} | {str(r[\"started_at\"])[:16]} -> {end}\")
-    except Exception as e:
-        print(f\"  daemon_cycles: {e}\")
-
-    print(\"=== DB TABLES ===\")
-    tables = c.execute(\"SELECT name FROM sqlite_master WHERE type=\\\"table\\\"\").fetchall()
-    for t in tables:
-        count = c.execute(f\"SELECT count(*) FROM [{t[0]}]\").fetchone()[0]
-        print(f\"  {t[0]}: {count} rows\")
-
-print(\"=== DAILY COST ===\")
-d = get_daily_spend_db()
-print(f\"  {d}\")
-
-print(\"=== ALL-TIME COST ===\")
-a = get_all_time_spend_db()
-print(f\"  \${a:.4f}\")
-
-print(\"=== ACTIVE ALERTS ===\")
-s = get_alert_summary()
-print(f\"  {s}\")
-" 2>&1'
-Completed with input:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from db import get_connection, get_daily_spend_db, get_all_time_spend_db, get_alert_summary
-
-with get_connection() as conn:
-    c = conn.cursor()
-
-    print(\"=== SYNC TASKS ===\")
-    try:
-        tasks = c.execute(\"SELECT id, domain, task_type, priority, status, created_at FROM sync_tasks ORDER BY created_at DESC LIMIT 20\").fetchall()
-        for t in tasks:
-            print(f\"  [{t[\"status\"]}] {t[\"priority\"]} | {t[\"task_type\"]} | {t[\"domain\"]} | {str(t[\"created_at\"])[:16]}\")
-        total = c.execute(\"SELECT count(*) FROM sync_tasks\").fetchone()[0]
-        pending = c.execute(\"SELECT count(*) FROM sync_tasks WHERE status=\\\"pending\\\"\").fetchone()[0]
-        print(f\"  Total: {total}, Pending: {pending}\")
-    except Exception as e:
-        print(f\"  sync_tasks: {e}\")
-
-    print(\"=== CYCLE HISTORY ===\")
-    try:
-        rows = c.execute(\"SELECT id, started_at, ended_at, status, domains_planned, domains_completed, rounds_completed, total_cost_usd FROM daemon_cycles ORDER BY id DESC LIMIT 10\").fetchall()
-        for r in rows:
-            end = str(r[\"ended_at\"])[:16] if r[\"ended_at\"] else \"running\"
-            print(f\"  Cycle {r[\"id\"]}: {r[\"status\"]} | plan={r[\"domains_planned\"]} done={r[\"domains_completed\"]} rnd={r[\"rounds_completed\"]} cost=\${r[\"total_cost_usd\"]:.4f} | {str(r[\"started_at\"])[:16]} -> {end}\")
-    except Exception as e:
-        print(f\"  daemon_cycles: {e}\")
-
-    print(\"=== DB TABLES ===\")
-    tables = c.execute(\"SELECT name FROM sqlite_master WHERE type=\\\"table\\\"\").fetchall()
-    for t in tables:
-        count = c.execute(f\"SELECT count(*) FROM [{t[0]}]\").fetchone()[0]
-        print(f\"  {t[0]}: {count} rows\")
-
-print(\"=== DAILY COST ===\")
-d = get_daily_spend_db()
-print(f\"  {d}\")
-
-print(\"=== ALL-TIME COST ===\")
-a = get_all_time_spend_db()
-print(f\"  \${a:.4f}\")
-
-print(\"=== ACTIVE ALERTS ===\")
-s = get_alert_summary()
-print(f\"  {s}\")
-" 2>&1'
-
-Critical findings already. Let me now do a deep codebase audit in parallel. 
-
-Searched for regex `sync_tasks|daemon_cycles` (`**/agent-brain/**/*.py`), 12 results
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== SYNC TASKS FILE ===" && wc -l logs/sync_tasks.json 2>/dev/null && python3 -c "import json; d=json.load(open(\"logs/sync_tasks.json\")); print(f\"Total: {len(d)}\"); sc={t.get(\"status\",\"?\") for t in d}; print(f\"Statuses: {sc}\"); [print(f\"  [{t.get(\"status\")}] {t.get(\"priority\",\"?\")} | {t.get(\"task_type\",\"?\")} | {t.get(\"domain\",\"?\")} | {str(t.get(\"created_at\",\"\"))[:16]}\") for t in d[-15:]]" 2>&1 && echo "=== DAEMON CYCLE TRACKING ===" && ls -la logs/daemon_cycle* logs/cycle* 2>&1 && echo "=== ERRORS IN CURRENT LOG ===" && grep -c "ERROR\|Traceback\|Exception" logs/daemon-stdout.log 2>/dev/null && echo "=== SPECIFIC ERRORS ===" && grep -i "error\|traceback\|exception\|failed" logs/daemon-stdout.log 2>/dev/null | grep -vi "fetch.*failed\|rate.*error\|confidence.*check\|no.*error\|0.*error" | tail -20 && echo "=== RAG STORE ===" && ls -la rag/chroma_store/ 2>/dev/null && echo "=== HANDS STATUS ===" && ls hands/ 2>/dev/null && echo "=== EXEC MEMORY ===" && ls exec_memory/ 2>/dev/null'
-Completed with input:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== SYNC TASKS FILE ===" && wc -l logs/sync_tasks.json 2>/dev/null && python3 -c "import json; d=json.load(open(\"logs/sync_tasks.json\")); print(f\"Total: {len(d)}\"); sc={t.get(\"status\",\"?\") for t in d}; print(f\"Statuses: {sc}\"); [print(f\"  [{t.get(\"status\")}] {t.get(\"priority\",\"?\")} | {t.get(\"task_type\",\"?\")} | {t.get(\"domain\",\"?\")} | {str(t.get(\"created_at\",\"\"))[:16]}\") for t in d[-15:]]" 2>&1 && echo "=== DAEMON CYCLE TRACKING ===" && ls -la logs/daemon_cycle* logs/cycle* 2>&1 && echo "=== ERRORS IN CURRENT LOG ===" && grep -c "ERROR\|Traceback\|Exception" logs/daemon-stdout.log 2>/dev/null && echo "=== SPECIFIC ERRORS ===" && grep -i "error\|traceback\|exception\|failed" logs/daemon-stdout.log 2>/dev/null | grep -vi "fetch.*failed\|rate.*error\|confidence.*check\|no.*error\|0.*error" | tail -20 && echo "=== RAG STORE ===" && ls -la rag/chroma_store/ 2>/dev/null && echo "=== HANDS STATUS ===" && ls hands/ 2>/dev/null && echo "=== EXEC MEMORY ===" && ls exec_memory/ 2>/dev/null'
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== CYCLE HISTORY ===" && cat logs/cycle_history.jsonl && echo "=== CYCLE COUNTER ===" && cat logs/cycle_counter.json && echo "=== BUDGET CONFIG ===" && venv/bin/python3 -c "import sys; sys.path.insert(0,\".\"); from config import DAILY_BUDGET_USD; print(f\"DAILY_BUDGET_USD={DAILY_BUDGET_USD}\")" 2>&1 && echo "=== SYNC TASK DETAILS ===" && venv/bin/python3 -c "
-import json
-d = json.load(open(\"logs/sync_tasks.json\"))
-# Show full structure of one task
-print(\"Sample task:\")
-print(json.dumps(d[-4], indent=2))
-# Count by task_type
-from collections import Counter
-types = Counter(t.get(\"task_type\",\"unknown\") for t in d)
-print(f\"By type: {dict(types)}\")
-priorities = Counter(t.get(\"priority\",\"unknown\") for t in d)
-print(f\"By priority: {dict(priorities)}\")
-has_domain = sum(1 for t in d if t.get(\"domain\"))
-print(f\"Has domain: {has_domain}/{len(d)}\")
-" 2>&1'
-
-Now let me audit the full codebase architecture. Let me check all major modules systematically. 
-
-Ran terminal command:  cd /workspaces/AI-agents/agent-brain && echo "=== PRODUCTION FILES ===" && find . -name "*.py" -not -path "./tests/*" -not -path "./__pycache__/*" -not -path "./venv/*" -not -path "./browser/node_modules/*" | sort | while read f; do lines=$(wc -l < "$f"); echo "  $lines $f"; done && echo "=== TOTAL ===" && find . -name "*.py" -not -path "./tests/*" -not -path "./__pycache__/*" -not -path "./venv/*" -not -path "./browser/node_modules/*" | xargs wc -l 2>/dev/null | tail -1
-
-Now let me read the key architectural files and check how the components wire together: 
-
-Searched for regex `DAILY_BUDGET_USD|budget.*enforce|check_budget|over_budget` (`**/agent-brain/**/*.py`), 20 results
-
-Read [](file:///workspaces/AI-agents/agent-brain/cost_tracker.py#100-100), lines 100 to 160
-
-Read [](file:///workspaces/AI-agents/agent-brain/cost_tracker.py#1-1), lines 1 to 30
-
-Read [](file:///workspaces/AI-agents/agent-brain/config.py#1-1), lines 1 to 60
-
-Read [](file:///workspaces/AI-agents/agent-brain/config.py#60-60), lines 60 to 170
-
-Now let me check the budget enforcement in the daemon loop and the broader integration issues: 
-
-Read [](file:///workspaces/AI-agents/agent-brain/scheduler.py#1340-1340), lines 1340 to 1430
-
-Read [](file:///workspaces/AI-agents/agent-brain/scheduler.py#1430-1430), lines 1430 to 1570
-
-Read [](file:///workspaces/AI-agents/agent-brain/scheduler.py#1570-1570), lines 1570 to 1700
-
-Now let me check the sync task creation and hands execution:  
-
-Read [](file:///workspaces/AI-agents/agent-brain/sync.py#1-1), lines 1 to 200
-
-Now let me check how tasks are created from research output (the `create_tasks_from_output` function in main.py): 
-
-Searched for regex `create_task|sync.*task|SYNC|sync\.create` (`**/agent-brain/main.py`), 19 results
-
-Read [](file:///workspaces/AI-agents/agent-brain/main.py#118-118), lines 118 to 175
-
-Now let me check how the daemon's `_execute_hands_tasks` works: 
-
-Searched for regex `_execute_hands_tasks` (`**/agent-brain/scheduler.py`), 2 results
-
-Read [](file:///workspaces/AI-agents/agent-brain/scheduler.py#1066-1066), lines 1066 to 1180
-
-Read [](file:///workspaces/AI-agents/agent-brain/scheduler.py#1180-1180), lines 1180 to 1240
-
-Now let me check all the agents and hands modules to understand integration gaps: 
-
-Searched for regex `cortex_plan_cycle|cortex_interpret_cycle` (`**/agent-brain/scheduler.py`), 4 results
-
-Read [](file:///workspaces/AI-agents/agent-brain/scheduler.py#600-600), lines 600 to 750
-
-Now let me audit the Hands, Identity, and other key modules:  
-
-Read [](file:///workspaces/AI-agents/agent-brain/hands/executor.py#1-1), lines 1 to 60
-
-Read [](file:///workspaces/AI-agents/agent-brain/identity_loader.py#1-1), lines 1 to 50
-
-Read [](file:///workspaces/AI-agents/agent-brain/identity)
-
-Ran terminal command:  cd /workspaces/AI-agents/agent-brain && echo "=== IDENTITY FILES ===" && for f in identity/*.md; do echo "--- $f ---"; head -5 "$f"; done && echo "=== WHO IMPORTS IDENTITY ===" && grep -rn "identity_loader\|load_identity\|get_identity" --include="*.py" | grep -v test | grep -v __pycache__
-
-Ran terminal command:  cd /workspaces/AI-agents/agent-brain && echo "=== MCP INTEGRATION ===" && grep -rn "from mcp\|import mcp" --include="*.py" | grep -v test | grep -v __pycache__ && echo "=== KNOWLEDGE GRAPH USAGE ===" && grep -rn "knowledge_graph\|from knowledge" --include="*.py" | grep -v test | grep -v __pycache__ && echo "=== ANALYTICS USAGE ===" && grep -rn "from analytics\|import analytics" --include="*.py" | grep -v test | grep -v __pycache__ && echo "=== VALIDATOR USAGE ===" && grep -rn "from validator\|import validator" --include="*.py" | grep -v test | grep -v __pycache__ && echo "=== MONITORING USAGE ===" && grep -rn "from monitoring\|import monitoring" --include="*.py" | grep -v test | grep -v __pycache__ && echo "=== CONSENSUS USAGE ===" && grep -rn "from agents.consensus\|agents.consensus\|consensus\." --include="*.py" | grep -v test | grep -v __pycache__
-
-Ran terminal command:  cd /workspaces/AI-agents/agent-brain && echo "=== DOMAIN GOALS ===" && ls memory/*/  2>/dev/null | head -30 && echo "=== GOAL FILES ===" && find strategies/ -name "_goal.json" 2>/dev/null && echo "=== DOMAIN SEEDER ===" && grep -rn "domain_seeder\|get_seed" --include="*.py" | grep -v test | grep -v __pycache__ | head -15 && echo "=== RESEARCH_LESSONS ===" && grep -rn "research_lessons" --include="*.py" | grep -v test | grep -v __pycache__ && echo "=== TELEGRAM BOT ===" && grep -rn "telegram_bot\|from telegram" --include="*.py" | grep -v test | grep -v __pycache__ | head -10 && echo "=== DASHBOARD ===" && grep -rn "dashboard\|from dashboard" --include="*.py" | grep -v test | grep -v __pycache__ | head -10
-
-Now let me check the VPS for deeper issues — the actual budget being hit but daemon still running: 
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== IS DAEMON STILL RUNNING ===" && systemctl is-active cortex-daemon && echo "=== FULL LOG LINE COUNT ===" && wc -l logs/daemon-stdout.log && echo "=== BUDGET CHECKS IN LOG ===" && grep -i "budget\|within_budget\|waiting.*budget\|budget.*exceeded\|budget.*hit" logs/daemon-stdout.log | tail -15 && echo "=== WATCHDOG BLOCKS ===" && grep -i "watchdog.*block\|circuit.*break\|cost.*ceil" logs/daemon-stdout.log | tail -10 && echo "=== HANDS AUTO-EXEC ===" && grep -i "hands.*auto\|hands.*exec\|hands.*skip\|hands.*task" logs/daemon-stdout.log | tail -10 && echo "=== CORTEX PLAN DETAILS ===" && grep -i "cortex.*plan\|cortex.*focus\|cortex.*inject\|cortex.*priorities" logs/daemon-stdout.log | tail -10 && echo "=== CYCLE STARTS SINCE DEPLOY ===" && grep "Cycle.*starting" logs/daemon-stdout.log && echo "=== DOMAIN GOAL WARNINGS ===" && grep -i "no goal\|goal.*set\|goal.*missing" logs/daemon-stdout.log | head -5'
-
-Read [](file:///workspaces/AI-agents/agent-brain/cost_tracker.py#30-30), lines 30 to 100
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== COSTS JSONL SIZE ===" && ls -la logs/costs.jsonl* 2>/dev/null && echo "=== TODAY ENTRIES ===" && grep "2026-03-03" logs/costs.jsonl 2>/dev/null | wc -l && echo "=== TODAY TOTAL FROM JSONL ===" && python3 -c "
-import json
-total = 0
-with open(\"logs/costs.jsonl\") as f:
-    for line in f:
-        e = json.loads(line.strip())
-        if e.get(\"date\") == \"2026-03-03\":
-            total += e.get(\"estimated_cost_usd\", 0)
-print(f\"JSONL today total: \${total:.4f}\")
-" 2>&1 && echo "=== DB TODAY TOTAL ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from db import get_daily_spend_db
-d = get_daily_spend_db()
-print(f\"DB today total: \${d.get(\"total_usd\", 0):.4f}\")
-print(f\"DB calls: {d.get(\"calls\", 0)}\")
-" 2>&1 && echo "=== CHECK_BUDGET RESULT ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from cost_tracker import check_budget
-b = check_budget()
-print(f\"within_budget: {b[\"within_budget\"]}\")
-print(f\"spent: \${b[\"spent\"]:.4f}\")
-print(f\"limit: \${b[\"limit\"]:.4f}\")
-print(f\"remaining: \${b[\"remaining\"]:.4f}\")
-print(f\"claude: spent=\${b[\"by_provider\"][\"claude\"][\"spent\"]:.4f} limit=\${b[\"by_provider\"][\"claude\"][\"limit\"]:.4f}\")
-print(f\"openrouter: spent=\${b[\"by_provider\"][\"openrouter\"][\"spent\"]:.4f} limit=\${b[\"by_provider\"][\"openrouter\"][\"limit\"]:.4f}\")
-" 2>&1'
-
-Starting: *Audit all agent modules* (2/6)
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== SCORES BY DOMAIN ===" && venv/bin/python3 -c "
-import sys, json, os, glob; sys.path.insert(0,\".\")
-from config import MEMORY_DIR
-for d in sorted(os.listdir(MEMORY_DIR)):
-    dp = os.path.join(MEMORY_DIR, d)
-    if not os.path.isdir(dp) or d.startswith(\"_\"): continue
-    files = glob.glob(os.path.join(dp, \"*.json\"))
-    files = [f for f in files if not os.path.basename(f).startswith(\"_\")]
-    scores = []
-    for f in files:
-        try:
-            data = json.load(open(f))
-            s = data.get(\"critique\",{}).get(\"overall_score\",0)
-            if s > 0: scores.append(s)
-        except: pass
-    if scores:
-        avg = sum(scores)/len(scores)
-        acc = sum(1 for s in scores if s >= 6)
-        last3 = scores[-3:]
-        print(f\"  {d}: {len(scores)} outputs, avg={avg:.1f}, accepted={acc}/{len(scores)}, last3={last3}\")
-    else:
-        print(f\"  {d}: 0 scored outputs\")
-" && echo "=== STRATEGY DETAILS ===" && venv/bin/python3 -c "
-import sys, json, os; sys.path.insert(0,\".\")
-from strategy_store import StrategyStore
-s = StrategyStore()
-for d in sorted(os.listdir(\"strategies\")):
-    if os.path.isdir(f\"strategies/{d}\") and not d.startswith(\"_\"):
-        meta_path = f\"strategies/{d}/_meta.json\"
-        if os.path.exists(meta_path):
-            meta = json.load(open(meta_path))
-            active = meta.get(\"active_version\")
-            latest = meta.get(\"latest_version\")
-            status = \"unknown\"
-            if active:
-                vf = f\"strategies/{d}/researcher_{active}.json\"
-                if os.path.exists(vf):
-                    vdata = json.load(open(vf))
-                    status = vdata.get(\"status\",\"?\")
-            print(f\"  {d}: active={active} latest={latest} status={status}\")
-        else:
-            print(f\"  {d}: no _meta.json\")
-" 2>&1 && echo "=== RAG CHROMA STATUS ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-try:
-    import chromadb
-    client = chromadb.PersistentClient(path=\"rag/chroma_store\")
-    cols = client.list_collections()
-    for c in cols:
-        print(f\"  {c.name}: {c.count()} items\")
-    if not cols:
-        print(\"  No collections\")
-except Exception as e:
-    print(f\"  Error: {e}\")
-" 2>&1 && echo "=== EXEC_MEMORY ===" && find output/ -type f 2>/dev/null | wc -l && echo "=== HANDS TOOLS ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from hands.tools.registry import create_default_registry
-r = create_default_registry()
-descs = r.get_tool_descriptions()
-print(f\"  {len(descs)} tools registered\")
-for name in sorted(r._tools.keys()):
-    print(f\"    - {name}\")
-" 2>&1'
-Completed with input:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== SCORES BY DOMAIN ===" && venv/bin/python3 -c "
-import sys, json, os, glob; sys.path.insert(0,\".\")
-from config import MEMORY_DIR
-for d in sorted(os.listdir(MEMORY_DIR)):
-    dp = os.path.join(MEMORY_DIR, d)
-    if not os.path.isdir(dp) or d.startswith(\"_\"): continue
-    files = glob.glob(os.path.join(dp, \"*.json\"))
-    files = [f for f in files if not os.path.basename(f).startswith(\"_\")]
-    scores = []
-    for f in files:
-        try:
-            data = json.load(open(f))
-            s = data.get(\"critique\",{}).get(\"overall_score\",0)
-            if s > 0: scores.append(s)
-        except: pass
-    if scores:
-        avg = sum(scores)/len(scores)
-        acc = sum(1 for s in scores if s >= 6)
-        last3 = scores[-3:]
-        print(f\"  {d}: {len(scores)} outputs, avg={avg:.1f}, accepted={acc}/{len(scores)}, last3={last3}\")
-    else:
-        print(f\"  {d}: 0 scored outputs\")
-" && echo "=== STRATEGY DETAILS ===" && venv/bin/python3 -c "
-import sys, json, os; sys.path.insert(0,\".\")
-from strategy_store import StrategyStore
-s = StrategyStore()
-for d in sorted(os.listdir(\"strategies\")):
-    if os.path.isdir(f\"strategies/{d}\") and not d.startswith(\"_\"):
-        meta_path = f\"strategies/{d}/_meta.json\"
-        if os.path.exists(meta_path):
-            meta = json.load(open(meta_path))
-            active = meta.get(\"active_version\")
-            latest = meta.get(\"latest_version\")
-            status = \"unknown\"
-            if active:
-                vf = f\"strategies/{d}/researcher_{active}.json\"
-                if os.path.exists(vf):
-                    vdata = json.load(open(vf))
-                    status = vdata.get(\"status\",\"?\")
-            print(f\"  {d}: active={active} latest={latest} status={status}\")
-        else:
-            print(f\"  {d}: no _meta.json\")
-" 2>&1 && echo "=== RAG CHROMA STATUS ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-try:
-    import chromadb
-    client = chromadb.PersistentClient(path=\"rag/chroma_store\")
-    cols = client.list_collections()
-    for c in cols:
-        print(f\"  {c.name}: {c.count()} items\")
-    if not cols:
-        print(\"  No collections\")
-except Exception as e:
-    print(f\"  Error: {e}\")
-" 2>&1 && echo "=== EXEC_MEMORY ===" && find output/ -type f 2>/dev/null | wc -l && echo "=== HANDS TOOLS ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from hands.tools.registry import create_default_registry
-r = create_default_registry()
-descs = r.get_tool_descriptions()
-print(f\"  {len(descs)} tools registered\")
-for name in sorted(r._tools.keys()):
-    print(f\"    - {name}\")
-" 2>&1'
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== STRATEGY META FILES ===" && for d in strategies/*/; do bn=$(basename "$d"); meta="$d/_meta.json"; if [ -f "$meta" ]; then echo "$bn: $(cat "$meta")"; fi; done && echo "=== RAG CHROMA STATUS ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-try:
-    import chromadb
-    client = chromadb.PersistentClient(path=\"rag/chroma_store\")
-    cols = client.list_collections()
-    for c in cols:
-        print(f\"  {c.name}: {c.count()} items\")
-    if not cols:
-        print(\"  No collections\")
-except Exception as e:
-    print(f\"  Error: {e}\")
-" 2>&1 && echo "=== EXEC_MEMORY FILES ===" && find output/ -type f 2>/dev/null | wc -l && find exec_memory/ -type f 2>/dev/null | wc -l && echo "=== HANDS TOOLS ===" && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-from hands.tools.registry import create_default_registry
-r = create_default_registry()
-descs = r.get_tool_descriptions()
-print(f\"  {len(descs)} tools registered\")
-for name in sorted(r._tools.keys()):
-    print(f\"    - {name}\")
-" 2>&1'
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== RAG CHROMA STORE ===" && ls -la rag/chroma_store/ 2>/dev/null && echo "=== RAG VECTORDB IN MEMORY ===" && ls -la memory/_vectordb/ 2>/dev/null && echo "=== RAG INDEX IN LOG ===" && grep -i "RAG.*index\|RAG.*claim\|RAG.*error\|vector.*store" logs/daemon-stdout.log | tail -10 && echo "=== EXEC MEMORY DIR ===" && find exec_memory/ -type f && echo "=== LOGS LIST ===" && ls -la logs/*.jsonl logs/*.json logs/*.log 2>/dev/null && echo "=== COSTS JSONL DATES ===" && python3 -c "
-import json; dates = {}
-with open(\"logs/costs.jsonl\") as f:
-    for line in f:
-        e = json.loads(line.strip())
-        d = e.get(\"date\",\"?\")
-        dates[d] = dates.get(d,0) + 1
-for d in sorted(dates.keys()): print(f\"  {d}: {dates[d]} entries\")
-" 2>&1 && echo "=== LOG ROTATION FILES ===" && ls -la logs/costs.jsonl* logs/run-log.jsonl* 2>/dev/null'
-Completed with input:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== RAG CHROMA STORE ===" && ls -la rag/chroma_store/ 2>/dev/null && echo "=== RAG VECTORDB IN MEMORY ===" && ls -la memory/_vectordb/ 2>/dev/null && echo "=== RAG INDEX IN LOG ===" && grep -i "RAG.*index\|RAG.*claim\|RAG.*error\|vector.*store" logs/daemon-stdout.log | tail -10 && echo "=== EXEC MEMORY DIR ===" && find exec_memory/ -type f && echo "=== LOGS LIST ===" && ls -la logs/*.jsonl logs/*.json logs/*.log 2>/dev/null && echo "=== COSTS JSONL DATES ===" && python3 -c "
-import json; dates = {}
-with open(\"logs/costs.jsonl\") as f:
-    for line in f:
-        e = json.loads(line.strip())
-        d = e.get(\"date\",\"?\")
-        dates[d] = dates.get(d,0) + 1
-for d in sorted(dates.keys()): print(f\"  {d}: {dates[d]} entries\")
-" 2>&1 && echo "=== LOG ROTATION FILES ===" && ls -la logs/costs.jsonl* logs/run-log.jsonl* 2>/dev/null'
-
-Searched for regex `migrate_from_json|def init_db` (`**/agent-brain/db.py`), 2 results
-
-Read [](file:///workspaces/AI-agents/agent-brain/db.py#51-51), lines 51 to 115
-
-Read [](file:///workspaces/AI-agents/agent-brain/db.py#538-538), lines 538 to 646
-
-Starting: *Map architecture vs vision* (5/6)
-
-Let me check a few more integration details to round out the audit: 
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== WATCHDOG STATE ===" && python3 -c "import json; print(json.dumps(json.load(open(\"logs/watchdog_state.json\")), indent=2))" 2>&1 | head -40 && echo "=== DAEMON STATE ===" && cat logs/daemon_state.json && echo "=== TELEGRAM BOT STATUS ===" && systemctl is-active cortex-telegram 2>/dev/null || echo "no service" && echo "=== ALL SERVICES ===" && systemctl list-units --type=service --state=active 2>/dev/null | grep cortex'
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && echo "=== RAG TWO STORES CHECK ===" && echo "rag/chroma_store:" && ls rag/chroma_store/ 2>/dev/null && echo "memory/_vectordb:" && ls memory/_vectordb/ 2>/dev/null && echo "=== WHO REFERENCES WHICH STORE ===" && grep -rn "chroma_store\|_vectordb\|PersistentClient" --include="*.py" | grep -v test | grep -v __pycache__ | grep -v venv'
-
-Read [](file:///home/codespace/.vscode-remote/data/User/workspaceStorage/23b51e06/GitHub.copilot-chat/chat-session-resources/85767f3f-989d-4d3a-a95c-a12559f10226/toolu_bdrk_01SQXMc86coUy874jn4ZUFco__vscode-1772501470988/content.txt#1-1), lines 1 to 40
-
-Searched for regex `PersistentClient|chroma_store|_vectordb` (`**/agent-brain/rag/vector_store.py`), 10 results
-
-Ran terminal command:  sshpass -p '[REDACTED_VPS_PASS]' ssh -o StrictHostKeyChecking=no root@207.180.219.27 'cd /root/AI-agents/agent-brain && venv/bin/python3 -c "
-import sys; sys.path.insert(0,\".\")
-import chromadb
-client = chromadb.PersistentClient(path=\"memory/_vectordb\")
-cols = client.list_collections()
-for c in cols:
-    print(f\"  {c.name}: {c.count()} items\")
-if not cols:
-    print(\"  No collections\")
-" 2>&1'
-
-Good — RAG is working. 217 claims and 24 questions indexed. Now let me compile the full audit report. 
-
-Starting: *Produce full audit report* (6/6)
-
----
-
-# CORTEX SYSTEM — FULL ARCHITECTURE AUDIT
-
-**Date**: March 3, 2026
-**VPS**: 207.180.219.27 (active, commit `86a2e2b`)
-**Codebase**: 41,596 lines across 120 production Python files, 1,538 tests
-
----
-
-## 1. WHERE WE ARE ON THE BIG PICTURE
-
-### Target Architecture (from vision docs)
-```
-                    IDENTITY LAYER
-            (goals, values, risk tolerance)
-                        │
-                   ORCHESTRATOR
-        Watchdog │ Sync │ Progress │ Economics
-                   /           \
-              BRAIN             HANDS
-         7 agents              10 agents
-                        │
-                SENSOR LAYER
-         Signal │ Validation │ Behavior │ Analytics
-                        │
-                LEARNING LAYER
-         Local Judge │ Preference Store │ Re-trainer
-```
-
-### What Actually Exists
-
-| Layer | Status | Detail |
-|-------|--------|--------|
-| **Identity** | **COMPLETE** | 5 files (goals, ethics, boundaries, risk, taste). Injected into Cortex, Critic, Researcher, Chat. |
-| **Orchestrator** | **70%** | Watchdog, Sync, Scheduler, Cortex planner — all built and running. Missing: Economics Agent. |
-| **Brain** | **95%** | All 10 agents built. 5 self-learning layers proven. Consensus not used in daemon. |
-| **Hands** | **30%** | Executor + Planner + Validator + 5 tools. Missing 6 expansion agents (Design, DevOps, SEO, Outreach, Debugger, Hands Critic). **Pipeline to Hands is broken** (see below). |
-| **Sensor Layer** | **10%** | Analytics module exists. Signal, Validation, Behavior agents not built. |
-| **Learning Layer** | **15%** | research_lessons.py + strategy evolution fill partial role. Local Judge, Re-trainer not built. |
-
-### Build Order Progress
-
-| Step | Target | Status |
-|------|--------|--------|
-| 1 | Brain self-learning loop | **DONE** — 5 layers proven |
-| 2 | Hands coding execution | **DONE** — executor + 5 tools |
-| 3 | Prescreen + Loop Guard + Progress | **DONE** |
-| 4 | Orchestrator (24/7 stability) | **70%** — running on VPS, but integration gaps |
-| 5 | Signal Agent | **NOT STARTED** |
-| 6 | Validation Agent | **NOT STARTED** |
-| 7 | Expand Hands beyond coding | **NOT STARTED** |
-| 8 | Economics Agent | **NOT STARTED** |
-| 9 | Behavior + Analytics agents | **NOT STARTED** |
-| 10 | Learning Layer upgrade | **NOT STARTED** |
-
----
-
-## 2. COMPONENT-BY-COMPONENT AUDIT
-
-### BRAIN AGENTS
-
-| Agent | File | Lines | Integration | VPS Status |
-|-------|------|-------|-------------|------------|
-| Researcher | agents/researcher.py | 681 | Identity + Strategy + RAG + Lessons | **WORKING** — producing 7.0+ avg scores |
-| Critic | agents/critic.py | 511 | Identity + Ensemble + Confidence check | **WORKING** — Claude Sonnet, 5-dim rubric |
-| Pre-screener | prescreen.py | 245 | DeepSeek → Claude escalation | **WORKING** — saves ~40% critic cost |
-| Meta-Analyst | agents/meta_analyst.py | 410 | Strategy evolution from scored outputs | **SUPPRESSED** — domains in warmup/trial |
-| Question Generator | agents/question_generator.py | 417 | Gap diagnosis → next question | **WORKING** |
-| Cross-Domain | agents/cross_domain.py | 629 | Principle extraction + transfer | **PASSIVE** — principles from 3 domains available |
-| Synthesizer | agents/synthesizer.py | 439 | KB integration + contradiction detection | Built, called in loop |
-| Verifier | agents/verifier.py | 337 | Prediction tracking + reality check | Built, called in loop |
-| Consensus | agents/consensus.py | 284 | Multi-agent agreement | **NOT USED IN DAEMON** — CLI only |
-| Cortex | agents/cortex.py | 628 | Strategic planning + cycle interpretation | **WORKING** — focus domains, health monitoring |
-
-### HANDS AGENTS
-
-| Component | File | Lines | Status |
-|-----------|------|-------|--------|
-| Planner | hands/planner.py | 546 | Built — generates structured plans |
-| Executor | hands/executor.py | 832 | Built — multi-turn tool use |
-| Validator | hands/validator.py | 798 | Built — output verification |
-| Pattern Learner | hands/pattern_learner.py | 497 | Built — learns from execution patterns |
-| Tools (5) | hands/tools/ | 1,582 | code, git, http, search, terminal |
-| Error Analyzer | hands/error_analyzer.py | 192 | Built |
-| **Design Agent** | — | — | **NOT BUILT** |
-| **DevOps Agent** | — | — | **NOT BUILT** |
-| **SEO Agent** | — | — | **NOT BUILT** |
-| **Outreach Agent** | — | — | **NOT BUILT** |
-| **Hands Critic** | — | — | **NOT BUILT** |
-
-### INFRASTRUCTURE
-
-| Component | File | Lines | VPS Status |
-|-----------|------|-------|------------|
-| Scheduler | scheduler.py | 1,812 | **RUNNING** — cycle 7, 5 rounds/cycle |
-| Watchdog | watchdog.py | 601 | **ACTIVE** — currently in cooldown after 5 failures |
-| Sync | sync.py | 461 | **BROKEN** — 37 tasks, all pending, never consumed |
-| Cost Tracker | cost_tracker.py | 243 | **BUG** — JSONL/DB desync (see critical issues) |
-| DB | db.py | 646 | **WORKING** — 4,053 outputs, 2,338 costs, 180 alerts |
-| RAG | rag/vector_store.py | 589 | **WORKING** — 217 claims, 24 questions |
-| Knowledge Graph | knowledge_graph.py | 632 | Built but **NOT triggered in daemon** |
-| Analytics | analytics.py | 816 | Built, used by Cortex + monitoring |
-| Monitoring | monitoring.py | 327 | **WORKING** — health checks run post-cycle |
-| Telegram Bot | telegram_bot.py | 680 | **RUNNING** as `cortex-telegram` service |
-| Dashboard API | dashboard/api.py | 784 | Built but **NOT deployed** |
-| MCP Gateway | mcp/ | 1,739 | Built but **NOT connected** to daemon |
-| Identity Loader | identity_loader.py | 250 | **WORKING** — cached, injected into 4 agents |
-
----
-
-## 3. CRITICAL ISSUES (Bugs breaking the system)
-
-### CRITICAL 1: Budget Tracking Desync — Unlimited Spending Risk
-
-`check_budget()` reads from cost_tracker.py which parses `costs.jsonl`.
-The DB shows **$25.46 spent today** but the JSONL shows only **$0.60**.
-The daemon thinks budget is fine (`within_budget: True`, remaining $6.40) when it's actually 3.6x over the $7 daily limit.
-
-**Root cause**: `get_daily_spend()` reads JSONL, not DB. When JSONL entries are lost (rotation, corruption), the budget check silently under-reports.
-
-**Impact**: The system can spend unlimited money. Budget enforcement is bypassed.
-
-**Fix**: Make `get_daily_spend()` read from DB (authoritative source) with JSONL fallback.
-
----
-
-### CRITICAL 2: Brain → Hands Pipeline Completely Broken
-
-The daemon creates sync tasks from research, but Hands **never executes any of them**.
-
-**Three compounding failures:**
-
-1. **Task type mismatch**: `_create_tasks_from_research()` in [main.py](agent-brain/main.py#L118) creates `"investigate"` (36/37) and `"deploy"` (1/37) tasks. But `_execute_hands_tasks()` in [scheduler.py](agent-brain/scheduler.py#L1109) only accepts `"build"` and `"action"` types.
-
-2. **Priority mismatch**: Hands only picks up `"critical"` and `"high"` priority tasks. But 36/37 tasks are `"low"` priority investigate tasks.
-
-3. **The one high-priority task** (type=`"deploy"`) was **skipped** because deploy is not in the allowed types `("build", "action")`.
-
-**VPS evidence**: `"Hands skipping task task_20260303_062033_283890: type=deploy"` — the ONLY actionable task, skipped.
-
-**Impact**: Zero exec_memory outputs. Hands has never auto-executed a single task from research. The Brain→Hands feedback loop is completely disconnected.
-
-**Fix**: Either expand accepted task_types to include `"deploy"` and `"investigate"`, or fix `_create_tasks_from_research()` to generate `"build"` and `"action"` type tasks.
-
----
-
-### CRITICAL 3: Watchdog Cooldown After 5 Stall Failures
-
-The watchdog is currently in **cooldown state** (1800s/30min cooldown after 5 consecutive failures). The daemon is alive but blocked from running cycles.
-
-**Root cause**: The `all` meta-domain stalled — Cortex injected it as a focus domain but it consistently produces 0 rounds because it's a catch-all domain with no clear research direction.
-
-**Impact**: Daemon is idle whenever the cooldown is active. Research progress stops.
-
-**Fix**: Either remove `all` from Cortex's focus candidates, or add logic to skip meta-domains that consistently stall.
-
----
-
-## 4. HIGH-SEVERITY ISSUES
-
-### HIGH 1: Domain Goals Missing for Revenue Domains
-
-Only `productized-services` has a goal file. The primary revenue domain `onlinejobsph-employers` has **no goal set**.
-
-VPS log: `"⚠ No goal set for domain 'onlinejobsph-employers' — questions may not be actionable"`
-
-**Impact**: Question generator produces generic questions instead of targeted revenue-aligned research.
-
----
-
-### HIGH 2: Strategy Evolution Stalled
-
-| Domain | Status | Active Version | Last Updated |
-|--------|--------|---------------|-------------|
-| ai | trial | v002 | Feb 28 |
-| crypto | trial | v004 | Feb 23 |
-| cybersecurity | **active** | v003 | Feb 23 |
-| general | trial | v001 | Mar 2 |
-| geopolitics | trial | v002 | Mar 2 |
-| nextjs-react | trial | v002 | Feb 25 |
-| physics | trial | v001 | Mar 2 |
-| productized-services | trial | v002 | Mar 1 |
-| saas-fullstack-apps | trial | v001 | Mar 3 |
-| **onlinejobsph-employers** | **NO STRATEGY** | default | — |
-
-8/9 domains stuck in "trial" status. Trial evaluation requires `TRIAL_PERIOD=5` outputs under the trial strategy, but most domains haven't accumulated enough. Only cybersecurity has reached "active" (v003).
-
-The revenue domain has **no strategy at all** — using defaults.
-
----
-
-### HIGH 3: Cybersecurity 50% Rejection Rate
-
-cybersecurity: 10 outputs, only 5 accepted (50% rejection). The last 3 scores are 7.4, 8.1, 7.9 (improving), but the historical rejection rate is alarming. The strategy (v003) is the only "active" one — it may need re-evaluation.
-
----
-
-### HIGH 4: productized-services Declining Quality
-
-productized-services: 29 outputs, last 3 scores: 8.25, 4.8, **2.9**. This is a severe quality regression. The domain has the most outputs but is degrading rapidly.
-
----
-
-## 5. MEDIUM-SEVERITY ISSUES
-
-### MED 1: Consensus Agent Idle
-
-`consensus_research()` is never called in the daemon loop. Only available via CLI `--consensus` flag. Could improve research quality by adding multi-agent agreement scoring.
-
-### MED 2: Knowledge Graph Not Triggered in Daemon
-
-Knowledge graph building exists ([knowledge_graph.py](agent-brain/knowledge_graph.py)) but is only triggered via CLI `--graph`. The daemon never builds/updates knowledge graphs from accumulated research.
-
-### MED 3: Dashboard Not Deployed
-
-[dashboard/api.py](agent-brain/dashboard/api.py) (784 lines FastAPI) is fully built but has no systemd service. No web interface for monitoring.
-
-### MED 4: MCP Gateway Disconnected
-
-5 MCP modules ([mcp/](agent-brain/mcp/)) totaling 1,739 lines. Docker-based architecture. Only accessible via CLI flags. Not integrated into daemon or research pipeline.
-
-### MED 5: Two ChromaDB Stores
-
-`rag/chroma_store/` (188KB, 0 collections) and `memory/_vectordb/` (1.7MB, 217 claims + 24 questions). The `rag/chroma_store` directory is orphaned/unused — only `memory/_vectordb` is the active path.
-
-### MED 6: Sync Tasks Have No "domain" Field
-
-Tasks use `source_domain` instead of `domain`. While `get_pending_tasks()` correctly filters on `source_domain`, any external tooling or dashboard expecting a `domain` field will see empty data.
-
----
-
-## 6. VPS LIVE STATE SUMMARY
-
-| Metric | Value |
-|--------|-------|
-| **Daemon** | Active, cycle 7 completed, next run ~07:30 UTC |
-| **Watchdog** | Cooldown (5 failures, 30min cooldown) |
-| **Telegram Bot** | Active |
-| **Commit** | `86a2e2b` |
-| **Daily Budget** | $7.00 ($2 Claude + $5 OpenRouter) |
-| **Reported Spend** | $0.60 (JSONL) — **actual $25.46 (DB)** |
-| **Total Memory** | 155 research outputs across 11 domains |
-| **RAG** | 217 claims, 24 questions (working) |
-| **Sync Tasks** | 37 pending, 0 executed, 0 completed |
-| **Exec Memory** | 1 file (from Feb 25 manual run) |
-| **Strategies** | 8/9 in trial, 1 active, 1 using default |
-
-### Domain Health
-
-| Domain | Outputs | Avg Score | Acceptance | Trend |
-|--------|---------|-----------|------------|-------|
-| onlinejobsph-employers | 3 | 7.2 | 100% | Warmup (3/5) |
-| geopolitics | 6 | 7.4 | 100% | Stable |
-| physics | 7 | 7.2 | 100% | Stable |
-| ai | 11 | 7.0 | 100% | Declining (-0.55) |
-| general | 8 | 6.9 | 88% | Declining (-1.74) |
-| nextjs-react | 27 | 6.7 | 81% | Stable |
-| crypto | 17 | 6.3 | 76% | Mixed |
-| productized-services | 29 | 6.3 | 72% | **CRITICAL** — last score 2.9 |
-| saas-fullstack-apps | 15 | 5.9 | 47% | Struggling |
-| cybersecurity | 10 | 5.8 | 50% | Improving (last 3: 7.4, 8.1, 7.9) |
-
----
-
-## 7. ARCHITECTURE GAPS — WHAT'S MISSING
-
-### Missing Agents (from vision)
-
-| Agent | Layer | Priority | Impact |
-|-------|-------|----------|--------|
-| **Economics Agent** | Orchestrator | HIGH | Kill/pivot/double-down decisions. Currently Cortex fills partial role. |
-| **Signal Agent** | Sensor | MEDIUM | Replaces human "is this worth pursuing?" judgment |
-| **Validation Agent** | Sensor | MEDIUM | Replaces human "will people pay?" judgment |
-| **Design Agent** | Hands | LOW | Needed for landing pages (productized services) |
-| **DevOps Agent** | Hands | LOW | Auto-deploy, infra management |
-| **SEO Agent** | Hands | LOW | Content optimization |
-| **Outreach Agent** | Hands | LOW | Customer acquisition |
-| **Hands Critic** | Hands | MEDIUM | Judge execution quality (validator is partial) |
-| **Local Judge** | Learning | LOW | Replace Claude with local model for scoring |
-| **Re-trainer** | Learning | LOW | Strategy evolution from feedback data |
-
-### Missing Integrations (things built but not connected)
-
-1. **Consensus → Daemon**: Agent exists, not called in auto-mode
-2. **Knowledge Graph → Daemon**: Builder exists, never auto-triggered
-3. **Dashboard → VPS**: API built, no systemd service
-4. **MCP → Research**: Gateway built, not used in pipeline
-5. **Cost DB → Budget Check**: DB is authoritative, but budget reads stale JSONL
-
----
-
-## 8. THE HONEST ASSESSMENT
-
-**What's working well:**
-- Brain's core loop (research → critique → store → evolve) is solid
-- Identity layer is complete and injected
-- Cortex strategic planning is making smart decisions (prioritizing revenue domains)
-- RAG semantic memory is indexing and queryable (217 claims)
-- Watchdog is doing its job (catching failures, enforcing cooldowns)
-- Telegram bot provides real-time monitoring
-
-**What's broken:**
-- Budget tracking is unreliable (JSONL vs DB desync)
-- Brain→Hands pipeline is completely disconnected (0 executions)
-- Strategy evolution is stalled (most domains stuck in trial)
-- Revenue domain (onlinejobsph-employers) has no goal or strategy
-- Watchdog cooldowns are triggered by meta-domain stalls
-
-**The gap between vision and reality:**
-The vision describes a system that researches → builds → deploys → markets → acquires customers. What actually runs on the VPS is a system that researches → stores research → creates tasks that nobody picks up. The Brain is working. Hands exists but the wiring between them is broken. Everything downstream of Hands (deploy, market, acquire) doesn't exist yet.
-
-**Revenue-generating readiness: ~20%**
-The research is accumulating knowledge about onlinejobsph-employers, but there's no mechanism to turn that research into a landing page, a pitch, or a deployed service. That pipeline (research → Hands execution → deployment → outreach) has 3 broken links.
-
----
-
-## 9. PRIORITY FIX ORDER
-
-| # | Issue | Severity | Effort | Impact |
-|---|-------|----------|--------|--------|
-| 1 | Budget: read from DB not JSONL | CRITICAL | Small | Prevent unlimited spending |
-| 2 | Hands pipeline: fix task types | CRITICAL | Small | Unblock Brain→Hands flow |
-| 3 | Domain goal for onlinejobsph-employers | HIGH | Small | Targeted revenue research |
-| 4 | Skip `all` meta-domain in Cortex focus | HIGH | Small | Stop watchdog cooldowns |
-| 5 | Strategy: auto-promote trials with enough data | HIGH | Medium | Unblock evolution |
-| 6 | productized-services: investigate 2.9 score | HIGH | Medium | Stop quality regression |
-| 7 | Clean orphaned rag/chroma_store | LOW | Tiny | Hygiene |
-| 8 | Deploy dashboard API | MEDIUM | Medium | Monitoring visibility | 
-
-Completed: *Produce full audit report* (6/6)
-
-That's the complete picture. Three critical issues need immediate attention:
-
-1. **Budget is blind** — `check_budget()` reads JSONL ($0.60) while DB shows the real spend ($25.46). The daemon thinks it has $6.40 remaining when it's actually 3.6x over budget.
-
-2. **Hands never executes** — Research creates "investigate"/"deploy" tasks but Hands only accepts "build"/"action". The 1 high-priority deploy task was explicitly skipped. Zero executions in the entire system's lifetime (on VPS).
-
-3. **Watchdog blocked by meta-domain stalls** — Cortex injects `all` as a focus domain, it consistently stalls, triggers the circuit breaker, and blocks all research for 30 minutes.
-
-The architecture is ~50% built toward the full vision. Brain is 95% complete. Hands exists (30%) but is completely disconnected from Brain. Sensor and Learning layers are barely started. The system researches well but can't act on what it learns.
+*Last updated: March 4, 2026*

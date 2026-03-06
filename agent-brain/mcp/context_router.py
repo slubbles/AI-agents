@@ -50,14 +50,6 @@ KEYWORD_CATEGORIES: dict[str, list[str]] = {
     # Validation / reality check
     r"\b(validate|reality.?check|idea.?check|already.?exists|competition|competitors|"
     r"saturated|market.?research|pre.?build|existing.?solutions)\b": ["validation", "research"],
-    # Payments / billing
-    r"\b(stripe|payment|billing|subscription|checkout|invoice|price|charge|refund)\b": ["payments", "billing", "stripe"],
-    # Supabase / auth / storage
-    r"\b(supabase|auth|signup|login|session|storage|bucket|edge.?function|rls|row.?level)\b": ["database", "auth", "storage", "supabase"],
-    # Messaging / Slack
-    r"\b(slack|channel|message|notification|webhook|bot.?message)\b": ["messaging", "slack", "communication"],
-    # Hosting / Vercel
-    r"\b(vercel|deploy|hosting|domain|preview|production.?deploy|environment.?var)\b": ["deploy", "hosting", "vercel"],
 }
 
 

@@ -1046,10 +1046,11 @@ class TestSignalDaemon:
         assert loaded["last_collection"] == "2025-01-01T00:00:00+00:00"
 
     @patch("signal_bridge.generate_signal_questions")
+    @patch("signal_collector.enrich_top_posts")
     @patch("opportunity_scorer.score_unanalyzed")
     @patch("signal_collector.collect_signals")
-    def test_run_signal_cycle_full(self, mock_collect, mock_score, mock_bridge):
-        """Full signal cycle runs collect + score + bridge."""
+    def test_run_signal_cycle_full(self, mock_collect, mock_score, mock_enrich, mock_bridge):
+        """Full signal cycle runs collect + score + enrich + bridge."""
         import scheduler
         scheduler._last_signal_collection = None
         # Reset state file so _should_run_signals returns True
@@ -1059,6 +1060,7 @@ class TestSignalDaemon:
             "total_new": 15, "total_found": 50, "total_matched": 30,
         }
         mock_score.return_value = {"analyzed": 10, "top_score": 85}
+        mock_enrich.return_value = {"enriched": 7, "failed": 1, "skipped": 2}
         mock_bridge.return_value = [{"question": "q1"}, {"question": "q2"}]
 
         result = scheduler._run_signal_cycle()
@@ -1066,9 +1068,11 @@ class TestSignalDaemon:
         assert result["collected"] == 15
         assert result["scored"] == 10
         assert result["top_score"] == 85
+        assert result["enriched"] == 7
         assert result["questions_queued"] == 2
         mock_collect.assert_called_once()
         mock_score.assert_called_once()
+        mock_enrich.assert_called_once_with(limit=20)
         mock_bridge.assert_called_once()
 
     def test_run_signal_cycle_skips_within_interval(self):
@@ -1087,6 +1091,32 @@ class TestSignalDaemon:
         result = scheduler._run_signal_cycle()
         assert result is not None
         assert result["collected"] == 0
+
+    @patch("signal_bridge.generate_signal_questions")
+    @patch("signal_collector.enrich_top_posts", side_effect=Exception("scrapling unavailable"))
+    @patch("opportunity_scorer.score_unanalyzed")
+    @patch("signal_collector.collect_signals")
+    def test_run_signal_cycle_enrichment_failure_is_nonfatal(
+        self, mock_collect, mock_score, mock_enrich, mock_bridge
+    ):
+        """Enrichment failure does not abort the cycle — bridge still runs."""
+        import scheduler
+        scheduler._last_signal_collection = None
+        scheduler._save_signal_state({})
+
+        mock_collect.return_value = {"total_new": 5, "total_found": 10, "total_matched": 5}
+        mock_score.return_value = {"analyzed": 3, "top_score": 72}
+        mock_bridge.return_value = [{"question": "q1"}]
+
+        result = scheduler._run_signal_cycle()
+        assert result is not None
+        assert result["collected"] == 5
+        assert result["scored"] == 3
+        # enriched defaults to 0 when enrichment fails
+        assert result.get("enriched", 0) == 0
+        # Bridge still ran despite enrichment failure
+        assert result["questions_queued"] == 1
+        mock_bridge.assert_called_once()
 
 
 # ============================================================

@@ -608,6 +608,7 @@ def _run_signal_cycle() -> dict | None:
     results = {
         "collected": 0,
         "scored": 0,
+        "enriched": 0,
         "top_score": 0,
         "questions_queued": 0,
     }
@@ -638,6 +639,21 @@ def _run_signal_cycle() -> dict | None:
                     f"top score {results['top_score']}/100")
     except Exception as e:
         _log_daemon(f"Signal scoring failed: {e}", "error")
+
+    try:
+        # Step 2.5: Enrich top-scored posts with real Reddit engagement data
+        # This runs after scoring so we prioritise enriching high-opportunity posts
+        from signal_collector import enrich_top_posts
+        enrichment = enrich_top_posts(limit=20)
+        enriched_count = enrichment.get("enriched", 0)
+        if enriched_count > 0:
+            _log_daemon(f"Signal enrichment: {enriched_count} posts enriched with "
+                        f"real engagement data "
+                        f"(failed={enrichment.get('failed', 0)}, "
+                        f"skipped={enrichment.get('skipped', 0)})")
+        results["enriched"] = enriched_count
+    except Exception as e:
+        _log_daemon(f"Signal enrichment failed: {e}", "error")
 
     try:
         # Step 3: Bridge to Brain questions

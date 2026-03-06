@@ -347,3 +347,97 @@ class TestResearcherBrowserDispatch:
             source = f.read()
         assert '"tool": "browser_fetch"' in source
         assert '"tool": "browser_search"' in source
+
+
+# ============================================================
+# Signal Intelligence Chat Tools
+# ============================================================
+
+class TestSignalChatTools:
+    """Verify signal intelligence tools are wired into the chat system."""
+
+    def _get_chat_tool_names(self):
+        import sys, os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+        from cli.chat import CHAT_TOOLS
+        return [t["name"] for t in CHAT_TOOLS]
+
+    def test_show_signals_tool_registered(self):
+        """show_signals tool is defined in chat CHAT_TOOLS."""
+        assert "show_signals" in self._get_chat_tool_names()
+
+    def test_enrich_signals_tool_registered(self):
+        """enrich_signals tool is defined in chat CHAT_TOOLS."""
+        assert "enrich_signals" in self._get_chat_tool_names()
+
+    def test_show_build_specs_tool_registered(self):
+        """show_build_specs tool is defined in chat CHAT_TOOLS."""
+        assert "show_build_specs" in self._get_chat_tool_names()
+
+    def test_show_signals_handler_exists(self):
+        """show_signals handler is implemented in _execute_tool."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "cli", "chat.py")) as f:
+            source = f.read()
+        assert 'name == "show_signals"' in source
+
+    def test_enrich_signals_handler_exists(self):
+        """enrich_signals handler is implemented in _execute_tool."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "cli", "chat.py")) as f:
+            source = f.read()
+        assert 'name == "enrich_signals"' in source
+
+    def test_show_build_specs_handler_exists(self):
+        """show_build_specs handler is implemented in _execute_tool."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "cli", "chat.py")) as f:
+            source = f.read()
+        assert 'name == "show_build_specs"' in source
+
+
+# ============================================================
+# Telegram Threads Thread Command
+# ============================================================
+
+class TestTelegramThreadsCommand:
+    """Verify /threads thread <id> command is wired in telegram_bot."""
+
+    def test_thread_subcommand_exists(self):
+        """The 'thread' sub-command is handled in /threads dispatch."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "telegram_bot.py")) as f:
+            source = f.read()
+        assert 'sub_cmd == "thread"' in source
+        assert "get_thread_insights" in source
+
+    def test_thread_help_text_updated(self):
+        """The /threads help text includes the thread sub-command."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "telegram_bot.py")) as f:
+            source = f.read()
+        # Both the /help command and the /threads help sub-command should mention it
+        assert "/threads thread" in source
+
+
+# ============================================================
+# Signal Enrichment Wired in Daemon Cycle
+# ============================================================
+
+class TestSignalEnrichmentWiring:
+    """Verify enrich_top_posts is called within _run_signal_cycle."""
+
+    def test_enrich_called_in_signal_cycle(self):
+        """scheduler._run_signal_cycle source contains enrich_top_posts call."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "scheduler.py")) as f:
+            source = f.read()
+        assert "enrich_top_posts" in source
+        # Should be inside _run_signal_cycle function
+        fn_start = source.find("def _run_signal_cycle()")
+        fn_end = source.find("\ndef ", fn_start + 1)
+        fn_body = source[fn_start:fn_end]
+        assert "enrich_top_posts" in fn_body
+
+    def test_enriched_key_in_results(self):
+        """The results dict in _run_signal_cycle includes an 'enriched' key."""
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "scheduler.py")) as f:
+            source = f.read()
+        fn_start = source.find("def _run_signal_cycle()")
+        fn_end = source.find("\ndef ", fn_start + 1)
+        fn_body = source[fn_start:fn_end]
+        assert '"enriched": 0' in fn_body or '"enriched"' in fn_body

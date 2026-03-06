@@ -47,47 +47,6 @@
       "categories": ["validation", "research"],
       "description": "Pre-build reality check — scans GitHub, HN, npm, PyPI, Product Hunt for existing solutions. Returns signal score 0-100.",
       "enabled": true
-    },
-    "supabase": {
-      "command": "npx",
-      "args": ["-y", "@supabase/mcp-server-supabase@latest", "--read-only"],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}",
-        "SUPABASE_PROJECT_REF": "${SUPABASE_PROJECT_REF}"
-      },
-      "categories": ["database", "auth", "storage", "supabase"],
-      "description": "Supabase MCP — database queries, auth management, storage, edge functions. Enable per-project when SUPABASE_ACCESS_TOKEN is set.",
-      "enabled": false
-    },
-    "stripe": {
-      "command": "npx",
-      "args": ["-y", "@stripe/mcp@latest"],
-      "env": {
-        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
-      },
-      "categories": ["payments", "billing", "stripe"],
-      "description": "Stripe MCP — create products, prices, subscriptions, checkout sessions. Enable per-project when Stripe keys are set.",
-      "enabled": false
-    },
-    "slack": {
-      "command": "npx",
-      "args": ["-y", "@anthropic/mcp-server-slack"],
-      "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}"
-      },
-      "categories": ["messaging", "slack", "communication"],
-      "description": "Slack MCP — send messages, read channels, manage conversations. Enable when Slack bot token is configured.",
-      "enabled": false
-    },
-    "vercel": {
-      "command": "npx",
-      "args": ["-y", "mcp-vercel"],
-      "env": {
-        "VERCEL_TOKEN": "${VERCEL_TOKEN}"
-      },
-      "categories": ["deploy", "hosting", "vercel"],
-      "description": "Vercel MCP — deploy projects, manage domains, environment variables. Enable when Vercel token is set.",
-      "enabled": false
     }
   }
 }

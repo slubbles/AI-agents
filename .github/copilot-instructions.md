@@ -299,3 +299,24 @@ REPEAT             → Until the request is 100% working as expected
 - Bug fixes: loop once for diagnosis, once for fix, once for regression testing
 - Refactors: loop per module being refactored
 - **Keep looping until the user's request is 100% fulfilled.** Don't stop at "mostly works."
+
+## Progress Logging — MANDATORY
+
+After completing any todo list or series of tasks, you MUST update `.github/progress.md` with a new session entry (or append to the current session if one already exists for today).
+
+**Every entry must include:**
+1. **What We Did** — one-line summary of the work
+2. **Why** — the problem or gap that motivated it
+3. **Purpose** — what it enables or unlocks
+4. **Steps Taken** — numbered list of actual steps (no code), what you built/modified/wired
+5. **Use Cases** (if applicable) — what real-world scenarios this enables
+6. **Suggested Next Steps** — structured as:
+   - **Goal/Intent** — what the next milestone is
+   - **Why/Purpose** — reason it matters
+   - **Objectives** — numbered tasks/deliverables (like the masterplan format)
+
+**Also update the "Current System State" section** at the bottom of progress.md if the system's capabilities changed.
+
+**Format:** Newest session first. Use `## Session N — Date` header. Keep entries short and direct — bullet points, not prose.
+
+**When to log:** After every completed todo list, task series, or significant work block. Don't batch across sessions — log immediately when done.

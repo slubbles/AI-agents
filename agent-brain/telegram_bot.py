@@ -413,7 +413,9 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "/threads post &lt;text&gt; — Publish to Threads\n"
             "/threads draft &lt;topic&gt; — AI-generated post draft\n"
             "/threads analyze &lt;query&gt; — Pain point analysis\n"
-            "/threads insights — Engagement stats\n\n"
+            "/threads insights — Engagement stats\n"
+            "/threads analytics — Profile analytics\n"
+            "/threads thread &lt;id&gt; — Stats for a specific post\n\n"
             "<b>System Commands:</b>\n"
             "/status — System status + budget\n"
             "/kitchen — What's cooking right now (live daemon view)\n"
@@ -725,6 +727,7 @@ def _handle_command(chat_id: str, command: str) -> str | None:
                 "/threads insights — Recent engagement stats\n"
                 "/threads analytics — Profile-level analytics\n"
                 "/threads analyze &lt;query&gt; — Pain point analysis\n"
+                "/threads thread &lt;id&gt; — Stats for a specific post\n"
             )
         
         if sub_cmd == "search":
@@ -807,6 +810,32 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             except ThreadsAPIError as e:
                 return f"❌ Analytics failed: {e}"
         
+        if sub_cmd == "thread":
+            if not sub_arg:
+                return "Usage: /threads thread &lt;thread_id&gt;\nGet detailed stats for a specific post."
+            from tools.threads_client import get_thread_insights, ThreadsAPIError
+            try:
+                data = get_thread_insights(sub_arg)
+                text_preview = (data.get("text") or "")[:150]
+                views = data.get("views", 0)
+                likes = data.get("likes", 0)
+                replies = data.get("replies", 0)
+                reposts = data.get("reposts", 0)
+                quotes = data.get("quotes", 0)
+                rate = data.get("engagement_rate", 0)
+                return (
+                    f"🧵 <b>Thread Insights</b>\n\n"
+                    f"📝 {text_preview}\n\n"
+                    f"👁 Views: {views:,}\n"
+                    f"❤️ Likes: {likes:,}\n"
+                    f"💬 Replies: {replies:,}\n"
+                    f"🔁 Reposts: {reposts:,}\n"
+                    f"💭 Quotes: {quotes:,}\n"
+                    f"📊 Engagement rate: {rate:.2f}%"
+                )
+            except ThreadsAPIError as e:
+                return f"❌ Thread insights failed: {e}"
+
         if sub_cmd == "analyze":
             if not sub_arg:
                 return "Usage: /threads analyze &lt;query&gt;\nSearches Threads and analyzes pain points."

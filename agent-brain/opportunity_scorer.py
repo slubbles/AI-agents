@@ -30,6 +30,7 @@ from signal_collector import (
     init_signals_db,
     CATEGORIES,
 )
+from utils.atomic_write import atomic_json_write
 from utils.json_parser import extract_json
 
 logger = logging.getLogger(__name__)
@@ -466,6 +467,5 @@ def _save_build_spec(spec: dict, opportunity: dict):
     }
 
     filepath = os.path.join(spec_dir, filename)
-    with open(filepath, "w") as f:
-        json.dump(record, f, indent=2)
+    atomic_json_write(filepath, record)
     logger.info(f"[SPEC] Saved build spec to {filepath}")
