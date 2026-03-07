@@ -9,21 +9,102 @@ from dotenv import load_dotenv
 # Load .env from project root
 load_dotenv(Path(__file__).parent / ".env")
 
-# --- LLM Provider ---
+# --- LLM Providers ---
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+
+# ── 3-Tier Model Architecture ──────────────────────────────────────────
+# Tier 1 (CHEAPEST): DeepSeek V3.2 — high-volume, low-stakes tasks
+# Tier 2 (FAST):     Grok 4.1 Fast — latency-sensitive, tool-use loops
+# Tier 3 (PREMIUM):  Claude Sonnet  — sacred quality tasks, reasoning
+#
+# Zero overlap: each model serves a distinct purpose based on task profile.
+
+_FALLBACK = "claude-haiku-4-5-20251001"  # when OpenRouter not configured
+
+CHEAPEST_MODEL = (
+    "deepseek/deepseek-chat"  # DeepSeek V3.2 — cheapest, strong reasoning
+    if OPENROUTER_API_KEY
+    else _FALLBACK
+)
+
+FAST_MODEL = (
+    "x-ai/grok-4.1-fast"  # Grok 4.1 — low latency, tool-use loops
+    if OPENROUTER_API_KEY
+    else _FALLBACK
+)
+
+PREMIUM_MODEL = (
+    "anthropic/claude-sonnet-4"  # Sacred — never cut corners. All LLM via OpenRouter (single billing).
+    if OPENROUTER_API_KEY
+    else "claude-sonnet-4-20250514"  # fallback if OpenRouter key missing
+)
+
+# Tier 4 (CHAT): Google Gemini 2.0 Flash — cheap, fast, reasoning support
+# Human chat interface: 40x cheaper than Sonnet, good quality, tool use.
+# Claude stays as orchestrator voice (orchestrator tools route through Sonnet).
+CHAT_MODEL = (
+    "google/gemini-2.0-flash-001"  # $0.075/M input, $0.30/M output
+    if OPENROUTER_API_KEY
+    else _FALLBACK
+)
+
+# Available models for /model switching (chat interface only)
+AVAILABLE_CHAT_MODELS = {
+    "gemini-flash": {
+        "id": "google/gemini-2.0-flash-001",
+        "label": "Gemini 2.0 Flash",
+        "cost": "$0.075/$0.30 per 1M",
+        "reasoning": True,
+        "notes": "Default. Cheapest + fast + reasoning.",
+    },
+    "grok": {
+        "id": "x-ai/grok-4.1-fast",
+        "label": "Grok 4.1 Fast",
+        "cost": "$0.50/$2.00 per 1M",
+        "reasoning": True,
+        "notes": "Powerful reasoning, higher cost.",
+    },
+    "deepseek": {
+        "id": "deepseek/deepseek-chat",
+        "label": "DeepSeek V3.2",
+        "cost": "$0.27/$1.10 per 1M",
+        "reasoning": True,
+        "notes": "Strong reasoning, cheap.",
+    },
+    "sonnet": {
+        "id": "claude-sonnet-4-20250514",
+        "label": "Claude Sonnet 4",
+        "cost": "$3.00/$15.00 per 1M",
+        "reasoning": False,
+        "notes": "Best quality. Expensive — use sparingly.",
+    },
+}
+
+# Backward compat alias (some tests/modules reference CHEAP_MODEL)
+CHEAP_MODEL = FAST_MODEL
 
 # Model assignments per agent role
-# Critic gets the strongest model — it's the quality signal, don't cut corners.
-# Researcher uses a cheap model — it just searches and compiles.
-# Meta-analyst needs reasoning for pattern extraction — uses Sonnet.
+# Tier 1 = cheapest (synthesis/routing), Tier 2 = fast (interactive/tools),
+# Tier 3 = premium (quality-critical judgment), Tier 4 = chat (cheap + capable)
 MODELS = {
-    "researcher": "claude-haiku-4-5-20251001",    # cheap — searches + compiles
-    "critic": "claude-sonnet-4-20250514",         # strong — quality is sacred
-    "meta_analyst": "claude-sonnet-4-20250514",   # strong — pattern extraction needs reasoning
-    "synthesizer": "claude-sonnet-4-20250514",    # strong — contradiction detection + integration
-    "cross_domain": "claude-sonnet-4-20250514",   # strong — principle abstraction
-    "question_generator": "claude-haiku-4-5-20251001",  # cheap — routing/synthesis task
-    "verifier": "claude-sonnet-4-20250514",        # strong — reality checking is sacred (don't cut corners)
+    # Tier 1 — DeepSeek V3.2 (cheapest, high volume)
+    "question_generator": CHEAPEST_MODEL,          # synthesis task — cheapest wins
+    "prescreen": CHEAPEST_MODEL,                    # pre-filter before Claude critic
+    "progress_tracker": CHEAPEST_MODEL,             # periodic assessment
+    # Tier 2 — Grok 4.1 Fast (low latency, tool-use loops)
+    "researcher": FAST_MODEL,                       # many tool-use round trips, speed matters
+    # Tier 4 — Gemini Flash (chat interface — cheap but capable)
+    # Claude stays as orchestrator voice via orchestrator tools.
+    "chat": CHAT_MODEL,                             # human interface — cheap + reasoning
+    # Tier 3 — Claude Sonnet (sacred quality tasks)
+    "critic": PREMIUM_MODEL,                        # quality signal — NEVER cut corners
+    "meta_analyst": PREMIUM_MODEL,                  # pattern extraction needs reasoning
+    "synthesizer": PREMIUM_MODEL,                   # contradiction detection + integration
+    "cross_domain": PREMIUM_MODEL,                  # principle abstraction
+    "verifier": PREMIUM_MODEL,                      # reality checking is sacred
+    "cortex_orchestrator": PREMIUM_MODEL,           # strategic reasoning above Brain+Hands
+    "threads_analyst": CHEAPEST_MODEL,               # synthesis task — cheapest wins
 }
 
 # --- Quality Gate ---
@@ -31,7 +112,8 @@ QUALITY_THRESHOLD = 6  # minimum score (1-10) to accept output
 MAX_RETRIES = 2  # how many times researcher retries after rejection
 
 # --- Critic Enhancements ---
-CRITIC_ENSEMBLE = False           # run 2 critics and average scores (2x critic cost)
+CRITIC_ENSEMBLE = True            # cross-model ensemble: Claude Sonnet + DeepSeek V3.2
+CRITIC_ENSEMBLE_MODEL_B = CHEAPEST_MODEL  # second critic voice (different architecture = less correlated errors)
 CRITIC_LOG_PARSE_FAILURES = True  # write raw critic response to logs/ on parse failure
 CONFIDENCE_VALIDATION = True      # post-hoc check: "high" claims must cite 2+ sources
 CONFIDENCE_PENALTY = 1.0          # accuracy deduction for invalid high-confidence claims
@@ -46,11 +128,44 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "logs", "agent_brain.db")
 # Estimated cost per 1K tokens (input/output) for tracking
 # These are approximations used for budget awareness, not billing
 COST_PER_1K = {
+    # Claude models (Anthropic direct)
     "claude-haiku-4-5-20251001": {"input": 0.001, "output": 0.005},
     "claude-sonnet-4-20250514": {"input": 0.003, "output": 0.015},
+    # Claude via OpenRouter (same pricing, different route)
+    "anthropic/claude-sonnet-4": {"input": 0.003, "output": 0.015},
+    # Grok via OpenRouter
+    "x-ai/grok-4.1-fast": {"input": 0.0005, "output": 0.002},
+    # DeepSeek V3.2 via OpenRouter (cheapest)
+    "deepseek/deepseek-chat": {"input": 0.00027, "output": 0.0011},
+    # Gemini 2.0 Flash via OpenRouter
+    "google/gemini-2.0-flash-001": {"input": 0.000075, "output": 0.0003},
 }
-DAILY_BUDGET_USD = 2.00  # Normal daily budget
-TOTAL_BALANCE_USD = 11.74  # Synced from Claude console Feb 28. Update after checking actual balance.
+DAILY_BUDGET_USD = 7.00  # Combined daily budget (sum of per-provider limits)
+
+# Per-provider daily budget limits
+DAILY_BUDGET_CLAUDE = float(os.environ.get("DAILY_BUDGET_CLAUDE", "2.00"))
+DAILY_BUDGET_OPENROUTER = float(os.environ.get("DAILY_BUDGET_OPENROUTER", "5.00"))
+
+# Display-only: approximate API credit balances. Not gates — just shown in status.
+# Update with: python main.py --sync-balance (or manually from provider consoles)
+TOTAL_BALANCE_USD = float(os.environ.get("TOTAL_BALANCE_USD", "13.31"))
+BALANCE_CLAUDE = float(os.environ.get("BALANCE_CLAUDE", "3.90"))
+BALANCE_OPENROUTER = float(os.environ.get("BALANCE_OPENROUTER", "9.41"))
+
+# Model → provider mapping (for per-provider budget tracking)
+MODEL_PROVIDER = {
+    "claude-haiku-4-5-20251001": "claude",
+    "claude-sonnet-4-20250514": "claude",
+    "anthropic/claude-sonnet-4": "openrouter",
+    "x-ai/grok-4.1-fast": "openrouter",
+    "deepseek/deepseek-chat": "openrouter",
+    "google/gemini-2.0-flash-001": "openrouter",
+}
+
+# --- Signals ---
+SIGNAL_COLLECTION_INTERVAL_HOURS = 6   # Collect Reddit signals every N hours
+SIGNAL_SCORING_BATCH = 10              # Posts per scoring batch after collection
+SIGNAL_SCORING_MAX_BATCHES = 3         # Max batches per cycle (controls LLM cost)
 
 # --- Loop ---
 DEFAULT_DOMAIN = "general"
@@ -60,18 +175,61 @@ MAX_TOOL_ROUNDS = 8   # max rounds of tool-use before forcing output
 MAX_SEARCHES = 10     # hard cap on total web searches per run
 MAX_FETCHES = 8       # hard cap on total page fetches per run
 
+# --- Reasoning (OpenRouter models with reasoning support) ---
+# Grok 4.1:    reasoning.effort via extra_body ("low", "medium", "high")
+# DeepSeek V3.2: reasoning_enabled boolean via extra_body
+# Claude:      N/A (reasoning is native, no toggle)
+#
+# Per-role override: set reasoning where it helps most.
+REASONING_EFFORT = {
+    # Tier 1 — DeepSeek (reasoning_enabled boolean)
+    "question_generator": None,    # keep cheap — synthesis task
+    "prescreen": None,             # keep cheap — pre-filter
+    "progress_tracker": None,      # keep cheap — assessment
+    "critic_ensemble_b": True,     # ENABLE reasoning for DeepSeek critic (quality matters)
+    # Tier 2 — Grok (reasoning.effort: low/medium/high)
+    "researcher": None,            # keep fast — tool-use loops, reasoning slows down
+    # Chat uses Gemini Flash — enable reasoning for better quality
+    "chat": "high",               # Gemini Flash reasoning (thinking tokens)
+    # Tier 3 — Claude (N/A — reasoning is native)
+    "critic": None,
+    "meta_analyst": None,
+    "synthesizer": None,
+    "cross_domain": None,
+    "verifier": None,
+    "cortex_orchestrator": None,
+}
+
 # --- RAG (Retrieval-Augmented Generation) ---
 RAG_ENABLED = True                # use vector embeddings for semantic retrieval
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # local, free, 384 dimensions
 VECTORDB_DIR = os.path.join(os.path.dirname(__file__), "memory", "_vectordb")
 
+# --- Programmatic Tool Calling (PTC) ---
+# Anthropic PTC: Claude writes Python to orchestrate tools in a sandbox.
+# Only final processed output enters conversation context → 37% token savings.
+# Requires: direct Anthropic API (not OpenRouter), beta header, Claude Sonnet 4.5+
+# Set PTC_ENABLED=true in .env when you have Anthropic credits to spare.
+PTC_ENABLED = os.environ.get("PTC_ENABLED", "false").lower() in ("true", "1", "yes")
+PTC_MODEL = "claude-sonnet-4-20250514"  # Direct Anthropic model (not OpenRouter path)
+PTC_BETA_HEADER = "advanced-tool-use-2025-11-20"
+
 # --- Browser (Playwright Stealth) ---
-BROWSER_ENABLED = False           # enable stealth browser for JS-rendered/auth-required sites
+BROWSER_ENABLED = True            # enable stealth browser for JS-rendered/auth-required sites
 BROWSER_HEADLESS = True           # run browser headless (True for server, False for debugging)
 BROWSER_MAX_FETCHES = 3           # max browser fetches per research run (browser is slower)
 
 # --- Credential Vault ---
 VAULT_PASSPHRASE_ENV = "VAULT_PASSPHRASE"  # env var name for vault master passphrase
+
+# --- Threads API (Meta) ---
+THREADS_ENABLED = bool(os.environ.get("THREADS_ACCESS_TOKEN", ""))
+THREADS_MAX_SEARCHES_PER_RUN = 3          # max Threads searches per research run
+
+# --- Vercel Blob (image hosting for Threads posts) ---
+# Create a Blob store at vercel.com → your project → Storage → Blob
+# then copy BLOB_READ_WRITE_TOKEN to VPS .env
+VERCEL_BLOB_ENABLED = bool(os.environ.get("BLOB_READ_WRITE_TOKEN", ""))
 
 # --- VPS Deploy ---
 DEPLOY_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "deploy", "vps_config.json")
@@ -111,6 +269,46 @@ MIN_AVG_SCORE_FOR_TRANSFER = 6.0
 # --- Claim Expiry ---
 CLAIM_EXPIRY_DAYS = 30           # claims older than this without re-verification get flagged
 CLAIM_MAX_AGE_DAYS = 90          # claims older than this are auto-expired
+
+# --- Domain Bootstrap (Cold-Start Reliability) ---
+BOOTSTRAP_MIN_OUTPUTS = 5        # domain considered "cold" below this threshold
+BOOTSTRAP_SEED_ROUNDS = 3        # automatic seed rounds for new domains
+BOOTSTRAP_AUTO_TRANSFER = True   # auto-apply cross-domain principles when available
+
+# --- Critic Calibration ---
+CALIBRATION_ENABLED = True       # inject domain difficulty context into critic
+CALIBRATION_MIN_OUTPUTS = 10     # outputs needed before calibration activates
+CALIBRATION_FILE = os.path.join(MEMORY_DIR, "_calibration.json")
+
+# --- Memory Lifecycle (Self-Managing Maintenance) ---
+MAINTENANCE_ENABLED = True       # run automatic maintenance in daemon
+MAINTENANCE_STALE_THRESHOLD = 5  # trigger re-synthesis when N+ claims go stale
+MAINTENANCE_EVERY_N_CYCLES = 3   # run full maintenance every N daemon cycles
+
+# --- Claim Verification (Ground-Truth Checking) ---
+CLAIM_VERIFY_ENABLED = True      # verify high-confidence claims against web evidence
+CLAIM_VERIFY_MAX_PER_CYCLE = 3   # max claims to verify per maintenance cycle
+CLAIM_VERIFY_MIN_CONFIDENCE = "high"  # minimum confidence to target for verification
+
+# --- Conservative Mode ---
+# When activated via --conservative, overrides model assignments and loop settings
+# to minimize cost per cycle. Useful when API credits are scarce.
+CONSERVATIVE_MODELS = {
+    "researcher": CHEAPEST_MODEL,
+    "prescreen": CHEAPEST_MODEL,
+    "critic": CHEAPEST_MODEL,
+    "question_generator": CHEAPEST_MODEL,
+    "synthesizer": CHEAPEST_MODEL,
+    "meta_analyst": CHEAPEST_MODEL,
+    "cross_domain": CHEAPEST_MODEL,
+    "verifier": CHEAPEST_MODEL,
+}
+CONSERVATIVE_MAX_RETRIES = 0          # single attempt — no retries
+CONSERVATIVE_MAX_TOOL_ROUNDS = 4      # fewer search rounds
+CONSERVATIVE_MAX_SEARCHES = 5         # fewer searches
+CONSERVATIVE_MAX_FETCHES = 3          # fewer page fetches
+CONSERVATIVE_CONSENSUS = False        # never use consensus in conservative mode
+CONSERVATIVE_CRITIC_ENSEMBLE = False  # skip ensemble critic
 
 # --- Warmup Mode ---
 WARMUP_OUTPUTS = 5               # first N outputs in a new domain require manual review
@@ -158,10 +356,10 @@ RATE_LIMIT_FETCHES_PER_MINUTE = 20    # max page fetches per minute
 
 # Model assignments for execution agents
 MODELS.update({
-    "planner": "claude-sonnet-4-20250514",       # strong — plan decomposition needs reasoning
-    "executor": "claude-haiku-4-5-20251001",     # cheap — follows plans, uses tools
-    "exec_validator": "claude-sonnet-4-20250514",# strong — quality judgment is sacred
-    "exec_meta_analyst": "claude-sonnet-4-20250514",  # strong — pattern extraction
+    "planner": PREMIUM_MODEL,                    # strong — plan decomposition needs reasoning
+    "executor": CHEAPEST_MODEL,                  # DeepSeek V3.2 — cheapest, strong coding, tool-use capable
+    "exec_validator": PREMIUM_MODEL,             # strong — quality judgment is sacred
+    "exec_meta_analyst": PREMIUM_MODEL,          # strong — pattern extraction
 })
 
 # --- Execution Quality Gate ---
@@ -185,6 +383,8 @@ EXEC_ALLOWED_COMMANDS = [       # whitelist of allowed shell commands
     "git", "curl", "wget", "cat", "ls", "mkdir", "cp", "mv", "rm",
     "echo", "touch", "head", "tail", "grep", "find", "wc",
     "pytest", "eslint", "prettier", "tsc", "docker",
+    "cd", "pwd", "vercel", "chmod", "sed", "awk", "sort", "uniq",
+    "tar", "zip", "unzip", "env", "which", "tree",
 ]
 EXEC_BLOCKED_PATTERNS = [       # patterns that are NEVER allowed in commands
     "rm -rf /", "rm -rf /*", ":(){ :|:& };:",  # fork bomb
