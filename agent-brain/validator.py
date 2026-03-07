@@ -411,6 +411,227 @@ def validate_knowledge_graphs() -> dict:
     }
 
 
+def validate_bootstrap() -> dict:
+    """
+    Validate bootstrap status files across all domains.
+
+    Checks:
+    - JSON structure and required fields
+    - Phase is valid (in_progress, complete)
+    - Bootstrap questions are present and non-empty
+    """
+    valid = 0
+    invalid = 0
+    warnings = 0
+    issues = []
+
+    if not os.path.exists(MEMORY_DIR):
+        return {"valid": 0, "invalid": 0, "warnings": 0, "issues": []}
+
+    for d in sorted(os.listdir(MEMORY_DIR)):
+        domain_dir = os.path.join(MEMORY_DIR, d)
+        if not os.path.isdir(domain_dir):
+            continue
+        bs_file = os.path.join(domain_dir, "_bootstrap.json")
+        if not os.path.exists(bs_file):
+            continue
+
+        try:
+            with open(bs_file) as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            issues.append(f"[{d}] _bootstrap.json: Invalid JSON — {e}")
+            invalid += 1
+            continue
+
+        file_valid = True
+        phase = data.get("phase")
+        if phase not in ("in_progress", "complete", None):
+            issues.append(f"[{d}] Bootstrap has unknown phase: {phase}")
+            warnings += 1
+
+        if phase == "in_progress" and not data.get("bootstrap_questions"):
+            issues.append(f"[{d}] Bootstrap in_progress but no questions generated")
+            warnings += 1
+
+        if file_valid:
+            valid += 1
+        else:
+            invalid += 1
+
+    return {"valid": valid, "invalid": invalid, "warnings": warnings, "issues": issues}
+
+
+def validate_calibration() -> dict:
+    """
+    Validate the calibration data file.
+
+    Checks:
+    - JSON structure
+    - Domain entries have required stats
+    - Stats are within valid ranges
+    """
+    from config import CALIBRATION_FILE
+    issues = []
+    warnings = 0
+
+    if not os.path.exists(CALIBRATION_FILE):
+        return {"valid": False, "warnings": 0, "issues": ["Calibration file not found (normal if no cycles run)"]}
+
+    try:
+        with open(CALIBRATION_FILE) as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        return {"valid": False, "warnings": 0, "issues": [f"Calibration file invalid JSON: {e}"]}
+
+    domains = data.get("domains", {})
+    for d, entry in domains.items():
+        if "mean" not in entry or "count" not in entry:
+            issues.append(f"[{d}] Calibration entry missing mean or count")
+            continue
+        if not (0 <= entry.get("mean", 0) <= 10):
+            issues.append(f"[{d}] Calibration mean out of range: {entry['mean']}")
+            warnings += 1
+        if entry.get("accept_rate", 0) < 0 or entry.get("accept_rate", 0) > 1:
+            issues.append(f"[{d}] Accept rate out of range: {entry['accept_rate']}")
+            warnings += 1
+
+    return {
+        "valid": len(issues) == 0,
+        "domains_tracked": len(domains),
+        "warnings": warnings,
+        "issues": issues,
+    }
+
+
+def validate_claim_verification() -> dict:
+    """
+    Validate claim verification state across knowledge bases.
+
+    Checks:
+    - _last_verified timestamps are parseable
+    - _verification_verdict is a valid value
+    - disputed claims have notes explaining why
+    """
+    issues = []
+    warnings = 0
+    domains_checked = 0
+
+    if not os.path.exists(MEMORY_DIR):
+        return {"domains_checked": 0, "warnings": 0, "issues": []}
+
+    valid_verdicts = {"confirmed", "refuted", "weakened", "inconclusive"}
+
+    for d in sorted(os.listdir(MEMORY_DIR)):
+        domain_dir = os.path.join(MEMORY_DIR, d)
+        if not os.path.isdir(domain_dir):
+            continue
+        kb_path = os.path.join(domain_dir, "_knowledge_base.json")
+        if not os.path.exists(kb_path):
+            continue
+
+        try:
+            with open(kb_path) as f:
+                kb = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            continue
+
+        domains_checked += 1
+        for claim in kb.get("claims", []):
+            lv = claim.get("_last_verified")
+            if lv:
+                try:
+                    datetime.fromisoformat(lv)
+                except (ValueError, TypeError):
+                    issues.append(f"[{d}] Claim '{claim.get('id', '?')}': "
+                                  f"invalid _last_verified timestamp: {lv}")
+                    warnings += 1
+
+            verdict = claim.get("_verification_verdict")
+            if verdict and verdict not in valid_verdicts:
+                issues.append(f"[{d}] Claim '{claim.get('id', '?')}': "
+                              f"invalid verification verdict: {verdict}")
+                warnings += 1
+
+            if claim.get("status") == "disputed" and not claim.get("notes"):
+                issues.append(f"[{d}] Claim '{claim.get('id', '?')}': "
+                              f"disputed but no explanation in notes")
+                warnings += 1
+
+    return {
+        "domains_checked": domains_checked,
+        "warnings": warnings,
+        "issues": issues,
+    }
+
+
+def check_readiness() -> dict:
+    """
+    Check if the system is ready to run cycles.
+
+    Verifies:
+    - Required directories exist
+    - API key is configured
+    - Config is internally consistent
+    - No critical data corruption
+    """
+    ready = True
+    checks = []
+
+    # Directories
+    for name, path in [("MEMORY_DIR", MEMORY_DIR), ("STRATEGY_DIR", STRATEGY_DIR), ("LOG_DIR", LOG_DIR)]:
+        if os.path.exists(path):
+            checks.append({"check": name, "status": "ok"})
+        else:
+            checks.append({"check": name, "status": "missing", "detail": f"{path} does not exist"})
+
+    # API key
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    if api_key and api_key.startswith("sk-or-"):
+        checks.append({"check": "OPENROUTER_API_KEY", "status": "ok"})
+    elif api_key:
+        checks.append({"check": "OPENROUTER_API_KEY", "status": "warning", "detail": "Key set but format unusual"})
+    else:
+        checks.append({"check": "OPENROUTER_API_KEY", "status": "missing"})
+        ready = False
+
+    # .env file
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if os.path.exists(env_path):
+        checks.append({"check": ".env file", "status": "ok"})
+    else:
+        checks.append({"check": ".env file", "status": "missing",
+                       "detail": "Copy .env.example to .env and configure"})
+        ready = False
+
+    # Budget
+    try:
+        from config import DAILY_BUDGET_USD, TOTAL_BALANCE_USD
+        if DAILY_BUDGET_USD > 0:
+            checks.append({"check": "budget", "status": "ok",
+                          "detail": f"${DAILY_BUDGET_USD:.2f}/day, ${TOTAL_BALANCE_USD:.2f} balance"})
+        else:
+            checks.append({"check": "budget", "status": "warning", "detail": "Zero budget"})
+    except Exception as e:
+        checks.append({"check": "budget", "status": "error", "detail": str(e)})
+
+    # Data integrity (quick check)
+    mem_result = validate_memory()
+    if mem_result["invalid"] == 0:
+        checks.append({"check": "memory_integrity", "status": "ok",
+                       "detail": f"{mem_result['valid']} valid files"})
+    else:
+        checks.append({"check": "memory_integrity", "status": "warning",
+                       "detail": f"{mem_result['invalid']} invalid files"})
+
+    return {
+        "ready": ready,
+        "checks": checks,
+        "failed": [c for c in checks if c["status"] in ("missing", "error")],
+        "warnings": [c for c in checks if c["status"] == "warning"],
+    }
+
+
 def validate_all() -> dict:
     """
     Run all validation checks and return comprehensive report.
@@ -419,48 +640,57 @@ def validate_all() -> dict:
     strategies = validate_strategies()
     costs = validate_cost_log()
     graphs = validate_knowledge_graphs()
-    
-    total_issues = len(memory["issues"]) + len(strategies["issues"]) + len(costs["issues"]) + len(graphs["issues"])
-    total_valid = memory["valid"] + strategies["valid"] + costs["entries"] + graphs["valid"]
-    total_invalid = memory["invalid"] + strategies["invalid"] + costs["invalid_lines"] + graphs["invalid"]
-    total_warnings = memory["warnings"] + strategies["warnings"] + graphs["warnings"]
-    
-    # Overall health
+    bootstrap = validate_bootstrap()
+    calibration = validate_calibration()
+    claim_verification = validate_claim_verification()
+
+    all_issues = (memory["issues"] + strategies["issues"] + costs["issues"]
+                  + graphs["issues"] + bootstrap["issues"]
+                  + calibration["issues"] + claim_verification["issues"])
+
+    total_valid = memory["valid"] + strategies["valid"] + costs["entries"] + graphs["valid"] + bootstrap["valid"]
+    total_invalid = memory["invalid"] + strategies["invalid"] + costs["invalid_lines"] + graphs["invalid"] + bootstrap["invalid"]
+    total_warnings = (memory["warnings"] + strategies["warnings"] + graphs["warnings"]
+                      + bootstrap["warnings"] + calibration["warnings"]
+                      + claim_verification["warnings"])
+
     if total_invalid == 0 and total_warnings == 0:
         status = "HEALTHY"
     elif total_invalid == 0:
         status = "WARNINGS"
     else:
         status = "ISSUES FOUND"
-    
+
     return {
         "status": status,
         "total_valid": total_valid,
         "total_invalid": total_invalid,
         "total_warnings": total_warnings,
-        "total_issues": total_issues,
+        "total_issues": len(all_issues),
         "memory": memory,
         "strategies": strategies,
         "costs": costs,
         "graphs": graphs,
+        "bootstrap": bootstrap,
+        "calibration": calibration,
+        "claim_verification": claim_verification,
     }
 
 
 def display_validation():
     """Print formatted validation results."""
     result = validate_all()
-    
+
     status_icon = {"HEALTHY": "✓", "WARNINGS": "⚠", "ISSUES FOUND": "✗"}.get(result["status"], "?")
-    
+
     print(f"\n{'='*60}")
     print(f"  DATA VALIDATION — {status_icon} {result['status']}")
     print(f"{'='*60}")
-    
-    # Summary
+
     print(f"\n  Valid records: {result['total_valid']}")
     print(f"  Invalid records: {result['total_invalid']}")
     print(f"  Warnings: {result['total_warnings']}")
-    
+
     # Memory
     mem = result["memory"]
     print(f"\n  ── Memory ({mem['valid']} valid, {mem['invalid']} invalid, {mem['warnings']} warnings) ──")
@@ -470,13 +700,13 @@ def display_validation():
             print(f"    {status_mark} {d}: {stats['valid']} valid, {stats['invalid']} invalid, {stats['warnings']} warnings")
     if not mem["issues"]:
         print(f"    All memory files valid.")
-    
+
     # Strategies
     strat = result["strategies"]
     print(f"\n  ── Strategies ({strat['valid']} valid, {strat['invalid']} invalid) ──")
     if not strat["issues"]:
         print(f"    All strategy files valid.")
-    
+
     # Costs
     costs = result["costs"]
     print(f"\n  ── Cost Log ({costs['entries']} entries, {costs['invalid_lines']} invalid) ──")
@@ -485,21 +715,66 @@ def display_validation():
     print(f"    Total logged cost: ${costs['total_cost']:.4f}")
     if not costs["issues"]:
         print(f"    Cost log valid.")
-    
+
     # Knowledge Graphs
     graphs = result.get("graphs", {})
     if graphs.get("valid", 0) + graphs.get("invalid", 0) > 0:
         print(f"\n  ── Knowledge Graphs ({graphs['valid']} valid, {graphs['invalid']} invalid, {graphs['warnings']} warnings) ──")
         if not graphs["issues"]:
             print(f"    All knowledge graphs valid.")
-    
+
+    # Bootstrap
+    bootstrap = result.get("bootstrap", {})
+    bs_total = bootstrap.get("valid", 0) + bootstrap.get("invalid", 0)
+    if bs_total > 0:
+        print(f"\n  ── Bootstrap ({bootstrap['valid']} valid, {bootstrap['invalid']} invalid) ──")
+        if not bootstrap["issues"]:
+            print(f"    All bootstrap files valid.")
+
+    # Calibration
+    cal = result.get("calibration", {})
+    if cal.get("valid") is not None:
+        icon = "✓" if cal["valid"] else "⚠"
+        domains_n = cal.get("domains_tracked", 0)
+        print(f"\n  ── Calibration {icon} ({domains_n} domains tracked) ──")
+        if not cal.get("issues"):
+            print(f"    Calibration data valid.")
+
+    # Claim verification
+    cv = result.get("claim_verification", {})
+    if cv.get("domains_checked", 0) > 0:
+        print(f"\n  ── Claim Verification ({cv['domains_checked']} domains checked) ──")
+        if not cv["issues"]:
+            print(f"    All verification data valid.")
+
     # Show issues
-    all_issues = mem["issues"] + strat["issues"] + costs["issues"] + graphs.get("issues", [])
+    all_issues = []
+    for section in [mem, strat, costs, graphs, bootstrap, cal, cv]:
+        all_issues.extend(section.get("issues", []))
     if all_issues:
         print(f"\n  ── Issues ({len(all_issues)}) ──")
         for i, issue in enumerate(all_issues[:20], 1):
             print(f"    {i}. {issue}")
         if len(all_issues) > 20:
             print(f"    ... and {len(all_issues) - 20} more")
-    
+
+    print()
+
+
+def display_readiness():
+    """Print formatted readiness check results."""
+    result = check_readiness()
+
+    icon = "✓" if result["ready"] else "✗"
+    print(f"\n{'='*60}")
+    print(f"  READINESS CHECK — {icon} {'READY' if result['ready'] else 'NOT READY'}")
+    print(f"{'='*60}")
+
+    for check in result["checks"]:
+        status_icon = {"ok": "✓", "warning": "⚠", "missing": "✗", "error": "✗"}.get(check["status"], "?")
+        detail = f" — {check['detail']}" if check.get("detail") else ""
+        print(f"  {status_icon} {check['check']}{detail}")
+
+    if not result["ready"]:
+        print(f"\n  Fix the above issues before running cycles.")
     print()

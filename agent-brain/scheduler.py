@@ -1880,10 +1880,21 @@ def run_daemon(
                             from domain_seeder import get_seed_question, has_curated_seeds
                             from watchdog import MAX_ROUND_DURATION_SECONDS
                             
-                            # Generate question
+                            # Generate question — bootstrap-aware
                             domain_stats = get_stats(domain)
                             if domain_stats["count"] == 0:
-                                question = get_seed_question(domain)
+                                # Cold domain: run bootstrap, use bootstrap questions
+                                try:
+                                    from domain_bootstrap import (
+                                        is_cold, bootstrap_domain,
+                                        get_bootstrap_question,
+                                    )
+                                    if is_cold(domain):
+                                        bootstrap_domain(domain)
+                                    bq = get_bootstrap_question(domain)
+                                    question = bq if bq else get_seed_question(domain)
+                                except Exception:
+                                    question = get_seed_question(domain)
                             else:
                                 question = get_next_question(domain)
                             
@@ -2115,6 +2126,20 @@ def run_daemon(
             except Exception as e:
                 _log_daemon(f"Health check error: {e}", "warning")
 
+            # Memory lifecycle maintenance (every N cycles)
+            try:
+                from config import MAINTENANCE_EVERY_N_CYCLES, MAINTENANCE_ENABLED
+                if MAINTENANCE_ENABLED and cycle % MAINTENANCE_EVERY_N_CYCLES == 0:
+                    _log_daemon("Running memory lifecycle maintenance...")
+                    from memory_lifecycle import run_maintenance_all
+                    maint = run_maintenance_all(verbose=False)
+                    actions = maint.get("total_actions", 0)
+                    domains = maint.get("total_domains", 0)
+                    if actions > 0:
+                        _log_daemon(f"Maintenance: {actions} actions across {domains} domains")
+            except Exception as e:
+                _log_daemon(f"Maintenance error: {e}", "warning")
+
             # Sync check (every 5 cycles — not every cycle to reduce noise)
             if cycle % 5 == 0:
                 try:
@@ -2133,6 +2158,16 @@ def run_daemon(
             # Auto-approve pending strategies (every 5 cycles, if autonomous)
             if not require_approval and cycle % 5 == 0:
                 _auto_approve_pending_strategies()
+
+            # Update cross-domain calibration stats (every 5 cycles)
+            if cycle % 5 == 0:
+                try:
+                    from domain_calibration import update_all_domains
+                    cal_result = update_all_domains()
+                    if cal_result:
+                        _log_daemon(f"Calibration updated for {len(cal_result)} domains")
+                except Exception as e:
+                    _log_daemon(f"Calibration update error: {e}", "warning")
 
             # === Cortex daily assessment (strategic layer) ===
             cortex_daily_assessment(cycle)

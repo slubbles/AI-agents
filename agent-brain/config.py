@@ -270,6 +270,26 @@ MIN_AVG_SCORE_FOR_TRANSFER = 6.0
 CLAIM_EXPIRY_DAYS = 30           # claims older than this without re-verification get flagged
 CLAIM_MAX_AGE_DAYS = 90          # claims older than this are auto-expired
 
+# --- Domain Bootstrap (Cold-Start Reliability) ---
+BOOTSTRAP_MIN_OUTPUTS = 5        # domain considered "cold" below this threshold
+BOOTSTRAP_SEED_ROUNDS = 3        # automatic seed rounds for new domains
+BOOTSTRAP_AUTO_TRANSFER = True   # auto-apply cross-domain principles when available
+
+# --- Critic Calibration ---
+CALIBRATION_ENABLED = True       # inject domain difficulty context into critic
+CALIBRATION_MIN_OUTPUTS = 10     # outputs needed before calibration activates
+CALIBRATION_FILE = os.path.join(MEMORY_DIR, "_calibration.json")
+
+# --- Memory Lifecycle (Self-Managing Maintenance) ---
+MAINTENANCE_ENABLED = True       # run automatic maintenance in daemon
+MAINTENANCE_STALE_THRESHOLD = 5  # trigger re-synthesis when N+ claims go stale
+MAINTENANCE_EVERY_N_CYCLES = 3   # run full maintenance every N daemon cycles
+
+# --- Claim Verification (Ground-Truth Checking) ---
+CLAIM_VERIFY_ENABLED = True      # verify high-confidence claims against web evidence
+CLAIM_VERIFY_MAX_PER_CYCLE = 3   # max claims to verify per maintenance cycle
+CLAIM_VERIFY_MIN_CONFIDENCE = "high"  # minimum confidence to target for verification
+
 # --- Warmup Mode ---
 WARMUP_OUTPUTS = 5               # first N outputs in a new domain require manual review
 WARMUP_APPROVAL_REQUIRED = True  # if True, warmup outputs need --approve before entering KB

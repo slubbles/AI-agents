@@ -4,6 +4,44 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 32 — Mar 7, 2026
+**Prompt:** Apply `.github` guidance as persistent Cursor context and consolidate the architect's notes into one unified markdown file
+
+### What We Did
+1. **Converted stable `.github` guidance into persistent Cursor rules** under `.cursor/rules/`
+2. **Read and synthesized the architect's notes corpus** into one consolidated context file
+3. **Separated enduring principles from drifted or outdated assumptions** so future sessions can use the notes without inheriting obsolete framing
+
+### Why
+- The repo already had strong guidance in `.github/`, but it was not encoded as always-on Cursor-native project rules
+- The `my-notes.md/` folder contains the architect's deepest reasoning, but it was spread across many overlapping documents
+- The system needs one durable reference that preserves the vision while staying honest about current proof level
+
+### Purpose
+- Gives Cursor persistent project guidance aligned with Cortex's mission and development discipline
+- Creates a single source of truth for the architect's enduring vision, constraints, and roadmap
+- Reduces future drift between philosophy, product direction, and actual implementation priorities
+
+### Steps Taken
+1. Reviewed `.github/copilot-instructions.md`, `.github/lessons.md`, and `.github/progress.md`
+2. Read the main vision, roadmap, strategy, and philosophical notes from `my-notes.md/`
+3. Created `.cursor/rules/cortex-core-guidance.mdc`
+4. Created `.cursor/rules/cortex-development-loop.mdc`
+5. Wrote `my-notes.md/CORTEX_UNIFIED_CONTEXT.md` with consolidated architecture, mission, business logic, safety concepts, roadmap, and glossary
+
+### Use Cases
+- Use the Cursor rules as persistent always-on project guidance for future sessions
+- Use `my-notes.md/CORTEX_UNIFIED_CONTEXT.md` as the first file to re-load the architect's intent quickly
+- Use the consolidated file to distinguish what is stable doctrine versus what was exploratory or already superseded
+
+### Suggested Next Steps
+- **Goal/Intent**: Keep the consolidated context aligned with the living codebase and actual proof level
+- **Why/Purpose**: The value of a unified context file comes from staying current as Cortex earns or loses claims in practice
+- **Objectives**:
+  1. Refresh `agent-brain/README.md` so it matches the current codebase and the unified context
+  2. Add one concise "proven vs unproven" section to the unified context after each major milestone
+  3. Revisit the Cursor rules if the architect's operating doctrine changes materially
+
 ## Session 31 — Mar 6, 2026
 **Prompt:** Rewrite the repo README with a benefit-first explanation, then push it
 
@@ -1298,3 +1336,124 @@ Built and wired all three priority improvements:
 4. Fix browser stealth (unlocks OLJ-specific data)
 5. Wire Verifier into automatic loop
 6. First real delivery — revenue before polish
+
+---
+
+## Session 33 — Transistor Core (Cold-Start, Calibration, Memory Lifecycle, Claim Verification)
+
+**Date:** 2026-03-07
+
+### What was done
+Implemented the four "transistor reliability" systems to make Cortex's core loop domain-agnostic and self-managing:
+
+**A. Cold-Start Reliability (`domain_bootstrap.py`)**
+- Auto-detects cold domains (< 5 accepted outputs)
+- Generates domain orientation via LLM (key concepts, source types, pitfalls, research profile)
+- Auto-applies cross-domain principles when available
+- Produces progressive bootstrap questions tailored to the domain
+- Tracks bootstrap status per domain
+- Integrated into main loop (auto-runs on first encounter) and daemon (bootstrap-aware question generation)
+
+**B. Critic Calibration (`domain_calibration.py`)**
+- Tracks per-domain score distributions (mean, stddev, accept rate, per-dimension stats)
+- Computes domain difficulty signal (easy/medium/hard) from historical performance
+- Injects calibration context into the critic prompt — tells the critic about baseline performance without inflating scores
+- Provides normalized scores for cross-domain analytics
+- CLI: `--calibration` shows all domain stats
+
+**C. Automatic Memory Lifecycle (`memory_lifecycle.py`)**
+- Self-managing maintenance sweep: claim expiry → re-synthesis → graph rebuild → pruning → claim verification → calibration update
+- Re-synthesizes KB when stale claims accumulate past threshold
+- Runs automatically every N daemon cycles (configurable)
+- CLI: `--maintenance` runs manually for one or all domains
+
+**D. Claim Verification (`agents/claim_verifier.py`)**
+- Extends beyond time-bound predictions to check ANY high-confidence claim against web evidence
+- Samples claims prioritizing: never-verified first, then oldest verified
+- Verdicts: confirmed / refuted / weakened / inconclusive
+- Refuted claims get status="disputed", confidence lowered, and correction noted
+- Refutations fed back as research lessons (breaking the LLM-judging-LLM loop)
+- Integrated into main loop (every 5 accepted outputs) and daemon maintenance cycle
+
+### Files created
+- `agent-brain/domain_bootstrap.py` — Cold-start bootstrapping protocol
+- `agent-brain/domain_calibration.py` — Cross-domain score calibration
+- `agent-brain/memory_lifecycle.py` — Self-managing memory maintenance
+- `agent-brain/agents/claim_verifier.py` — General claim verification against web evidence
+
+### Files modified
+- `agent-brain/config.py` — Added 11 new config constants for all four systems
+- `agent-brain/agents/critic.py` — Calibration context injection into critic prompt
+- `agent-brain/main.py` — Bootstrap auto-detection, calibration updates, claim verification in loop, 5 new CLI commands
+- `agent-brain/scheduler.py` — Bootstrap-aware question generation, maintenance cycle in daemon, calibration updates
+
+### New CLI commands
+- `--bootstrap` — Manually bootstrap a new domain
+- `--calibration` — Show cross-domain score calibration stats
+- `--maintenance` — Run full memory lifecycle maintenance
+- `--verify-claims` — Verify high-confidence KB claims against web evidence
+- `--claim-stats` — Show claim verification statistics
+
+### Architecture principle
+All four systems follow the "transistor first" principle: they strengthen the core loop's ability to operate reliably in ANY domain without human intervention. No new features — just reliability, self-correction, and domain-agnostic operation.
+
+---
+
+## Session 34 — Architectural Hardening (Zero-API-Cost)
+
+Focus: Make the architecture fundamentally solid without running cycles. All changes are zero-API-cost — structural improvements, testing, and tooling.
+
+### 1. Domain-Agnostic Brain-to-Hands Handoff (`main.py`)
+- Replaced `_ACTION_KEYWORDS` (13 coding-centric terms) with `_ACTION_VERBS` (40+ universal action verbs)
+- Added verbs for non-technical domains: analyze, evaluate, survey, contact, negotiate, propose, pitch, assess, track, monitor, engage, etc.
+- Extracted `_classify_task_priority()` for testable priority logic
+- Task creation now works for biotech, finance, policy, or any domain — not just software
+
+### 2. Structural Tests (`tests/test_transistor.py`)
+- 30+ mock-based tests across all four transistor systems + handoff + error paths
+- `TestDomainBootstrap`: is_cold detection, status lifecycle, sequential questions, curated/generic fallback
+- `TestDomainCalibration`: stats computation, difficulty classification, normalization, cross-domain update
+- `TestMemoryLifecycle`: disabled state, empty domains, populated maintenance, all-domain sweep
+- `TestClaimVerifier`: confidence filtering, recency skipping, search query building, stats
+- `TestHandoffClassification`: verb coverage, priority logic, broad verb detection across domains
+- `TestErrorPaths`: LLM unavailability, corrupt calibration files, partial maintenance failures
+
+### 3. Error Path Hardening
+- All integration points already wrapped in try/except with graceful degradation
+- Memory lifecycle continues remaining steps even when one step crashes
+- Bootstrap falls back to generic seeds when orientation LLM fails
+- Calibration silently resets on corrupt file reads
+
+### 4. Config Completeness
+- Created `.env.example` with all env vars documented (API keys, budget, Telegram, VPS, vault, PTC)
+- Added `check_readiness()` in `validator.py` — verifies dirs, API key, .env, budget, data integrity
+- Added `display_readiness()` for formatted output
+- Added `--readiness` CLI command
+- Offline commands (`--validate`, `--readiness`, `--review`) now work without API key set
+
+### 5. Extended Validator (`validator.py`)
+- `validate_bootstrap()` — checks bootstrap status files (phase, questions)
+- `validate_calibration()` — checks calibration data (ranges, required fields)
+- `validate_claim_verification()` — checks KB verification metadata (timestamps, verdicts, disputed notes)
+- All three integrated into `validate_all()` and `display_validation()`
+
+### 6. Logs Review System (`logs_review.py`)
+- `load_run_logs()` — reads per-domain JSONL run logs, filtered by domain and age
+- `analyze_score_trends()` — rolling window trend detection (improving/declining/stable)
+- `detect_anomalies()` — score drops, rejection streaks, strategy changes
+- `load_cycle_history()` / `summarize_cycles()` — daemon cycle analysis
+- `analyze_costs()` — cost breakdown by day, agent, domain
+- `load_errors()` — recent error aggregation
+- `generate_review()` — comprehensive review pulling all of the above + verification + calibration
+- `display_review()` — formatted terminal output
+- `--review` CLI command (with `--review-days` and `--domain` filters)
+- `--review-cycles N` CLI command for daemon-specific analysis
+
+### Files created
+- `agent-brain/.env.example` — Environment variable template
+- `agent-brain/logs_review.py` — Post-cycle analysis and review system
+- `agent-brain/tests/test_transistor.py` — Structural tests for transistor systems
+
+### Files modified
+- `agent-brain/main.py` — Domain-agnostic handoff, offline command bypass, review/readiness CLI
+- `agent-brain/validator.py` — Bootstrap/calibration/claim validation, readiness check

@@ -85,7 +85,7 @@ def save_rubric(domain: str, weights: dict, reason: str = "") -> str:
     return rubric_path
 
 
-def _build_critic_prompt(weights: dict | None = None) -> str:
+def _build_critic_prompt(weights: dict | None = None, domain: str = "") -> str:
     today = date.today().isoformat()
     w = weights or DEFAULT_RUBRIC_WEIGHTS
     
@@ -106,7 +106,7 @@ def _build_critic_prompt(weights: dict | None = None) -> str:
     except Exception:
         pass
     
-    return f"""\
+    prompt = f"""\
 You are a strict research critic. Your job is to evaluate research findings for quality, accuracy, and depth.
 {identity_note}
 TODAY'S DATE: {today}
@@ -146,6 +146,17 @@ Output format — respond with ONLY valid JSON, no markdown fencing:
 Be harsh but fair. A score of 6 means adequate. 8+ means genuinely good research. Below 5 means significant problems.
 Do NOT inflate scores to be nice. The system depends on honest evaluation.
 """
+
+    if domain:
+        try:
+            from domain_calibration import get_calibration_context
+            cal_context = get_calibration_context(domain)
+            if cal_context:
+                prompt += cal_context
+        except Exception:
+            pass
+
+    return prompt
 
 
 def critique(research_output: dict, domain: str = "", sources_summary: list[dict] | None = None) -> dict:
@@ -191,7 +202,7 @@ def _critique_single(
     """Run a single critic evaluation."""
     import config as _cfg
     
-    system_prompt = _build_critic_prompt(weights)
+    system_prompt = _build_critic_prompt(weights, domain=domain)
     user_message = _build_user_message(research_output, sources_summary)
 
     response = create_message(
@@ -334,7 +345,7 @@ def _critique_cross_model(
     import config as _cfg
     from llm_router import call_llm
     
-    system_prompt = _build_critic_prompt(weights)
+    system_prompt = _build_critic_prompt(weights, domain=domain)
     user_message = _build_user_message(research_output, sources_summary)
     
     # Get reasoning setting for ensemble critic B

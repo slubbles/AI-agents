@@ -83,64 +83,70 @@ from knowledge_graph import build_graph_from_kb, save_graph, get_graph_summary
 # Task creation from research findings (Brain → Hands bridge)
 # ============================================================
 
-# Keywords that suggest actionable tasks in research findings
-_ACTION_KEYWORDS = {
-    "build": "build",
-    "create": "build",
-    "implement": "build",
-    "develop": "build",
-    "deploy": "deploy",
-    "launch": "deploy",
-    "ship": "deploy",
-    "publish": "deploy",
-    "investigate": "action",     # was "investigate" — Hands can only exec build/action/deploy
-    "analyze": "action",         # was "investigate" — remapped so tasks are actually picked up
-    "research": "action",        # was "investigate" — Brain→Hands pipeline requires these types
-    "test": "action",            # was "investigate" — testing is an executable action
-    "fix": "action",
-    "optimize": "action",
-    "integrate": "action",
-    "automate": "action",
-    "set up": "action",
-    "configure": "action",
-    "migrate": "action",
-    "refactor": "action",
-    "upgrade": "action",
-    "scale": "action",
+# ============================================================
+# Domain-Agnostic Task Classification (Brain → Hands bridge)
+# ============================================================
+
+# Action verbs grouped by abstract intent — not tied to coding
+_ACTION_VERBS = {
+    # Creation intent — applies in any domain
+    "build": "build", "create": "build", "implement": "build",
+    "develop": "build", "design": "build", "draft": "build",
+    "write": "build", "compose": "build", "produce": "build",
+    "prototype": "build", "generate": "build",
+    # Delivery intent
+    "deploy": "deploy", "launch": "deploy", "ship": "deploy",
+    "publish": "deploy", "release": "deploy", "submit": "deploy",
+    "distribute": "deploy", "deliver": "deploy",
+    # Operational intent — the universal "do something" category
+    "analyze": "action", "test": "action", "fix": "action",
+    "optimize": "action", "integrate": "action", "automate": "action",
+    "configure": "action", "migrate": "action", "refactor": "action",
+    "upgrade": "action", "scale": "action", "monitor": "action",
+    "evaluate": "action", "audit": "action", "verify": "action",
+    "investigate": "action", "research": "action", "survey": "action",
+    "compare": "action", "benchmark": "action", "measure": "action",
+    "track": "action", "review": "action", "assess": "action",
+    "plan": "action", "schedule": "action", "organize": "action",
+    "contact": "action", "reach out": "action", "engage": "action",
+    "negotiate": "action", "propose": "action", "pitch": "action",
+    "set up": "action", "establish": "action", "prepare": "action",
 }
 
-# Task types that get "high" priority (auto-executable by Hands)
-_HIGH_PRIORITY_TYPES = {"build", "deploy", "action"}
-# No more "investigate" type — all tasks are executable by Hands
-_MEDIUM_PRIORITY_TYPES = set()
+
+def _classify_task_priority(task_type: str, source: str) -> str:
+    """Classify priority based on task type and source (insight vs gap)."""
+    if source == "gap":
+        return "low"
+    if task_type in ("build", "deploy"):
+        return "high"
+    return "medium"
 
 
 def _create_tasks_from_research(domain: str, research: dict, output_id: str) -> None:
     """
     Extract actionable items from accepted research and create sync tasks.
 
-    Scans key_insights and knowledge_gaps for action-oriented language.
-    No extra LLM call — uses keyword matching to stay free.
+    Domain-agnostic: uses broad action verb detection so tasks are created
+    regardless of whether the domain is technical, commercial, scientific, etc.
+    No LLM call — uses verb matching to stay free.
     """
     from sync import create_task, _load_tasks
 
-    # Don't create duplicate tasks — check existing titles
     existing = _load_tasks()
     existing_titles = {t["title"].lower() for t in existing if t["status"] in ("pending", "in_progress")}
 
     created = 0
 
-    # Scan key_insights for actionable items
     for insight in research.get("key_insights", [])[:5]:
         insight_lower = insight.lower()
         task_type = None
-        for keyword, ttype in _ACTION_KEYWORDS.items():
-            if keyword in insight_lower:
+        for verb, ttype in _ACTION_VERBS.items():
+            if verb in insight_lower:
                 task_type = ttype
                 break
         if task_type and insight.lower()[:60] not in existing_titles:
-            # Actionable types get high priority (auto-executable by Hands)
-            priority = "high" if task_type in _HIGH_PRIORITY_TYPES else "medium"
+            priority = _classify_task_priority(task_type, "insight")
             create_task(
                 title=insight[:80],
                 description=f"From research in '{domain}': {insight}",
@@ -151,17 +157,14 @@ def _create_tasks_from_research(domain: str, research: dict, output_id: str) -> 
             )
             created += 1
 
-    # Scan knowledge_gaps — these become low-priority "action" tasks
-    # (was "investigate" which Hands never picked up — remapped to executable type)
     for gap in research.get("knowledge_gaps", [])[:3]:
-        gap_lower = gap.lower()
-        if gap_lower[:60] not in existing_titles:
+        if gap.lower()[:60] not in existing_titles:
             create_task(
                 title=f"Research gap: {gap[:70]}",
                 description=f"Knowledge gap identified in '{domain}': {gap}",
                 source_domain=domain,
                 task_type="action",
-                priority="low",
+                priority=_classify_task_priority("action", "gap"),
                 source_output_id=output_id,
             )
             created += 1
@@ -254,6 +257,17 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     print(f"  Budget: ${budget['remaining']:.4f} remaining today | Balance: ${balance['remaining_balance']:.4f} of ${balance['starting_balance']:.2f}")
     print(f"{'='*60}\n")
 
+    # Bootstrap detection: auto-initialize cold domains
+    try:
+        from domain_bootstrap import is_cold, bootstrap_domain, get_bootstrap_status, mark_bootstrap_complete
+        from config import BOOTSTRAP_MIN_OUTPUTS
+        if is_cold(domain):
+            bs = get_bootstrap_status(domain)
+            if not bs or bs.get("phase") != "in_progress":
+                bootstrap_domain(domain)
+    except Exception as e:
+        print(f"[BOOTSTRAP] Warning: {e}")
+
     # Load current strategy
     strategy, strategy_version = get_strategy("researcher", domain)
     if strategy:
@@ -265,7 +279,7 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
         # Auto-suggest cross-domain transfer if principles exist
         principles = load_principles()
         if principles and principles.get("principles"):
-            print(f"[CROSS-DOMAIN] 💡 General principles available from {len(principles.get('source_domains', []))} domain(s)")
+            print(f"[CROSS-DOMAIN] General principles available from {len(principles.get('source_domains', []))} domain(s)")
             print(f"  Seed this domain: python main.py --transfer {domain} --hint \"{question[:50]}\"")
 
     attempt = 0
@@ -469,6 +483,24 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
     print(f"\n[STATS] Domain '{domain}': {stats['count']} outputs, avg score {stats['avg_score']:.1f}, "
           f"{stats['accepted']} accepted / {stats['rejected']} rejected")
 
+    # Update calibration stats after each run
+    try:
+        from domain_calibration import update_domain_stats
+        update_domain_stats(domain)
+    except Exception:
+        pass
+
+    # Check if bootstrap is now complete
+    try:
+        from domain_bootstrap import is_cold, mark_bootstrap_complete
+        if not is_cold(domain):
+            from domain_bootstrap import get_bootstrap_status
+            bs = get_bootstrap_status(domain)
+            if bs and bs.get("phase") == "in_progress":
+                mark_bootstrap_complete(domain)
+    except Exception:
+        pass
+
     # Warmup mode: first N outputs in a domain require explicit approval
     from config import WARMUP_OUTPUTS, WARMUP_APPROVAL_REQUIRED
     if WARMUP_APPROVAL_REQUIRED and stats['accepted'] <= WARMUP_OUTPUTS:
@@ -558,6 +590,25 @@ def _run_loop_inner(question: str, domain: str = DEFAULT_DOMAIN) -> dict:
                               f"({stats['confirmed']} confirmed, {stats['refuted']} refuted)")
         except Exception as e:
             pass  # Non-blocking — verification failure shouldn't stop the loop
+
+    # Step 6.8: Claim verification — check high-confidence claims against web evidence
+    # Runs every 5 accepted outputs to avoid excessive API usage
+    if final_verdict == "accept" and accepted_count > 0 and accepted_count % 5 == 0:
+        try:
+            from config import CLAIM_VERIFY_ENABLED
+            if CLAIM_VERIFY_ENABLED:
+                from memory_store import load_knowledge_base as _load_kb
+                if _load_kb(domain):
+                    from agents.claim_verifier import verify_claims
+                    verifications = verify_claims(domain, max_checks=2)
+                    if verifications:
+                        confirmed = sum(1 for v in verifications if v["verdict"] == "confirmed")
+                        refuted = sum(1 for v in verifications if v["verdict"] == "refuted")
+                        if confirmed + refuted > 0:
+                            print(f"\n[CLAIM-VERIFY] Checked {len(verifications)} claims: "
+                                  f"{confirmed} confirmed, {refuted} refuted")
+        except Exception:
+            pass
 
     # Step 7: Meta-analysis — evolve strategy if enough data
     # SAFETY: Never evolve while a trial is still being evaluated
@@ -805,6 +856,19 @@ def main():
     parser.add_argument("--reality-focus", default="", help="Optional extra focus for --reality-check")
     parser.add_argument("--engagement-check", action="store_true", help="Check engagement changes on high-scoring opportunities")
 
+    # Transistor Systems (Core Reliability)
+    parser.add_argument("--bootstrap", action="store_true", help="Bootstrap a new domain (cold-start reliability)")
+    parser.add_argument("--calibration", action="store_true", help="Show cross-domain score calibration stats")
+    parser.add_argument("--maintenance", action="store_true", help="Run full memory lifecycle maintenance")
+    parser.add_argument("--verify-claims", action="store_true", help="Verify high-confidence KB claims against web evidence")
+    parser.add_argument("--claim-stats", action="store_true", help="Show claim verification statistics")
+    parser.add_argument("--readiness", action="store_true", help="Check if system is ready to run cycles")
+
+    # Post-Cycle Review
+    parser.add_argument("--review", action="store_true", help="Full post-cycle review (scores, trends, anomalies, costs)")
+    parser.add_argument("--review-days", type=int, default=30, help="Review period in days (default: 30)")
+    parser.add_argument("--review-cycles", type=int, default=0, help="Review last N daemon cycles")
+
     # VPS Deploy
     parser.add_argument("--deploy", action="store_true", help="Deploy Agent Brain to VPS")
     parser.add_argument("--deploy-dry-run", action="store_true", help="Show what deploy would do (no changes)")
@@ -823,9 +887,13 @@ def main():
     from pathlib import Path
     load_dotenv(Path(__file__).parent / ".env")
 
-    if not os.environ.get("OPENROUTER_API_KEY"):
+    # Allow offline commands (validate, review, readiness) without API key
+    _OFFLINE_COMMANDS = ("validate", "readiness", "review", "review_cycles")
+    _is_offline = any(getattr(args, cmd, False) or getattr(args, cmd, 0) for cmd in _OFFLINE_COMMANDS)
+    if not _is_offline and not os.environ.get("OPENROUTER_API_KEY"):
         print("ERROR: Set OPENROUTER_API_KEY environment variable first.")
         print("  export OPENROUTER_API_KEY=sk-or-...")
+        print("  (Use --readiness to check configuration)")
         sys.exit(1)
 
     # Apply consensus overrides
@@ -1284,6 +1352,97 @@ def main():
     if getattr(args, 'project_list', False):
         from cli.project import list_all as project_list
         project_list()
+        return
+
+    # Transistor Systems (Core Reliability) commands
+    if getattr(args, 'bootstrap', False):
+        from domain_bootstrap import bootstrap_domain
+        result = bootstrap_domain(args.domain, goal=args.goal if hasattr(args, 'goal') else None)
+        if result:
+            print(f"\n  Bootstrap status: {result.get('phase', '?')}")
+            if result.get("orientation"):
+                print(f"  Orientation: {result['orientation'].get('summary', '?')[:100]}")
+            if result.get("bootstrap_questions"):
+                print(f"  Ready to run: python main.py --auto --rounds {len(result['bootstrap_questions'])} --domain {args.domain}")
+        return
+    if getattr(args, 'calibration', False):
+        from domain_calibration import update_all_domains, get_domain_difficulty
+        updated = update_all_domains()
+        if not updated:
+            print("  No domains with enough data for calibration.")
+        else:
+            print(f"\n  {'Domain':<25} {'Difficulty':<10} {'Mean':>6} {'Accept%':>8} {'StdDev':>7} {'Count':>6}")
+            print(f"  {'─'*62}")
+            for d, entry in sorted(updated.items()):
+                diff = get_domain_difficulty(d)
+                print(f"  {d:<25} {diff['difficulty']:<10} {entry['mean']:>6.1f} "
+                      f"{entry['accept_rate']*100:>7.0f}% {entry['stddev']:>6.2f} {entry['count']:>6}")
+        return
+    if getattr(args, 'maintenance', False):
+        from memory_lifecycle import run_maintenance_all, run_maintenance
+        if args.domain != DEFAULT_DOMAIN:
+            result = run_maintenance(args.domain)
+            print(f"\n  Actions taken: {result.get('total_actions', 0)}")
+        else:
+            result = run_maintenance_all()
+            print(f"\n  Domains maintained: {result.get('total_domains', 0)}")
+            print(f"  Total actions: {result.get('total_actions', 0)}")
+        return
+    if getattr(args, 'verify_claims', False):
+        from agents.claim_verifier import verify_claims
+        results = verify_claims(args.domain)
+        if not results:
+            print(f"  No claims to verify for domain '{args.domain}'")
+        else:
+            confirmed = sum(1 for r in results if r["verdict"] == "confirmed")
+            refuted = sum(1 for r in results if r["verdict"] == "refuted")
+            print(f"\n  Verified {len(results)} claims: "
+                  f"{confirmed} confirmed, {refuted} refuted")
+        return
+    if getattr(args, 'claim_stats', False):
+        from agents.claim_verifier import get_claim_verification_stats
+        stats = get_claim_verification_stats(args.domain)
+        if stats.get("total_active", 0) == 0:
+            print(f"  No active claims for domain '{args.domain}'")
+        else:
+            print(f"\n  Claim Verification Stats ({args.domain})")
+            print(f"  {'─'*40}")
+            print(f"  Active claims: {stats['total_active']}")
+            print(f"  Verified:      {stats['verified']}")
+            print(f"  Unverified:    {stats['unverified']}")
+            print(f"  Rate:          {stats['verification_rate']:.0%}")
+            if stats.get("verdicts"):
+                print(f"  Verdicts:      {stats['verdicts']}")
+        return
+    if getattr(args, 'readiness', False):
+        from validator import display_readiness
+        display_readiness()
+        return
+
+    # Post-Cycle Review
+    if getattr(args, 'review', False):
+        from logs_review import generate_review, display_review
+        domain_filter = args.domain if args.domain != DEFAULT_DOMAIN else None
+        review = generate_review(domain=domain_filter, days=args.review_days)
+        display_review(review)
+        return
+    if getattr(args, 'review_cycles', 0) > 0:
+        from logs_review import load_cycle_history, summarize_cycles
+        cycles = load_cycle_history(last_n=args.review_cycles)
+        summary = summarize_cycles(cycles)
+        if summary["total_cycles"] == 0:
+            print("  No daemon cycles found.")
+        else:
+            print(f"\n  Daemon Cycle Summary (last {args.review_cycles})")
+            print(f"  {'─'*45}")
+            print(f"  Total cycles:  {summary['total_cycles']}")
+            print(f"  Total rounds:  {summary['total_rounds']}")
+            print(f"  Avg score:     {summary['avg_score']}")
+            print(f"  Total cost:    ${summary['total_cost']:.4f}")
+            print(f"  Success rate:  {summary['success_rate']:.0%}")
+            print(f"  Domains:       {', '.join(summary['domains_touched'])}")
+            print(f"  Period:        {summary.get('first_cycle', '?')[:10]} to "
+                  f"{summary.get('last_cycle', '?')[:10]}")
         return
 
     # VPS Deploy commands
