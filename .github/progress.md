@@ -4,6 +4,338 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 42 — Mar 8, 2026
+**Prompt:** Check whether Buffer can read X account history and wire the X draft/approval workflow into Telegram commands
+
+### What We Did
+1. **Verified Buffer can read recent X posts** from the connected account, not just publish them
+2. **Added Telegram X commands** for reading posts, reviewing queue, creating drafts, sending drafts, canceling drafts, and generating draft batches
+3. **Added `/create-x-posts`** so Cortex can generate multiple X drafts from its knowledge and queue them for approval
+4. **Fixed the real generation bugs** that showed up during live use: missing dependencies, Windows chat import issues, and wrong parsing of normalized LLM responses
+
+### Why
+- The user wanted the X workflow to show up inside Telegram, not just CLI code
+- Buffer/X capability needed a real answer based on live schema and live reads, not assumptions
+
+### Purpose
+- Gives Cortex a Telegram-controlled X workflow with approval in the middle
+- Makes it possible to casually use Telegram slash commands to generate, review, and approve X posts
+
+### Steps Taken
+1. Queried Buffer GraphQL and confirmed `posts`/`post` read access for the connected X account
+2. Added `get_recent_x_posts()` in `tools/buffer_client.py`
+3. Added `/x posts`, `/x queue`, `/x draft`, `/x send`, `/x cancel`, and `/create-x-posts` in `telegram_bot.py`
+4. Fixed command parsing so Telegram preserves user text case instead of lowercasing draft content
+5. Installed missing runtime deps in the workspace venv: `scikit-learn` and `openai`
+6. Fixed `cli/chat.py` for Windows environments without `readline`
+7. Fixed `agents/threads_analyst.py` so draft generation reads actual text from normalized LLM responses instead of stringifying the wrapper object
+8. Verified live Telegram command behavior by generating two real X drafts and reading them back from the queue
+
+### Results
+- Buffer can read recent X posts for the connected account
+- Telegram X commands are wired and tested
+- Live `/create-x-posts 2 onboarding analytics` created two clean queued drafts
+- Focused verification passed: `tests/test_threads_analyst.py`, `tests/test_telegram_bot.py`, and `tests/test_buffer_client.py`
+
+### Suggested Next Steps
+- **Goal/Intent**: Make Telegram the normal control surface for X posting approval
+- **Why/Purpose**: The core flow works; the next leverage is cleaner review and tighter control from chat
+- **Objectives**:
+  1. Add a nicer Telegram review format with numbered approve/cancel shortcuts for queued drafts
+  2. Add approval/rejection memory so Cortex learns what post styles the user prefers
+  3. If needed later, add a separate X direct-integration path for reply/comment-style actions that Buffer does not expose here
+
+## Session 41 — Mar 8, 2026
+**Prompt:** Prove X posting works, then add an approval layer with up to 10 drafts waiting for approval
+
+### What We Did
+1. **Verified live X posting through Cortex** using the existing Buffer path
+2. **Replaced the single pending draft model with a local approval queue** capped at 10 drafts
+3. **Added approve-by-draft-id and cancel-by-draft-id behavior** so queued posts can be supervised cleanly
+4. **Validated the queue live** by creating multiple drafts and sending a specific one to X
+
+### Why
+- The earlier supervised path only supported one pending draft at a time
+- The user wanted Cortex to line up multiple post drafts and wait for explicit approval before sending
+
+### Purpose
+- Gives Cortex a usable X approval layer instead of one temporary pending slot
+- Keeps posting supervised while allowing content to build up in a queue
+
+### Steps Taken
+1. Audited the current Buffer client, CLI commands, `main.py` flags, and tests
+2. Confirmed the exact `hi` text is blocked by duplicate-post rules because it already exists on the account
+3. Updated `tools/buffer_client.py` to store a local FIFO queue with stable draft ids and a hard limit of 10
+4. Updated `cli/tools_cmd.py` and `main.py` to show the queue and support confirm/cancel by optional draft id
+5. Expanded `tests/test_buffer_client.py` for queue limit, targeted approval, and queue behavior
+6. Re-ran the focused Buffer test file successfully
+7. Verified live behavior by queuing two drafts and sending the second one by id through Buffer to X
+
+### Results
+- X posting works through Cortex
+- Approval queue works with up to 10 local pending drafts
+- Specific queued drafts can be approved and sent by id
+- Live queue send verified with Buffer/X post id `69ad1bf208afabd5e2f35fa6`
+
+### Suggested Next Steps
+- **Goal/Intent**: Connect the approval queue to the rest of Cortex content generation
+- **Why/Purpose**: The queue works, but real leverage comes when Brain or content systems can feed it automatically
+- **Objectives**:
+  1. Route content-factory or scheduler-generated X drafts into the queue
+  2. Add a small list/review command that prints drafts in a cleaner review format
+  3. Add approval telemetry so Cortex can learn what kinds of drafts the user accepts or rejects
+
+## Session 40 — Mar 8, 2026
+**Prompt:** Give the full anatomy of Cortex in one short markdown file with parts, agents, and loops using a SaaS example
+
+### What We Did
+1. **Mapped the whole Cortex structure into one short anatomy file** instead of leaving it spread across deep architecture docs
+2. **Listed the main system parts, Brain agents, Hands agents, and support layers** with very short explanations
+3. **Added a plain SaaS example flow and the main loops** so the system can be understood fast without heavy jargon
+
+### Why
+- The repo has detailed architecture docs, but they are too long for a fast mental map
+- The user wanted one direct markdown file that shows what each part does and how the loops connect in practice
+
+### Purpose
+- Gives Cortex one quick orientation file for the whole project
+- Makes it easier to see how Signals, Brain, Hands, Orchestrator, Memory, Safety, and Feedback fit together
+
+### Steps Taken
+1. Read the strongest inventory and architecture sources already in the repo
+2. Pulled out the core parts, active agents, and support systems
+3. Wrote `CORTEX_PROJECT_ANATOMY.md` with short explanations and a SaaS-domain example
+
+### Results
+- Added `CORTEX_PROJECT_ANATOMY.md` as a concise map of Cortex
+- The file includes anatomy, interactions, Brain agents, Hands agents, research loop, execution loop, feedback loop, self-learning loop, safety loop, and a SaaS example flow
+
+### Suggested Next Steps
+- **Goal/Intent**: Keep the quick anatomy file aligned with the live codebase
+- **Why/Purpose**: The file is most useful if it stays short and reflects the current real system
+- **Objectives**:
+  1. Update the anatomy file whenever a major subsystem is added or removed
+  2. Optionally add one second file later for a stricter proven vs partial vs planned map
+
+## Session 39 — Mar 8, 2026
+**Prompt:** Fix Buffer env loading and add a supervised draft-first X flow
+
+### What We Did
+1. **Fixed Buffer API key loading at runtime** so the client no longer depends on import timing or manual env injection
+2. **Added a supervised X publish flow** with local pending draft, status, confirm, and cancel commands
+3. **Verified the flow live on X** with a real post sent through Buffer after explicit confirmation
+
+### Why
+- The earlier X send only worked when the key was injected manually into the process environment
+- The first supervised design used real Buffer drafts, but live testing proved that Buffer's current GraphQL surface does not provide a reliable publish-existing-draft path for this use case
+
+### Purpose
+- Gives Cortex a stable X posting path through Buffer using the normal runtime `.env`
+- Gives the user a safer draft -> confirm -> send control flow without publishing on the first command
+
+### Steps Taken
+1. Refactored `tools/buffer_client.py` to load `BUFFER_API_KEY` lazily and fall back to direct `.env` parsing
+2. Diagnosed the real runtime failure and confirmed the actual on-disk `agent-brain/.env` was empty, then restored the Buffer key in the real file
+3. Added persisted pending-draft state plus `create_x_supervised_draft()`, `get_pending_x_supervision()`, `confirm_x_supervised_post()`, and `cancel_x_supervised_post()`
+4. Added CLI wiring in `main.py` and `cli/tools_cmd.py` for supervised status, draft, confirm, and cancel
+5. Expanded `tests/test_buffer_client.py` and re-ran the focused test file successfully
+6. Validated live behavior: normal runtime sees the key, local pending draft is created, and confirm sent a real X post through Buffer
+
+### Results
+- Buffer env loading now works without the manual injection workaround
+- Supervised X publishing now uses a local pending draft first, then one live send on confirm
+- Live X post verified through Buffer: post id `69ad1981e8c0a1cfe9dccb85`
+
+### Suggested Next Steps
+- **Goal/Intent**: Fold the supervised X path into the broader social pipeline cleanly
+- **Why/Purpose**: The low-level Buffer path now works, but the next value is routing content into it from Cortex workflows with the same safety model
+- **Objectives**:
+  1. Route approved content-factory or scheduler outputs into `--buffer-draft-x` instead of direct send
+  2. Store confirmation telemetry so Cortex can learn which drafted posts were approved or canceled
+  3. Add a small cleanup command for stale local pending drafts and optionally a read-only view of recent sent X posts
+
+## Session 38 — Mar 8, 2026
+**Prompt:** Build a Discord content factory with research, scripts, and thumbnails channels plus daily 8 AM automation
+
+### What We Did
+1. **Added a Discord content-factory layer** that can read recent channel history and post into three configured agent channels
+2. **Built a daily content pipeline** that turns Cortex signals, daemon state, and recent channel patterns into a research brief, social drafts, and a thumbnail brief
+3. **Wired the scheduler into the content factory** so it can run once per day when the 8 AM slot is due
+4. **Added manual CLI controls and focused tests** for Discord status, content-factory status, and forced runs
+
+### Why
+- The user wanted Cortex to operate a content workflow inside Discord instead of keeping this as a loose manual process
+- The repo already had scheduling, social posting, and signal systems, so the right move was to plug Discord into those loops instead of building a separate bot product
+
+### Purpose
+- Gives Cortex a daily social-content loop inside Discord with separate channels for research, writing, and thumbnail direction
+- Keeps the path open for optional posting to X through Buffer and Threads through the direct API
+- Starts learning from recent channel history so the drafts are shaped by local pattern memory, not just raw prompts
+
+### Steps Taken
+1. Added `tools/discord_client.py` as a pure-stdlib Discord REST client for channel reads and writes
+2. Added `content_factory.py` to collect signals, recent daemon context, Threads engagement, and Discord history, then generate a daily content pack with anti-AI style rules inspired by the `humanizer` patterns
+3. Wired `scheduler.py` to call the content factory once per day after the main cycle completes
+4. Added CLI commands in `main.py` and `cli/tools_cmd.py` for Discord status, content-factory status, and manual runs
+5. Added focused tests for the Discord client and content-factory scheduling/orchestration behavior
+
+### Results
+- Cortex now has a Discord-native content pipeline shaped around `#research`, `#scripts`, and `#thumbnails`
+- Daily scheduling is wired into the existing daemon instead of living in a separate process
+- Auto-publish to X and Threads is supported through config flags and remains off by default for safety
+
+### Suggested Next Steps
+- **Goal/Intent**: Make the content factory post with better proof and richer media
+- **Why/Purpose**: The current pass produces real briefs and drafts, but thumbnail output is still a brief rather than a finished image and the publishing defaults are intentionally conservative
+- **Objectives**:
+  1. Add Discord setup docs with the exact bot permissions and channel steps
+  2. Add a media-generation path for thumbnail mockups or screenshot-based image posts
+  3. Add feedback storage from published post performance so the content factory can rank which writing patterns actually work
+
+## Session 37 — Mar 8, 2026
+**Prompt:** Use the Buffer API key to test the connected X account while keeping Threads on the direct path
+
+### What We Did
+1. **Verified the live Buffer beta API** with the existing personal API key
+2. **Confirmed the connected X account** and channel through real GraphQL queries
+3. **Added a minimal Buffer client** for X-only testing without touching the Threads path
+4. **Ran a real draft post test** successfully through the new Python client
+
+### Why
+- The user now has real Buffer API access and wanted to test the connected X account
+- Threads should remain on the direct Threads API path, so Buffer work needed to stay isolated
+
+### Purpose
+- Gives Cortex a small, real Buffer integration surface for X testing only
+- Avoids mixing Buffer into the existing Threads publishing flow
+
+### Steps Taken
+1. Read the current `.env` editor state and confirmed there was no existing Buffer client in the repo
+2. Probed Buffer's live GraphQL schema, account, organization, and channel data
+3. Confirmed one connected X channel for the account
+4. Added `tools/buffer_client.py` with account lookup, channel listing, X filtering, and safe draft-post creation
+5. Added CLI hooks in `main.py` and `cli/tools_cmd.py` for `--buffer-status` and `--buffer-test-x`
+6. Added tests in `tests/test_buffer_client.py`
+7. Fixed live Python requests by adding standard HTTP headers so Buffer stopped returning Cloudflare 1010 blocks
+8. Verified a real draft was created on the connected X channel through the new client
+
+### Results
+- Live Buffer account access works
+- Connected X channel detected successfully
+- Real draft created successfully through the new Python client
+- Threads architecture remains unchanged and direct
+
+### Suggested Next Steps
+- **Goal/Intent**: Make Buffer testing easier to use locally and optionally from Telegram later
+- **Why/Purpose**: The integration works, but local runtime depends on the API key being available to the actual process environment
+- **Objectives**:
+  1. Persist the local Buffer key to the real runtime environment used by `main.py`
+  2. Optionally add a Telegram admin command for `buffer status` and `buffer test x`
+  3. If wanted, add a separate explicit `share now` Buffer command for X after draft-only testing is enough
+
+## Session 36 — Mar 8, 2026
+**Prompt:** Map a clean social-posting architecture for Cortex with Direct Threads + future Buffer adapter
+
+### What We Did
+1. **Audited the current Threads posting path** across the client, media, analyst, scheduler, and Telegram layers
+2. **Mapped a clean adapter-based social architecture** that keeps Direct Threads as the live path and leaves room for Buffer later
+3. **Wrote a dedicated architecture document** at `CORTEX_SOCIAL_POSTING_ARCHITECTURE.md`
+
+### Why
+- The repo already has working Threads pieces, but they are still shaped around one platform
+- A clean adapter boundary prevents Cortex from growing one-off social flows for each platform
+
+### Purpose
+- Gives Cortex one reusable posting system instead of separate Threads and Buffer systems
+- Clarifies what should stay shared, what should be platform-specific, and what order to build in next
+
+### Steps Taken
+1. Read the current Threads client, image publishing flow, Threads analyst helpers, Telegram Threads commands, and scheduler context
+2. Identified the real current boundary: content logic, media creation, publishing, and engagement are only partly separated today
+3. Wrote a target design with a platform-neutral `PostRequest`, shared media layer, router, Direct Threads adapter, future Buffer adapter, and learning telemetry layer
+4. Defined a phased implementation order that keeps Direct Threads as default and makes Buffer opt-in only after access is proven
+
+### Results
+- Added `CORTEX_SOCIAL_POSTING_ARCHITECTURE.md` as the repo blueprint for future social-posting work
+- Locked in the recommendation to keep Direct Threads as the main path now and add Buffer later as an adapter, not a replacement
+
+### Suggested Next Steps
+- **Goal/Intent**: Turn the architecture map into a small first implementation pass
+- **Why/Purpose**: The repo already has enough Threads code to benefit from a clean boundary without a large rewrite
+- **Objectives**:
+  1. Introduce a shared `PostRequest` contract and wrap direct Threads posting behind an adapter
+  2. Keep `image_publisher.py` platform-neutral and move platform-specific behavior out of it
+  3. Add publish telemetry storage before any Buffer work starts
+
+## Session 35 — Mar 8, 2026
+**Prompt:** Use simpler words in this repo's Copilot instructions and give suggestions from the full scan
+
+### What We Did
+1. **Added a plain-language preference** to the workspace Copilot instructions
+2. **Recorded the correction** in `lessons.md` so future writeups stay simpler by default
+3. **Prepared repo-level suggestions** based on the full architecture scan
+
+### Why
+- The user asked for simpler wording in future explanations
+- The repo already has strong technical guidance, but not an explicit plain-language preference
+
+### Purpose
+- Makes future explanations easier to read during planning, reviews, and reports
+- Keeps the communication style aligned with the architect's preference while preserving technical accuracy
+
+### Steps Taken
+1. Updated `.github/copilot-instructions.md` to prefer plain, simple user-facing language
+2. Added a matching rule to `.github/lessons.md`
+3. Used the completed codebase scan as the basis for concrete next-step suggestions
+
+### Results
+- Workspace instructions now explicitly prefer simple wording over rare or academic terms
+- Future summaries in this repo should stay clearer and easier to scan
+
+### Suggested Next Steps
+- **Goal/Intent**: Turn the scan into action
+- **Why/Purpose**: The codebase is now well-mapped; the next value comes from picking the right bottleneck and fixing it
+- **Objectives**:
+  1. Decide whether to focus next on verifier wiring, unsupervised runtime proof, or revenue loop proof
+  2. If needed, rewrite `CORTEX_CODEBASE_FINDINGS.md` in simpler language too
+
+## Session 34 — Mar 8, 2026
+**Prompt:** Scan the repo deeply and create one comprehensive markdown report of the findings
+
+### What We Did
+1. **Scanned the repo architecture, note corpus, and runtime entrypoints** to map the actual Cortex system
+2. **Read the main Brain, Hands, signal, orchestration, identity, and verification modules** rather than relying only on summaries
+3. **Created a consolidated findings report** at `CORTEX_CODEBASE_FINDINGS.md`
+
+### Why
+- The repo has a large amount of architectural intent spread across docs, notes, and implementation files
+- A single consolidated report makes it easier to understand what Cortex is, how it works, which agents exist, and where proof still lags the vision
+
+### Purpose
+- Gives the architect one reference file for the current high-level system understanding
+- Distinguishes actual runtime architecture from older or more speculative planning snapshots
+- Makes future implementation and review work faster by reducing context fragmentation
+
+### Steps Taken
+1. Read the core doctrine files in `my-notes.md/`, `README.md`, and `agent-brain/`
+2. Read the central runtime files: `main.py`, `scheduler.py`, `watchdog.py`, `sync.py`, `outcome_feedback.py`, `llm_router.py`, `protocol.py`, and the signal pipeline
+3. Read the main Brain agent modules and core Hands planner/executor files
+4. Cross-checked the code against handoff and inventory markdown files to identify stable truths versus snapshot drift
+5. Wrote `CORTEX_CODEBASE_FINDINGS.md` as a comprehensive synthesis
+
+### Results
+- Produced a consolidated report describing Cortex's vision, actual architecture, agent inventory, runtime flows, strengths, and gaps
+- Confirmed that the Brain, Hands, signal pipeline, scheduler/watchdog, identity injection, and Brain-to-Hands feedback loops are all materially implemented
+- Identified verification, business-outcome grounding, and some philosophical concepts like the Observable Horizon as the main areas where implementation still lags doctrine
+
+### Suggested Next Steps
+- **Goal/Intent**: Turn the consolidated scan into a sharper execution aid
+- **Why/Purpose**: The report now explains the system, but the next useful move is to operationalize that understanding against current priorities
+- **Objectives**:
+  1. Build a proven vs partial vs aspirational matrix tied to specific files
+  2. Rank the top bottlenecks preventing the current system from achieving the intended autonomous loop
+  3. Trim or consolidate stale markdown files that duplicate newer doctrine
+
 ## Session 33 — Mar 8, 2026
 **Prompt:** Extract the best `allstar` idea and apply it in current `main`
 
@@ -1379,6 +1711,7 @@ Built and wired all three priority improvements:
 | Build Spec Generator | **Working.** DeepSeek generates product specs from 70+ score signals. |
 | Engagement Feedback | **Working.** Tracks upvote/comment deltas on high-scoring posts. |
 | Chat Mode | **Working.** 24 tools, interpretability-first, persistent sessions. |
+| Buffer X Path | **Working.** Runtime `.env` loading fixed; local draft -> confirm -> send flow verified live on Mar 8. |
 | Verifier | **Wired to CLI.** Not yet integrated into automatic loop. |
 | Agent Hands | **Code exists, untested in production.** 18 iterations of executor code. |
 | Dashboard | **Code exists, cosmetic.** Not used in practice. |

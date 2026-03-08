@@ -348,8 +348,16 @@ Return ONLY a JSON object:
             messages=[{"role": "user", "content": f"Write a {style} post about {topic}."}],
             max_tokens=800,
         )
-        
-        text = response.get("text", "") if isinstance(response, dict) else str(response)
+
+        text_parts = []
+        if isinstance(response, dict):
+            text = response.get("text", "")
+        else:
+            for block in getattr(response, "content", []) or []:
+                if getattr(block, "type", None) == "text" and getattr(block, "text", ""):
+                    text_parts.append(block.text)
+            text = "\n".join(text_parts).strip()
+
         result = extract_json(text)
         
         if result and "text" in result:

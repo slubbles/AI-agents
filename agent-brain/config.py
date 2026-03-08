@@ -226,6 +226,16 @@ VAULT_PASSPHRASE_ENV = "VAULT_PASSPHRASE"  # env var name for vault master passp
 THREADS_ENABLED = bool(os.environ.get("THREADS_ACCESS_TOKEN", ""))
 THREADS_MAX_SEARCHES_PER_RUN = 3          # max Threads searches per research run
 
+# --- Discord Content Factory ---
+DISCORD_ENABLED = bool(os.environ.get("DISCORD_BOT_TOKEN", ""))
+CONTENT_FACTORY_ENABLED = os.environ.get("CONTENT_FACTORY_ENABLED", "true").lower() in ("true", "1", "yes")
+CONTENT_FACTORY_SCHEDULE_HOUR = int(os.environ.get("CONTENT_FACTORY_SCHEDULE_HOUR", "8"))
+CONTENT_FACTORY_TIMEZONE = os.environ.get("CONTENT_FACTORY_TIMEZONE", "UTC")
+CONTENT_FACTORY_AUTO_PUBLISH_X = os.environ.get("CONTENT_FACTORY_AUTO_PUBLISH_X", "false").lower() in ("true", "1", "yes")
+CONTENT_FACTORY_AUTO_PUBLISH_THREADS = os.environ.get("CONTENT_FACTORY_AUTO_PUBLISH_THREADS", "false").lower() in ("true", "1", "yes")
+CONTENT_FACTORY_X_MODE = os.environ.get("CONTENT_FACTORY_X_MODE", "addToQueue")
+CONTENT_FACTORY_X_SAVE_TO_DRAFT = os.environ.get("CONTENT_FACTORY_X_SAVE_TO_DRAFT", "true").lower() in ("true", "1", "yes")
+
 # --- Vercel Blob (image hosting for Threads posts) ---
 # Create a Blob store at vercel.com → your project → Storage → Blob
 # then copy BLOB_READ_WRITE_TOKEN to VPS .env

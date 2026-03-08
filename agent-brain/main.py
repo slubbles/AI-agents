@@ -857,6 +857,17 @@ def main():
     parser.add_argument("--reality-focus", default="", help="Optional extra focus for --reality-check")
     parser.add_argument("--engagement-check", action="store_true", help="Check engagement changes on high-scoring opportunities")
 
+    # Buffer — Personal API X testing
+    parser.add_argument("--buffer-status", action="store_true", help="Show Buffer account status and connected X channels")
+    parser.add_argument("--buffer-test-x", nargs="?", const="", metavar="TEXT", help="Create a safe draft test post on the first connected Buffer X channel")
+    parser.add_argument("--buffer-supervised-status", action="store_true", help="Show the pending supervised X draft queue")
+    parser.add_argument("--buffer-draft-x", metavar="TEXT", help="Queue a supervised X draft that requires explicit confirmation")
+    parser.add_argument("--buffer-confirm-x", nargs="?", const="", metavar="DRAFT_ID", help="Confirm and send the next or specified supervised X draft live")
+    parser.add_argument("--buffer-cancel-x", nargs="?", const="", metavar="DRAFT_ID", help="Cancel the next or specified supervised X draft")
+    parser.add_argument("--discord-status", action="store_true", help="Show Discord content-factory channel status")
+    parser.add_argument("--content-factory-status", action="store_true", help="Show content-factory schedule and publish status")
+    parser.add_argument("--content-factory-run", action="store_true", help="Run the Discord content factory once now")
+
     # Transistor Systems (Core Reliability)
     parser.add_argument("--bootstrap", action="store_true", help="Bootstrap a new domain (cold-start reliability)")
     parser.add_argument("--calibration", action="store_true", help="Show cross-domain score calibration stats")
@@ -1252,6 +1263,43 @@ def main():
     if getattr(args, 'rag_search', None):
         from cli.tools_cmd import rag_search
         rag_search(args.rag_search, args.domain)
+        return
+
+    if getattr(args, 'buffer_status', False):
+        from cli.tools_cmd import buffer_status
+        buffer_status()
+        return
+    if getattr(args, 'buffer_test_x', None) is not None:
+        from cli.tools_cmd import buffer_test_x
+        buffer_test_x(args.buffer_test_x)
+        return
+    if getattr(args, 'buffer_supervised_status', False):
+        from cli.tools_cmd import buffer_supervised_status
+        buffer_supervised_status()
+        return
+    if getattr(args, 'buffer_draft_x', None):
+        from cli.tools_cmd import buffer_draft_x
+        buffer_draft_x(args.buffer_draft_x)
+        return
+    if getattr(args, 'buffer_confirm_x', None) is not None:
+        from cli.tools_cmd import buffer_confirm_x
+        buffer_confirm_x(args.buffer_confirm_x or None)
+        return
+    if getattr(args, 'buffer_cancel_x', None) is not None:
+        from cli.tools_cmd import buffer_cancel_x
+        buffer_cancel_x(args.buffer_cancel_x or None)
+        return
+    if getattr(args, 'discord_status', False):
+        from cli.tools_cmd import discord_status
+        discord_status()
+        return
+    if getattr(args, 'content_factory_status', False):
+        from cli.tools_cmd import content_factory_status
+        content_factory_status()
+        return
+    if getattr(args, 'content_factory_run', False):
+        from cli.tools_cmd import content_factory_run
+        content_factory_run(force=True)
         return
 
     # MCP commands

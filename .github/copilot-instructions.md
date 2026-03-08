@@ -216,6 +216,9 @@ Threshold: score ≥ 6 to accept. Below 6 → retry with critique feedback (max 
 
 - Language: Python 3.12+
 - Respond concisely and directly
+- Use plain, simple language in user-facing explanations by default
+- Avoid rare or academic words when a common word works just as well
+- If a technical term is needed, explain it in simple words
 - Structured output from agents: always JSON
 - Error handling: wrap gracefully, never crash the loop
 - All agent outputs logged with timestamp, score, strategy version, domain

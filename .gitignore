@@ -2,6 +2,7 @@
 agent-brain/.env
 __pycache__/
 *.pyc
+entire-conversation.md
 openclaw/
 agent-brain/output/
 agent-brain/logs/agent_brain.db

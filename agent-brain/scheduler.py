@@ -2184,6 +2184,21 @@ def run_daemon(
             # === Cortex daily assessment (strategic layer) ===
             cortex_daily_assessment(cycle)
 
+            # === Discord content factory (daily 8 AM slot) ===
+            try:
+                from content_factory import run_content_factory_if_due
+
+                content_result = run_content_factory_if_due()
+                if content_result.get("ok") and not content_result.get("skipped"):
+                    _log_daemon("Content factory: daily pack generated and dispatched")
+                elif not content_result.get("ok"):
+                    _log_daemon(
+                        f"Content factory failed: {content_result.get('error', 'unknown error')}",
+                        "warning",
+                    )
+            except Exception as e:
+                _log_daemon(f"Content factory error: {e}", "warning")
+
             # Log rotation (every 10 cycles to prevent unbounded growth)
             if cycle % 10 == 0:
                 _rotate_logs()

@@ -447,13 +447,73 @@ def _markdown_to_telegram(text: str) -> str:
     return text
 
 
+def _build_x_knowledge_context(domain: str) -> str:
+    """Build generation context for X drafts from Brain knowledge and recent X history."""
+    from memory_store import load_knowledge_base
+
+    kb = load_knowledge_base(domain) or {}
+    knowledge_context = kb.get("summary") or kb.get("domain_summary") or ""
+    try:
+        from tools.buffer_client import get_recent_x_posts
+
+        recent_posts = get_recent_x_posts(limit=8)
+        recent_texts = [post.get("text", "").strip() for post in recent_posts if post.get("text")]
+        if recent_texts:
+            trimmed = "\n".join(f"- {text[:220]}" for text in recent_texts[:5])
+            knowledge_context = (knowledge_context + "\n\nRecent X posts to avoid repeating:\n" + trimmed).strip()
+    except Exception:
+        pass
+    return knowledge_context
+
+
+def _generate_x_draft_batch(domain: str, topic: str, count: int) -> list[dict]:
+    """Generate and queue multiple X drafts from Cortex knowledge."""
+    from agents.threads_analyst import generate_post
+    from tools.buffer_client import create_x_supervised_draft
+
+    styles = ["authentic", "insight", "question", "contrarian", "story"]
+    knowledge_context = _build_x_knowledge_context(domain)
+    drafts = []
+    seen_texts = set()
+
+    for style in styles:
+        if len(drafts) >= count:
+            break
+        result = generate_post(
+            domain=domain,
+            topic=topic,
+            style=style,
+            knowledge_context=knowledge_context,
+            max_length=280,
+        )
+        text = (result.get("text") or "").strip()
+        if not text:
+            continue
+        if result.get("hook_type") == "error" or text.lower().startswith("error generating post:"):
+            continue
+        text_key = text.lower()
+        if text_key in seen_texts:
+            continue
+        queued = create_x_supervised_draft(text)
+        seen_texts.add(text_key)
+        drafts.append(
+            {
+                "draft_id": queued.get("pending", {}).get("draft_id"),
+                "text": queued.get("pending", {}).get("text", text),
+                "style": style,
+            }
+        )
+
+    return drafts
+
+
 # ── Bot Commands ───────────────────────────────────────────────────────
 
 def _handle_command(chat_id: str, command: str) -> str | None:
     """Handle /commands. Returns response text, or None if not a command."""
-    cmd = command.strip().lower()
+    cmd = command.strip()
     parts = cmd.split(None, 1)
-    cmd_name = parts[0]
+    cmd_name = parts[0].lower() if parts else ""
     cmd_arg = parts[1] if len(parts) > 1 else ""
     
     if cmd_name == "/start":
@@ -482,6 +542,13 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "/threads insights — Engagement stats\n"
             "/threads analytics — Profile analytics\n"
             "/threads thread &lt;id&gt; — Stats for a specific post\n\n"
+            "<b>X Commands:</b>\n"
+            "/x posts [n] — Show recent X posts from Buffer\n"
+            "/x queue — Show pending X drafts waiting for approval\n"
+            "/x draft &lt;text&gt; — Add one X draft to the queue\n"
+            "/x send [draft_id] — Send the next or specified queued draft\n"
+            "/x cancel [draft_id] — Cancel the next or specified queued draft\n"
+            "/create-x-posts [count] &lt;topic&gt; — Generate and queue X drafts from Cortex knowledge\n\n"
             "<b>System Commands:</b>\n"
             "/status — System status + budget\n"
             "/kitchen — What's cooking right now (live daemon view)\n"
@@ -506,6 +573,157 @@ def _handle_command(chat_id: str, command: str) -> str | None:
             "• 'What does researcher.py do?'\n\n"
             "Chat model: Gemini Flash (cheap + reasoning). Orchestrator: Claude Sonnet."
         )
+
+    if cmd_name == "/x":
+        try:
+            from tools.buffer_client import (
+                BufferAPIError,
+                MAX_PENDING_X_DRAFTS,
+                cancel_x_supervised_post,
+                confirm_x_supervised_post,
+                create_x_supervised_draft,
+                get_pending_x_queue,
+                get_recent_x_posts,
+                is_configured as buffer_configured,
+            )
+        except ImportError as exc:
+            return f"❌ Buffer X tools unavailable: {exc}"
+
+        if not buffer_configured():
+            return "⚠️ <b>Buffer X is not configured</b>\n\nSet BUFFER_API_KEY in .env first."
+
+        sub_parts = cmd_arg.split(None, 1) if cmd_arg else []
+        sub_cmd = sub_parts[0].lower() if sub_parts else "help"
+        sub_arg = sub_parts[1] if len(sub_parts) > 1 else ""
+
+        if sub_cmd == "help" or not cmd_arg:
+            return (
+                "🐦 <b>X Commands</b>\n\n"
+                "/x posts [n] — Show recent X posts from Buffer\n"
+                "/x queue — Show the local approval queue\n"
+                "/x draft &lt;text&gt; — Add one X draft to the queue\n"
+                "/x send [draft_id] — Send the next or specified queued draft\n"
+                "/x cancel [draft_id] — Cancel the next or specified queued draft\n"
+                "/create-x-posts [count] &lt;topic&gt; — Generate and queue drafts from Cortex knowledge\n\n"
+                f"Queue limit: {MAX_PENDING_X_DRAFTS} drafts"
+            )
+
+        if sub_cmd == "posts":
+            limit = 5
+            if sub_arg:
+                try:
+                    limit = max(1, min(int(sub_arg), 15))
+                except ValueError:
+                    return "Usage: /x posts [n]"
+            try:
+                posts = get_recent_x_posts(limit=limit)
+            except BufferAPIError as exc:
+                return f"❌ Could not read X posts: {exc}"
+            if not posts:
+                return "🐦 No recent X posts found through Buffer."
+            lines = [f"🐦 <b>Recent X Posts</b> (last {len(posts)})\n"]
+            for index, post in enumerate(posts, start=1):
+                when = post.get("sentAt") or post.get("createdAt") or "?"
+                lines.append(
+                    f"{index}. <b>{post.get('status', '?')}</b> • {when[:16]}\n"
+                    f"   id: <code>{post.get('id', '?')}</code>\n"
+                    f"   {post.get('text', '')[:220]}"
+                )
+            return "\n\n".join(lines)
+
+        if sub_cmd == "queue":
+            queue = get_pending_x_queue()
+            if not queue:
+                return "🐦 No pending X drafts waiting for approval."
+            lines = [f"🐦 <b>Pending X Queue</b> ({len(queue)}/{MAX_PENDING_X_DRAFTS})\n"]
+            for index, draft in enumerate(queue, start=1):
+                lines.append(
+                    f"{index}. <code>{draft.get('draft_id', '?')}</code>\n"
+                    f"   {draft.get('text', '')[:220]}"
+                )
+            return "\n\n".join(lines)
+
+        if sub_cmd == "draft":
+            if not sub_arg.strip():
+                return "Usage: /x draft <text>"
+            try:
+                result = create_x_supervised_draft(sub_arg)
+            except BufferAPIError as exc:
+                return f"❌ Could not queue X draft: {exc}"
+            pending = result.get("pending", {})
+            return (
+                "📝 <b>X Draft Queued</b>\n\n"
+                f"Draft ID: <code>{pending.get('draft_id', '?')}</code>\n"
+                f"Queue: {result.get('queue_size', '?')}/{result.get('queue_limit', '?')}\n\n"
+                f"{pending.get('text', '')}"
+            )
+
+        if sub_cmd == "send":
+            try:
+                result = confirm_x_supervised_post(sub_arg.strip() or None)
+            except BufferAPIError as exc:
+                return f"❌ Could not send X draft: {exc}"
+            post = result.get("post", {})
+            source = result.get("confirmed_from", {})
+            return (
+                "✅ <b>X Post Sent</b>\n\n"
+                f"Draft: <code>{source.get('draft_id', '?')}</code>\n"
+                f"Post ID: <code>{post.get('id', '?')}</code>\n"
+                f"Status: {post.get('status', '?')}\n"
+                f"Queue left: {result.get('remaining_queue_size', '?')}\n\n"
+                f"{post.get('text', '')}"
+            )
+
+        if sub_cmd == "cancel":
+            try:
+                result = cancel_x_supervised_post(sub_arg.strip() or None)
+            except BufferAPIError as exc:
+                return f"❌ Could not cancel X draft: {exc}"
+            if not result.get("cleared"):
+                return "🐦 No pending X draft to cancel."
+            pending = result.get("pending", {})
+            return (
+                "🗑 <b>X Draft Removed</b>\n\n"
+                f"Draft: <code>{pending.get('draft_id', '?')}</code>\n"
+                f"Queue left: {result.get('remaining_queue_size', '?')}"
+            )
+
+        return f"Unknown X sub-command: {sub_cmd}. Use /x for help."
+
+    if cmd_name == "/create-x-posts":
+        if not cmd_arg.strip():
+            return (
+                "🐦 <b>Create X Posts</b>\n\n"
+                "Usage: /create-x-posts [count] <topic>\n"
+                "Examples:\n"
+                "  /create-x-posts onboarding analytics\n"
+                "  /create-x-posts 5 saas onboarding mistakes"
+            )
+
+        count = 3
+        topic = cmd_arg.strip()
+        first, *rest = topic.split(None, 1)
+        if first.isdigit() and rest:
+            count = max(1, min(int(first), 5))
+            topic = rest[0].strip()
+
+        domain = _conversations.get_domain(chat_id)
+        try:
+            drafts = _generate_x_draft_batch(domain, topic, count)
+        except Exception as exc:
+            return f"❌ Failed to create X drafts: {exc}"
+
+        if not drafts:
+            return "❌ Cortex could not create any X drafts for that topic."
+
+        lines = [f"📝 <b>X Draft Batch Created</b>\n\nDomain: {domain}\nTopic: {topic}\nDrafts queued: {len(drafts)}\n"]
+        for index, draft in enumerate(drafts, start=1):
+            lines.append(
+                f"{index}. <code>{draft.get('draft_id', '?')}</code> • {draft.get('style', '?')}\n"
+                f"   {draft.get('text', '')[:220]}"
+            )
+        lines.append("\nUse /x queue to review, then /x send <draft_id> to publish one.")
+        return "\n\n".join(lines)
     
     if cmd_name == "/help":
         return _handle_command(chat_id, "/start")

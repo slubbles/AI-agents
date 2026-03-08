@@ -21,7 +21,10 @@ import os
 import sys
 import re
 import time as _time
-import readline  # enables arrow keys, history in input()
+try:
+    import readline  # enables arrow keys, history in input()
+except ImportError:  # Windows environments may not provide readline
+    readline = None
 from datetime import datetime, timezone
 from pathlib import Path
 

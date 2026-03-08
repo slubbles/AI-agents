@@ -170,6 +170,63 @@ class TestHandleCommand:
         from telegram_bot import _handle_command
         assert _handle_command("123", "/domains") is None
 
+    @patch("tools.buffer_client.is_configured", return_value=True)
+    @patch("tools.buffer_client.get_recent_x_posts")
+    def test_x_posts_command(self, mock_posts, mock_conf):
+        from telegram_bot import _handle_command
+        mock_posts.return_value = [
+            {"id": "x1", "status": "sent", "text": "Hello X", "createdAt": "2026-03-08T00:00:00Z", "sentAt": "2026-03-08T00:01:00Z"}
+        ]
+        result = _handle_command("123", "/x posts 1")
+        assert "Recent X Posts" in result
+        assert "Hello X" in result
+
+    @patch("tools.buffer_client.is_configured", return_value=True)
+    @patch("tools.buffer_client.get_pending_x_queue")
+    def test_x_queue_command(self, mock_queue, mock_conf):
+        from telegram_bot import _handle_command
+        mock_queue.return_value = [{"draft_id": "xdraft_1", "text": "queued text"}]
+        result = _handle_command("123", "/x queue")
+        assert "Pending X Queue" in result
+        assert "xdraft_1" in result
+
+    @patch("tools.buffer_client.is_configured", return_value=True)
+    @patch("tools.buffer_client.create_x_supervised_draft")
+    def test_x_draft_command_preserves_case(self, mock_create, mock_conf):
+        from telegram_bot import _handle_command
+        mock_create.return_value = {
+            "pending": {"draft_id": "xdraft_1", "text": "Hello From Cortex"},
+            "queue_size": 1,
+            "queue_limit": 10,
+        }
+        result = _handle_command("123", "/x draft Hello From Cortex")
+        mock_create.assert_called_once_with("Hello From Cortex")
+        assert "Hello From Cortex" in result
+
+    @patch("tools.buffer_client.is_configured", return_value=True)
+    @patch("tools.buffer_client.confirm_x_supervised_post")
+    def test_x_send_command(self, mock_send, mock_conf):
+        from telegram_bot import _handle_command
+        mock_send.return_value = {
+            "post": {"id": "post_1", "status": "sent", "text": "ship it"},
+            "confirmed_from": {"draft_id": "xdraft_1"},
+            "remaining_queue_size": 0,
+        }
+        result = _handle_command("123", "/x send xdraft_1")
+        assert "X Post Sent" in result
+        assert "xdraft_1" in result
+
+    @patch("telegram_bot._generate_x_draft_batch")
+    def test_create_x_posts_command(self, mock_batch):
+        from telegram_bot import _handle_command
+        mock_batch.return_value = [
+            {"draft_id": "xdraft_1", "text": "draft one", "style": "authentic"},
+            {"draft_id": "xdraft_2", "text": "draft two", "style": "insight"},
+        ]
+        result = _handle_command("123", "/create-x-posts 2 saas onboarding")
+        assert "X Draft Batch Created" in result
+        assert "xdraft_1" in result
+
 
 # ── Message Sending ───────────────────────────────────────────────────
 
