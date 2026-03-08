@@ -94,13 +94,6 @@ If a monthly priority is set, weight questions toward it over other objectives.
 Ask yourself for each question: "Does answering this move us closer to a specific objective?"
 If not, discard it.
 """
-directly serve this goal. Do NOT generate generic academic questions. Do NOT
-research market statistics, industry reports, or theoretical frameworks unless
-they directly help the user achieve their stated goal.
-
-Ask yourself for each question: "Does answering this question move the user
-closer to their goal?" If not, discard it.
-"""
     
     return f"""\
 You are a learning strategist for an autonomous research system. TODAY'S DATE: {today}.
