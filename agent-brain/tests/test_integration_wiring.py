@@ -261,6 +261,27 @@ class TestSignalsCLIWiring:
         assert "def run_reality_check(" in source
 
 
+class TestOutcomeFeedbackWiring:
+    """Verify outcome feedback is wired into CLI and daemon loop."""
+
+    def test_outcome_feedback_argparse_flag(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "--process-feedback" in source
+
+    def test_outcome_feedback_dispatch_wired(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "main.py")) as f:
+            source = f.read()
+        assert "from outcome_feedback import process_pending_feedback" in source
+        assert "result = process_pending_feedback(" in source
+
+    def test_outcome_feedback_daemon_wired(self):
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "scheduler.py")) as f:
+            source = f.read()
+        assert "from outcome_feedback import process_pending_feedback" in source
+        assert "Outcome feedback: processed" in source
+
+
 # ============================================================
 # Deploy → CLI Wiring Tests
 # ============================================================

@@ -4,6 +4,84 @@ Every session, what we did, why, how, and results. Newest first.
 
 ---
 
+## Session 33 — Mar 8, 2026
+**Prompt:** Extract the best `allstar` idea and apply it in current `main`
+
+### What We Did
+1. **Implemented outcome feedback in current `main`** as a native module instead of merging `allstar`
+2. **Wired the daemon to process completed Hands outcomes into Brain lessons** after task execution cycles
+3. **Added a manual CLI backfill path** so completed tasks can be processed on demand without waiting for the daemon
+4. **Added focused tests for lesson extraction, duplicate protection, and wiring**
+
+### Why
+- The highest-leverage missing piece was still the Brain <- Hands learning loop
+- Current `main` already created tasks and stored execution results, but it did not systematically convert those outcomes into reusable Brain lessons
+- Pulling the whole branch was high risk; porting the loop-closure idea directly into current architecture was the safer move
+
+### Purpose
+- Makes the system learn from real execution outcomes, not just research critiques
+- Improves the research layer using actual build/deploy/action results from Hands
+- Preserves current branch architecture while capturing the best idea from `allstar`
+
+### Steps Taken
+1. Added `outcome_feedback.py` to read completed and failed sync tasks, extract lessons, and mark feedback as processed
+2. Reused `research_lessons.add_lesson()` so the feedback lands in the existing Brain memory path
+3. Wired `process_pending_feedback()` into the daemon after Hands auto-execution
+4. Added `--process-feedback` in `main.py` for manual processing and backfill
+5. Added tests covering successful execution lessons, failure lessons, timeout lessons, feedback stats, and CLI/daemon source wiring
+
+### Results
+- Focused verification passed: `tests/test_outcome_feedback.py`, `tests/test_integration_wiring.py`, and `tests/test_sync.py`
+- Full suite still has unrelated pre-existing failures outside this change set, including `agents/question_generator.py` syntax breakage, API-key-dependent tests, and an existing non-atomic `json.dump` usage in `telegram_bot.py`
+
+### Suggested Next Steps
+- **Goal/Intent**: Strengthen the execution-learning loop beyond basic lesson extraction
+- **Why/Purpose**: The loop is now closed, but it can become more decision-useful with richer signals and better reporting
+- **Objectives**:
+  1. Add richer lesson extraction from validation weaknesses and repeated failed phases
+  2. Surface outcome feedback stats in daemon reports and sync status views
+  3. Implement the next-best `allstar` salvage: post-confirmation strategy impact tracking
+
+## Session 32 — Mar 8, 2026
+**Prompt:** Compare the divergent `allstar` branch against current `main` and identify anything worth porting
+
+### What We Did
+1. **Compared `origin/allstar` against current `main`** at the commit, file, and module level
+2. **Inspected the strongest candidate modules directly** instead of treating the branch as a merge candidate
+3. **Mapped `allstar` ideas onto current mainline capabilities** to separate genuinely missing pieces from features already partially covered
+
+### Why
+- The branch is highly divergent and removes or rewrites many current systems, so the real question was not "should we merge it?" but "what ideas are still worth salvaging?"
+- The architect needs a practical answer tied to the real Cortex gap: closing the loop between research, execution, and learning
+- Without a concrete mapping, useful work from the branch would stay buried in history
+
+### Purpose
+- Prevents a risky branch merge while still capturing high-value ideas
+- Clarifies which missing pieces actually move Cortex toward the real autonomous thesis
+- Creates a ranked shortlist of features worth porting into the current architecture
+
+### Steps Taken
+1. Fetched and diffed `origin/allstar` against `main`
+2. Reviewed unique `allstar` commits and isolated the strongest feature cluster
+3. Inspected `outcome_feedback.py`, `strategy_impact.py`, and `degradation_detector.py`
+4. Compared those modules against current `scheduler.py`, `sync.py`, `research_lessons.py`, `strategy_store.py`, `analytics.py`, `domain_seeder.py`, and existing plateau/health logic
+5. Ranked the portable ideas by current leverage and implementation fit
+
+### Results
+- **Do not merge `allstar` wholesale**
+- **Best port candidate:** `outcome_feedback.py` because current `main` still lacks a clean Brain <- Hands feedback processor after task completion
+- **Second-best:** `strategy_impact.py` because it adds post-confirmation regression checks on top of the existing trial-evaluation logic
+- **Third-best:** `degradation_detector.py` because it adds slow-decay monitoring beyond the current short-horizon plateau and failure signals
+- `domain_bootstrap.py` and `domain_calibration.py` have some value, but current `main` already covers part of that ground via `domain_seeder.py`, analytics, and orchestration logic
+
+### Suggested Next Steps
+- **Goal/Intent**: Port the highest-leverage `allstar` idea into current `main` without importing branch divergence
+- **Why/Purpose**: The system still hands tasks to Hands and records results, but Brain does not yet reliably learn from those execution outcomes
+- **Objectives**:
+  1. Add an `outcome_feedback.py`-style module to process completed and failed sync tasks into `research_lessons`
+  2. Trigger that processor automatically after Hands task execution in the scheduler loop and expose a manual CLI hook
+  3. Add focused tests for duplicate protection, success lesson extraction, failure lesson extraction, and daemon integration
+
 ## Session 32 — Mar 7, 2026
 **Prompt:** Apply `.github` guidance as persistent Cursor context and consolidate the architect's notes into one unified markdown file
 

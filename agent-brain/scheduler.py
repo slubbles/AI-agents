@@ -2063,6 +2063,18 @@ def run_daemon(
                             f"Hands auto-exec: {successes}/{len(hands_results)} tasks succeeded"
                         )
 
+                # Feed completed Hands outcomes back into Brain lessons.
+                try:
+                    from outcome_feedback import process_pending_feedback
+                    feedback_result = process_pending_feedback()
+                    if feedback_result.get("processed", 0) > 0:
+                        _log_daemon(
+                            f"Outcome feedback: processed {feedback_result['processed']} task(s), "
+                            f"fed back {feedback_result['lessons_total']} lesson(s)"
+                        )
+                except Exception as e:
+                    _log_daemon(f"Outcome feedback failed: {e}", "warning")
+
                 # === Cortex post-cycle interpretation (strategic layer) ===
                 cortex_interpret_cycle(
                     cycle=cycle,

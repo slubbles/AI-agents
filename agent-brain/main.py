@@ -784,6 +784,7 @@ def main():
     parser.add_argument("--watchdog", action="store_true", help="Show watchdog status (circuit breaker, health, budget)")
     parser.add_argument("--sync", action="store_true", help="Show Brain↔Hands sync status")
     parser.add_argument("--sync-balance", type=float, metavar="AMOUNT", help="Update the API credit balance (e.g., --sync-balance 9.50)")
+    parser.add_argument("--process-feedback", action="store_true", help="Process completed Hands task results into Brain lessons")
 
     # Agent Hands — Execution Layer
     parser.add_argument("--execute", action="store_true", help="Execute a task using Agent Hands (code generation)")
@@ -1129,6 +1130,15 @@ def main():
     if getattr(args, 'sync', False):
         from cli.infrastructure import show_sync_status
         show_sync_status()
+        return
+    if getattr(args, 'process_feedback', False):
+        from outcome_feedback import process_pending_feedback
+        result = process_pending_feedback(args.domain if args.domain != DEFAULT_DOMAIN else None)
+        print(f"  Processed: {result.get('processed', 0)} task(s)")
+        print(f"  Lessons fed back: {result.get('lessons_total', 0)}")
+        domains = result.get('domains', [])
+        if domains:
+            print(f"  Domains: {', '.join(domains)}")
         return
     if getattr(args, 'sync_balance', None) is not None:
         new_balance = args.sync_balance
